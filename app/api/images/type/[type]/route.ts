@@ -14,7 +14,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      images: images.map(img => ({
+      images: images.map((img: any) => ({
         id: img.id,
         type: img.type,
         name: img.name,
