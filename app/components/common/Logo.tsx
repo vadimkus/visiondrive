@@ -58,12 +58,10 @@ export default function Logo({ className = 'h-[42px] w-[42px]', priority = false
 
   return (
     <div className={`relative ${className}`}>
-      <Image
-        src={imageSrc}
+      <img
+        src={imageSrc || undefined}
         alt="Vision Drive Logo"
-        fill
-        className="object-contain"
-        priority={priority}
+        className="w-full h-full object-contain"
         onError={() => setImageError(true)}
       />
     </div>
