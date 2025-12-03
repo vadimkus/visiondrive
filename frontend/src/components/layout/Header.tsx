@@ -72,10 +72,10 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              href="/contact"
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              href="/login"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-primary-600 border-2 border-primary-600 rounded-lg hover:bg-primary-50 transition-colors"
             >
-              Request Demo
+              Login
             </Link>
           </div>
 
@@ -102,26 +102,27 @@ export default function Header() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-gray-200"
             >
-              <div className="px-2 pt-2 pb-3 space-y-1">
-                {navigation.map((item) => (
+              <div className="lg:hidden border-t border-gray-200">
+                <div className="px-2 pt-2 pb-3 space-y-1">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
                   <Link
-                    key={item.name}
-                    href={item.href}
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md transition-colors"
+                    href="/login"
+                    className="block px-3 py-2 text-base font-medium text-primary-600 border-2 border-primary-600 rounded-md hover:bg-primary-50 transition-colors mt-2 text-center"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {item.name}
+                    Login
                   </Link>
-                ))}
-                <Link
-                  href="/contact"
-                  className="block px-3 py-2 text-base font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition-colors mt-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Request Demo
-                </Link>
+                </div>
               </div>
             </motion.div>
           )}
