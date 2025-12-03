@@ -14,29 +14,59 @@ import {
   ParkingCircle
 } from 'lucide-react'
 
+interface User {
+  id: string
+  email: string
+  name: string | null
+  role: string
+}
+
 export default function PortalPage() {
   const router = useRouter()
-  const [userEmail, setUserEmail] = useState('')
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('authToken')
-    const email = localStorage.getItem('userEmail')
-    
-    if (!token) {
-      router.push('/login')
-      return
+    // Fetch user data from API
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          router.push('/login')
+          return
+        }
+
+        const data = await response.json()
+        if (data.success && data.user) {
+          setUser(data.user)
+        } else {
+          router.push('/login')
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
+        router.push('/login')
+      } finally {
+        setLoading(false)
+      }
     }
-    
-    setUserEmail(email || '')
-    setLoading(false)
+
+    fetchUser()
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('userEmail')
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
     router.push('/login')
+    router.refresh()
   }
 
   if (loading) {
@@ -66,7 +96,7 @@ export default function PortalPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Dashboard Portal
               </h1>
-              <p className="text-gray-600">Welcome back, {userEmail}</p>
+              <p className="text-gray-600">Welcome back, {user?.name || user?.email || 'User'}</p>
             </div>
             <div className="flex items-center space-x-4">
               <button

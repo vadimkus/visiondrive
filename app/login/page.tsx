@@ -22,23 +22,38 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // TODO: Replace with actual API call
-      // For now, simple validation and redirect
-      if (formData.email && formData.password) {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Store auth token (in real app, get from API response)
-        localStorage.setItem('authToken', 'demo-token')
-        localStorage.setItem('userEmail', formData.email)
-        
-        // Redirect to portal
-        router.push('/portal')
-      } else {
+      if (!formData.email || !formData.password) {
         setError('Please enter both email and password')
+        setLoading(false)
+        return
       }
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        setError(data.error || 'Login failed. Please check your credentials.')
+        setLoading(false)
+        return
+      }
+
+      // Token is stored in HTTP-only cookie, no need for localStorage
+      // Redirect to portal
+      router.push('/portal')
+      router.refresh()
     } catch (err) {
-      setError('Login failed. Please check your credentials.')
+      console.error('Login error:', err)
+      setError('Login failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -65,16 +80,16 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Username / Email
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
-                    type="email"
+                    type="text"
                     id="email"
                     required
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="your.email@example.com"
+                    placeholder="admin"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
