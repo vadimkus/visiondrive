@@ -1,9 +1,15 @@
-import { PrismaClient } from '@prisma/client'
+import 'dotenv/config'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '../generated/prisma/client'
 import bcrypt from 'bcryptjs'
 import fs from 'fs'
 import path from 'path'
+import postgres from 'postgres'
 
-const prisma = new PrismaClient()
+const connectionString = process.env.DATABASE_URL!
+const sql = postgres(connectionString, { max: 1 })
+const adapter = new PrismaPg(sql)
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   // Create admin user
