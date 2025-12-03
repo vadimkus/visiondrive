@@ -9,10 +9,10 @@ const faqs = [
 export default function FAQSection() {
   return (
     <Section id="faq" background="gray">
-      <div className="max-w-2xl mx-auto space-y-4">
+      <div className="max-w-2xl mx-auto space-y-6">
         {faqs.map((faq, index) => (
-          <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">{faq.q}</h3>
+          <div key={index} className="text-center">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">{faq.q}</h3>
             <p className="text-sm text-gray-600">{faq.a}</p>
           </div>
         ))}

@@ -11,13 +11,13 @@ const metrics = [
 export default function DashboardPreview() {
   return (
     <Section id="dashboard" background="gray">
-      <div className="grid md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-4 gap-6 max-w-3xl mx-auto">
         {metrics.map((metric) => {
           const Icon = metric.icon
           return (
-            <div key={metric.label} className="bg-white rounded-lg p-4 text-center shadow-sm">
+            <div key={metric.label} className="text-center">
               <Icon className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</div>
+              <div className="text-xl font-bold text-gray-900 mb-1">{metric.value}</div>
               <div className="text-xs text-gray-600">{metric.label}</div>
             </div>
           )
