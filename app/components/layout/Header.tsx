@@ -2,35 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-// Logo component with fallback
-function Logo() {
-  const [imageError, setImageError] = useState(false)
-
-  if (imageError) {
-    return (
-      <div className="h-[42px] w-[42px] bg-primary-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-lg">V</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className="relative h-[42px] w-[42px]">
-      <Image
-        src="/images/logo/logo.png"
-        alt="Vision Drive Logo"
-        fill
-        className="object-contain"
-        priority
-        onError={() => setImageError(true)}
-      />
-    </div>
-  )
-}
+import Logo from '../common/Logo'
 
 const navigation = [
   { name: 'Home', href: '/' },

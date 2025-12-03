@@ -35,3 +35,28 @@ model User {
   @@map("users")
 }
 
+enum ImageType {
+  LOGO
+  FAVICON
+  HERO
+  PARTNER
+  APP_SCREENSHOT
+  OTHER
+}
+
+model Image {
+  id          String    @id @default(cuid())
+  type        ImageType
+  name        String    // e.g., "logo", "favicon-16x16", "hero-image"
+  mimeType    String    // e.g., "image/png", "image/jpeg"
+  data        String    @db.Text // Base64 encoded image data
+  width       Int?
+  height      Int?
+  alt         String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([type, name])
+  @@map("images")
+}
+
