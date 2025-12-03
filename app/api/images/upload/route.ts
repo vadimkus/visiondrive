@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
+import { ImageType } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,10 +41,11 @@ export async function POST(request: NextRequest) {
     let height: number | null = null
 
     // Create or update image
+    const imageType = type.toUpperCase() as ImageType
     const image = await prisma.image.upsert({
       where: {
         type_name: {
-          type: type as any,
+          type: imageType,
           name,
         },
       },
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
         alt: alt || null,
       },
       create: {
-        type: type as any,
+        type: imageType,
         name,
         mimeType: file.type,
         data: dataUrl,

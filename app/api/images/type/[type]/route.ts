@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { ImageType } from '@prisma/client'
 
 export async function GET(
   request: NextRequest,
@@ -7,14 +8,15 @@ export async function GET(
 ) {
   try {
     const { type } = await params
+    const imageType = type.toUpperCase() as ImageType
     const images = await prisma.image.findMany({
-      where: { type: type.toUpperCase() as any },
+      where: { type: imageType },
       orderBy: { name: 'asc' },
     })
 
     return NextResponse.json({
       success: true,
-      images: images.map((img: any) => ({
+      images: images.map((img) => ({
         id: img.id,
         type: img.type,
         name: img.name,
