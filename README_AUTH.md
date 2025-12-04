@@ -65,3 +65,4 @@ The `User` model includes:
 - `status` - ACTIVE, INACTIVE, or SUSPENDED
 - `createdAt` / `updatedAt` - Timestamps
 
+

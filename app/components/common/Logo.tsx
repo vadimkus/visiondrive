@@ -26,12 +26,15 @@ export default function Logo({ className = 'h-[42px] w-[42px]', priority = false
           if (data.success && data.image?.data) {
             setImageSrc(data.image.data)
           } else {
+            // Logo not found in database, show fallback
             setImageError(true)
           }
         } else {
+          // API error, show fallback
           setImageError(true)
         }
       } catch (error) {
+        // Network or other error, show fallback
         console.error('Failed to load logo:', error)
         setImageError(true)
       } finally {

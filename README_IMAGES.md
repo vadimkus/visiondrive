@@ -74,3 +74,4 @@ npm run db:seed  # This will upload the existing logo
 ✅ **Access control** - Admin-only uploads
 ✅ **Metadata storage** - Store dimensions, alt text, etc.
 
+

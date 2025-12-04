@@ -7,7 +7,11 @@ import path from 'path'
 import postgres from 'postgres'
 
 const connectionString = process.env.DATABASE_URL!
-const sql = postgres(connectionString, { max: 1 })
+const sql = postgres(connectionString, { 
+  max: 1,
+  ssl: { rejectUnauthorized: false },
+  connect_timeout: 10,
+})
 const adapter = new PrismaPg(sql)
 const prisma = new PrismaClient({ adapter })
 

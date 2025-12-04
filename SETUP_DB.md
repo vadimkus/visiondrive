@@ -50,3 +50,4 @@ The User model includes:
 - `role`: ADMIN, USER, or PARTNER
 - `status`: ACTIVE, INACTIVE, or SUSPENDED
 
+

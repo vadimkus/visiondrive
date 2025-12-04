@@ -29,7 +29,7 @@ export default function Header() {
                 <span className="text-xl font-semibold text-gray-900">
                   Vision <span className="text-primary-600">Drive</span>
                 </span>
-                <span className="text-xs text-gray-500 pl-[27.2px] underline">Guaranteed Parking</span>
+                <span className="text-xs text-gray-500 pl-[27.2px] underline decoration-gray-500 underline-offset-1">Guaranteed Parking</span>
               </div>
             </Link>
           </div>

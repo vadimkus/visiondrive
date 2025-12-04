@@ -1,11 +1,46 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import postgres from 'postgres'
+
+// Fallback: direct postgres connection for logo fetching
+async function getLogoDirect() {
+  const connectionString = process.env.DATABASE_URL!
+  const sql = postgres(connectionString, { 
+    max: 1,
+    ssl: { rejectUnauthorized: false },
+    connect_timeout: 5,
+  })
+  
+  try {
+    const result = await sql`
+      SELECT id, type, name, "mimeType", data, width, height, alt
+      FROM images
+      WHERE type = 'LOGO' AND name = 'logo'
+      LIMIT 1
+    `
+    
+    await sql.end()
+    return result[0] || null
+  } catch (error) {
+    await sql.end()
+    throw error
+  }
+}
 
 export async function GET() {
   try {
-    const logo = await prisma.image.findFirst({
-      where: { type: 'LOGO', name: 'logo' },
-    })
+    let logo
+    
+    // Try Prisma first, fallback to direct SQL if adapter fails
+    try {
+      logo = await prisma.image.findFirst({
+        where: { type: 'LOGO', name: 'logo' },
+      })
+    } catch (prismaError) {
+      // If Prisma adapter fails, use direct SQL connection
+      console.warn('Prisma adapter failed, using direct SQL:', prismaError)
+      logo = await getLogoDirect()
+    }
 
     if (!logo) {
       return NextResponse.json(
@@ -29,10 +64,12 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Logo fetch error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: 'Internal server error', details: process.env.NODE_ENV === 'development' ? errorMessage : undefined },
       { status: 500 }
     )
   }
 }
+
 
