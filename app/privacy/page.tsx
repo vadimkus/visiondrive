@@ -3,7 +3,8 @@ import Section from '../components/common/Section'
 export default function PrivacyPage() {
   return (
     <>
-      <Section className="pt-32 pb-12">
+      <div className="pt-24 sm:pt-28 md:pt-32">
+        <Section className="pb-12">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Privacy Policy
@@ -217,16 +218,22 @@ export default function PrivacyPage() {
                   Email: <a href="mailto:privacy@visiondrive.ae" className="text-primary-600 hover:underline">privacy@visiondrive.ae</a>
                 </p>
                 <p className="text-gray-700 mb-2">
-                  General: <a href="mailto:info@visiondrive.ae" className="text-primary-600 hover:underline">info@visiondrive.ae</a>
+                  General: <a href="mailto:ask@visiondrive.ae" className="text-primary-600 hover:underline">ask@visiondrive.ae</a>
                 </p>
-                <p className="text-gray-700">
-                  Address: Dubai, United Arab Emirates
+                <p className="text-gray-700 mb-2">
+                  Phone: <a href="tel:+971559152985" className="text-primary-600 hover:underline">+971 55 915 2985</a>
                 </p>
+                <div className="text-gray-700">
+                  <div>Office: VisionDrive, Ground floor</div>
+                  <div>RAKEZ Compass Coworking Centre</div>
+                  <div>Ras Al Khaimah, UAE</div>
+                </div>
               </div>
             </section>
           </div>
         </div>
       </Section>
+      </div>
     </>
   )
 }

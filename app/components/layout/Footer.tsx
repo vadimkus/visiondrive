@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Mail, Phone, MapPin, Linkedin, Twitter } from 'lucide-react'
+import { Mail, Phone, MapPin, MessageCircle, Facebook, Instagram } from 'lucide-react'
 import Logo from '../common/Logo'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { footerTranslations } from '../../translations/footer'
@@ -44,14 +44,47 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-sm text-gray-600 mb-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              {t.description}
+              {t.description.split('\n').map((line, index) => (
+                <span key={index}>
+                  {line}
+                  {index < t.description.split('\n').length - 1 && <br />}
+                </span>
+              ))}
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-500 hover:text-primary-600 transition-colors">
-                <Linkedin className="h-5 w-5" />
+              <a 
+                href="https://wa.me/971559152985" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-primary-600 transition-colors"
+                aria-label="WhatsApp"
+              >
+                <MessageCircle className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-500 hover:text-primary-600 transition-colors">
-                <Twitter className="h-5 w-5" />
+              <a 
+                href="mailto:ask@visiondrive.ae" 
+                className="text-gray-500 hover:text-primary-600 transition-colors"
+                aria-label="Email"
+              >
+                <Mail className="h-5 w-5" />
+              </a>
+              <a 
+                href="https://www.facebook.com/visiondrive" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-primary-600 transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="h-5 w-5" />
+              </a>
+              <a 
+                href="https://www.instagram.com/visiondrive" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-primary-600 transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="h-5 w-5" />
               </a>
             </div>
           </div>
@@ -117,7 +150,7 @@ export default function Footer() {
                 <div className="text-sm text-gray-700 break-words">
                   <div>Office: VisionDrive, Ground floor</div>
                   <div>RAKEZ Compass Coworking Centre</div>
-                  <div className="break-words">Al Shohada Road Al Hamra Industrial Zone, FZ - Ras Al Khaimah</div>
+                  <div>Ras Al Khaimah, UAE</div>
                 </div>
               </li>
             </ul>

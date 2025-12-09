@@ -104,7 +104,7 @@ export default function Header() {
 
           {/* Center: Desktop Navigation */}
           <div className="hidden lg:flex lg:items-center lg:justify-center lg:flex-1 lg:mx-4">
-            <div className="flex items-center space-x-3 xl:space-x-4 flex-wrap justify-center">
+            <div className={`flex items-center flex-wrap justify-center ${language === 'ar' ? 'space-x-4 xl:space-x-6' : 'space-x-3 xl:space-x-4'}`}>
               {navItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
@@ -125,9 +125,9 @@ export default function Header() {
           </div>
 
           {/* Right side: Contact Info, Language, User, Logout */}
-          <div className="hidden lg:flex lg:items-center flex-shrink-0">
+          <div className={`hidden lg:flex lg:items-center flex-shrink-0 ${language === 'ar' ? 'space-x-4' : ''}`}>
             {/* Contact Info */}
-            <div className="flex flex-col text-right mr-2">
+            <div className={`flex flex-col text-right ${language === 'ar' ? 'mr-4' : 'mr-2'}`}>
               <span className="text-xs font-medium text-gray-700">LoRaWAN Provider in the UAE</span>
               <a href="https://wa.me/971559152985" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-600 hover:text-primary-600 transition-colors">
                 +971 55 915 29 85 📱
@@ -136,10 +136,10 @@ export default function Header() {
                 ask@visiondrive.ae
               </a>
             </div>
-            <div className="mr-2">
+            <div className={language === 'ar' ? 'mr-4' : 'mr-2'}>
               <LanguageSelector />
             </div>
-            <div className="flex items-center space-x-1">
+            <div className={`flex items-center ${language === 'ar' ? 'space-x-2' : 'space-x-1'}`}>
               <Link
                 href={isLoggedIn ? "/portal" : "/login"}
                 className="inline-flex items-center justify-center p-2 hover:bg-gray-50 rounded-lg transition-colors"

@@ -11,7 +11,7 @@ export default function Hero() {
   const t = homeTranslations[language]
 
   return (
-    <section className="relative flex items-center justify-center min-h-[calc(100vh-200px)] py-4 sm:py-8">
+    <section className="relative flex items-center justify-center min-h-[calc(100vh-200px)] py-4 sm:py-8 pb-4 sm:pb-6">
       <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -22,10 +22,18 @@ export default function Hero() {
             {t.hero.title}{' '}
             <span className="text-primary-600">{t.hero.titleHighlight}</span>
           </h1>
-          <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto px-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-            {t.hero.subtitle}
+          <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6 max-w-2xl mx-auto px-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+            {t.hero.subtitle.includes('ParkSense App') ? (
+              <>
+                {t.hero.subtitle.replace(' - ParkSense App.', '')}
+                {' - '}
+                <span className="underline">ParkSense App</span>.
+              </>
+            ) : (
+              t.hero.subtitle
+            )}
           </p>
-          <div className="px-4">
+          <div className="px-4 mb-4 sm:mb-6">
             <Button href="/app/download" size="lg" className="group w-full sm:w-auto">
               {t.hero.cta}
               <ArrowRight className={`${language === 'ar' ? 'mr-2 rotate-180' : 'ml-2'} h-5 w-5 group-hover:translate-x-1 transition-transform`} />
