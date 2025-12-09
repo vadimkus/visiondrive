@@ -75,3 +75,6 @@ npm run db:seed  # This will upload the existing logo
 ✅ **Metadata storage** - Store dimensions, alt text, etc.
 
 
+
+
+

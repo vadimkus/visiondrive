@@ -1,19 +1,16 @@
 import 'dotenv/config'
-import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import fs from 'fs'
 import path from 'path'
-import postgres from 'postgres'
 
 const connectionString = process.env.DATABASE_URL!
-const sql = postgres(connectionString, { 
-  max: 1,
-  ssl: { rejectUnauthorized: false },
-  connect_timeout: 10,
+const isAccelerate = connectionString.startsWith('prisma+postgres://')
+
+// Prisma Accelerate URLs need accelerateUrl option
+const prisma = new PrismaClient({
+  accelerateUrl: isAccelerate ? connectionString : undefined,
 })
-const adapter = new PrismaPg(sql)
-const prisma = new PrismaClient({ adapter })
 
 async function main() {
   // Create admin user

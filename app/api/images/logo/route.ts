@@ -45,7 +45,12 @@ export async function GET() {
     if (!logo) {
       return NextResponse.json(
         { success: false, error: 'Logo not found' },
-        { status: 404 }
+        { 
+          status: 404,
+          headers: {
+            'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        }
       )
     }
 
@@ -61,13 +66,22 @@ export async function GET() {
         height: logo.height,
         alt: logo.alt,
       },
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      },
     })
   } catch (error) {
     console.error('Logo fetch error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
       { success: false, error: 'Internal server error', details: process.env.NODE_ENV === 'development' ? errorMessage : undefined },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
     )
   }
 }

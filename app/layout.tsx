@@ -1,10 +1,17 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
+import { LanguageProvider } from './contexts/LanguageContext'
 
 const inter = Inter({ subsets: ['latin'] })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+}
 
 export const metadata: Metadata = {
   title: 'Vision Drive - Smart Parking Solutions for the UAE',
@@ -13,8 +20,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'Vision Drive Technologies FZ-LLC' }],
   icons: {
     icon: [
-      { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon/favicon-64x64.png', sizes: '64x64', type: 'image/png' },
       { url: '/favicon.ico', sizes: 'any' },
     ],
     apple: [
@@ -38,10 +45,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Header />
-        <main>{children}</main>
-        <Footer />
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
+        <LanguageProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   )

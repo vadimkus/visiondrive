@@ -61,14 +61,14 @@ export default function LoginPage() {
 
   return (
     <>
-      <Section className="pt-32 pb-12">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg p-8 shadow-sm">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
-              Login to Portal
+      <Section className="pt-24 sm:pt-32 pb-12">
+        <div className="max-w-md mx-auto px-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 md:p-8 shadow-sm">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">
+              Login
             </h1>
-            <p className="text-sm text-gray-600 mb-8 text-center">
-              Access your Vision Drive dashboard
+            <p className="text-xs sm:text-sm text-gray-600 mb-6 sm:mb-8 text-center">
+              Vision Drive dashboard
             </p>
 
             {error && (
@@ -125,7 +125,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                 <label className="flex items-center">
                   <input type="checkbox" className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
                   <span className="ml-2 text-sm text-gray-600">Remember me</span>

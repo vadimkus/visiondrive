@@ -1,25 +1,27 @@
+'use client'
+
 import Section from '../../common/Section'
 import { Rocket, Target, TrendingUp } from 'lucide-react'
-
-const milestones = [
-  { icon: Rocket, year: '2024', title: 'Founded' },
-  { icon: Target, year: '2024', title: 'Pilot Launch' },
-  { icon: TrendingUp, year: '2025', title: 'Expansion' },
-]
+import { useLanguage } from '../../../contexts/LanguageContext'
+import { aboutTranslations } from '../../../translations/about'
 
 export default function CompanyMilestones() {
+  const { language } = useLanguage()
+  const t = aboutTranslations[language]
+  const icons = [Rocket, Target, TrendingUp]
+  
   return (
     <Section id="milestones" background="gray">
-      <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-        {milestones.map((milestone) => {
-          const Icon = milestone.icon
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto">
+        {t.milestones.items.map((milestone, index) => {
+          const Icon = icons[index]
           return (
-            <div key={milestone.title} className="text-center">
-              <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Icon className="h-6 w-6 text-white" />
+            <div key={index} className="text-center">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="text-xs font-semibold text-primary-600 mb-1">{milestone.year}</div>
-              <h3 className="text-lg font-semibold text-gray-900">{milestone.title}</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900" dir={language === 'ar' ? 'rtl' : 'ltr'}>{milestone.title}</h3>
             </div>
           )
         })}

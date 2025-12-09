@@ -38,11 +38,29 @@ export async function POST(request: NextRequest) {
     return response
   } catch (error) {
     console.error('Login error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
+    const errorDetails = error instanceof Error ? error.stack : String(error)
+    console.error('Login error details:', errorDetails)
+    
+    // Provide more helpful error messages
+    let statusCode = 500
+    let userMessage = errorMessage
+    
+    if (errorMessage.includes('Database connection failed')) {
+      userMessage = 'Database connection failed. Please check your database configuration.'
+      statusCode = 503 // Service Unavailable
+    } else if (errorMessage.includes('DATABASE_URL')) {
+      userMessage = 'Database configuration error. Please check your environment variables.'
+      statusCode = 500
+    }
+    
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { success: false, error: userMessage },
+      { status: statusCode }
     )
   }
 }
+
+
 
 
