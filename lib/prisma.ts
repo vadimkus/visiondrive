@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
-import { Pool } from 'postgres'
-import { PrismaPostgres } from '@prisma/adapter-pg'
+import postgres from 'postgres'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -13,12 +13,12 @@ const connectionString = process.env.DATABASE_URL
 const isAccelerate = connectionString?.startsWith('prisma+postgres://') ?? false
 
 // For non-Accelerate connections, use the adapter
-let adapter: PrismaPostgres | undefined
+let adapter: PrismaPg | undefined
 if (connectionString && !isAccelerate) {
   try {
     // Always use adapter for non-Accelerate connections
-    const pool = new Pool({ connectionString })
-    adapter = new PrismaPostgres(pool)
+    const sql = postgres(connectionString)
+    adapter = new PrismaPg(sql)
   } catch (error) {
     console.error('Failed to create Prisma adapter:', error)
   }
@@ -26,7 +26,7 @@ if (connectionString && !isAccelerate) {
 
 // Prisma Client requires either adapter or accelerateUrl
 const prismaConfig: {
-  adapter?: PrismaPostgres
+  adapter?: PrismaPg
   accelerateUrl?: string
   log?: ('error' | 'warn')[]
 } = {

@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
-import { Pool } from 'postgres'
-import { PrismaPostgres } from '@prisma/adapter-pg'
+import postgres from 'postgres'
+import { PrismaPg } from '@prisma/adapter-pg'
 import bcrypt from 'bcryptjs'
 import fs from 'fs'
 import path from 'path'
@@ -10,11 +10,11 @@ const connectionString = process.env.DATABASE_URL!
 const isAccelerate = connectionString.startsWith('prisma+postgres://')
 
 // For non-Accelerate connections, use the adapter
-let adapter: PrismaPostgres | undefined
+let adapter: PrismaPg | undefined
 if (!isAccelerate) {
   // Always use adapter for non-Accelerate connections
-  const pool = new Pool({ connectionString })
-  adapter = new PrismaPostgres(pool)
+  const sql = postgres(connectionString)
+  adapter = new PrismaPg(sql)
 }
 
 // Prisma Accelerate URLs need accelerateUrl option
