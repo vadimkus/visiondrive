@@ -4,7 +4,13 @@ import postgres from 'postgres'
 
 // Fallback: direct postgres connection for logo fetching
 async function getLogoDirect() {
-  const connectionString = process.env.DATABASE_URL!
+  // For direct connection, use non-Accelerate URL (skip prisma+postgres://)
+  const connectionString = 
+    (process.env.PRISMA_DATABASE_URL?.startsWith('prisma+postgres://')
+      ? undefined // Skip Accelerate URLs for direct connection
+      : process.env.PRISMA_DATABASE_URL 
+      || process.env.POSTGRES_URL 
+      || process.env.DATABASE_URL)!
   const sql = postgres(connectionString, { 
     max: 1,
     ssl: { rejectUnauthorized: false },

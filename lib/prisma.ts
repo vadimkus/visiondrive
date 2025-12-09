@@ -7,7 +7,13 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-const connectionString = process.env.DATABASE_URL
+// Check for Prisma Accelerate URL first, then regular Prisma URL, then fallback to DATABASE_URL
+const connectionString = 
+  process.env.PRISMA_DATABASE_URL?.startsWith('prisma+postgres://') 
+    ? process.env.PRISMA_DATABASE_URL
+    : process.env.PRISMA_DATABASE_URL 
+    || process.env.POSTGRES_URL 
+    || process.env.DATABASE_URL
 
 // Prisma Accelerate URLs (prisma+postgres://) need accelerateUrl option
 const isAccelerate = connectionString?.startsWith('prisma+postgres://') ?? false

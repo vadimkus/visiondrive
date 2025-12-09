@@ -97,7 +97,7 @@ export default function Header() {
                 <span className="text-lg sm:text-xl font-semibold text-gray-900">
                   Vision<span className="text-primary-600">Drive</span>
                 </span>
-                <span className="text-[9px] sm:text-[10.8px] text-gray-500 whitespace-nowrap">IoT Company</span>
+                <span className="text-[9px] sm:text-[10.8px] text-gray-500 whitespace-nowrap">IoT Company 🇦🇪</span>
               </div>
             </Link>
           </div>

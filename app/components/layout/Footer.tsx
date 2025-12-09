@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Mail, Phone, MapPin, MessageCircle, Facebook, Instagram } from 'lucide-react'
 import Logo from '../common/Logo'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -8,13 +9,14 @@ import { footerTranslations } from '../../translations/footer'
 
 export default function Footer() {
   const { language } = useLanguage()
+  const pathname = usePathname()
   const t = footerTranslations[language]
   
   const footerNavigation = {
     solutions: [
-      { name: t.solutionsLinks.communities, href: '/solutions#communities' },
-      { name: t.solutionsLinks.municipalities, href: '/solutions#municipalities' },
-      { name: t.solutionsLinks.technology, href: '/solutions#technology' },
+      { name: t.solutionsLinks.communities, href: '/communities' },
+      { name: t.solutionsLinks.municipalities, href: '/municipalities' },
+      { name: t.solutionsLinks.technology, href: '/technology' },
     ],
     company: [
       { name: t.companyLinks.vision, href: '/mission' },
@@ -40,7 +42,7 @@ export default function Footer() {
                 <span className="text-xl font-semibold text-gray-900">
                   Vision<span className="text-primary-600">Drive</span>
                 </span>
-                <span className="text-xs text-gray-500 ml-[15%]">IoT Company</span>
+                <span className="text-xs text-gray-500 ml-[15%]">IoT Company 🇦🇪</span>
               </div>
             </Link>
             <p className="text-sm text-gray-600 mb-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -95,16 +97,23 @@ export default function Footer() {
               {t.solutions}
             </h3>
             <ul className="space-y-2">
-              {footerNavigation.solutions.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-gray-700 hover:text-primary-600 transition-colors"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
+              {footerNavigation.solutions.map((item) => {
+                const isActive = pathname === item.href.split('#')[0]
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`text-sm transition-colors ${
+                        isActive 
+                          ? 'text-primary-600' 
+                          : 'text-gray-700 hover:text-primary-600'
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                )
+              })}
             </ul>
           </div>
 
@@ -114,16 +123,23 @@ export default function Footer() {
               {t.company}
             </h3>
             <ul className="space-y-2">
-              {footerNavigation.company.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-gray-700 hover:text-primary-600 transition-colors"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
+              {footerNavigation.company.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`text-sm transition-colors ${
+                        isActive 
+                          ? 'text-primary-600' 
+                          : 'text-gray-700 hover:text-primary-600'
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                )
+              })}
             </ul>
           </div>
 
@@ -159,15 +175,22 @@ export default function Footer() {
 
         <div className="pt-6 sm:pt-8">
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-6">
-            {footerNavigation.legal.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
+            {footerNavigation.legal.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`text-sm transition-colors ${
+                    isActive 
+                      ? 'text-primary-600' 
+                      : 'text-gray-600 hover:text-primary-600'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              )
+            })}
           </div>
           <div className="border-t border-gray-200 pt-6">
             <p className="text-xs sm:text-sm text-gray-500 text-center" dir={language === 'ar' ? 'rtl' : 'ltr'}>
