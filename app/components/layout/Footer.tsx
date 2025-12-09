@@ -18,7 +18,7 @@ export default function Footer() {
     ],
     company: [
       { name: t.companyLinks.vision, href: '/mission' },
-      { name: t.companyLinks.careers, href: '/about/careers' },
+      { name: t.companyLinks.careers, href: '/careers' },
       { name: t.companyLinks.blog, href: '/blog' },
       { name: t.companyLinks.faq, href: '/faq' },
     ],
