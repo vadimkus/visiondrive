@@ -21,6 +21,8 @@ export const footerTranslations = {
     legalLinks: {
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
+      compliance: 'Compliance',
+      certificates: 'Certificates',
     },
   },
   ar: {
@@ -45,6 +47,8 @@ export const footerTranslations = {
     legalLinks: {
       privacy: 'سياسة الخصوصية',
       terms: 'شروط الخدمة',
+      compliance: 'الامتثال',
+      certificates: 'الشهادات',
     },
   },
 }

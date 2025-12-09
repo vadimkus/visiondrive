@@ -1,7 +1,8 @@
-export default function TermsPage() {
+export default function CertificatesPage() {
   return (
     <div className="pt-20">
       {/* Blank page for now */}
     </div>
   )
 }
+
