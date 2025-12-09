@@ -125,7 +125,7 @@ export default function Header() {
           </div>
 
           {/* Right side: Contact Info, Language, User, Logout */}
-          <div className={`hidden lg:flex lg:items-center flex-shrink-0 overflow-visible ${language === 'ar' ? 'space-x-4' : ''}`}>
+          <div className={`hidden lg:flex lg:items-center flex-shrink-0 ${language === 'ar' ? 'space-x-4' : ''}`}>
             {/* Contact Info */}
             <div className={`flex flex-col text-right ${language === 'ar' ? 'mr-4' : 'mr-2'}`}>
               <span className="text-xs font-medium text-gray-700">LoRaWAN Provider in the UAE</span>
@@ -139,7 +139,7 @@ export default function Header() {
             <div className={language === 'ar' ? 'mr-4' : 'mr-2'}>
               <LanguageSelector />
             </div>
-            <div className={`flex items-center min-w-0 ${language === 'ar' ? 'space-x-3' : 'space-x-2'}`}>
+            <div className={`flex items-center ${language === 'ar' ? 'space-x-2' : 'space-x-1'}`}>
               <Link
                 href={isLoggedIn ? "/portal" : "/login"}
                 className="inline-flex items-center justify-center p-2 hover:bg-gray-50 rounded-lg transition-colors"
@@ -150,12 +150,10 @@ export default function Header() {
               {isLoggedIn && (
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center justify-center p-2 rounded-lg transition-colors bg-white border border-gray-200 hover:bg-red-50 hover:border-red-300 shadow-sm"
+                  className="inline-flex items-center justify-center p-2 hover:bg-gray-50 rounded-lg transition-colors"
                   aria-label="Logout"
-                  title="Logout"
-                  type="button"
                 >
-                  <LogOut className="h-5 w-5 text-gray-600 hover:text-red-600 transition-colors" />
+                  <LogOut className="h-5 w-5 text-gray-700 hover:text-red-600" />
                 </button>
               )}
             </div>
@@ -165,9 +163,8 @@ export default function Header() {
           <div className="flex lg:hidden">
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              className="inline-flex items-center justify-center p-2 text-gray-700 hover:text-gray-900"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {mobileMenuOpen ? (
                 <X className="h-6 w-6" aria-hidden="true" />
