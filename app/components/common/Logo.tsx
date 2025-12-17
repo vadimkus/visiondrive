@@ -8,7 +8,7 @@ interface LogoProps {
 }
 
 // Static logo path - use this for instant loading
-const STATIC_LOGO_PATH = '/images/logo/logo.png'
+const STATIC_LOGO_PATH = '/images/logo/logo.jpg'
 
 export default function Logo({ className = 'h-[42px] w-[42px]', priority = false }: LogoProps) {
   const [imageSrc, setImageSrc] = useState<string>(STATIC_LOGO_PATH)

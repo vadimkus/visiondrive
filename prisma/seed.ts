@@ -48,13 +48,19 @@ async function main() {
 
   console.log('✅ Created admin user:', admin.email)
 
-  // Upload logo to database if it exists
-  const logoPath = path.join(process.cwd(), 'public', 'images', 'logo', 'logo.png')
-  if (fs.existsSync(logoPath)) {
+  // Upload logo to database if it exists (prefer jpg, fallback to png)
+  const logoCandidates = [
+    { path: path.join(process.cwd(), 'public', 'images', 'logo', 'logo.jpg'), mimeType: 'image/jpeg' },
+    { path: path.join(process.cwd(), 'public', 'images', 'logo', 'logo.png'), mimeType: 'image/png' },
+  ]
+
+  const logoFile = logoCandidates.find(({ path }) => fs.existsSync(path))
+
+  if (logoFile) {
     try {
-      const logoBuffer = fs.readFileSync(logoPath)
+      const logoBuffer = fs.readFileSync(logoFile.path)
       const base64Data = logoBuffer.toString('base64')
-      const dataUrl = `data:image/png;base64,${base64Data}`
+      const dataUrl = `data:${logoFile.mimeType};base64,${base64Data}`
 
       const logo = await prisma.image.upsert({
         where: {
@@ -64,14 +70,14 @@ async function main() {
           },
         },
         update: {
-          mimeType: 'image/png',
+          mimeType: logoFile.mimeType,
           data: dataUrl,
           alt: 'Vision Drive Logo',
         },
         create: {
           type: 'LOGO',
           name: 'logo',
-          mimeType: 'image/png',
+          mimeType: logoFile.mimeType,
           data: dataUrl,
           alt: 'Vision Drive Logo',
         },
@@ -82,7 +88,7 @@ async function main() {
       console.error('Failed to upload logo:', error)
     }
   } else {
-    console.log('⚠️  Logo file not found at:', logoPath)
+    console.log('⚠️  Logo file not found at any of:', logoCandidates.map(({ path }) => path).join(', '))
   }
 }
 

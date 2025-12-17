@@ -39,7 +39,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center space-x-2 mb-2">
-              <Logo />
+              <Logo className="h-12 w-12 sm:h-[56px] sm:w-[56px]" />
               <div className="flex flex-col">
                 <span className="text-xl font-semibold text-gray-900">
                   Vision<span className="text-primary-600">Drive</span>
@@ -60,14 +60,14 @@ export default function Footer() {
                 href="https://wa.me/971559152985" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-primary-600 transition-colors"
+                className="text-green-500 hover:text-green-600 transition-colors"
                 aria-label="WhatsApp"
               >
                 <MessageCircle className="h-5 w-5" />
               </a>
               <a 
                 href="mailto:ask@visiondrive.ae" 
-                className="text-gray-500 hover:text-primary-600 transition-colors"
+                className="text-primary-600 hover:text-primary-700 transition-colors"
                 aria-label="Email"
               >
                 <Mail className="h-5 w-5" />
@@ -76,7 +76,7 @@ export default function Footer() {
                 href="https://www.facebook.com/visiondrive" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-primary-600 transition-colors"
+                className="text-[#1877F2] hover:text-[#0f5dcf] transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5" />
@@ -85,7 +85,7 @@ export default function Footer() {
                 href="https://www.instagram.com/visiondrive" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-primary-600 transition-colors"
+                className="text-pink-500 hover:text-pink-600 transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />

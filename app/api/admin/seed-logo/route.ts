@@ -18,9 +18,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Try both possible logo paths
+    // Try common logo paths (prefer jpg)
     const logoPaths = [
+      path.join(process.cwd(), 'public', 'images', 'logo', 'logo.jpg'),
       path.join(process.cwd(), 'public', 'images', 'logo', 'logo.png'),
+      path.join(process.cwd(), 'public', 'logo', 'logo.jpg'),
       path.join(process.cwd(), 'public', 'logo', 'logo.png'),
     ]
 
@@ -42,7 +44,9 @@ export async function POST(request: NextRequest) {
     // Read and encode logo
     const logoBuffer = fs.readFileSync(logoPath)
     const base64Data = logoBuffer.toString('base64')
-    const dataUrl = `data:image/png;base64,${base64Data}`
+    const extension = path.extname(logoPath).toLowerCase()
+    const mimeType = extension === '.jpg' || extension === '.jpeg' ? 'image/jpeg' : 'image/png'
+    const dataUrl = `data:${mimeType};base64,${base64Data}`
 
     // Upload to database
     const logo = await prisma.image.upsert({
@@ -53,14 +57,14 @@ export async function POST(request: NextRequest) {
         },
       },
       update: {
-        mimeType: 'image/png',
+        mimeType,
         data: dataUrl,
         alt: 'Vision Drive Logo',
       },
       create: {
         type: 'LOGO',
         name: 'logo',
-        mimeType: 'image/png',
+        mimeType,
         data: dataUrl,
         alt: 'Vision Drive Logo',
       },

@@ -46,23 +46,7 @@ export const appTranslations = {
       title: 'Reserve Your Spot Today',
       subtitle: 'Join 50,000+ Dubai drivers already saving time. First 1,000 users get free reservations for the first month.',
     },
-    testimonials: [
-      {
-        quote: 'Never worry about finding parking anymore! Saved 20 minutes daily in Dubai Marina.',
-        author: 'Sarah Al-Mazrouei',
-        location: 'Dubai Marina',
-      },
-      {
-        quote: 'The reservation feature is a game-changer. Now I always arrive at meetings on time.',
-        author: 'Mohammed Hassan',
-        location: 'Downtown Dubai',
-      },
-      {
-        quote: 'Simple, fast, and reliable. Best parking app in Dubai.',
-        author: 'Fatima Ali',
-        location: 'JLT',
-      },
-    ],
+    testimonials: [],
   },
   ar: {
     hero: {
@@ -111,23 +95,7 @@ export const appTranslations = {
       title: 'احجز مكانك اليوم',
       subtitle: 'انضم إلى أكثر من 50000 سائق في دبي يوفرون الوقت بالفعل. أول 1000 مستخدم يحصلون على حجوزات مجانية للشهر الأول.',
     },
-    testimonials: [
-      {
-        quote: 'لا تقلق بشأن البحث عن موقف بعد الآن! وفرت 20 دقيقة يومياً في دبي مارينا.',
-        author: 'سارة المزروعي',
-        location: 'دبي مارينا',
-      },
-      {
-        quote: 'ميزة الحجز غيرت اللعبة. الآن أصل إلى الاجتماعات في الوقت المحدد دائماً.',
-        author: 'محمد حسن',
-        location: 'وسط دبي',
-      },
-      {
-        quote: 'بسيط وسريع وموثوق. أفضل تطبيق مواقف في دبي.',
-        author: 'فاطمة علي',
-        location: 'جميرا ليك تاورز',
-      },
-    ],
+    testimonials: [],
   },
 }
 

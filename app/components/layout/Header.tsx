@@ -102,14 +102,14 @@ export default function Header() {
 
           {/* Center: Desktop Navigation */}
           <div className="hidden lg:flex lg:items-center lg:justify-center lg:flex-1 lg:mx-4">
-            <div className={`flex items-center flex-wrap justify-center ${language === 'ar' ? 'space-x-4 xl:space-x-6' : 'space-x-3 xl:space-x-4'}`}>
+            <div className="flex items-center flex-wrap justify-center gap-x-6 xl:gap-x-8 gap-y-2">
               {navItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`text-xs xl:text-sm font-medium transition-colors whitespace-nowrap ${
+                    className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                       isActive 
                         ? 'text-primary-600' 
                         : 'text-gray-700 hover:text-primary-600'
