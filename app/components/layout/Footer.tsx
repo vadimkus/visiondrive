@@ -152,19 +152,19 @@ export default function Footer() {
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start space-x-3">
-                <Mail className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                <Mail className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
                 <a href="mailto:ask@visiondrive.ae" className="text-sm text-gray-700 hover:text-primary-600 transition-colors break-all">
                   ask@visiondrive.ae
                 </a>
               </li>
               <li className="flex items-start space-x-3">
-                <Phone className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                <Phone className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                 <a href="tel:+971559152985" className="text-sm text-gray-700 hover:text-primary-600 transition-colors">
                   +971 55 915 2985
                 </a>
               </li>
               <li className="flex items-start space-x-3">
-                <MapPin className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                <MapPin className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-gray-700">
                   <div className="whitespace-nowrap">VisionDrive, Compass Coworking Centre,</div>
                   <div>RAK, UAE</div>
