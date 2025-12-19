@@ -27,6 +27,21 @@ const assurances = [
   'Scalability: multi-tenant architecture tested across dense urban deployments.',
 ]
 
+const environmentalSensors = [
+  {
+    title: 'Air quality',
+    body: 'PM2.5/PM10, NO₂, and VOC sensors distributed across sites for live pollution maps and alerts.',
+  },
+  {
+    title: 'Weather & rain',
+    body: 'Temperature, humidity, wind, and rainfall sensors for microclimate coverage and operational planning.',
+  },
+  {
+    title: 'Soil & agriculture',
+    body: 'Soil moisture and environmental probes for farmers and green assets, streaming over LoRaWAN.',
+  },
+]
+
 export default function TechnologyPage() {
   return (
     <main className="pt-24 bg-white text-gray-900">
@@ -57,6 +72,23 @@ export default function TechnologyPage() {
               <p className="mt-2 text-sm text-gray-600 leading-relaxed">{item.body}</p>
             </div>
           ))}
+        </div>
+      </Section>
+
+      <Section className="py-8 sm:py-12 md:py-14">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Environmental sensing</h2>
+          <p className="text-base text-gray-600 mb-5 max-w-3xl">
+            Beyond parking, our sensor fabric adds truthful, real-time visibility into air quality, weather, and soil conditions across locations.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {environmentalSensors.map((item) => (
+              <div key={item.title} className="h-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm">
+                <div className="text-lg font-semibold text-gray-900">{item.title}</div>
+                <p className="mt-2 text-sm text-gray-700 leading-relaxed">{item.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </Section>
 
