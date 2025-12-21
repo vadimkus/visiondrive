@@ -47,14 +47,17 @@ export async function GET(request: NextRequest) {
       SELECT
         si.name AS "siteName",
         si.address AS address,
+        si."centerLat" AS "centerLat",
+        si."centerLng" AS "centerLng",
         z.name AS "zoneName",
+        z.geojson AS "zoneGeojson",
         COUNT(*)::int AS "bayCount"
       FROM bays b
       JOIN sites si ON si.id = b."siteId"
       LEFT JOIN zones z ON z.id = b."zoneId"
       WHERE b."tenantId" = ${session.tenantId}
         AND (${zoneId}::text IS NULL OR b."zoneId" = ${zoneId})
-      GROUP BY si.name, si.address, z.name
+      GROUP BY si.name, si.address, si."centerLat", si."centerLng", z.name, z.geojson
       ORDER BY COUNT(*) DESC
       LIMIT 1
     `
@@ -66,6 +69,7 @@ export async function GET(request: NextRequest) {
         b.code AS "bayCode",
         b.lat,
         b.lng,
+        b.geojson AS "bayGeojson",
         s.id AS "sensorId",
         s."devEui",
         s."lastSeen",
@@ -116,6 +120,7 @@ export async function GET(request: NextRequest) {
         bayCode: r.bayCode,
         lat: r.lat,
         lng: r.lng,
+        geojson: normalizeJson(r.bayGeojson),
         sensorId: r.sensorId,
         devEui: r.devEui,
         lastSeen: lastSeen ? lastSeen.toISOString() : null,
@@ -135,9 +140,12 @@ export async function GET(request: NextRequest) {
             siteName: meta.siteName || null,
             zoneName: meta.zoneName || null,
             address: meta.address || null,
+            centerLat: typeof meta.centerLat === 'number' ? meta.centerLat : null,
+            centerLng: typeof meta.centerLng === 'number' ? meta.centerLng : null,
+            zoneGeojson: normalizeJson(meta.zoneGeojson),
             bayCount: meta.bayCount || items.length,
           }
-        : { siteName: null, zoneName: null, address: null, bayCount: items.length },
+        : { siteName: null, zoneName: null, address: null, centerLat: null, centerLng: null, zoneGeojson: null, bayCount: items.length },
       items,
     })
   } catch (e: any) {

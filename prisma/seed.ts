@@ -42,6 +42,7 @@ async function main() {
   const demoSiteName = 'Demo Site (Seed)'
   const demoZoneName = 'Zone A (Seed)'
   const demoDevEuiPrefix = 'A1B2C3D4%'
+  const demoSiteCenter = { lat: 25.0770, lng: 55.1400 }
 
   const siteRows = await sql/*sql*/`
     SELECT id
@@ -53,7 +54,7 @@ async function main() {
   if (!siteRows?.[0]?.id) {
     await sql/*sql*/`
       INSERT INTO sites (id, "tenantId", name, address, timezone, "centerLat", "centerLng", "createdAt", "updatedAt")
-      VALUES (${demoSiteId}, ${ensuredTenantId}, ${demoSiteName}, 'Dubai Marina, UAE (Demo)', 'Asia/Dubai', 25.0770, 55.1400, now(), now())
+      VALUES (${demoSiteId}, ${ensuredTenantId}, ${demoSiteName}, 'Dubai Marina, UAE (Demo)', 'Asia/Dubai', ${demoSiteCenter.lat}, ${demoSiteCenter.lng}, now(), now())
     `
   } else {
     // Keep the demo site location label up-to-date
@@ -61,8 +62,8 @@ async function main() {
       UPDATE sites
       SET address = 'Dubai Marina, UAE (Demo)',
           timezone = 'Asia/Dubai',
-          "centerLat" = 25.0770,
-          "centerLng" = 55.1400,
+          "centerLat" = ${demoSiteCenter.lat},
+          "centerLng" = ${demoSiteCenter.lng},
           "updatedAt" = now()
       WHERE id = ${demoSiteId}
     `
@@ -82,10 +83,35 @@ async function main() {
     `
   }
 
+  // Add a demo zone polygon (simple rectangle around the demo bays area)
+  const zonePoly = {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [demoSiteCenter.lng - 0.004, demoSiteCenter.lat - 0.002],
+          [demoSiteCenter.lng + 0.004, demoSiteCenter.lat - 0.002],
+          [demoSiteCenter.lng + 0.004, demoSiteCenter.lat + 0.002],
+          [demoSiteCenter.lng - 0.004, demoSiteCenter.lat + 0.002],
+          [demoSiteCenter.lng - 0.004, demoSiteCenter.lat - 0.002],
+        ],
+      ],
+    },
+    properties: { name: demoZoneName },
+  }
+  await sql/*sql*/`
+    UPDATE zones
+    SET geojson = ${sql.json(zonePoly) as any},
+        "updatedAt" = now()
+    WHERE id = ${demoZoneId}
+  `
+
   // Create 40 demo bays (A01..A40) if missing
   const bayCount = 40
-  const baseLat = 25.2048
-  const baseLng = 55.2708
+  // Place demo bays in a tight grid near the demo site center (Dubai Marina)
+  const baseLat = demoSiteCenter.lat - 0.0008
+  const baseLng = demoSiteCenter.lng - 0.0012
   for (let i = 1; i <= bayCount; i++) {
     const code = `A${String(i).padStart(2, '0')}`
     const existingBay = await sql/*sql*/`
@@ -97,11 +123,71 @@ async function main() {
     if (existingBay?.[0]?.id) continue
 
     const bayId = randomUUID()
-    const lat = baseLat + (i % 10) * 0.00008
-    const lng = baseLng + Math.floor(i / 10) * 0.00008
+    const col = (i - 1) % 10
+    const row = Math.floor((i - 1) / 10)
+    const lat = baseLat + col * 0.00012
+    const lng = baseLng + row * 0.00012
+    const d = 0.00003
+    const bayPoly = {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [lng - d, lat - d],
+            [lng + d, lat - d],
+            [lng + d, lat + d],
+            [lng - d, lat + d],
+            [lng - d, lat - d],
+          ],
+        ],
+      },
+      properties: { code },
+    }
     await sql/*sql*/`
-      INSERT INTO bays (id, "tenantId", "siteId", "zoneId", code, lat, lng, "createdAt", "updatedAt")
-      VALUES (${bayId}, ${ensuredTenantId}, ${demoSiteId}, ${demoZoneId}, ${code}, ${lat}, ${lng}, now(), now())
+      INSERT INTO bays (id, "tenantId", "siteId", "zoneId", code, lat, lng, geojson, "createdAt", "updatedAt")
+      VALUES (${bayId}, ${ensuredTenantId}, ${demoSiteId}, ${demoZoneId}, ${code}, ${lat}, ${lng}, ${sql.json(bayPoly) as any}, now(), now())
+    `
+  }
+
+  // Ensure existing demo bays also have lat/lng/geojson (for older DBs)
+  const existingBays = await sql/*sql*/`
+    SELECT id, code
+    FROM bays
+    WHERE "tenantId" = ${ensuredTenantId} AND "siteId" = ${demoSiteId} AND "zoneId" = ${demoZoneId}
+    ORDER BY code ASC
+    LIMIT 40
+  `
+  for (let idx = 0; idx < (existingBays?.length || 0); idx++) {
+    const b = existingBays[idx]
+    const col = idx % 10
+    const row = Math.floor(idx / 10)
+    const lat = baseLat + col * 0.00012
+    const lng = baseLng + row * 0.00012
+    const d = 0.00003
+    const bayPoly = {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [lng - d, lat - d],
+            [lng + d, lat - d],
+            [lng + d, lat + d],
+            [lng - d, lat + d],
+            [lng - d, lat - d],
+          ],
+        ],
+      },
+      properties: { code: b.code },
+    }
+    await sql/*sql*/`
+      UPDATE bays
+      SET lat = COALESCE(lat, ${lat}),
+          lng = COALESCE(lng, ${lng}),
+          geojson = COALESCE(geojson, ${sql.json(bayPoly) as any}),
+          "updatedAt" = now()
+      WHERE id = ${b.id}
     `
   }
 
