@@ -14,7 +14,6 @@ import { useLanguage } from '../../contexts/LanguageContext'
 const navigation = {
   en: [
     { name: 'Home', href: '/' },
-    { name: 'About Us', href: '/about' },
     { name: 'Partners & Pilots', href: '/partners' },
     { name: 'Solutions', href: '/solutions' },
     { name: 'The App', href: '/app' },
@@ -23,7 +22,6 @@ const navigation = {
   ],
   ar: [
     { name: 'الرئيسية', href: '/' },
-    { name: 'من نحن', href: '/about' },
     { name: 'الشركاء والبرامج التجريبية', href: '/partners' },
     { name: 'الحلول', href: '/solutions' },
     { name: 'التطبيق', href: '/app' },

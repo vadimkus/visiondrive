@@ -19,6 +19,7 @@ export default function Footer() {
       { name: t.solutionsLinks.municipalities, href: '/municipalities' },
     ],
     company: [
+      { name: t.companyLinks.about, href: '/about' },
       { name: t.companyLinks.vision, href: '/mission' },
       { name: t.companyLinks.careers, href: '/careers' },
       { name: t.companyLinks.blog, href: '/blog' },
