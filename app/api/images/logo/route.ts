@@ -6,11 +6,14 @@ import postgres from 'postgres'
 async function getLogoDirect() {
   // For direct connection, use non-Accelerate URL (skip prisma+postgres://)
   const connectionString = 
-    (process.env.PRISMA_DATABASE_URL?.startsWith('prisma+postgres://')
+    (process.env.VISIONDRIVE_DATABASE_URL?.startsWith('prisma+postgres://')
+      ? undefined // Skip Accelerate URLs for direct connection
+      : process.env.VISIONDRIVE_DATABASE_URL
+      || (process.env.PRISMA_DATABASE_URL?.startsWith('prisma+postgres://')
       ? undefined // Skip Accelerate URLs for direct connection
       : process.env.PRISMA_DATABASE_URL 
       || process.env.POSTGRES_URL 
-      || process.env.DATABASE_URL)!
+      || process.env.DATABASE_URL))!
   const sql = postgres(connectionString, { 
     max: 1,
     ssl: { rejectUnauthorized: false },
