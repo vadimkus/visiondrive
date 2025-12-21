@@ -597,7 +597,7 @@ const noteSections: NoteSection[] = [
       '• ✅ /portal/sensors: list + details page (health + events + maintenance notes)',
       '• ✅ /portal/events: timeseries viewer with filters + export (CSV)',
       '• ✅ /portal/admin: user management (customer admin) + tenant settings (thresholds)',
-      '• Map rendering (Portal): Mapbox GL JS with bay polygons/markers + clustering + layer toggles (bays/sensors/zones)',
+      '• ✅ Map rendering (Portal): Mapbox GL JS with bay polygons/markers + clustering + layer toggles (bays/sensors/zones)',
       '',
       '11.4. Phase D — Hardware Health + Alerts System [Week 3–4]',
       '• Implement health score + days-in-use + battery drain + signal quality (RSSI/SNR)',

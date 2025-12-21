@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         ${tenantId},
         ${ensuredSensorId},
         'UPLINK',
-        ${sql.json(preview.decoded) as any},
+        ${sql.json(preview.decoded as any) as any},
         ${rawPayload}
       )
     `
