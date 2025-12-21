@@ -122,7 +122,7 @@ export default function PortalPage() {
 
   return (
     <>
-      <div className="pt-20 sm:pt-24 md:pt-32 pb-8">
+      <div className="pt-6 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
@@ -159,6 +159,25 @@ export default function PortalPage() {
                 <span className="hidden sm:inline">Settings</span>
               </button>
             </div>
+          </div>
+
+          {/* Bay status (quick glance) */}
+          <div className="flex flex-wrap gap-2 text-sm mb-4 sm:mb-6">
+            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              Total: {kpis.totalBays ?? 0}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
+              Free: {kpis.freeBays ?? 0}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">
+              Occupied: {kpis.occupiedBays ?? 0}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-200">
+              Offline: {kpis.offlineBays ?? 0}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200">
+              Unknown: {kpis.unknownBays ?? 0}
+            </span>
           </div>
 
           {/* Stats Grid */}

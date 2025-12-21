@@ -28,6 +28,7 @@ See: `11.1-foundation.md`
 - [x] `/portal/sensors`: list + details page (health + events + maintenance notes)
 - [x] `/portal/events`: timeseries viewer with filters + export (CSV)
 - [x] `/portal/admin`: user management (customer admin) + tenant settings (thresholds)
+- [x] Map rendering (Portal): Mapbox GL JS with bay polygons/markers + clustering + layer toggles (bays/sensors/zones)
 
 See: `11.3-operator-portal-mvp.md`
 

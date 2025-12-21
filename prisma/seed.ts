@@ -42,7 +42,9 @@ async function main() {
   const demoSiteName = 'Demo Site (Seed)'
   const demoZoneName = 'Zone A (Seed)'
   const demoDevEuiPrefix = 'A1B2C3D4%'
-  const demoSiteCenter = { lat: 25.0770, lng: 55.1400 }
+  // Realistic demo location: Dubai Media City / Knowledge Park area
+  // (Used for map overlay + bay polygons until real surveyed polygons are uploaded)
+  const demoSiteCenter = { lat: 25.1016, lng: 55.1622 }
 
   const siteRows = await sql/*sql*/`
     SELECT id
@@ -54,13 +56,13 @@ async function main() {
   if (!siteRows?.[0]?.id) {
     await sql/*sql*/`
       INSERT INTO sites (id, "tenantId", name, address, timezone, "centerLat", "centerLng", "createdAt", "updatedAt")
-      VALUES (${demoSiteId}, ${ensuredTenantId}, ${demoSiteName}, 'Dubai Marina, UAE (Demo)', 'Asia/Dubai', ${demoSiteCenter.lat}, ${demoSiteCenter.lng}, now(), now())
+      VALUES (${demoSiteId}, ${ensuredTenantId}, ${demoSiteName}, 'Dubai Media City / Knowledge Park (Demo)', 'Asia/Dubai', ${demoSiteCenter.lat}, ${demoSiteCenter.lng}, now(), now())
     `
   } else {
     // Keep the demo site location label up-to-date
     await sql/*sql*/`
       UPDATE sites
-      SET address = 'Dubai Marina, UAE (Demo)',
+      SET address = 'Dubai Media City / Knowledge Park (Demo)',
           timezone = 'Asia/Dubai',
           "centerLat" = ${demoSiteCenter.lat},
           "centerLng" = ${demoSiteCenter.lng},
@@ -90,11 +92,11 @@ async function main() {
       type: 'Polygon',
       coordinates: [
         [
-          [demoSiteCenter.lng - 0.004, demoSiteCenter.lat - 0.002],
-          [demoSiteCenter.lng + 0.004, demoSiteCenter.lat - 0.002],
-          [demoSiteCenter.lng + 0.004, demoSiteCenter.lat + 0.002],
-          [demoSiteCenter.lng - 0.004, demoSiteCenter.lat + 0.002],
-          [demoSiteCenter.lng - 0.004, demoSiteCenter.lat - 0.002],
+          [demoSiteCenter.lng - 0.0035, demoSiteCenter.lat - 0.0018],
+          [demoSiteCenter.lng + 0.0035, demoSiteCenter.lat - 0.0018],
+          [demoSiteCenter.lng + 0.0035, demoSiteCenter.lat + 0.0018],
+          [demoSiteCenter.lng - 0.0035, demoSiteCenter.lat + 0.0018],
+          [demoSiteCenter.lng - 0.0035, demoSiteCenter.lat - 0.0018],
         ],
       ],
     },
@@ -110,8 +112,8 @@ async function main() {
   // Create 40 demo bays (A01..A40) if missing
   const bayCount = 40
   // Place demo bays in a tight grid near the demo site center (Dubai Marina)
-  const baseLat = demoSiteCenter.lat - 0.0008
-  const baseLng = demoSiteCenter.lng - 0.0012
+  const baseLat = demoSiteCenter.lat - 0.0007
+  const baseLng = demoSiteCenter.lng - 0.0011
   for (let i = 1; i <= bayCount; i++) {
     const code = `A${String(i).padStart(2, '0')}`
     const existingBay = await sql/*sql*/`
@@ -181,17 +183,18 @@ async function main() {
       },
       properties: { code: b.code },
     }
+    // IMPORTANT: force-update demo geometry every seed run so overlays never drift
     await sql/*sql*/`
       UPDATE bays
-      SET lat = COALESCE(lat, ${lat}),
-          lng = COALESCE(lng, ${lng}),
-          geojson = COALESCE(geojson, ${sql.json(bayPoly) as any}),
+      SET lat = ${lat},
+          lng = ${lng},
+          geojson = ${sql.json(bayPoly) as any},
           "updatedAt" = now()
       WHERE id = ${b.id}
     `
   }
 
-  // Reset demo sensors/events (so the distribution stays deterministic across multiple seed runs)
+  // Reset demo events (keep sensors so calibration edits to sensors.lat/lng are preserved).
   // NOTE: we target only sensors with the demo DevEUI prefix.
   await sql/*sql*/`
     DELETE FROM sensor_events
@@ -200,13 +203,9 @@ async function main() {
         SELECT id FROM sensors WHERE "tenantId" = ${ensuredTenantId} AND "devEui" LIKE ${demoDevEuiPrefix}
       )
   `
-  await sql/*sql*/`
-    DELETE FROM sensors
-    WHERE "tenantId" = ${ensuredTenantId} AND "devEui" LIKE ${demoDevEuiPrefix}
-  `
 
   // Bind sensors to all 40 bays and insert events so portal shows realistic distribution:
-  // 30 FREE, 7 OCCUPIED, 3 OFFLINE (no recent events)
+  // 30 OCCUPIED, 7 FREE, 3 OFFLINE
   const bayRows = await sql/*sql*/`
     SELECT id, code
     FROM bays
@@ -220,8 +219,8 @@ async function main() {
     const devEui = `A1B2C3D40000${String(i + 1).padStart(4, '0')}` // hex-ish, stable
     const sensorId = randomUUID()
     const batteryPct = 60 + ((i * 7) % 40) // 60..99
-    const isFree = i < 30
-    const isOccupied = i >= 30 && i < 37
+    const isOccupied = i < 30
+    const isFree = i >= 30 && i < 37
     const isOffline = i >= 37
     const occupied = isOccupied ? true : false
     const lastSeen = isOffline

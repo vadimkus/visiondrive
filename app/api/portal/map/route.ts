@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
 
     const metaRows = await sql/*sql*/`
       SELECT
+        si.id AS "siteId",
         si.name AS "siteName",
         si.address AS address,
         si."centerLat" AS "centerLat",
@@ -57,11 +58,42 @@ export async function GET(request: NextRequest) {
       LEFT JOIN zones z ON z.id = b."zoneId"
       WHERE b."tenantId" = ${session.tenantId}
         AND (${zoneId}::text IS NULL OR b."zoneId" = ${zoneId})
-      GROUP BY si.name, si.address, si."centerLat", si."centerLng", z.name, z.geojson
+      GROUP BY si.id, si.name, si.address, si."centerLat", si."centerLng", z.name, z.geojson
       ORDER BY COUNT(*) DESC
       LIMIT 1
     `
     const meta = metaRows?.[0]
+
+    // Overlay zones for the same site (paid/free zone polygons + tariff metadata).
+    const overlayZoneRows = await sql/*sql*/`
+      SELECT id, name, kind, geojson, tariff
+      FROM zones
+      WHERE "tenantId" = ${session.tenantId}
+        AND geojson IS NOT NULL
+        AND (${meta?.siteId || null}::text IS NULL OR "siteId" = ${meta?.siteId || null})
+      ORDER BY name ASC
+      LIMIT 2000
+    `
+
+    const zonesOverlay = {
+      type: 'FeatureCollection',
+      features: (overlayZoneRows || [])
+        .map((z: any) => {
+          const gj = normalizeJson(z.geojson)
+          if (!gj?.geometry) return null
+          return {
+            type: 'Feature',
+            geometry: gj.geometry,
+            properties: {
+              id: z.id,
+              name: z.name,
+              kind: z.kind,
+              tariff: normalizeJson(z.tariff),
+            },
+          }
+        })
+        .filter(Boolean),
+    }
 
     const rows = await sql/*sql*/`
       SELECT
@@ -72,6 +104,8 @@ export async function GET(request: NextRequest) {
         b.geojson AS "bayGeojson",
         s.id AS "sensorId",
         s."devEui",
+        s.lat AS "sensorLat",
+        s.lng AS "sensorLng",
         s."lastSeen",
         s."batteryPct",
         e.time AS "eventTime",
@@ -123,6 +157,8 @@ export async function GET(request: NextRequest) {
         geojson: normalizeJson(r.bayGeojson),
         sensorId: r.sensorId,
         devEui: r.devEui,
+        sensorLat: typeof r.sensorLat === 'number' ? r.sensorLat : null,
+        sensorLng: typeof r.sensorLng === 'number' ? r.sensorLng : null,
         lastSeen: lastSeen ? lastSeen.toISOString() : null,
         batteryPct: r.batteryPct ?? null,
         confidence: Number(confidence.toFixed(2)),
@@ -137,6 +173,7 @@ export async function GET(request: NextRequest) {
       zoneId,
       meta: meta
         ? {
+            siteId: meta.siteId || null,
             siteName: meta.siteName || null,
             zoneName: meta.zoneName || null,
             address: meta.address || null,
@@ -145,7 +182,8 @@ export async function GET(request: NextRequest) {
             zoneGeojson: normalizeJson(meta.zoneGeojson),
             bayCount: meta.bayCount || items.length,
           }
-        : { siteName: null, zoneName: null, address: null, centerLat: null, centerLng: null, zoneGeojson: null, bayCount: items.length },
+        : { siteId: null, siteName: null, zoneName: null, address: null, centerLat: null, centerLng: null, zoneGeojson: null, bayCount: items.length },
+      overlays: { zones: zonesOverlay },
       items,
     })
   } catch (e: any) {

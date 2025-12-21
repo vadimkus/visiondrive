@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Section from '../../components/common/Section'
 import { ArrowLeft, Loader2 } from 'lucide-react'
+import MapboxMap from './MapboxMap'
 
 type MapItem = {
   bayId: string
@@ -13,14 +14,22 @@ type MapItem = {
   lastSeen: string | null
   batteryPct: number | null
   confidence: number
+  ageMinutes?: number | null
   state: 'FREE' | 'OCCUPIED' | 'OFFLINE' | 'UNKNOWN'
   color: 'GREEN' | 'RED' | 'GRAY'
+  lat?: number | null
+  lng?: number | null
+  geojson?: any | null
 }
 
 type MapMeta = {
   siteName: string | null
   zoneName: string | null
   address: string | null
+  siteId?: string | null
+  centerLat?: number | null
+  centerLng?: number | null
+  zoneGeojson?: any | null
   bayCount: number
 }
 
@@ -30,7 +39,10 @@ export default function PortalMapPage() {
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<MapItem[]>([])
   const [meta, setMeta] = useState<MapMeta | null>(null)
+  const [overlays, setOverlays] = useState<any>(null)
   const zoneId = searchParams.get('zoneId') || 'all'
+  const [selectedBayId, setSelectedBayId] = useState<string | null>(null)
+  const [filters, setFilters] = useState({ OCCUPIED: false, OFFLINE: false, UNKNOWN: false })
 
   const summary = useMemo(() => {
     let free = 0
@@ -45,6 +57,13 @@ export default function PortalMapPage() {
     }
     return { free, occupied, offline, unknown, total: items.length }
   }, [items])
+
+  const filteredItems = useMemo(() => {
+    const active = Object.entries(filters).filter(([, v]) => v).map(([k]) => k)
+    if (!active.length) return items
+    const set = new Set(active)
+    return items.filter((b) => set.has(b.state))
+  }, [items, filters])
 
   useEffect(() => {
     const run = async () => {
@@ -61,6 +80,7 @@ export default function PortalMapPage() {
         if (json.success) {
           setItems(json.items || [])
           setMeta(json.meta || null)
+          setOverlays(json.overlays || null)
         }
       } finally {
         setLoading(false)
@@ -68,6 +88,14 @@ export default function PortalMapPage() {
     }
     run()
   }, [router, zoneId])
+
+  // Auto-scroll details list to selected bay
+  useEffect(() => {
+    if (!selectedBayId) return
+    const el = document.querySelector(`[data-bayid="${selectedBayId}"]`) as HTMLElement | null
+    if (!el) return
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [selectedBayId])
 
   if (loading) {
     return (
@@ -78,9 +106,12 @@ export default function PortalMapPage() {
   }
 
   return (
-    <Section className="pt-24 pb-12">
+    <Section className="pt-6 pb-12">
       <div className="max-w-7xl mx-auto">
-        <button onClick={() => router.push('/portal')} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
+        <button
+          onClick={() => router.push(`/portal?zoneId=${encodeURIComponent(zoneId)}`)}
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </button>
@@ -105,7 +136,7 @@ export default function PortalMapPage() {
         <div className="grid lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-gray-900">Bay Grid (placeholder for Mapbox)</h2>
+              <h2 className="font-semibold text-gray-900">Live Map (Mapbox)</h2>
               <button
                 onClick={async () => {
                   setLoading(true)
@@ -116,6 +147,7 @@ export default function PortalMapPage() {
                   if (json.success) {
                     setItems(json.items || [])
                     setMeta(json.meta || null)
+                    setOverlays(json.overlays || null)
                   }
                   setLoading(false)
                 }}
@@ -126,35 +158,51 @@ export default function PortalMapPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
-              {items.slice(0, 200).map((b) => (
-                <div
-                  key={b.bayId}
-                  title={`${b.bayCode || 'Bay'} | ${b.state} | conf ${b.confidence}`}
-                  className={`rounded-md border p-2 text-xs text-center ${
-                    b.color === 'GREEN'
-                      ? 'bg-green-50 border-green-200 text-green-800'
-                      : b.color === 'RED'
-                        ? 'bg-red-50 border-red-200 text-red-800'
-                        : 'bg-gray-50 border-gray-200 text-gray-700'
-                  }`}
-                >
-                  <div className="font-semibold">{b.bayCode || '—'}</div>
-                  <div className="opacity-80">{Math.round(b.confidence * 100)}%</div>
-                </div>
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-gray-600 mr-1">Filters:</span>
+              {(['OCCUPIED', 'OFFLINE', 'UNKNOWN'] as const).map((k) => (
+                <label key={k} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-200 bg-white">
+                  <input
+                    type="checkbox"
+                    checked={(filters as any)[k]}
+                    onChange={(e) => setFilters((s) => ({ ...s, [k]: e.target.checked }))}
+                  />
+                  {k === 'OCCUPIED' ? 'Occupied' : k === 'OFFLINE' ? 'Offline' : 'Unknown'}
+                </label>
               ))}
+              <button
+                onClick={() => setFilters({ OCCUPIED: false, OFFLINE: false, UNKNOWN: false })}
+                className="px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+              >
+                Clear
+              </button>
+              <span className="ml-auto text-gray-500">
+                Showing {filteredItems.length} / {items.length}
+              </span>
             </div>
 
-            <p className="text-xs text-gray-500 mt-3">
-              Next upgrade: Mapbox/Google map rendering using bay geojson/lat/lng and clustering.
-            </p>
+            <MapboxMap
+              meta={meta as any}
+              items={filteredItems as any}
+              selectedBayId={selectedBayId}
+              onSelectBay={(bayId) => setSelectedBayId(bayId)}
+              overlays={overlays}
+              initialLayers={{ bays: true, sensors: true, zones: true }}
+            />
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h2 className="font-semibold text-gray-900 mb-3">Details (first 50)</h2>
-            <div className="space-y-2 max-h-[520px] overflow-auto">
-              {items.slice(0, 50).map((b) => (
-                <div key={b.bayId} className="flex items-start justify-between border-b border-gray-100 pb-2">
+            <h2 className="font-semibold text-gray-900 mb-3">Details</h2>
+            <div id="bay-details-scroll" className="space-y-2 max-h-[520px] overflow-auto">
+              {filteredItems.map((b) => (
+                <div
+                  key={b.bayId}
+                  data-bayid={b.bayId}
+                  onClick={() => setSelectedBayId(b.bayId)}
+                  className={`flex items-start justify-between border-b border-gray-100 pb-2 cursor-pointer ${
+                    selectedBayId === b.bayId ? 'bg-gray-50 rounded-md px-2 py-2 border border-gray-200' : ''
+                  }`}
+                >
                   <div className="min-w-0">
                     <div className="font-medium text-gray-900 truncate">{b.bayCode || b.bayId}</div>
                     <div className="text-xs text-gray-600 truncate">{b.devEui || 'No sensor bound'}</div>
@@ -178,7 +226,7 @@ export default function PortalMapPage() {
                   </div>
                 </div>
               ))}
-              {items.length === 0 && <p className="text-sm text-gray-500">No bays yet. Seed a site/zones/bays to see live state.</p>}
+              {filteredItems.length === 0 && <p className="text-sm text-gray-500">No bays match the current filters.</p>}
             </div>
           </div>
         </div>

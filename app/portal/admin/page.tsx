@@ -29,6 +29,14 @@ export default function PortalAdminPage() {
   const [password, setPassword] = useState('')
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
 
+  // zones import (GeoJSON + tariff JSON)
+  const [zones, setZones] = useState<any[]>([])
+  const [zoneName, setZoneName] = useState('RTA Zone A (Demo Import)')
+  const [zoneKind, setZoneKind] = useState('PAID')
+  const [zoneGeojsonText, setZoneGeojsonText] = useState('')
+  const [zoneTariffText, setZoneTariffText] = useState('')
+  const [zoneImportStatus, setZoneImportStatus] = useState<string | null>(null)
+
   const load = async () => {
     const meRes = await fetch('/api/auth/me', { credentials: 'include' })
     if (!meRes.ok) {
@@ -50,6 +58,10 @@ export default function PortalAdminPage() {
     if (uJson.success) setUsers(uJson.users || [])
     const sJson = await sRes.json()
     if (sJson.success) setThresholds(sJson.thresholds || thresholds)
+
+    const zRes = await fetch('/api/portal/admin/zones', { credentials: 'include' })
+    const zJson = await zRes.json()
+    if (zJson.success) setZones(zJson.zones || [])
   }
 
   useEffect(() => {
@@ -85,6 +97,38 @@ export default function PortalAdminPage() {
     await load()
   }
 
+  const importZone = async () => {
+    setZoneImportStatus(null)
+    let geojson: any = null
+    let tariff: any = null
+    try {
+      geojson = zoneGeojsonText.trim() ? JSON.parse(zoneGeojsonText) : null
+    } catch {
+      setZoneImportStatus('Invalid GeoJSON JSON (cannot parse).')
+      return
+    }
+    try {
+      tariff = zoneTariffText.trim() ? JSON.parse(zoneTariffText) : null
+    } catch {
+      setZoneImportStatus('Invalid Tariff JSON (cannot parse).')
+      return
+    }
+
+    const res = await fetch('/api/portal/admin/zones', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: zoneName, kind: zoneKind, geojson, tariff }),
+    })
+    const json = await res.json()
+    if (!json.success) {
+      setZoneImportStatus(`Import failed: ${json.error || 'UNKNOWN'}`)
+      return
+    }
+    setZoneImportStatus(`Imported: ${json.id}`)
+    await load()
+  }
+
   if (loading) {
     return (
       <Section className="pt-32 pb-12">
@@ -94,7 +138,7 @@ export default function PortalAdminPage() {
   }
 
   return (
-    <Section className="pt-24 pb-12">
+    <Section className="pt-6 pb-12">
       <div className="max-w-6xl mx-auto">
         <button onClick={() => router.push('/portal')} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -177,6 +221,86 @@ export default function PortalAdminPage() {
                 Generated password (copy now): <span className="font-mono font-semibold">{generatedPassword}</span>
               </p>
             )}
+          </div>
+        </div>
+
+        <div className="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Parking Zones (GeoJSON import)</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Paste a GeoJSON <span className="font-mono">Feature</span> or <span className="font-mono">FeatureCollection</span> and optional tariff JSON (e.g. from Dubai Pulse exports).
+          </p>
+          <p className="text-sm text-gray-600 mb-4">
+            Need to fix sensor placement? Use{' '}
+            <a href="/portal/calibration" className="text-primary-700 hover:underline font-medium">
+              Map Calibration (Sensors)
+            </a>
+            .
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Zone name</label>
+              <input value={zoneName} onChange={(e) => setZoneName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Kind</label>
+              <select value={zoneKind} onChange={(e) => setZoneKind(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                <option value="PAID">PAID</option>
+                <option value="FREE">FREE</option>
+                <option value="RESIDENT">RESIDENT</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button onClick={importZone} className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black">
+                <Plus className="h-4 w-4 mr-2" />
+                Import
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">GeoJSON</label>
+              <textarea
+                value={zoneGeojsonText}
+                onChange={(e) => setZoneGeojsonText(e.target.value)}
+                placeholder='{"type":"FeatureCollection","features":[...]}'
+                className="w-full h-48 px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tariff JSON (optional)</label>
+              <textarea
+                value={zoneTariffText}
+                onChange={(e) => setZoneTariffText(e.target.value)}
+                placeholder='{"rateAedPerHour":4,"hours":"8:00-22:00"}'
+                className="w-full h-48 px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs"
+              />
+            </div>
+          </div>
+          {zoneImportStatus && <p className="mt-3 text-sm text-gray-700">{zoneImportStatus}</p>}
+
+          <div className="mt-5 border-t border-gray-100 pt-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Zones in tenant</h3>
+            <div className="text-xs text-gray-600">
+              {zones.length ? (
+                <ul className="space-y-1">
+                  {zones.slice(0, 20).map((z) => (
+                    <li key={z.id} className="flex items-center justify-between">
+                      <span className="font-medium text-gray-900">{z.name}</span>
+                      <span className="text-gray-600">
+                        {z.kind} · geojson: {z.hasGeojson ? 'yes' : 'no'} · tariff: {z.hasTariff ? 'yes' : 'no'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span>No zones yet.</span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              View overlays on <span className="font-mono">/portal/map</span> using the “Zones overlay” toggle.
+            </p>
           </div>
         </div>
 

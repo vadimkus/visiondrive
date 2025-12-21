@@ -65,7 +65,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <Section className="pt-24 pb-8">
+      <Section className="pt-6 pb-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">

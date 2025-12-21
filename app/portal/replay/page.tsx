@@ -138,7 +138,7 @@ export default function ReplayToolsPage() {
   }
 
   return (
-    <Section className="pt-24 pb-12">
+    <Section className="pt-6 pb-12">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <button onClick={() => router.back()} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">

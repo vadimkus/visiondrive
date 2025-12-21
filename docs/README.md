@@ -18,5 +18,10 @@ This folder contains **implementation documentation** aligned with `/notes` → 
 - `11.2-simulated-ingestion.md`: Phase 11.2 (simulated ingestion / decoder bench / dead letters) implementation notes.
 - `11.3-operator-portal-mvp.md`: Phase 11.3 (operator portal MVP) implementation notes.
 - `11.3.1-zone-selector-and-demo-seed.md`: Follow-up improvements: zone selector + zone filtering + deterministic demo seed + KPI clarity.
+- `11.3.2-mapbox-portal-map.md`: Map rendering: Mapbox GL JS (bays/sensors/zones) + clustering + layer toggles.
+- `11.3.3-map-interactions-filters-selection.md`: Map UX: click-to-select bay + highlight + auto-scroll details + filters.
+- `11.3.4-dubai-pulse-zones-import.md`: Dubai Pulse static parking zones import (GeoJSON + tariff) + Mapbox overlay.
+- `11.3.5-map-calibration-sensors.md`: Manual sensor placement correction page (drag & save) with 3D + satellite toggles.
+- `11.3.6-calibration-ux-all-sensors-installed-only.md`: Calibration UX upgrades (all sensors overlay, installed-only=40, map doesn’t disappear, portal map uses sensor coords).
 
 

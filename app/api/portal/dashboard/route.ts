@@ -47,14 +47,15 @@ export async function GET(request: NextRequest) {
           ON e."tenantId" = ${session.tenantId} AND e."sensorId" = s.id
         WHERE s."tenantId" = ${session.tenantId}
           AND (${zoneId}::text IS NULL OR s."zoneId" = ${zoneId})
+          AND s."bayId" IS NOT NULL
         GROUP BY s.id
       )
       SELECT
         (SELECT COUNT(*)::int FROM bays WHERE "tenantId" = ${session.tenantId} AND (${zoneId}::text IS NULL OR "zoneId" = ${zoneId})) AS "totalBays",
-        (SELECT COUNT(*)::int FROM sensors WHERE "tenantId" = ${session.tenantId} AND (${zoneId}::text IS NULL OR "zoneId" = ${zoneId})) AS "totalSensors",
+        (SELECT COUNT(*)::int FROM sensors WHERE "tenantId" = ${session.tenantId} AND (${zoneId}::text IS NULL OR "zoneId" = ${zoneId}) AND "bayId" IS NOT NULL) AS "totalSensors",
         (SELECT COUNT(*)::int FROM latest WHERE "lastEventTime" IS NOT NULL AND "lastEventTime" > now() - (${offlineMinutes} || ' minutes')::interval) AS "onlineSensors",
         (SELECT COUNT(*)::int FROM latest WHERE "lastEventTime" IS NULL OR "lastEventTime" <= now() - (${offlineMinutes} || ' minutes')::interval) AS "offlineSensors",
-        (SELECT COUNT(*)::int FROM sensors WHERE "tenantId" = ${session.tenantId} AND (${zoneId}::text IS NULL OR "zoneId" = ${zoneId}) AND "batteryPct" IS NOT NULL AND "batteryPct" <= ${lowBatteryPct}) AS "lowBatterySensors",
+        (SELECT COUNT(*)::int FROM sensors WHERE "tenantId" = ${session.tenantId} AND (${zoneId}::text IS NULL OR "zoneId" = ${zoneId}) AND "bayId" IS NOT NULL AND "batteryPct" IS NOT NULL AND "batteryPct" <= ${lowBatteryPct}) AS "lowBatterySensors",
         (SELECT COUNT(*)::int FROM ingest_dead_letters WHERE "tenantId" = ${session.tenantId} AND "createdAt" > now() - interval '24 hours') AS "deadLetters24h"
     `
 

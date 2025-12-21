@@ -74,7 +74,7 @@ export default function EventsPage() {
   })()
 
   return (
-    <Section className="pt-24 pb-12">
+    <Section className="pt-6 pb-12">
       <div className="max-w-7xl mx-auto">
         <button onClick={() => router.push(`/portal?zoneId=${encodeURIComponent(zoneId)}`)} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
