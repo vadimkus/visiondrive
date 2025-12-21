@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
+import { sql } from '@/lib/sql'
 import fs from 'fs'
 import path from 'path'
+import { randomUUID } from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,31 +50,23 @@ export async function POST(request: NextRequest) {
     const dataUrl = `data:${mimeType};base64,${base64Data}`
 
     // Upload to database
-    const logo = await prisma.image.upsert({
-      where: {
-        type_name: {
-          type: 'LOGO',
-          name: 'logo',
-        },
-      },
-      update: {
-        mimeType,
-        data: dataUrl,
-        alt: 'Vision Drive Logo',
-      },
-      create: {
-        type: 'LOGO',
-        name: 'logo',
-        mimeType,
-        data: dataUrl,
-        alt: 'Vision Drive Logo',
-      },
-    })
+    const id = randomUUID()
+    const rows = await sql/*sql*/`
+      INSERT INTO images (id, type, name, "mimeType", data, alt, "createdAt", "updatedAt")
+      VALUES (${id}, 'LOGO', 'logo', ${mimeType}, ${dataUrl}, 'Vision Drive Logo', now(), now())
+      ON CONFLICT (type, name) DO UPDATE
+        SET "mimeType" = EXCLUDED."mimeType",
+            data = EXCLUDED.data,
+            alt = EXCLUDED.alt,
+            "updatedAt" = now()
+      RETURNING id
+    `
+    const logoId = rows?.[0]?.id
 
     return NextResponse.json({
       success: true,
       message: 'Logo seeded successfully',
-      logoId: logo.id,
+      logoId,
     })
   } catch (error) {
     console.error('Seed logo error:', error)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth'
-import { ImageType } from '@prisma/client'
+import { sql } from '@/lib/sql'
+import { randomUUID } from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,6 +30,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const imageType = String(type || '').trim().toUpperCase()
+    const allowedTypes = new Set([
+      'LOGO',
+      'FAVICON',
+      'HERO',
+      'PARTNER',
+      'APP_SCREENSHOT',
+      'OTHER',
+    ])
+    if (!allowedTypes.has(imageType)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid image type' },
+        { status: 400 }
+      )
+    }
+
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
@@ -40,32 +56,20 @@ export async function POST(request: NextRequest) {
     let width: number | null = null
     let height: number | null = null
 
-    // Create or update image
-    const imageType = type.toUpperCase() as ImageType
-    const image = await prisma.image.upsert({
-      where: {
-        type_name: {
-          type: imageType,
-          name,
-        },
-      },
-      update: {
-        mimeType: file.type,
-        data: dataUrl,
-        width,
-        height,
-        alt: alt || null,
-      },
-      create: {
-        type: imageType,
-        name,
-        mimeType: file.type,
-        data: dataUrl,
-        width,
-        height,
-        alt: alt || null,
-      },
-    })
+    const id = randomUUID()
+    const rows = await sql/*sql*/`
+      INSERT INTO images (id, type, name, "mimeType", data, width, height, alt, "createdAt", "updatedAt")
+      VALUES (${id}, ${imageType}, ${name}, ${file.type}, ${dataUrl}, ${width}, ${height}, ${alt || null}, now(), now())
+      ON CONFLICT (type, name) DO UPDATE
+        SET "mimeType" = EXCLUDED."mimeType",
+            data = EXCLUDED.data,
+            width = EXCLUDED.width,
+            height = EXCLUDED.height,
+            alt = EXCLUDED.alt,
+            "updatedAt" = now()
+      RETURNING id, type, name, "mimeType"
+    `
+    const image = rows?.[0]
 
     return NextResponse.json({
       success: true,

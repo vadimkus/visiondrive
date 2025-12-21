@@ -1,55 +1,15 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import postgres from 'postgres'
+import { sql } from '@/lib/sql'
 
-// Fallback: direct postgres connection for logo fetching
-async function getLogoDirect() {
-  // For direct connection, use non-Accelerate URL (skip prisma+postgres://)
-  const connectionString = 
-    (process.env.VISIONDRIVE_DATABASE_URL?.startsWith('prisma+postgres://')
-      ? undefined // Skip Accelerate URLs for direct connection
-      : process.env.VISIONDRIVE_DATABASE_URL
-      || (process.env.PRISMA_DATABASE_URL?.startsWith('prisma+postgres://')
-      ? undefined // Skip Accelerate URLs for direct connection
-      : process.env.PRISMA_DATABASE_URL 
-      || process.env.POSTGRES_URL 
-      || process.env.DATABASE_URL))!
-  const sql = postgres(connectionString, { 
-    max: 1,
-    ssl: { rejectUnauthorized: false },
-    connect_timeout: 5,
-  })
-  
+export async function GET() {
   try {
-    const result = await sql`
+    const rows = await sql/*sql*/`
       SELECT id, type, name, "mimeType", data, width, height, alt
       FROM images
       WHERE type = 'LOGO' AND name = 'logo'
       LIMIT 1
     `
-    
-    await sql.end()
-    return result[0] || null
-  } catch (error) {
-    await sql.end()
-    throw error
-  }
-}
-
-export async function GET() {
-  try {
-    let logo
-    
-    // Try Prisma first, fallback to direct SQL if adapter fails
-    try {
-      logo = await prisma.image.findFirst({
-        where: { type: 'LOGO', name: 'logo' },
-      })
-    } catch (prismaError) {
-      // If Prisma adapter fails, use direct SQL connection
-      console.warn('Prisma adapter failed, using direct SQL:', prismaError)
-      logo = await getLogoDirect()
-    }
+    const logo = rows?.[0] || null
 
     if (!logo) {
       return NextResponse.json(

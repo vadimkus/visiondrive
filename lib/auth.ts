@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { prisma } from './prisma'
+import { sql } from './sql'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 
@@ -12,13 +12,13 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash)
 }
 
-export function generateToken(userId: string, email: string, role: string): string {
-  return jwt.sign({ userId, email, role }, JWT_SECRET, { expiresIn: '7d' })
+export function generateToken(userId: string, email: string, role: string, tenantId?: string | null): string {
+  return jwt.sign({ userId, email, role, tenantId: tenantId || null }, JWT_SECRET, { expiresIn: '7d' })
 }
 
-export function verifyToken(token: string): { userId: string; email: string; role: string } | null {
+export function verifyToken(token: string): { userId: string; email: string; role: string; tenantId?: string | null } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string; email: string; role: string }
+    return jwt.verify(token, JWT_SECRET) as { userId: string; email: string; role: string; tenantId?: string | null }
   } catch {
     return null
   }
@@ -26,9 +26,13 @@ export function verifyToken(token: string): { userId: string; email: string; rol
 
 export async function authenticateUser(email: string, password: string) {
   try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-    })
+    const rows = await sql/*sql*/`
+      SELECT id, email, name, role, status, "passwordHash", "defaultTenantId"
+      FROM users
+      WHERE email = ${email}
+      LIMIT 1
+    `
+    const user = rows?.[0] || null
 
     if (!user || user.status !== 'ACTIVE') {
       return null
@@ -39,14 +43,30 @@ export async function authenticateUser(email: string, password: string) {
       return null
     }
 
-    const token = generateToken(user.id, user.email, user.role)
+    // Prefer membership role for the user's current/default tenant (tenant-scoped RBAC)
+    let effectiveRole = user.role
+    if (user.defaultTenantId) {
+      const membershipRows = await sql/*sql*/`
+        SELECT role, status
+        FROM tenant_memberships
+        WHERE "tenantId" = ${user.defaultTenantId} AND "userId" = ${user.id}
+        LIMIT 1
+      `
+      const membership = membershipRows?.[0] || null
+      if (membership?.status === 'ACTIVE' && membership?.role) {
+        effectiveRole = membership.role
+      }
+    }
+
+    const token = generateToken(user.id, user.email, effectiveRole, user.defaultTenantId)
 
     return {
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: effectiveRole,
+        tenantId: user.defaultTenantId || null,
       },
       token,
     }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { sql } from '@/lib/sql'
 
 export async function GET(
   request: NextRequest,
@@ -7,9 +7,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const image = await prisma.image.findUnique({
-      where: { id },
-    })
+    const rows = await sql/*sql*/`
+      SELECT id, type, name, "mimeType", data, width, height, alt
+      FROM images
+      WHERE id = ${id}
+      LIMIT 1
+    `
+    const image = rows?.[0] || null
 
     if (!image) {
       return NextResponse.json(

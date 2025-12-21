@@ -10,7 +10,11 @@ datasource db {
 }
 
 enum UserRole {
+  MASTER_ADMIN
   ADMIN
+  CUSTOMER_ADMIN
+  CUSTOMER_OPS
+  CUSTOMER_ANALYST
   USER
   PARTNER
 }
@@ -28,10 +32,413 @@ model User {
   name          String?
   role          UserRole   @default(USER)
   status        UserStatus @default(ACTIVE)
+  defaultTenantId String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
+  defaultTenant Tenant? @relation("DefaultTenant", fields: [defaultTenantId], references: [id])
+  memberships   TenantMembership[]
+  auditLogs     AuditLog[] @relation("AuditActor")
+  ingestFiles   IngestFile[]
+  maintenanceNotes MaintenanceNote[] @relation("MaintenanceAuthor")
+
   @@map("users")
+}
+
+enum TenantStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Tenant {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  status    TenantStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  members   TenantMembership[]
+  usersDefaultTenant User[] @relation("DefaultTenant")
+
+  sites     Site[]
+  zones     Zone[]
+  bays      Bay[]
+  sensors   Sensor[]
+  gateways  Gateway[]
+  sensorEvents SensorEvent[]
+  auditLogs AuditLog[]
+  ingestFiles IngestFile[]
+  ingestEvents IngestEvent[]
+  ingestDeadLetters IngestDeadLetter[]
+  replayJobs ReplayJob[]
+  settings TenantSetting?
+  maintenanceNotes MaintenanceNote[]
+
+  @@map("tenants")
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model TenantMembership {
+  id        String           @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      UserRole
+  status    MembershipStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+  @@index([tenantId])
+  @@map("tenant_memberships")
+}
+
+enum ZoneKind {
+  FREE
+  PAID
+  PRIVATE
+}
+
+enum AssetStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+enum SensorType {
+  PARKING
+  WEATHER
+  OTHER
+}
+
+enum GatewayBackhaul {
+  ETHERNET
+  WIFI
+  LTE
+  UNKNOWN
+}
+
+model Site {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  address   String?
+  timezone  String?
+  centerLat Float?
+  centerLng Float?
+  geojson   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  zones   Zone[]
+  bays    Bay[]
+  sensors Sensor[]
+  gateways Gateway[]
+  sensorEvents SensorEvent[]
+
+  @@index([tenantId])
+  @@map("sites")
+}
+
+model Zone {
+  id        String   @id @default(cuid())
+  tenantId  String
+  siteId    String
+  name      String
+  kind      ZoneKind @default(FREE)
+  tariff    Json?
+  geojson   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  bays   Bay[]
+  sensors Sensor[]
+
+  @@index([tenantId, siteId])
+  @@map("zones")
+}
+
+model Bay {
+  id        String   @id @default(cuid())
+  tenantId  String
+  siteId    String
+  zoneId    String?
+  code      String?
+  lat       Float?
+  lng       Float?
+  geojson   Json?
+  attributes Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  zone   Zone?  @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  sensor Sensor?
+
+  @@index([tenantId, siteId])
+  @@index([zoneId])
+  @@map("bays")
+}
+
+model Sensor {
+  id          String      @id @default(cuid())
+  tenantId    String
+  siteId      String?
+  zoneId      String?
+  bayId       String?     @unique
+  devEui      String      @unique
+  type        SensorType  @default(PARKING)
+  model       String?
+  firmware    String?
+  status      AssetStatus @default(ACTIVE)
+  installDate DateTime?
+  lastSeen    DateTime?
+  batteryPct  Float?
+  lat         Float?
+  lng         Float?
+  meta        Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  zone   Zone?  @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  bay    Bay?   @relation(fields: [bayId], references: [id], onDelete: SetNull)
+  events SensorEvent[]
+  maintenanceNotes MaintenanceNote[]
+
+  @@index([tenantId])
+  @@index([siteId])
+  @@index([zoneId])
+  @@map("sensors")
+}
+
+model TenantSetting {
+  tenantId   String  @id
+  thresholds Json
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_settings")
+}
+
+model MaintenanceNote {
+  id        String   @id @default(cuid())
+  tenantId  String
+  sensorId  String
+  createdByUserId String?
+  note      String   @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sensor Sensor @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+  author User?  @relation("MaintenanceAuthor", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([sensorId, createdAt])
+  @@map("maintenance_notes")
+}
+
+model Gateway {
+  id            String         @id @default(cuid())
+  tenantId      String
+  siteId        String?
+  name          String
+  serial        String?        @unique
+  model         String?
+  firmware      String?
+  status        AssetStatus    @default(ACTIVE)
+  backhaul      GatewayBackhaul @default(UNKNOWN)
+  lastHeartbeat DateTime?
+  lat           Float?
+  lng           Float?
+  meta          Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  events SensorEvent[]
+
+  @@index([tenantId])
+  @@index([siteId])
+  @@map("gateways")
+}
+
+enum SensorEventKind {
+  UPLINK
+  DERIVED
+  OVERRIDE
+  HEARTBEAT
+}
+
+model SensorEvent {
+  id         String         @default(cuid())
+  time       DateTime       @default(now()) @db.Timestamptz(6)
+  createdAt  DateTime       @default(now()) @db.Timestamptz(6)
+  tenantId   String
+  siteId     String?
+  sensorId   String
+  gatewayId  String?
+  kind       SensorEventKind @default(UPLINK)
+  decoded    Json?
+  rawPayload String?        @db.Text
+  rssi       Int?
+  snr        Float?
+  batteryPct Float?
+  meta       Json?
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site    Site?   @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  sensor  Sensor  @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+  gateway Gateway? @relation(fields: [gatewayId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, time])
+  @@index([sensorId, time])
+  @@index([gatewayId, time])
+  @@id([id, time])
+  @@map("sensor_events")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  actorUserId String?
+  action     String
+  entityType String
+  entityId   String?
+  before     Json?
+  after      Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  actor  User?   @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@map("audit_logs")
+}
+
+enum IngestFileStatus {
+  UPLOADED
+  REPLAYING
+  DONE
+  FAILED
+}
+
+model IngestFile {
+  id           String           @id @default(cuid())
+  tenantId     String
+  uploadedByUserId String?
+  filename     String
+  contentType  String?
+  source       String?          // e.g. "manual-upload"
+  status       IngestFileStatus @default(UPLOADED)
+  totalEvents  Int              @default(0)
+  validEvents  Int              @default(0)
+  invalidEvents Int             @default(0)
+  minTime      DateTime?        @db.Timestamptz(6)
+  maxTime      DateTime?        @db.Timestamptz(6)
+  meta         Json?
+  createdAt    DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(6)
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  uploader User?  @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  events   IngestEvent[]
+  deadLetters IngestDeadLetter[]
+  replayJobs ReplayJob[]
+
+  @@index([tenantId, createdAt])
+  @@map("ingest_files")
+}
+
+model IngestEvent {
+  id         String   @id @default(cuid())
+  seq        BigInt   @default(autoincrement())
+  tenantId   String
+  fileId     String
+  originalTime DateTime @db.Timestamptz(6)
+  devEui     String
+  sensorType SensorType @default(OTHER)
+  gatewaySerial String?
+  rawPayload String? @db.Text
+  decoded    Json?
+  rssi       Int?
+  snr        Float?
+  batteryPct Float?
+  lat        Float?
+  lng        Float?
+  meta       Json?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  file   IngestFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId, seq])
+  @@index([tenantId, originalTime])
+  @@map("ingest_events")
+}
+
+model IngestDeadLetter {
+  id        String   @id @default(cuid())
+  tenantId  String
+  fileId    String
+  rowIndex  Int?
+  reason    String
+  raw       Json?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  file   IngestFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId, createdAt])
+  @@map("ingest_dead_letters")
+}
+
+enum ReplayJobStatus {
+  CREATED
+  RUNNING
+  DONE
+  FAILED
+}
+
+model ReplayJob {
+  id        String         @id @default(cuid())
+  tenantId  String
+  fileId    String
+  status    ReplayJobStatus @default(CREATED)
+  speed     Float          @default(1.0) // 1x, 10x, etc.
+  cursorSeq BigInt?        // last processed seq
+  processed Int            @default(0)
+  error     String?
+  startedAt DateTime?      @db.Timestamptz(6)
+  finishedAt DateTime?     @db.Timestamptz(6)
+  createdAt DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime       @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  file   IngestFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([fileId])
+  @@map("replay_jobs")
 }
 
 enum ImageType {

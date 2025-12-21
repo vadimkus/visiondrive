@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { sql } from '@/lib/sql'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,16 +22,24 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        status: true,
-      },
-    })
+    const rows = await sql/*sql*/`
+      SELECT
+        u.id,
+        u.email,
+        u.name,
+        u.role,
+        u.status,
+        u."defaultTenantId",
+        tm.role AS "tenantRole",
+        tm.status AS "membershipStatus"
+      FROM users u
+      LEFT JOIN tenant_memberships tm
+        ON tm."userId" = u.id
+       AND tm."tenantId" = u."defaultTenantId"
+      WHERE u.id = ${decoded.userId}
+      LIMIT 1
+    `
+    const user = rows?.[0] || null
 
     if (!user || user.status !== 'ACTIVE') {
       return NextResponse.json(
@@ -40,9 +48,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const effectiveRole =
+      user.membershipStatus === 'ACTIVE' && user.tenantRole ? user.tenantRole : user.role
+
     return NextResponse.json({
       success: true,
-      user,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: effectiveRole,
+        status: user.status,
+        tenantId: user.defaultTenantId || null,
+      },
     })
   } catch (error) {
     console.error('Auth check error:', error)

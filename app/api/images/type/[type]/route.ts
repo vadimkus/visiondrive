@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { ImageType } from '@prisma/client'
+import { sql } from '@/lib/sql'
 
 export async function GET(
   request: NextRequest,
@@ -8,15 +7,32 @@ export async function GET(
 ) {
   try {
     const { type } = await params
-    const imageType = type.toUpperCase() as ImageType
-    const images = await prisma.image.findMany({
-      where: { type: imageType },
-      orderBy: { name: 'asc' },
-    })
+    const imageType = String(type || '').trim().toUpperCase()
+    const allowedTypes = new Set([
+      'LOGO',
+      'FAVICON',
+      'HERO',
+      'PARTNER',
+      'APP_SCREENSHOT',
+      'OTHER',
+    ])
+    if (!allowedTypes.has(imageType)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid image type' },
+        { status: 400 }
+      )
+    }
+
+    const images = await sql/*sql*/`
+      SELECT id, type, name, "mimeType", data, width, height, alt
+      FROM images
+      WHERE type = ${imageType}
+      ORDER BY name ASC
+    `
 
     return NextResponse.json({
       success: true,
-      images: images.map((img) => ({
+      images: (Array.isArray(images) ? images : []).map((img: any) => ({
         id: img.id,
         type: img.type,
         name: img.name,
