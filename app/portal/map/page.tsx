@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Section from '../../components/common/Section'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 
@@ -26,9 +26,11 @@ type MapMeta = {
 
 export default function PortalMapPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<MapItem[]>([])
   const [meta, setMeta] = useState<MapMeta | null>(null)
+  const zoneId = searchParams.get('zoneId') || 'all'
 
   const summary = useMemo(() => {
     let free = 0
@@ -52,7 +54,9 @@ export default function PortalMapPage() {
           router.push('/login')
           return
         }
-        const res = await fetch('/api/portal/map', { credentials: 'include' })
+        const qs = new URLSearchParams()
+        if (zoneId) qs.set('zoneId', zoneId)
+        const res = await fetch(`/api/portal/map?${qs.toString()}`, { credentials: 'include' })
         const json = await res.json()
         if (json.success) {
           setItems(json.items || [])
@@ -63,7 +67,7 @@ export default function PortalMapPage() {
       }
     }
     run()
-  }, [router])
+  }, [router, zoneId])
 
   if (loading) {
     return (
@@ -105,7 +109,9 @@ export default function PortalMapPage() {
               <button
                 onClick={async () => {
                   setLoading(true)
-                  const res = await fetch('/api/portal/map', { credentials: 'include' })
+                  const qs = new URLSearchParams()
+                  if (zoneId) qs.set('zoneId', zoneId)
+                  const res = await fetch(`/api/portal/map?${qs.toString()}`, { credentials: 'include' })
                   const json = await res.json()
                   if (json.success) {
                     setItems(json.items || [])

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Section from '../../components/common/Section'
 import { ArrowLeft, Search } from 'lucide-react'
 
@@ -18,6 +19,8 @@ type SensorItem = {
 
 export default function SensorsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const zoneId = searchParams.get('zoneId') || 'all'
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<SensorItem[]>([])
   const [q, setQ] = useState('')
@@ -36,7 +39,9 @@ export default function SensorsPage() {
           router.push('/login')
           return
         }
-        const res = await fetch('/api/portal/sensors', { credentials: 'include' })
+        const qs = new URLSearchParams()
+        if (zoneId) qs.set('zoneId', zoneId)
+        const res = await fetch(`/api/portal/sensors?${qs.toString()}`, { credentials: 'include' })
         const json = await res.json()
         if (json.success) setItems(json.items || [])
       } finally {
@@ -44,7 +49,7 @@ export default function SensorsPage() {
       }
     }
     run()
-  }, [router])
+  }, [router, zoneId])
 
   if (loading) {
     return (
@@ -55,9 +60,9 @@ export default function SensorsPage() {
   }
 
   return (
-    <Section className="pt-24 pb-12">
+    <Section className="pt-32 pb-12">
       <div className="max-w-7xl mx-auto">
-        <button onClick={() => router.push('/portal')} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
+        <button onClick={() => router.push(`/portal?zoneId=${encodeURIComponent(zoneId)}`)} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </button>

@@ -41,6 +41,7 @@ async function main() {
   // (idempotent: will reuse existing demo entities where possible)
   const demoSiteName = 'Demo Site (Seed)'
   const demoZoneName = 'Zone A (Seed)'
+  const demoDevEuiPrefix = 'A1B2C3D4%'
 
   const siteRows = await sql/*sql*/`
     SELECT id
@@ -104,13 +105,28 @@ async function main() {
     `
   }
 
-  // Bind sensors to first 20 bays and insert recent events for occupancy
+  // Reset demo sensors/events (so the distribution stays deterministic across multiple seed runs)
+  // NOTE: we target only sensors with the demo DevEUI prefix.
+  await sql/*sql*/`
+    DELETE FROM sensor_events
+    WHERE "tenantId" = ${ensuredTenantId}
+      AND "sensorId" IN (
+        SELECT id FROM sensors WHERE "tenantId" = ${ensuredTenantId} AND "devEui" LIKE ${demoDevEuiPrefix}
+      )
+  `
+  await sql/*sql*/`
+    DELETE FROM sensors
+    WHERE "tenantId" = ${ensuredTenantId} AND "devEui" LIKE ${demoDevEuiPrefix}
+  `
+
+  // Bind sensors to all 40 bays and insert events so portal shows realistic distribution:
+  // 30 FREE, 7 OCCUPIED, 3 OFFLINE (no recent events)
   const bayRows = await sql/*sql*/`
     SELECT id, code
     FROM bays
     WHERE "tenantId" = ${ensuredTenantId} AND "siteId" = ${demoSiteId} AND "zoneId" = ${demoZoneId}
     ORDER BY code ASC
-    LIMIT 20
+    LIMIT 40
   `
 
   for (let i = 0; i < (bayRows?.length || 0); i++) {
@@ -118,8 +134,13 @@ async function main() {
     const devEui = `A1B2C3D40000${String(i + 1).padStart(4, '0')}` // hex-ish, stable
     const sensorId = randomUUID()
     const batteryPct = 60 + ((i * 7) % 40) // 60..99
-    const lastSeen = new Date(Date.now() - (i + 1) * 60_000 + 500) // 1..20 minutes ago, slightly offset
-    const occupied = i % 2 === 0
+    const isFree = i < 30
+    const isOccupied = i >= 30 && i < 37
+    const isOffline = i >= 37
+    const occupied = isOccupied ? true : false
+    const lastSeen = isOffline
+      ? new Date(Date.now() - 2 * 60 * 60_000) // 2 hours ago => OFFLINE by default thresholds
+      : new Date(Date.now() - ((i % 5) + 1) * 60_000) // fresh within last 1-5 minutes (not stale)
 
     const sensorInsert = await sql/*sql*/`
       INSERT INTO sensors (id, "tenantId", "siteId", "zoneId", "bayId", "devEui", type, status, "installDate", "lastSeen", "batteryPct", "createdAt", "updatedAt")
@@ -152,32 +173,33 @@ async function main() {
     `
     const ensuredSensorId = sensorInsert?.[0]?.id
 
+    // Create an event for FREE/OCCUPIED; for OFFLINE sensors we keep an old event (still marks OFFLINE)
     const eventId = randomUUID()
     await sql/*sql*/`
-      INSERT INTO sensor_events (
-        id,
-        time,
-        "createdAt",
-        "tenantId",
-        "siteId",
-        "sensorId",
-        kind,
-        decoded,
-        "batteryPct"
-      )
-      VALUES (
-        ${eventId},
-        ${lastSeen},
-        now(),
-        ${ensuredTenantId},
-        ${demoSiteId},
-        ${ensuredSensorId},
-        'UPLINK',
-        ${sql.json({ occupied }) as any},
-        ${batteryPct}
-      )
-      ON CONFLICT DO NOTHING
-    `
+        INSERT INTO sensor_events (
+          id,
+          time,
+          "createdAt",
+          "tenantId",
+          "siteId",
+          "sensorId",
+          kind,
+          decoded,
+          "batteryPct"
+        )
+        VALUES (
+          ${eventId},
+          ${lastSeen},
+          now(),
+          ${ensuredTenantId},
+          ${demoSiteId},
+          ${ensuredSensorId},
+          'UPLINK',
+          ${sql.json({ occupied }) as any},
+          ${batteryPct}
+        )
+        ON CONFLICT DO NOTHING
+      `
   }
 
   console.log('✅ Seeded demo site/zone/bays/sensors for portal')

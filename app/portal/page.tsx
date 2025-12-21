@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   BarChart3,
   MapPin,
@@ -9,7 +9,6 @@ import {
   Clock,
   TrendingUp,
   Settings,
-  LogOut,
   ParkingCircle,
   Activity,
   AlertTriangle
@@ -25,9 +24,12 @@ interface User {
 
 export default function PortalPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [dashboard, setDashboard] = useState<any>(null)
+  const [zones, setZones] = useState<any[]>([])
+  const [zoneId, setZoneId] = useState<string>('all')
 
   useEffect(() => {
     // Fetch user data from API
@@ -60,9 +62,30 @@ export default function PortalPage() {
   }, [router])
 
   useEffect(() => {
+    // Read zone selection from URL
+    const z = searchParams.get('zoneId') || 'all'
+    setZoneId(z)
+  }, [searchParams])
+
+  useEffect(() => {
+    const fetchZones = async () => {
+      try {
+        const res = await fetch('/api/portal/zones', { credentials: 'include' })
+        const json = await res.json()
+        if (json.success) setZones(json.zones || [])
+      } catch {
+        // ignore
+      }
+    }
+    if (!loading && user) fetchZones()
+  }, [loading, user])
+
+  useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await fetch('/api/portal/dashboard', { credentials: 'include' })
+        const qs = new URLSearchParams()
+        if (zoneId) qs.set('zoneId', zoneId)
+        const res = await fetch(`/api/portal/dashboard?${qs.toString()}`, { credentials: 'include' })
         const json = await res.json()
         if (json.success) setDashboard(json)
       } catch {
@@ -70,20 +93,7 @@ export default function PortalPage() {
       }
     }
     if (!loading && user) fetchDashboard()
-  }, [loading, user])
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
-    router.push('/login')
-    router.refresh()
-  }
+  }, [loading, user, zoneId])
 
   if (loading) {
     return (
@@ -100,10 +110,15 @@ export default function PortalPage() {
   const kpis = dashboard?.kpis || {}
   const stats = [
     { icon: ParkingCircle, label: 'Total Bays', value: String(kpis.totalBays ?? 0), color: 'text-blue-600' },
-    { icon: Activity, label: 'Free / Occupied', value: `${kpis.freeBays ?? 0} / ${kpis.occupiedBays ?? 0}`, color: 'text-green-600' },
-    { icon: AlertTriangle, label: 'Offline Sensors', value: String(kpis.offlineSensors ?? 0), color: 'text-red-600' },
+    { icon: Activity, label: 'Free Bays', value: String(kpis.freeBays ?? 0), color: 'text-green-600' },
+    { icon: TrendingUp, label: 'Occupied Bays', value: String(kpis.occupiedBays ?? 0), color: 'text-red-600' },
+    { icon: AlertTriangle, label: 'Offline Bays', value: String(kpis.offlineBays ?? 0), color: 'text-yellow-700' },
     { icon: Clock, label: 'Dead Letters (24h)', value: String(kpis.deadLetters24h ?? 0), color: 'text-orange-600' },
   ]
+
+  const zoneLabel =
+    zones.find((z) => String(z.id) === String(zoneId))?.name ||
+    (zoneId === 'all' ? 'All Zones' : 'Selected Zone')
 
   return (
     <>
@@ -113,24 +128,35 @@ export default function PortalPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                Vision Drive Dashboard
+                {zoneLabel}
               </h1>
-              <p className="text-sm sm:text-base text-gray-600">Welcome back, {user?.name || user?.email || 'User'}</p>
+              <p className="text-sm sm:text-base text-gray-600">
+                {zones.find((z) => String(z.id) === String(zoneId))?.address || 'Tenant-wide view'} · Welcome back, {user?.name || user?.email || 'User'}
+              </p>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
+              <select
+                value={zoneId}
+                onChange={(e) => {
+                  const next = e.target.value
+                  const qs = new URLSearchParams(searchParams.toString())
+                  qs.set('zoneId', next)
+                  router.push(`/portal?${qs.toString()}`)
+                }}
+                className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg"
+              >
+                {(zones.length ? zones : [{ id: 'all', name: 'All Zones' }]).map((z) => (
+                  <option key={z.id} value={z.id}>
+                    {z.name} {typeof z.bayCount === 'number' ? `(${z.bayCount})` : ''}
+                  </option>
+                ))}
+              </select>
               <button
                 onClick={() => router.push('/portal/settings')}
                 className="inline-flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 <Settings className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Settings</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
-              >
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
@@ -151,6 +177,10 @@ export default function PortalPage() {
                 </div>
               )
             })}
+          </div>
+          <div className="mb-6 sm:mb-8 text-xs text-gray-600">
+            Bay states: {kpis.freeBays ?? 0} free + {kpis.occupiedBays ?? 0} occupied + {kpis.offlineBays ?? 0} offline + {kpis.unknownBays ?? 0} unknown ={' '}
+            {kpis.totalBays ?? 0} total
           </div>
 
           {/* Main Content */}
@@ -226,12 +256,18 @@ export default function PortalPage() {
           <div className="mt-4 sm:mt-6 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              <button onClick={() => router.push('/portal/events')} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+              <button
+                onClick={() => router.push(`/portal/events?zoneId=${encodeURIComponent(zoneId)}`)}
+                className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              >
                 <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
                 <p className="font-medium text-sm sm:text-base text-gray-900">Events & Export</p>
                 <p className="text-xs sm:text-sm text-gray-600">Time-series viewer + CSV</p>
               </button>
-              <button onClick={() => router.push('/portal/map')} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+              <button
+                onClick={() => router.push(`/portal/map?zoneId=${encodeURIComponent(zoneId)}`)}
+                className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              >
                 <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
                 <p className="font-medium text-sm sm:text-base text-gray-900">Live Map</p>
                 <p className="text-xs sm:text-sm text-gray-600">Bay colors + confidence</p>
@@ -250,7 +286,10 @@ export default function PortalPage() {
           <div className="mt-4 sm:mt-6 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Navigation</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              <button onClick={() => router.push('/portal/sensors')} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+              <button
+                onClick={() => router.push(`/portal/sensors?zoneId=${encodeURIComponent(zoneId)}`)}
+                className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+              >
                 <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
                 <p className="font-medium text-sm sm:text-base text-gray-900">Sensors</p>
                 <p className="text-xs sm:text-sm text-gray-600">Health + maintenance notes</p>

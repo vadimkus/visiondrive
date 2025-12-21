@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Section from '../../components/common/Section'
 import { ArrowLeft, Download } from 'lucide-react'
 
@@ -17,6 +17,8 @@ type EventRow = {
 
 export default function EventsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const zoneId = searchParams.get('zoneId') || 'all'
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<EventRow[]>([])
   const [devEui, setDevEui] = useState('')
@@ -26,6 +28,7 @@ export default function EventsPage() {
 
   const load = async () => {
     const params = new URLSearchParams()
+    if (zoneId) params.set('zoneId', zoneId)
     if (devEui.trim()) params.set('devEui', devEui.trim())
     if (kind.trim()) params.set('kind', kind.trim())
     if (start) params.set('start', start)
@@ -48,7 +51,7 @@ export default function EventsPage() {
     }
     run()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [zoneId])
 
   if (loading) {
     return (
@@ -60,6 +63,7 @@ export default function EventsPage() {
 
   const exportUrl = (() => {
     const params = new URLSearchParams()
+    if (zoneId) params.set('zoneId', zoneId)
     if (devEui.trim()) params.set('devEui', devEui.trim())
     if (kind.trim()) params.set('kind', kind.trim())
     if (start) params.set('start', start)
@@ -72,7 +76,7 @@ export default function EventsPage() {
   return (
     <Section className="pt-24 pb-12">
       <div className="max-w-7xl mx-auto">
-        <button onClick={() => router.push('/portal')} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
+        <button onClick={() => router.push(`/portal?zoneId=${encodeURIComponent(zoneId)}`)} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </button>
