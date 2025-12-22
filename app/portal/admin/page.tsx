@@ -234,6 +234,10 @@ export default function PortalAdminPage() {
             <a href="/portal/calibration" className="text-primary-700 hover:underline font-medium">
               Map Calibration (Sensors)
             </a>
+            . Want to review hardware issues? Open{' '}
+            <a href="/portal/alerts" className="text-primary-700 hover:underline font-medium">
+              Alerts
+            </a>
             .
           </p>
 

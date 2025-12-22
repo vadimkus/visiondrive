@@ -23,5 +23,6 @@ This folder contains **implementation documentation** aligned with `/notes` → 
 - `11.3.4-dubai-pulse-zones-import.md`: Dubai Pulse static parking zones import (GeoJSON + tariff) + Mapbox overlay.
 - `11.3.5-map-calibration-sensors.md`: Manual sensor placement correction page (drag & save) with 3D + satellite toggles.
 - `11.3.6-calibration-ux-all-sensors-installed-only.md`: Calibration UX upgrades (all sensors overlay, installed-only=40, map doesn’t disappear, portal map uses sensor coords).
+- `11.4-hardware-health-alerts.md`: Phase 11.4 (hardware health metrics + alerts pipeline + alerts UI) implementation notes.
 
 

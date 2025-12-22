@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { sql } from '../lib/sql'
 import { randomUUID } from 'crypto'
+import { runAlertScan } from '../lib/alerts'
 
 // Seeding uses the direct `sql` client to avoid Prisma runtime/adapter issues in serverless/dev.
 
@@ -28,12 +29,24 @@ async function main() {
     offlineMinutes: 60,
     lowBatteryPct: 20,
     staleEventMinutes: 15,
+    poorRssiThreshold: -115,
+    poorSnrThreshold: 0,
+    signalLookbackHours: 24,
+    signalMinSamples: 3,
+    flappingWindowMinutes: 30,
+    flappingMaxChanges: 6,
+    deadLettersWindowHours: 24,
+    deadLettersCritical: 50,
+    deadLettersWarning: 10,
+    slaHoursCritical: 4,
+    slaHoursWarning: 24,
+    slaHoursInfo: 72,
   }
   await sql/*sql*/`
     INSERT INTO tenant_settings ("tenantId", thresholds, "updatedAt")
     VALUES (${ensuredTenantId}, ${sql.json(defaultThresholds) as any}, now())
     ON CONFLICT ("tenantId") DO UPDATE
-      SET thresholds = EXCLUDED.thresholds,
+      SET thresholds = (EXCLUDED.thresholds::jsonb || COALESCE(tenant_settings.thresholds::jsonb, '{}'::jsonb))::json,
           "updatedAt" = now()
   `
 
@@ -288,6 +301,16 @@ async function main() {
   }
 
   console.log('✅ Seeded demo site/zone/bays/sensors for portal')
+
+  // Phase 11.4: generate initial Hardware Health + Alerts
+  try {
+    const result = await runAlertScan({ tenantId: ensuredTenantId, actorUserId: null })
+    console.log(
+      `✅ Alerts scan complete: ${result.created} created, ${result.updated} updated, ${result.resolved} resolved (checked ${result.checkedSensors} sensors)`
+    )
+  } catch (e) {
+    console.warn('⚠️  Alerts scan skipped/failed:', e)
+  }
 
   // Create admin user
   const adminPassword = await bcrypt.hash('admin5', 10)

@@ -3,7 +3,19 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Section from '../../../components/common/Section'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, ShieldAlert } from 'lucide-react'
+
+function fmtDue(iso: string | null) {
+  if (!iso) return '—'
+  const ms = new Date(iso).getTime() - Date.now()
+  const m = Math.ceil(ms / 60000)
+  if (m <= 0) return `overdue`
+  if (m < 60) return `${m}m`
+  const h = Math.ceil(m / 60)
+  if (h < 48) return `${h}h`
+  const d = Math.ceil(h / 24)
+  return `${d}d`
+}
 
 export default function SensorDetailPage() {
   const router = useRouter()
@@ -68,6 +80,8 @@ export default function SensorDetailPage() {
   }
 
   const sensor = data?.sensor
+  const health = sensor?.health || {}
+  const alerts = data?.alerts || []
 
   return (
     <Section className="pt-6 pb-12">
@@ -90,6 +104,57 @@ export default function SensorDetailPage() {
               <div>Status: <span className="font-semibold">{sensor?.status}</span></div>
               <div>Last seen: <span className="font-semibold">{sensor?.lastSeen ? new Date(sensor.lastSeen).toLocaleString() : '—'}</span></div>
               <div>Battery: <span className="font-semibold">{typeof sensor?.batteryPct === 'number' ? `${Math.round(sensor.batteryPct)}%` : '—'}</span></div>
+              <div>Days in use: <span className="font-semibold">{typeof health?.daysInUse === 'number' ? health.daysInUse : '—'}</span></div>
+              <div>Health score: <span className="font-semibold">{typeof health?.score === 'number' ? health.score : '—'}</span></div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Battery drain (7d)</div>
+              <div className="font-semibold text-gray-900">
+                {typeof health?.batteryDrainPerDay7d === 'number' ? `${health.batteryDrainPerDay7d.toFixed(2)}%/day` : '—'}
+              </div>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Signal (avg 24h)</div>
+              <div className="font-semibold text-gray-900">
+                RSSI {typeof health?.avgRssi24h === 'number' ? health.avgRssi24h.toFixed(1) : '—'} / SNR {typeof health?.avgSnr24h === 'number' ? health.avgSnr24h.toFixed(1) : '—'}
+              </div>
+              <div className="text-xs text-gray-500">Samples: {health?.signalSamples24h ?? 0}</div>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Last signal</div>
+              <div className="font-semibold text-gray-900">
+                RSSI {typeof health?.lastRssi === 'number' ? health.lastRssi : '—'} / SNR {typeof health?.lastSnr === 'number' ? health.lastSnr : '—'}
+              </div>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Flapping</div>
+              <div className="font-semibold text-gray-900">{health?.flapChanges ?? 0} changes</div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-gray-900 inline-flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4 text-orange-600" />
+                Active Alerts
+              </h2>
+              <button
+                onClick={() => router.push(`/portal/alerts?sensorId=${encodeURIComponent(sensor?.id || '')}`)}
+                className="text-xs text-primary-700 hover:underline"
+              >
+                Open in Alerts
+              </button>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {alerts.length === 0 && <span className="text-sm text-gray-500">No active alerts</span>}
+              {alerts.map((a: any) => (
+                <span key={a.id} className="px-3 py-1 rounded-full border border-gray-200 bg-white text-xs text-gray-800">
+                  <span className="font-semibold">{a.severity}</span> · {a.type} · due {fmtDue(a.slaDueAt)}
+                </span>
+              ))}
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { BarChart3, MapPin, Users, Clock, TrendingUp, Settings, ParkingCircle, Activity, AlertTriangle } from 'lucide-react'
+import { BarChart3, MapPin, Users, Clock, TrendingUp, Settings, ParkingCircle, Activity, AlertTriangle, ShieldAlert } from 'lucide-react'
 
 interface User {
   id: string
@@ -103,6 +103,7 @@ export default function PortalPageClient() {
     { icon: Activity, label: 'Free Bays', value: String(kpis.freeBays ?? 0), color: 'text-green-600' },
     { icon: TrendingUp, label: 'Occupied Bays', value: String(kpis.occupiedBays ?? 0), color: 'text-red-600' },
     { icon: AlertTriangle, label: 'Offline Bays', value: String(kpis.offlineBays ?? 0), color: 'text-yellow-700' },
+    { icon: ShieldAlert, label: 'Open Alerts', value: String(kpis.openAlerts ?? 0), color: 'text-orange-600' },
     { icon: Clock, label: 'Dead Letters (24h)', value: String(kpis.deadLetters24h ?? 0), color: 'text-orange-600' },
   ]
 
@@ -247,6 +248,18 @@ export default function PortalPageClient() {
                     </button>
                   </div>
                 </div>
+                <div className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0">
+                  <div className="w-2 h-2 bg-orange-600 rounded-full mt-2"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">Open alerts</p>
+                    <p className="text-xs text-gray-500">
+                      {kpis.openAlerts ?? 0} open / {kpis.criticalAlerts ?? 0} critical
+                    </p>
+                    <button onClick={() => router.push(`/portal/alerts?zoneId=${encodeURIComponent(zoneId)}`)} className="text-xs text-primary-700 hover:underline mt-1">
+                      Open Alerts
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -269,6 +282,11 @@ export default function PortalPageClient() {
                 <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
                 <p className="font-medium text-sm sm:text-base text-gray-900">Replay & Decoder Tools</p>
                 <p className="text-xs sm:text-sm text-gray-600">Upload/replay events and test decoders</p>
+              </button>
+              <button onClick={() => router.push(`/portal/alerts?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <ShieldAlert className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 mb-2" />
+                <p className="font-medium text-sm sm:text-base text-gray-900">Alerts</p>
+                <p className="text-xs sm:text-sm text-gray-600">Queue + SLA + actions</p>
               </button>
             </div>
           </div>

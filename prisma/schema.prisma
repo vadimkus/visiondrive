@@ -41,6 +41,9 @@ model User {
   auditLogs     AuditLog[] @relation("AuditActor")
   ingestFiles   IngestFile[]
   maintenanceNotes MaintenanceNote[] @relation("MaintenanceAuthor")
+  alertsAcknowledged Alert[] @relation("AlertAcknowledgedBy")
+  alertsAssigned     Alert[] @relation("AlertAssignedTo")
+  alertEvents        AlertEvent[] @relation("AlertEventActor")
 
   @@map("users")
 }
@@ -74,6 +77,8 @@ model Tenant {
   replayJobs ReplayJob[]
   settings TenantSetting?
   maintenanceNotes MaintenanceNote[]
+  alerts Alert[]
+  alertEvents AlertEvent[]
 
   @@map("tenants")
 }
@@ -145,6 +150,7 @@ model Site {
   sensors Sensor[]
   gateways Gateway[]
   sensorEvents SensorEvent[]
+  alerts Alert[]
 
   @@index([tenantId])
   @@map("sites")
@@ -165,6 +171,7 @@ model Zone {
   site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
   bays   Bay[]
   sensors Sensor[]
+  alerts Alert[]
 
   @@index([tenantId, siteId])
   @@map("zones")
@@ -219,6 +226,7 @@ model Sensor {
   bay    Bay?   @relation(fields: [bayId], references: [id], onDelete: SetNull)
   events SensorEvent[]
   maintenanceNotes MaintenanceNote[]
+  alerts Alert[]
 
   @@index([tenantId])
   @@index([siteId])
@@ -273,6 +281,7 @@ model Gateway {
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   site   Site?  @relation(fields: [siteId], references: [id], onDelete: SetNull)
   events SensorEvent[]
+  alerts Alert[]
 
   @@index([tenantId])
   @@index([siteId])
@@ -417,6 +426,92 @@ enum ReplayJobStatus {
   RUNNING
   DONE
   FAILED
+}
+
+enum AlertType {
+  SENSOR_OFFLINE
+  LOW_BATTERY
+  POOR_SIGNAL
+  FLAPPING
+  DECODE_ERRORS
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model Alert {
+  id        String @id @default(cuid())
+  tenantId  String
+  siteId    String?
+  zoneId    String?
+  sensorId  String?
+  gatewayId String?
+
+  type      AlertType
+  severity  AlertSeverity @default(WARNING)
+  status    AlertStatus   @default(OPEN)
+
+  title     String
+  message   String?
+  meta      Json?
+
+  openedAt        DateTime @default(now()) @db.Timestamptz(6)
+  firstDetectedAt DateTime @default(now()) @db.Timestamptz(6)
+  lastDetectedAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  acknowledgedAt DateTime? @db.Timestamptz(6)
+  acknowledgedByUserId String?
+  assignedToUserId String?
+  resolvedAt     DateTime? @db.Timestamptz(6)
+
+  slaDueAt   DateTime? @db.Timestamptz(6)
+
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  zone   Zone?  @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  sensor Sensor? @relation(fields: [sensorId], references: [id], onDelete: SetNull)
+  gateway Gateway? @relation(fields: [gatewayId], references: [id], onDelete: SetNull)
+
+  acknowledgedBy User? @relation("AlertAcknowledgedBy", fields: [acknowledgedByUserId], references: [id], onDelete: SetNull)
+  assignedTo User? @relation("AlertAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  events AlertEvent[]
+
+  @@index([tenantId, status, severity, updatedAt])
+  @@index([tenantId, type, updatedAt])
+  @@index([sensorId, status, updatedAt])
+  @@map("alerts")
+}
+
+model AlertEvent {
+  id        String  @id @default(cuid())
+  tenantId  String
+  alertId   String
+  actorUserId String?
+  action    String
+  note      String?
+  meta      Json?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  alert  Alert  @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  actor  User?  @relation("AlertEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([alertId, createdAt])
+  @@map("alert_events")
 }
 
 model ReplayJob {

@@ -34,9 +34,11 @@ See: `11.3-operator-portal-mvp.md`
 
 ## 11.4 Phase D — Hardware Health + Alerts System [Week 3–4]
 
-- [ ] Implement health score + days-in-use + battery drain + signal quality (RSSI/SNR)
-- [ ] Alerts pipeline: generate alerts (offline, low battery, poor signal, flapping, decode errors)
-- [ ] Alerts UI: queue + acknowledge/assign/resolve + SLA timers + audit trail
+- [x] Implement health score + days-in-use + battery drain + signal quality (RSSI/SNR)
+- [x] Alerts pipeline: generate alerts (offline, low battery, poor signal, flapping, decode errors)
+- [x] Alerts UI: queue + acknowledge/assign/resolve + SLA timers + audit trail
+
+See: `11.4-hardware-health-alerts.md`
 
 ## 11.5 Phase E — Master Admin Portal (global view + drilldown) [Week 4–5]
 

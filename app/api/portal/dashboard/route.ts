@@ -56,7 +56,20 @@ export async function GET(request: NextRequest) {
         (SELECT COUNT(*)::int FROM latest WHERE "lastEventTime" IS NOT NULL AND "lastEventTime" > now() - (${offlineMinutes} || ' minutes')::interval) AS "onlineSensors",
         (SELECT COUNT(*)::int FROM latest WHERE "lastEventTime" IS NULL OR "lastEventTime" <= now() - (${offlineMinutes} || ' minutes')::interval) AS "offlineSensors",
         (SELECT COUNT(*)::int FROM sensors WHERE "tenantId" = ${session.tenantId} AND (${zoneId}::text IS NULL OR "zoneId" = ${zoneId}) AND "bayId" IS NOT NULL AND "batteryPct" IS NOT NULL AND "batteryPct" <= ${lowBatteryPct}) AS "lowBatterySensors",
-        (SELECT COUNT(*)::int FROM ingest_dead_letters WHERE "tenantId" = ${session.tenantId} AND "createdAt" > now() - interval '24 hours') AS "deadLetters24h"
+        (SELECT COUNT(*)::int FROM ingest_dead_letters WHERE "tenantId" = ${session.tenantId} AND "createdAt" > now() - interval '24 hours') AS "deadLetters24h",
+        (SELECT COUNT(*)::int FROM alerts a
+          LEFT JOIN sensors s ON s.id = a."sensorId"
+          WHERE a."tenantId" = ${session.tenantId}
+            AND a.status IN ('OPEN','ACKNOWLEDGED')
+            AND (${zoneId}::text IS NULL OR COALESCE(a."zoneId", s."zoneId") = ${zoneId})
+        ) AS "openAlerts",
+        (SELECT COUNT(*)::int FROM alerts a
+          LEFT JOIN sensors s ON s.id = a."sensorId"
+          WHERE a."tenantId" = ${session.tenantId}
+            AND a.status IN ('OPEN','ACKNOWLEDGED')
+            AND a.severity = 'CRITICAL'
+            AND (${zoneId}::text IS NULL OR COALESCE(a."zoneId", s."zoneId") = ${zoneId})
+        ) AS "criticalAlerts"
     `
 
     // Bay-level truth: classify every bay so counts always correlate to total bays.
@@ -133,6 +146,8 @@ export async function GET(request: NextRequest) {
         offlineSensors: counts?.offlineSensors || 0,
         lowBatterySensors: counts?.lowBatterySensors || 0,
         deadLetters24h: counts?.deadLetters24h || 0,
+        openAlerts: counts?.openAlerts || 0,
+        criticalAlerts: counts?.criticalAlerts || 0,
         occupiedBays: occupied,
         freeBays: free,
         offlineBays,
