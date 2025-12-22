@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const INPUT_LOGO = path.join(__dirname, '../public/images/logo/logo.png');
+const INPUT_LOGO = path.join(__dirname, '../public/images/logo/logo.jpg');
 const OUTPUT_DIR = path.join(__dirname, '../public/favicon');
 
 // Favicon sizes to generate

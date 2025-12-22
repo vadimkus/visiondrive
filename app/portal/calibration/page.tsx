@@ -47,6 +47,9 @@ export default function CalibrationPage() {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markerRef = useRef<mapboxgl.Marker | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const multiBaseRef = useRef<Map<string, { lat: number; lng: number }>>(new Map())
+  const multiMarkerBaseRef = useRef<{ lat: number; lng: number } | null>(null)
+  const multiBaselineKeyRef = useRef<string>('')
 
   const [bootLoading, setBootLoading] = useState(true)
   const [listLoading, setListLoading] = useState(false)
@@ -202,6 +205,41 @@ export default function CalibrationPage() {
       setStatus(`failed: ${e?.message || 'reset failed'}`)
     }
   }, [fitSensorsOnMap])
+
+  // Multi-select baseline: preserve relative spacing by applying a delta (translation) from the group's centroid.
+  // If we don't do this, saving multi-select will "stack" sensors on the same coordinate.
+  useEffect(() => {
+    if (!multiSelectMode || selectedIds.size === 0) {
+      multiBaselineKeyRef.current = ''
+      multiBaseRef.current = new Map()
+      multiMarkerBaseRef.current = null
+      return
+    }
+    if (multiBaselineKeyRef.current === selectedIdsKey) return
+
+    const selectedSensors = items.filter((s) => selectedIds.has(s.id))
+    const baseMap = new Map<string, { lat: number; lng: number }>()
+    const coords: Array<{ lat: number; lng: number }> = []
+    for (const s of selectedSensors) {
+      const lat = typeof s.lat === 'number' ? s.lat : typeof s.bayLat === 'number' ? s.bayLat : null
+      const lng = typeof s.lng === 'number' ? s.lng : typeof s.bayLng === 'number' ? s.bayLng : null
+      if (typeof lat === 'number' && typeof lng === 'number') {
+        baseMap.set(s.id, { lat, lng })
+        coords.push({ lat, lng })
+      }
+    }
+
+    // Centroid (avg) as the group handle location
+    const map = mapRef.current
+    const fallbackCenter = map ? map.getCenter() : { lat: 25.1016, lng: 55.1622 }
+    const avgLat = coords.length ? coords.reduce((sum, c) => sum + c.lat, 0) / coords.length : fallbackCenter.lat
+    const avgLng = coords.length ? coords.reduce((sum, c) => sum + c.lng, 0) / coords.length : fallbackCenter.lng
+
+    multiBaseRef.current = baseMap
+    multiMarkerBaseRef.current = { lat: avgLat, lng: avgLng }
+    multiBaselineKeyRef.current = selectedIdsKey
+    setDraft({ lat: avgLat, lng: avgLng })
+  }, [multiSelectMode, selectedIdsKey, selectedIds, items])
 
   const center = useMemo(() => {
     // Prefer selected sensor location; fallback to Dubai Media City (demo)
@@ -550,7 +588,10 @@ export default function CalibrationPage() {
         const p = m.getLngLat()
         setDraft({ lat: p.lat, lng: p.lng })
         if (multiSelectMode) {
-          setStatus(`Position for ${selectedIds.size} sensors: ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`)
+          const base = multiMarkerBaseRef.current
+          const dLat = base ? p.lat - base.lat : 0
+          const dLng = base ? p.lng - base.lng : 0
+          setStatus(`Move group: Δ${dLat.toFixed(6)}, ${dLng.toFixed(6)} (affects ${selectedIds.size} sensors)`)
         } else {
           setStatus(`Moved to: ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`)
         }
@@ -567,7 +608,10 @@ export default function CalibrationPage() {
         const p = m.getLngLat()
         setDraft({ lat: p.lat, lng: p.lng })
         if (multiSelectMode) {
-          setStatus(`Position for ${selectedIds.size} sensors: ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`)
+          const base = multiMarkerBaseRef.current
+          const dLat = base ? p.lat - base.lat : 0
+          const dLng = base ? p.lng - base.lng : 0
+          setStatus(`Move group: Δ${dLat.toFixed(6)}, ${dLng.toFixed(6)} (affects ${selectedIds.size} sensors)`)
         } else {
           setStatus(`Moved to: ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`)
         }
@@ -604,28 +648,49 @@ export default function CalibrationPage() {
       setSaving(true)
       setStatus(null)
       try {
-        let successCount = 0
-        let failCount = 0
-        
-        for (const id of Array.from(selectedIds)) {
-          const res = await fetch(`/api/portal/admin/sensors/${id}/location`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ lat: draft.lat, lng: draft.lng }),
-          })
-          const json = await res.json()
-          if (json.success) {
-            successCount++
-            // Optimistic update
-            setItems((prev) => prev.map((s) => (s.id === id ? { ...s, lat: draft.lat!, lng: draft.lng! } : s)))
-          } else {
-            failCount++
-          }
+        const baseMarker = multiMarkerBaseRef.current
+        if (!baseMarker) {
+          setStatus('failed: multi-select baseline not initialized (try reselecting sensors)')
+          return
         }
-        
-        setStatus(`✓ Saved ${successCount} sensor${successCount !== 1 ? 's' : ''}${failCount > 0 ? ` (${failCount} failed)` : ''}`)
-        await load()
+
+        const dLat = draft.lat - baseMarker.lat
+        const dLng = draft.lng - baseMarker.lng
+
+        const updates: Array<{ id: string; lat: number; lng: number }> = []
+        for (const id of Array.from(selectedIds)) {
+          const base = multiBaseRef.current.get(id)
+          if (!base) continue
+          updates.push({ id, lat: base.lat + dLat, lng: base.lng + dLng })
+        }
+
+        if (!updates.length) {
+          setStatus('failed: no valid sensor positions to update')
+          return
+        }
+
+        const res = await fetch('/api/portal/admin/sensors', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'bulk_update_locations', updates }),
+        })
+        const json = await res.json()
+        if (!json?.success) {
+          setStatus(`failed: ${json?.error || 'bulk save failed'}`)
+          return
+        }
+
+        const nextById = new Map(updates.map((u) => [u.id, u]))
+        setItems((prev) =>
+          prev.map((s) => {
+            const u = nextById.get(s.id)
+            return u ? { ...s, lat: u.lat, lng: u.lng } : s
+          })
+        )
+
+        setStatus(`✓ Saved ${json.updated ?? updates.length} sensor${(json.updated ?? updates.length) !== 1 ? 's' : ''}`)
+        await load(false)
       } finally {
         setSaving(false)
       }

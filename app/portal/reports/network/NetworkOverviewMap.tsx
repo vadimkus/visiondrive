@@ -102,7 +102,7 @@ export default function NetworkOverviewMap({
     mapboxgl.accessToken = token
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: 'mapbox://styles/mapbox/light-v11',
+      style: 'mapbox://styles/mapbox/streets-v12', // Changed to colorful streets style
       center: center.center,
       zoom: center.zoom,
       attributionControl: false,
@@ -117,9 +117,9 @@ export default function NetworkOverviewMap({
         type: 'line',
         source: 'net-lines',
         paint: {
-          'line-color': '#94a3b8', // slate-400
-          'line-width': 2,
-          'line-opacity': 0.35,
+          'line-color': '#818cf8', // indigo-400 - more colorful
+          'line-width': 3,
+          'line-opacity': 0.6,
         },
       })
 
@@ -136,9 +136,11 @@ export default function NetworkOverviewMap({
         source: 'net-nodes',
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': '#111827',
-          'circle-opacity': 0.75,
-          'circle-radius': ['step', ['get', 'point_count'], 18, 10, 22, 50, 28, 200, 34],
+          'circle-color': '#4f46e5', // indigo-600 - more colorful
+          'circle-opacity': 0.85,
+          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 24, 50, 30, 200, 36],
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#ffffff',
         },
       })
       map.addLayer({
@@ -159,11 +161,11 @@ export default function NetworkOverviewMap({
         source: 'net-nodes',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-radius': 7,
-          'circle-stroke-width': 2,
+          'circle-radius': 8,
+          'circle-stroke-width': 3,
           'circle-stroke-color': '#ffffff',
           'circle-color': ['get', 'color'],
-          'circle-opacity': 0.92,
+          'circle-opacity': 0.95,
         },
       })
 
@@ -207,7 +209,7 @@ export default function NetworkOverviewMap({
     if (ls) ls.setData(lines as any)
   }, [points, lines, ready])
 
-  return <div ref={containerRef} className="w-full h-[420px] rounded-lg overflow-hidden border border-gray-200" />
+  return <div ref={containerRef} className="w-full h-[520px] rounded-b-xl overflow-hidden" />
 }
 
 
