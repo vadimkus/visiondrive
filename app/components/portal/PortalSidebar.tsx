@@ -120,7 +120,8 @@ export default function PortalSidebar() {
         }`}
         title={isCollapsed ? item.label : undefined}
       >
-        <Icon className={`h-6 w-6 flex-shrink-0 ${isActive ? item.color : 'text-gray-500'}`} />
+        {/* Keep icons colored even when not active (faster scanning) */}
+        <Icon className={`h-6 w-6 flex-shrink-0 ${item.color}`} />
         {!isCollapsed && <span className="text-sm">{item.label}</span>}
       </button>
     )
@@ -158,10 +159,10 @@ export default function PortalSidebar() {
           {coreItems.map(NavButton)}
         </div>
 
-        {/* Special block: Finance */}
+        {/* Finance */}
         {isMasterAdmin ? (
           <>
-            <SectionTitle label="Special block" />
+            <SectionTitle label="Finance" />
             <div className="space-y-1 px-2">{financeItems.map(NavButton)}</div>
           </>
         ) : null}
@@ -170,22 +171,22 @@ export default function PortalSidebar() {
         <SectionTitle label="Report" />
         <div className="space-y-1 px-2">{reportsItems.map(NavButton)}</div>
 
-        {/* Special block: Sensors + Calibration */}
-        <SectionTitle label="Special block" />
+        {/* Operations */}
+        <SectionTitle label="Operations" />
         <div className="space-y-1 px-2">
           {sensorsItems
             .filter((i) => (i.adminOnly ? isAdmin : true))
             .map(NavButton)}
         </div>
 
-        {/* Special block: Network (dedicated) */}
-        <SectionTitle label="Special block" />
+        {/* Network */}
+        <SectionTitle label="Network" />
         <div className="space-y-1 px-2">{networkItems.map(NavButton)}</div>
 
-        {/* Special block: Admin / Audit */}
+        {/* Admin */}
         {isAdmin ? (
           <>
-            <SectionTitle label="Special block" />
+            <SectionTitle label="Admin" />
             <div className="space-y-1 px-2">
               {adminItems
                 .filter((i) => (i.masterOnly ? isMasterAdmin : true))

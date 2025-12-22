@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Section from '../../../components/common/Section'
 import { ArrowLeft, RefreshCw, Network } from 'lucide-react'
+import NetworkOverviewMap from './NetworkOverviewMap'
 
 export default function NetworkOverviewClient() {
   const router = useRouter()
@@ -59,7 +60,7 @@ export default function NetworkOverviewClient() {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Network Overview</h1>
-            <p className="text-sm text-gray-600">Nodes + edges (gateway→sensor) from last 24h traffic. Map view comes next.</p>
+            <p className="text-sm text-gray-600">Nodes + edges (gateway→sensor) from last 24h traffic.</p>
           </div>
           <button onClick={load} className="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -120,6 +121,16 @@ export default function NetworkOverviewClient() {
               </table>
             </div>
           )}
+        </div>
+
+        <div className="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-gray-900">Map</h2>
+            <div className="text-xs text-gray-500">
+              Sites (green) · Gateways (violet) · Sensors (blue)
+            </div>
+          </div>
+          <NetworkOverviewMap nodes={nodes} links={links} />
         </div>
       </div>
     </Section>

@@ -60,16 +60,30 @@ export default function LoginPage() {
   }
 
   return (
-    <>
-      <Section className="pt-24 sm:pt-32 pb-12">
-        <div className="max-w-md mx-auto px-4">
-          <div className="bg-white rounded-lg p-4 sm:p-6 md:p-8 shadow-sm">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">
-              Login
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 mb-6 sm:mb-8 text-center">
-              Vision Drive dashboard
-            </p>
+    <div className="bg-gray-50 px-4 sm:px-6 lg:px-8" style={{ paddingTop: '9.6rem', paddingBottom: '7.5rem' }}>
+      <div className="max-w-7xl w-full mx-auto">
+        {/* Image-based login panel (form is visually part of the image) */}
+        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          {/* Background image (centered + not cropped) - 20% bigger */}
+          <div 
+            className="h-[816px] sm:h-[840px] md:h-[768px] lg:h-[720px] w-full bg-gray-50 bg-no-repeat bg-center"
+            style={{ backgroundImage: "url('/images/portal.png')", backgroundSize: 'cover' }}
+          />
+
+          {/* Subtle overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/35 to-transparent" />
+
+          {/* Form overlay */}
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full px-6 sm:px-10">
+              {/* Slightly smaller panel (~20%) */}
+              <div className="max-w-sm">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                      Login
+                    </h1>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-5 sm:mb-6">
+                      Vision Drive dashboard
+                    </p>
 
             {error && (
               <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -137,8 +151,9 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                size="lg"
-                className="w-full"
+                size="md"
+                variant="outline"
+                className="w-full bg-white/30 border-white/60 backdrop-blur hover:bg-white/40 text-gray-900"
                 onClick={() => {}}
               >
                 {loading ? 'Logging in...' : 'Login'}
@@ -153,10 +168,12 @@ export default function LoginPage() {
                 </a>
               </p>
             </div>
+              </div>
+            </div>
           </div>
         </div>
-      </Section>
-    </>
+      </div>
+    </div>
   )
 }
 

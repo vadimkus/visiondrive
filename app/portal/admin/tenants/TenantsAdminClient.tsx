@@ -226,7 +226,8 @@ export default function TenantsAdminClient() {
 
   return (
     <Section className="pt-6 pb-12">
-      <div className="max-w-7xl mx-auto">
+      {/* Full-width dashboard layout (bigger “blocks” like reference dashboards) */}
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <button onClick={() => router.push('/portal/admin')} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Admin
@@ -264,7 +265,7 @@ export default function TenantsAdminClient() {
         </div>
 
         {/* KPI row (Flowly/Airport-ops style cards) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             { icon: Building2, label: 'Tenants', value: `${overview?.kpis.tenantsActive ?? 0}/${overview?.kpis.tenantsTotal ?? 0}`, color: 'text-blue-700' },
             { icon: Map, label: 'Sites', value: String(overview?.kpis.sitesTotal ?? 0), color: 'text-indigo-700' },
@@ -273,7 +274,7 @@ export default function TenantsAdminClient() {
           ].map((c) => {
             const Icon = c.icon
             return (
-              <div key={c.label} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+              <div key={c.label} className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs text-gray-600">{c.label}</div>
@@ -288,7 +289,7 @@ export default function TenantsAdminClient() {
         </div>
 
         {/* Map + filters */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
               <h2 className="font-semibold text-gray-900">Global Map</h2>
@@ -349,7 +350,7 @@ export default function TenantsAdminClient() {
 
         {/* Top failing */}
         <div className="grid lg:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
             <h2 className="font-semibold text-gray-900 mb-3">Top failing sites</h2>
             <div className="space-y-2 text-sm">
               {(overview?.top.sites || []).map((s: any) => (
@@ -367,7 +368,7 @@ export default function TenantsAdminClient() {
               {!(overview?.top.sites || []).length && <div className="text-sm text-gray-500">No data</div>}
             </div>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
             <h2 className="font-semibold text-gray-900 mb-3">Top failing sensors</h2>
             <div className="space-y-2 text-sm">
               {(overview?.top.sensors || []).map((s: any) => (
@@ -389,7 +390,7 @@ export default function TenantsAdminClient() {
 
         {/* Create tenant + create admin */}
         <div className="grid lg:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
             <h2 className="font-semibold text-gray-900 mb-3">Create tenant</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
@@ -411,7 +412,7 @@ export default function TenantsAdminClient() {
             </button>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
             <h2 className="font-semibold text-gray-900 mb-3">Create Customer Admin</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
@@ -455,8 +456,8 @@ export default function TenantsAdminClient() {
         </div>
 
         {/* Tenants table */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-auto">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-auto">
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 className="font-semibold text-gray-900">Tenants</h2>
             <div className="text-xs text-gray-500">Logged in as {me?.email}</div>
           </div>

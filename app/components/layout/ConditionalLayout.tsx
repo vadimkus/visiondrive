@@ -7,9 +7,16 @@ import Footer from './Footer'
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isPortal = pathname?.startsWith('/portal')
+  const isAuth = pathname === '/login'
+
+  // In dev/HMR, `usePathname()` can be briefly undefined during the first paint.
+  // Avoid mounting the marketing header/footer in that transient state (it triggers /api/auth/me).
+  if (!pathname) {
+    return <main className="flex-1 min-h-screen">{children}</main>
+  }
 
   if (isPortal) {
-    // Portal pages: no header/footer, full screen (portal has its own navigation)
+    // Portal pages: no marketing header/footer. Portal has its own navigation.
     return <main className="flex-1 min-h-screen">{children}</main>
   }
 

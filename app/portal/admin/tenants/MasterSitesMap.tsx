@@ -41,6 +41,10 @@ export default function MasterSitesMap({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const [ready, setReady] = useState(false)
+  const handlersAttachedRef = useRef(false)
+  const pointsRef = useRef<any>(null)
+  const selectedSiteIdRef = useRef<string | null>(null)
+  const sitesRef = useRef<SitePoint[]>([])
 
   const points = useMemo(() => {
     return asFeatureCollection(
@@ -65,6 +69,137 @@ export default function MasterSitesMap({
         .filter(Boolean)
     )
   }, [sites])
+
+  useEffect(() => {
+    pointsRef.current = points
+  }, [points])
+  useEffect(() => {
+    selectedSiteIdRef.current = selectedSiteId
+    sitesRef.current = sites
+  }, [selectedSiteId, sites])
+
+  function ensureLayers(map: mapboxgl.Map) {
+    // Re-add sources/layers after style changes (map.setStyle clears them).
+    if (!map.getSource('sites')) {
+      map.addSource('sites', {
+        type: 'geojson',
+        data: (pointsRef.current || asFeatureCollection([])) as any,
+        cluster: true,
+        clusterRadius: 44,
+        clusterMaxZoom: 14,
+      })
+    } else {
+      const src = map.getSource('sites') as mapboxgl.GeoJSONSource | undefined
+      if (src) src.setData((pointsRef.current || asFeatureCollection([])) as any)
+    }
+
+    if (!map.getLayer('sites-clusters')) {
+      map.addLayer({
+        id: 'sites-clusters',
+        type: 'circle',
+        source: 'sites',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#111827',
+          'circle-opacity': 0.75,
+          'circle-radius': ['step', ['get', 'point_count'], 18, 10, 22, 50, 28, 200, 34],
+        },
+      })
+    }
+    if (!map.getLayer('sites-cluster-count')) {
+      map.addLayer({
+        id: 'sites-cluster-count',
+        type: 'symbol',
+        source: 'sites',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 12,
+        },
+        paint: { 'text-color': '#ffffff' },
+      })
+    }
+    if (!map.getLayer('sites-points')) {
+      map.addLayer({
+        id: 'sites-points',
+        type: 'circle',
+        source: 'sites',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-radius': 8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-color': [
+            'match',
+            ['get', 'health'],
+            'CRITICAL',
+            '#ef4444',
+            'WARNING',
+            '#f59e0b',
+            '#22c55e',
+          ],
+          'circle-opacity': 0.9,
+        },
+      })
+    }
+
+    if (!map.getSource('selected-site')) {
+      map.addSource('selected-site', { type: 'geojson', data: asFeatureCollection([]) as any })
+    }
+    if (!map.getLayer('sites-selected')) {
+      map.addLayer({
+        id: 'sites-selected',
+        type: 'circle',
+        source: 'selected-site',
+        paint: {
+          'circle-radius': 12,
+          'circle-color': '#facc15',
+          'circle-opacity': 0.35,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#facc15',
+        },
+      })
+    }
+
+    // Update selected highlight with latest selection.
+    const selId = selectedSiteIdRef.current
+    const sitesNow = sitesRef.current || []
+    const s = sitesNow.find((x) => x.id === selId)
+    const data =
+      s && typeof s.centerLat === 'number' && typeof s.centerLng === 'number'
+        ? asFeatureCollection([{ type: 'Feature', geometry: { type: 'Point', coordinates: [s.centerLng, s.centerLat] } }])
+        : asFeatureCollection([])
+    const selSrc = map.getSource('selected-site') as mapboxgl.GeoJSONSource | undefined
+    if (selSrc) selSrc.setData(data as any)
+
+    // Attach handlers once (they survive style reloads).
+    if (!handlersAttachedRef.current) {
+      handlersAttachedRef.current = true
+
+      map.on('click', 'sites-points', (e) => {
+        const f = e.features?.[0] as any
+        const siteId = String(f?.properties?.id || '')
+        onSelectSite(siteId || null)
+      })
+      map.on('click', 'sites-clusters', async (e) => {
+        const f = e.features?.[0] as any
+        const clusterId = f?.properties?.cluster_id
+        const source = map.getSource('sites') as mapboxgl.GeoJSONSource & any
+        if (!source || typeof clusterId === 'undefined') return
+        source.getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
+          if (err) return
+          const coords = f.geometry.coordinates
+          map.easeTo({ center: coords, zoom })
+        })
+      })
+
+      map.on('mouseenter', 'sites-points', () => (map.getCanvas().style.cursor = 'pointer'))
+      map.on('mouseleave', 'sites-points', () => (map.getCanvas().style.cursor = ''))
+      map.on('mouseenter', 'sites-clusters', () => (map.getCanvas().style.cursor = 'pointer'))
+      map.on('mouseleave', 'sites-clusters', () => (map.getCanvas().style.cursor = ''))
+    }
+  }
 
   const boundsCenter = useMemo(() => {
     const coords = sites
@@ -95,100 +230,7 @@ export default function MasterSitesMap({
     map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right')
 
     map.on('load', () => {
-      map.addSource('sites', {
-        type: 'geojson',
-        data: points as any,
-        cluster: true,
-        clusterRadius: 44,
-        clusterMaxZoom: 14,
-      })
-
-      // cluster circles
-      map.addLayer({
-        id: 'sites-clusters',
-        type: 'circle',
-        source: 'sites',
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': '#111827',
-          'circle-opacity': 0.75,
-          'circle-radius': ['step', ['get', 'point_count'], 18, 10, 22, 50, 28, 200, 34],
-        },
-      })
-      map.addLayer({
-        id: 'sites-cluster-count',
-        type: 'symbol',
-        source: 'sites',
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': '{point_count_abbreviated}',
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 12,
-        },
-        paint: { 'text-color': '#ffffff' },
-      })
-
-      // site points
-      map.addLayer({
-        id: 'sites-points',
-        type: 'circle',
-        source: 'sites',
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-radius': 8,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#ffffff',
-          'circle-color': [
-            'match',
-            ['get', 'health'],
-            'CRITICAL',
-            '#ef4444',
-            'WARNING',
-            '#f59e0b',
-            '#22c55e',
-          ],
-          'circle-opacity': 0.9,
-        },
-      })
-
-      // selected highlight
-      map.addSource('selected-site', { type: 'geojson', data: asFeatureCollection([]) as any })
-      map.addLayer({
-        id: 'sites-selected',
-        type: 'circle',
-        source: 'selected-site',
-        paint: {
-          'circle-radius': 12,
-          'circle-color': '#facc15',
-          'circle-opacity': 0.35,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#facc15',
-        },
-      })
-
-      // click behavior
-      map.on('click', 'sites-points', (e) => {
-        const f = e.features?.[0] as any
-        const siteId = String(f?.properties?.id || '')
-        onSelectSite(siteId || null)
-      })
-      map.on('click', 'sites-clusters', async (e) => {
-        const f = e.features?.[0] as any
-        const clusterId = f?.properties?.cluster_id
-        const source = map.getSource('sites') as mapboxgl.GeoJSONSource & any
-        if (!source || typeof clusterId === 'undefined') return
-        source.getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
-          if (err) return
-          const coords = f.geometry.coordinates
-          map.easeTo({ center: coords, zoom })
-        })
-      })
-
-      map.on('mouseenter', 'sites-points', () => (map.getCanvas().style.cursor = 'pointer'))
-      map.on('mouseleave', 'sites-points', () => (map.getCanvas().style.cursor = ''))
-      map.on('mouseenter', 'sites-clusters', () => (map.getCanvas().style.cursor = 'pointer'))
-      map.on('mouseleave', 'sites-clusters', () => (map.getCanvas().style.cursor = ''))
-
+      ensureLayers(map)
       setReady(true)
     })
   }, [token, satellite, boundsCenter.center, boundsCenter.zoom, points, onSelectSite])
@@ -198,6 +240,15 @@ export default function MasterSitesMap({
     const map = mapRef.current
     if (!map) return
     const style = satellite ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/light-v11'
+    setReady(false)
+    map.once('style.load', () => {
+      try {
+        ensureLayers(map)
+        setReady(true)
+      } catch {
+        // ignore
+      }
+    })
     map.setStyle(style)
   }, [satellite])
 
@@ -239,15 +290,22 @@ export default function MasterSitesMap({
   // update data
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !ready) return
+    if (!map) return
     const src = map.getSource('sites') as mapboxgl.GeoJSONSource | undefined
     if (src) src.setData(points as any)
+    else if (map.isStyleLoaded()) {
+      try {
+        ensureLayers(map)
+      } catch {
+        // ignore
+      }
+    }
   }, [points, ready])
 
   // selected highlight
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !ready) return
+    if (!map) return
     const s = sites.find((x) => x.id === selectedSiteId)
     const data =
       s && typeof s.centerLat === 'number' && typeof s.centerLng === 'number'
@@ -257,6 +315,13 @@ export default function MasterSitesMap({
         : asFeatureCollection([])
     const src = map.getSource('selected-site') as mapboxgl.GeoJSONSource | undefined
     if (src) src.setData(data as any)
+    else if (map.isStyleLoaded()) {
+      try {
+        ensureLayers(map)
+      } catch {
+        // ignore
+      }
+    }
   }, [selectedSiteId, sites, ready])
 
   if (!token) {
