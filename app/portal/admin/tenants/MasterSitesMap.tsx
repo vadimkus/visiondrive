@@ -220,10 +220,12 @@ export default function MasterSitesMap({
     mapboxgl.accessToken = token
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: satellite ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/light-v11',
+      style: satellite ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v12',
       center: boundsCenter.center,
       zoom: boundsCenter.zoom,
       attributionControl: false,
+      pitch: 0, // Start with 0 pitch (2D view)
+      bearing: 0,
     })
     mapRef.current = map
 
@@ -239,7 +241,7 @@ export default function MasterSitesMap({
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    const style = satellite ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/light-v11'
+    const style = satellite ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v12'
     setReady(false)
     map.once('style.load', () => {
       try {
@@ -278,18 +280,25 @@ export default function MasterSitesMap({
             type: 'fill-extrusion',
             minzoom: 15,
             paint: {
-              'fill-extrusion-color': '#aaa',
+              'fill-extrusion-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'height'],
+                0, '#e0e0e0',
+                100, '#d0d0d0',
+                200, '#c0c0c0'
+              ],
               'fill-extrusion-height': ['get', 'height'],
               'fill-extrusion-base': ['get', 'min_height'],
-              'fill-extrusion-opacity': 0.25,
+              'fill-extrusion-opacity': 0.6,
             },
           } as any,
           labelLayerId
         )
-        map.easeTo({ pitch: 60 })
+        map.easeTo({ pitch: 45, duration: 1000 }) // Reduced pitch for better visibility
       } else {
         if (map.getLayer('3d-buildings')) map.removeLayer('3d-buildings')
-        map.easeTo({ pitch: 0 })
+        map.easeTo({ pitch: 0, duration: 1000 })
       }
     } catch (err) {
       console.warn('Failed to add/remove 3D buildings layer:', err)
@@ -341,7 +350,7 @@ export default function MasterSitesMap({
     )
   }
 
-  return <div ref={containerRef} className="w-full h-[520px] lg:h-[560px] rounded-lg overflow-hidden border border-gray-200" />
+  return <div ref={containerRef} className="w-full h-[700px] lg:h-[800px] rounded-lg overflow-hidden" />
 }
 
 

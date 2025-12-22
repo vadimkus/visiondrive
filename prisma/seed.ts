@@ -218,7 +218,7 @@ async function main() {
   `
 
   // Bind sensors to all 40 bays and insert events so portal shows realistic distribution:
-  // 30 OCCUPIED, 7 FREE, 3 OFFLINE
+  // 34 OCCUPIED, 5 FREE, 1 OFFLINE
   const bayRows = await sql/*sql*/`
     SELECT id, code
     FROM bays
@@ -232,9 +232,9 @@ async function main() {
     const devEui = `A1B2C3D40000${String(i + 1).padStart(4, '0')}` // hex-ish, stable
     const sensorId = randomUUID()
     const batteryPct = 60 + ((i * 7) % 40) // 60..99
-    const isOccupied = i < 30
-    const isFree = i >= 30 && i < 37
-    const isOffline = i >= 37
+    const isOccupied = i < 34
+    const isFree = i >= 34 && i < 39
+    const isOffline = i >= 39
     const occupied = isOccupied ? true : false
     const lastSeen = isOffline
       ? new Date(Date.now() - 2 * 60 * 60_000) // 2 hours ago => OFFLINE by default thresholds

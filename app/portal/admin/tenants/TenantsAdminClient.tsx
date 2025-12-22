@@ -3,7 +3,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Section from '../../../components/common/Section'
-import { ArrowLeft, Building2, Activity, ShieldAlert, Users, Plus, Power, ExternalLink, RefreshCw, Map, Satellite, Box } from 'lucide-react'
+import { 
+  Building2, 
+  Activity, 
+  ShieldAlert, 
+  Users, 
+  Plus, 
+  Power, 
+  ExternalLink, 
+  RefreshCw, 
+  Map, 
+  Satellite, 
+  Box,
+  Globe,
+  Loader2,
+  TrendingUp,
+  AlertTriangle
+} from 'lucide-react'
 import MasterSitesMap from './MasterSitesMap'
 
 type Overview = {
@@ -218,330 +234,476 @@ export default function TenantsAdminClient() {
 
   if (loading) {
     return (
-      <Section className="pt-32 pb-12">
-        <div className="text-center text-gray-600">Loading…</div>
+      <Section className="pt-6 pb-12 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="flex items-center justify-center min-h-[600px]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+            <p className="text-gray-700 font-medium">Loading Master View...</p>
+          </div>
+        </div>
       </Section>
     )
   }
 
   return (
-    <Section className="pt-6 pb-12">
-      {/* Full-width dashboard layout (bigger “blocks” like reference dashboards) */}
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <button onClick={() => router.push('/portal/admin')} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Admin
-        </button>
-
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+    <Section className="pt-6 pb-12 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[2000px] mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Master Admin — Global View</h1>
-            <p className="text-sm text-gray-600">All tenants, all sites. Clustered map + cross-tenant KPIs + drilldown.</p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-blue-600 rounded-xl shadow-lg">
+                <Globe className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Master View</h1>
+                <p className="text-gray-600">Global monitoring dashboard · All tenants & sites</p>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => router.push('/portal/admin/audit')}
-              disabled={!!actionBusy}
-              className="inline-flex items-center px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            >
-              Audit Log
-            </button>
-            <button
-              onClick={() => router.push('/portal/admin/finance')}
-              disabled={!!actionBusy}
-              className="inline-flex items-center px-3 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-50"
-            >
-              Finance
-            </button>
-            <button
-              onClick={load}
-              disabled={!!actionBusy}
-              className="inline-flex items-center px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </button>
-          </div>
+          <button
+            onClick={load}
+            disabled={!!actionBusy}
+            className="inline-flex items-center px-6 py-3 rounded-xl bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-all shadow-md font-medium"
+          >
+            <RefreshCw className={`h-5 w-5 mr-2 ${actionBusy ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
         </div>
 
-        {/* KPI row (Flowly/Airport-ops style cards) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
-            { icon: Building2, label: 'Tenants', value: `${overview?.kpis.tenantsActive ?? 0}/${overview?.kpis.tenantsTotal ?? 0}`, color: 'text-blue-700' },
-            { icon: Map, label: 'Sites', value: String(overview?.kpis.sitesTotal ?? 0), color: 'text-indigo-700' },
-            { icon: Activity, label: 'Sensors Online', value: `${overview?.kpis.onlineSensors ?? 0}/${overview?.kpis.installedSensors ?? 0}`, color: 'text-green-700' },
-            { icon: ShieldAlert, label: 'Open Alerts', value: `${overview?.kpis.openAlerts ?? 0} (${overview?.kpis.criticalAlerts ?? 0} critical)`, color: 'text-orange-700' },
-          ].map((c) => {
-            const Icon = c.icon
+            { 
+              icon: Building2, 
+              label: 'Tenants', 
+              value: `${overview?.kpis.tenantsActive ?? 0}/${overview?.kpis.tenantsTotal ?? 0}`, 
+              subtext: 'Active / Total',
+              color: 'from-blue-500 to-blue-600',
+              iconColor: 'text-blue-600'
+            },
+            { 
+              icon: Map, 
+              label: 'Sites', 
+              value: String(overview?.kpis.sitesTotal ?? 0), 
+              subtext: 'Monitored locations',
+              color: 'from-indigo-500 to-indigo-600',
+              iconColor: 'text-indigo-600'
+            },
+            { 
+              icon: Activity, 
+              label: 'Sensors', 
+              value: `${overview?.kpis.onlineSensors ?? 0}/${overview?.kpis.installedSensors ?? 0}`, 
+              subtext: 'Online / Installed',
+              color: 'from-green-500 to-green-600',
+              iconColor: 'text-green-600'
+            },
+            { 
+              icon: ShieldAlert, 
+              label: 'Alerts', 
+              value: String(overview?.kpis.openAlerts ?? 0),
+              subtext: `${overview?.kpis.criticalAlerts ?? 0} critical`,
+              color: 'from-orange-500 to-orange-600',
+              iconColor: 'text-orange-600'
+            },
+          ].map((card) => {
+            const Icon = card.icon
             return (
-              <div key={c.label} className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-gray-600">{c.label}</div>
-                    <div className="text-xl font-bold text-gray-900">{c.value}</div>
-                    <div className="text-xs text-gray-500 mt-1">Events/min (5m): {overview?.kpis.eventsPerMin5m ?? 0}</div>
+              <div key={card.label} className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 hover:shadow-md transition-all">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-600 mb-1">{card.label}</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{card.value}</div>
+                    <div className="text-xs text-gray-500">{card.subtext}</div>
                   </div>
-                  <Icon className={`h-8 w-8 ${c.color}`} />
+                  <div className={`p-3 bg-gradient-to-br ${card.color} rounded-xl shadow-lg`}>
+                    <Icon className="h-6 w-6 text-white" />
+                  </div>
                 </div>
               </div>
             )
           })}
         </div>
 
-        {/* Map + filters */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-gray-900">Global Map</h2>
-              <span className="text-xs text-gray-500">Click a site dot to select</span>
+        {/* Main Map - Full Width, Larger */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden mb-6">
+          {/* Map Header */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-600 rounded-lg">
+                  <Map className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Live Site Map</h2>
+                  <p className="text-sm text-gray-600">
+                    {filteredSites.length} sites {selectedSiteId && '· Click to deselect'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Map Controls */}
+              <div className="flex flex-wrap items-center gap-2">
+                <select 
+                  value={tenantFilter} 
+                  onChange={(e) => setTenantFilter(e.target.value)} 
+                  className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All tenants</option>
+                  {uniqueTenants.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                <select 
+                  value={healthFilter} 
+                  onChange={(e) => setHealthFilter(e.target.value)} 
+                  className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All health</option>
+                  <option value="OK">OK</option>
+                  <option value="WARNING">Warning</option>
+                  <option value="CRITICAL">Critical</option>
+                </select>
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search sites..."
+                  className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button
+                  onClick={() => setSatellite((s) => !s)}
+                  className={`inline-flex items-center px-4 py-2 text-sm rounded-xl font-medium transition-all ${
+                    satellite 
+                      ? 'bg-blue-600 text-white shadow-lg' 
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <Satellite className="h-4 w-4 mr-2" />
+                  Satellite
+                </button>
+                <button
+                  onClick={() => setEnable3d((s) => !s)}
+                  className={`inline-flex items-center px-4 py-2 text-sm rounded-xl font-medium transition-all ${
+                    enable3d 
+                      ? 'bg-blue-600 text-white shadow-lg' 
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <Box className="h-4 w-4 mr-2" />
+                  3D
+                </button>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <select value={tenantFilter} onChange={(e) => setTenantFilter(e.target.value)} className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg">
-                <option value="all">All tenants</option>
-                {uniqueTenants.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
+          </div>
+
+          {/* Map Container - Bigger! */}
+          <div className="relative">
+            <MasterSitesMap
+              sites={filteredSites}
+              selectedSiteId={selectedSiteId}
+              onSelectSite={(id) => setSelectedSiteId(id === selectedSiteId ? null : id)}
+              satellite={satellite}
+              enable3d={enable3d}
+            />
+            
+            {/* Selected Site Info Overlay */}
+            {selectedSiteId && (() => {
+              const site = filteredSites.find((s: any) => s.id === selectedSiteId)
+              if (!site) return null
+              return (
+                <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur border border-gray-300 rounded-xl shadow-2xl p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">Selected Site</div>
+                      <div className="text-lg font-bold text-gray-900">{site.name}</div>
+                      <div className="text-sm text-gray-700">{site.tenantName}</div>
+                      {site.address && <div className="text-xs text-gray-500 mt-1">{site.address}</div>}
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">Sensors</div>
+                      <div className="text-2xl font-bold text-gray-900">{site.onlineSensors}/{site.installedSensors}</div>
+                      <div className="text-xs text-red-600">
+                        {site.offlineSensors} offline
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">Alerts</div>
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <div className="text-2xl font-bold text-orange-600">{site.openAlerts}</div>
+                          <div className="text-xs text-gray-500">Open</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-red-600">{site.criticalAlerts}</div>
+                          <div className="text-xs text-gray-500">Critical</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        </div>
+
+        {/* Two Column Layout: Top Failing & Management */}
+        <div className="grid lg:grid-cols-3 gap-6 mb-6">
+          {/* Top Failing Sites - 1 column */}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden">
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 p-5 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+                <h2 className="font-bold text-gray-900">Top Failing Sites</h2>
+              </div>
+            </div>
+            <div className="p-4 max-h-[400px] overflow-y-auto">
+              <div className="space-y-2">
+                {(overview?.top.sites || []).map((s: any) => (
+                  <div key={s.id} className="bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl p-4 transition-all">
+                    <div className="font-semibold text-gray-900 mb-1">{s.name}</div>
+                    <div className="text-xs text-gray-600 mb-2">{s.tenantName}</div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="text-red-600">
+                        <strong>{s.criticalAlerts}</strong> critical
+                      </span>
+                      <span className="text-orange-600">
+                        <strong>{s.offlineSensors}</strong> offline
+                      </span>
+                    </div>
+                  </div>
                 ))}
-              </select>
-              <select value={healthFilter} onChange={(e) => setHealthFilter(e.target.value)} className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg">
-                <option value="all">All health</option>
-                <option value="OK">OK</option>
-                <option value="WARNING">Warning</option>
-                <option value="CRITICAL">Critical</option>
-              </select>
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search site/tenant/address…"
-                className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg"
-              />
-              <button
-                onClick={() => setSatellite((s) => !s)}
-                className="inline-flex items-center px-3 py-2 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                <Satellite className="h-4 w-4 mr-1" />
-                Satellite
-              </button>
-              <button
-                onClick={() => setEnable3d((s) => !s)}
-                className="inline-flex items-center px-3 py-2 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                <Box className="h-4 w-4 mr-1" />
-                3D
-              </button>
-            </div>
-          </div>
-
-          <MasterSitesMap
-            sites={filteredSites}
-            selectedSiteId={selectedSiteId}
-            onSelectSite={(id) => setSelectedSiteId(id)}
-            satellite={satellite}
-            enable3d={enable3d}
-          />
-
-          {selectedSiteId ? (
-            <div className="mt-3 text-sm text-gray-700">
-              Selected site: <span className="font-semibold">{filteredSites.find((s: any) => s.id === selectedSiteId)?.name || selectedSiteId}</span>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Top failing */}
-        <div className="grid lg:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-            <h2 className="font-semibold text-gray-900 mb-3">Top failing sites</h2>
-            <div className="space-y-2 text-sm">
-              {(overview?.top.sites || []).map((s: any) => (
-                <div key={s.id} className="flex items-center justify-between border border-gray-100 rounded-lg p-3">
-                  <div className="min-w-0">
-                    <div className="font-medium text-gray-900 truncate">{s.name}</div>
-                    <div className="text-xs text-gray-500 truncate">{s.tenantName}</div>
-                  </div>
-                  <div className="text-xs text-gray-700 text-right">
-                    <div>Critical: <span className="font-semibold">{s.criticalAlerts}</span></div>
-                    <div>Offline sensors: <span className="font-semibold">{s.offlineSensors}</span></div>
-                  </div>
-                </div>
-              ))}
-              {!(overview?.top.sites || []).length && <div className="text-sm text-gray-500">No data</div>}
-            </div>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-            <h2 className="font-semibold text-gray-900 mb-3">Top failing sensors</h2>
-            <div className="space-y-2 text-sm">
-              {(overview?.top.sensors || []).map((s: any) => (
-                <div key={s.id} className="flex items-center justify-between border border-gray-100 rounded-lg p-3">
-                  <div className="min-w-0">
-                    <div className="font-mono text-gray-900 truncate">{s.devEui}</div>
-                    <div className="text-xs text-gray-500 truncate">{s.tenantName}{s.siteName ? ` · ${s.siteName}` : ''}</div>
-                  </div>
-                  <div className="text-xs text-gray-700 text-right">
-                    <div>Critical: <span className="font-semibold">{s.criticalAlerts}</span></div>
-                    <div>Open: <span className="font-semibold">{s.openAlerts}</span></div>
-                  </div>
-                </div>
-              ))}
-              {!(overview?.top.sensors || []).length && <div className="text-sm text-gray-500">No data</div>}
-            </div>
-          </div>
-        </div>
-
-        {/* Create tenant + create admin */}
-        <div className="grid lg:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-            <h2 className="font-semibold text-gray-900 mb-3">Create tenant</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Tenant name</label>
-                <input value={newTenantName} onChange={(e) => setNewTenantName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Slug</label>
-                <input value={newTenantSlug} onChange={(e) => setNewTenantSlug(e.target.value)} placeholder="acme-parking" className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono" />
+                {!(overview?.top.sites || []).length && (
+                  <div className="text-center py-8 text-gray-500">All systems operational</div>
+                )}
               </div>
             </div>
-            <button
-              onClick={createTenant}
-              disabled={actionBusy === 'createTenant'}
-              className="mt-3 inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-50"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create
-            </button>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-            <h2 className="font-semibold text-gray-900 mb-3">Create Customer Admin</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Tenant</label>
-                <select value={adminTenantId} onChange={(e) => setAdminTenantId(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                  <option value="">Select tenant…</option>
+          {/* Top Failing Sensors - 1 column */}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden">
+            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 p-5 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="h-5 w-5 text-orange-600" />
+                <h2 className="font-bold text-gray-900">Top Failing Sensors</h2>
+              </div>
+            </div>
+            <div className="p-4 max-h-[400px] overflow-y-auto">
+              <div className="space-y-2">
+                {(overview?.top.sensors || []).map((s: any) => (
+                  <div key={s.id} className="bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl p-4 transition-all">
+                    <div className="font-mono text-sm text-gray-900 mb-1">{s.devEui}</div>
+                    <div className="text-xs text-gray-600 mb-2">
+                      {s.tenantName}{s.siteName ? ` · ${s.siteName}` : ''}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="text-red-600">
+                        <strong>{s.criticalAlerts}</strong> critical
+                      </span>
+                      <span className="text-orange-600">
+                        <strong>{s.openAlerts}</strong> open
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {!(overview?.top.sensors || []).length && (
+                  <div className="text-center py-8 text-gray-500">All sensors healthy</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions - 1 column */}
+          <div className="space-y-4">
+            {/* Create Tenant */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-md p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="h-5 w-5 text-blue-600" />
+                <h3 className="font-bold text-gray-900">Create Tenant</h3>
+              </div>
+              <div className="space-y-3">
+                <input 
+                  value={newTenantName} 
+                  onChange={(e) => setNewTenantName(e.target.value)} 
+                  placeholder="Tenant name"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 text-sm" 
+                />
+                <input 
+                  value={newTenantSlug} 
+                  onChange={(e) => setNewTenantSlug(e.target.value)} 
+                  placeholder="slug-name"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 font-mono text-sm" 
+                />
+                <button
+                  onClick={createTenant}
+                  disabled={actionBusy === 'createTenant'}
+                  className="w-full inline-flex items-center justify-center px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-all font-medium shadow-md"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create
+                </button>
+              </div>
+            </div>
+
+            {/* Create Admin */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-md p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="h-5 w-5 text-green-600" />
+                <h3 className="font-bold text-gray-900">Create Admin</h3>
+              </div>
+              <div className="space-y-3">
+                <select 
+                  value={adminTenantId} 
+                  onChange={(e) => setAdminTenantId(e.target.value)} 
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 text-sm"
+                >
+                  <option value="">Select tenant...</option>
                   {tenants.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
-                <input value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
-                <input value={adminName} onChange={(e) => setAdminName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Password (optional)</label>
-                <input value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                <input 
+                  value={adminEmail} 
+                  onChange={(e) => setAdminEmail(e.target.value)} 
+                  placeholder="Email"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 text-sm" 
+                />
+                <input 
+                  value={adminName} 
+                  onChange={(e) => setAdminName(e.target.value)} 
+                  placeholder="Name"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-green-500 text-sm" 
+                />
+                <button
+                  onClick={createCustomerAdmin}
+                  disabled={actionBusy === 'createAdmin'}
+                  className="w-full inline-flex items-center justify-center px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all font-medium shadow-md"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Create Admin
+                </button>
+                {generatedPassword && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div className="text-xs text-amber-800 mb-1">Generated password:</div>
+                    <div className="font-mono text-sm font-bold text-gray-900">{generatedPassword}</div>
+                  </div>
+                )}
               </div>
             </div>
-            <button
-              onClick={createCustomerAdmin}
-              disabled={actionBusy === 'createAdmin'}
-              className="mt-3 inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Create admin
-            </button>
-            {generatedPassword && (
-              <div className="mt-3 text-sm text-gray-700">
-                Generated password (copy now): <span className="font-mono font-semibold">{generatedPassword}</span>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Tenants table */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-auto">
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Tenants</h2>
-            <div className="text-xs text-gray-500">Logged in as {me?.email}</div>
+        {/* Tenants Table */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-gray-900 text-lg">All Tenants</h2>
+              <div className="text-sm text-gray-600">{tenants.length} total</div>
+            </div>
           </div>
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700">
-              <tr>
-                <th className="text-left px-4 py-3">Tenant</th>
-                <th className="text-left px-4 py-3">Sensors</th>
-                <th className="text-left px-4 py-3">Alerts</th>
-                <th className="text-left px-4 py-3">Last event</th>
-                <th className="text-left px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tenants.map((t) => (
-                <tr key={t.id} className="border-t border-gray-100">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{t.name}</div>
-                    <div className="text-xs text-gray-500 font-mono">{t.slug}</div>
-                    <div className="text-xs mt-1">
-                      <span className={`px-2 py-0.5 rounded-full border ${t.status === 'ACTIVE' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
-                        {t.status}
-                      </span>
-                      <span className="ml-2 text-gray-500">Sites: {t.sitesCount}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-gray-900">
-                      <span className="font-semibold text-green-700">{t.onlineSensors}</span> / {t.installedSensors}{' '}
-                      <span className="text-gray-500">(offline {t.offlineSensors})</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <span className={`px-2 py-0.5 rounded-full border ${pillClass(t.criticalAlerts > 0 ? 'CRITICAL' : t.openAlerts > 0 ? 'WARNING' : 'OK')}`}>
-                        {t.openAlerts} open
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-full border ${pillClass('CRITICAL')}`}>{t.criticalAlerts} critical</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{t.lastEventTime ? new Date(t.lastEventTime).toLocaleString() : '—'}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => switchTenantAndOpen(t.id, '/portal')}
-                        disabled={actionBusy === `switch:${t.id}`}
-                        className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-50"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        Open portal
-                      </button>
-                      <button
-                        onClick={() => switchTenantAndOpen(t.id, '/portal/map')}
-                        disabled={actionBusy === `switch:${t.id}`}
-                        className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        <Map className="h-4 w-4 mr-1" />
-                        Map
-                      </button>
-                      <button
-                        onClick={() => toggleTenant(t.id, t.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
-                        disabled={actionBusy === `toggle:${t.id}`}
-                        className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        <Power className="h-4 w-4 mr-1" />
-                        {t.status === 'ACTIVE' ? 'Disable' : 'Enable'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {tenants.length === 0 && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
-                    No tenants
-                  </td>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Tenant</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Sensors</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Alerts</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Last Event</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {tenants.map((t) => (
+                  <tr key={t.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-gray-900">{t.name}</div>
+                      <div className="text-xs text-gray-500 font-mono mt-1">{t.slug}</div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                          t.status === 'ACTIVE' 
+                            ? 'bg-green-100 text-green-700 border border-green-200' 
+                            : 'bg-gray-100 text-gray-700 border border-gray-200'
+                        }`}>
+                          {t.status}
+                        </span>
+                        <span className="text-xs text-gray-500">{t.sitesCount} sites</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-gray-900">
+                        <span className="text-lg font-bold text-green-600">{t.onlineSensors}</span>
+                        <span className="text-gray-500"> / {t.installedSensors}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        <span className="text-red-600">{t.offlineSensors} offline</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-2">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium ${
+                          pillClass(t.criticalAlerts > 0 ? 'CRITICAL' : t.openAlerts > 0 ? 'WARNING' : 'OK')
+                        }`}>
+                          {t.openAlerts} open
+                        </span>
+                        <span className="text-xs text-red-600">
+                          {t.criticalAlerts} critical
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-gray-600 text-xs">
+                      {t.lastEventTime ? new Date(t.lastEventTime).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : '—'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => switchTenantAndOpen(t.id, '/portal')}
+                          disabled={actionBusy === `switch:${t.id}`}
+                          className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium transition-all"
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Portal
+                        </button>
+                        <button
+                          onClick={() => switchTenantAndOpen(t.id, '/portal/map')}
+                          disabled={actionBusy === `switch:${t.id}`}
+                          className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-all"
+                        >
+                          <Map className="h-3 w-3 mr-1" />
+                          Map
+                        </button>
+                        <button
+                          onClick={() => toggleTenant(t.id, t.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
+                          disabled={actionBusy === `toggle:${t.id}`}
+                          className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-all"
+                        >
+                          <Power className="h-3 w-3 mr-1" />
+                          {t.status === 'ACTIVE' ? 'Disable' : 'Enable'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {tenants.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                      No tenants found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </Section>
   )
 }
-
 
