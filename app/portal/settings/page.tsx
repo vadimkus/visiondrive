@@ -11,7 +11,11 @@ import {
   Shield,
   ArrowLeft,
   Save,
-  RefreshCw
+  RefreshCw,
+  Mail,
+  Building,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react'
 
 interface User {
@@ -35,6 +39,7 @@ export default function SettingsPage() {
   const [statusMsg, setStatusMsg] = useState<string | null>(null)
   const [emailNotifs, setEmailNotifs] = useState(true)
   const [pushNotifs, setPushNotifs] = useState(true)
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'system'>('profile')
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -175,266 +180,509 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <Section className="pt-32 pb-12">
-        <div className="text-center">
-          <p className="text-gray-600">Loading...</p>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+            <p className="text-gray-600">Loading settings...</p>
+          </div>
         </div>
       </Section>
     )
   }
 
+  const tabs = [
+    { id: 'profile' as const, label: 'Profile', icon: User },
+    { id: 'security' as const, label: 'Security', icon: Shield },
+    { id: 'notifications' as const, label: 'Notifications', icon: Bell },
+    { id: 'system' as const, label: 'System', icon: Settings },
+  ]
+
   return (
     <>
-      <Section className="pt-6 pb-8">
-        <div className="max-w-4xl mx-auto">
+      <Section className="pt-6 pb-12 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <button
               onClick={() => router.push('/portal')}
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6 transition-colors group"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               Back to Dashboard
             </button>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Settings
-            </h1>
-            <p className="text-gray-600">Manage your account settings and preferences</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                  Settings
+                </h1>
+                <p className="text-gray-600">Manage your account preferences and security</p>
+              </div>
+              <button
+                onClick={refresh}
+                className="inline-flex items-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </button>
+            </div>
           </div>
 
-          {statusMsg ? (
-            <div className={`mb-6 rounded-lg px-4 py-3 text-sm ${
-              statusMsg.includes('successfully') || statusMsg === 'Password changed'
-                ? 'bg-green-50 border border-green-200 text-green-900'
-                : 'bg-yellow-50 border border-yellow-200 text-yellow-900'
+          {/* Status Message */}
+          {statusMsg && (
+            <div className={`mb-6 rounded-xl px-5 py-4 flex items-start gap-3 shadow-sm ${
+              statusMsg.includes('successfully') || statusMsg.includes('changed') || statusMsg.includes('updated')
+                ? 'bg-green-50 border border-green-200'
+                : 'bg-amber-50 border border-amber-200'
             }`}>
-              {statusMsg}
+              {statusMsg.includes('successfully') || statusMsg.includes('changed') || statusMsg.includes('updated') ? (
+                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              )}
+              <p className={`text-sm font-medium ${
+                statusMsg.includes('successfully') || statusMsg.includes('changed') || statusMsg.includes('updated')
+                  ? 'text-green-900'
+                  : 'text-amber-900'
+              }`}>
+                {statusMsg}
+              </p>
             </div>
-          ) : null}
+          )}
 
-          {/* Settings Sections */}
-          <div className="space-y-6">
-            {/* Profile Settings */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <div className="flex items-center mb-4">
-                <User className="h-5 w-5 text-gray-600 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">Profile</h2>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    value={user?.role || ''}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={saveProfile}
-                    disabled={savingName}
-                    className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-50"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Save profile
-                  </button>
-                  <button
-                    onClick={refresh}
-                    className="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </button>
-                </div>
+          {/* Main Content Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            {/* Tabs */}
+            <div className="border-b border-gray-200 bg-gray-50/50">
+              <div className="flex overflow-x-auto">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon
+                  const isActive = activeTab === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-1 min-w-[140px] px-6 py-4 text-sm font-medium transition-all relative ${
+                        isActive
+                          ? 'text-primary-600 bg-white'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <span>{tab.label}</span>
+                      </div>
+                      {isActive && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600" />
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
-            {/* Security Settings */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <div className="flex items-center mb-4">
-                <Shield className="h-5 w-5 text-gray-600 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">Security</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="font-medium text-gray-900">Change password</p>
-                      <p className="text-sm text-gray-600">Update your account password</p>
-                    </div>
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs font-medium text-gray-700 mb-1">Password requirements:</p>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      <li>• At least 8 characters long</li>
-                      <li>• Contains at least one letter</li>
-                      <li>• Contains at least one number</li>
-                      <li>• Different from current password</li>
-                    </ul>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Current Password</label>
-                      <input
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        placeholder="Enter current password"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">New Password</label>
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Enter new password"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Confirm New Password</label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm new password"
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                          confirmPassword && newPassword !== confirmPassword
-                            ? 'border-red-300 bg-red-50'
-                            : confirmPassword && newPassword === confirmPassword
-                            ? 'border-green-300 bg-green-50'
-                            : 'border-gray-300'
-                        }`}
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={changePassword}
-                    disabled={pwdBusy || !currentPassword || !newPassword || !confirmPassword}
-                    className="mt-3 inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {pwdBusy ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Changing...
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="h-4 w-4 mr-2" />
-                        Change Password
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <p className="font-medium text-gray-900">Two-Factor Authentication</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Coming next (TOTP + recovery codes). For now, use strong passwords and the Audit Log to monitor changes.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Notification Settings */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <div className="flex items-center mb-4">
-                <Bell className="h-5 w-5 text-gray-600 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">Notifications</h2>
-              </div>
-              <div className="space-y-4">
-                <label className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">Email Notifications</p>
-                    <p className="text-sm text-gray-600">Receive alerts and reports via email (stored locally for now)</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    checked={emailNotifs}
-                    onChange={(e) => setEmailNotifs(e.target.checked)}
-                  />
-                </label>
-                <label className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">Push Notifications</p>
-                    <p className="text-sm text-gray-600">Receive real-time alerts (stored locally for now)</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    checked={pushNotifs}
-                    onChange={(e) => setPushNotifs(e.target.checked)}
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* System Settings */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <div className="flex items-center mb-4">
-                <Settings className="h-5 w-5 text-gray-600 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-900">System</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="text-sm text-gray-700 space-y-2">
-                  <div>
-                    <span className="text-gray-600">Active tenant:</span>{' '}
-                    <span className="font-mono">{user?.tenantId || '—'}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <a href="/portal/admin" className="inline-flex items-center px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
-                      Admin
-                    </a>
-                    {user?.role === 'MASTER_ADMIN' ? (
-                      <>
-                        <a href="/portal/admin/tenants" className="inline-flex items-center px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
-                          Master Admin
-                        </a>
-                        <a href="/portal/admin/finance" className="inline-flex items-center px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
-                          Finance
-                        </a>
-                        <a href="/portal/admin/audit" className="inline-flex items-center px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
-                          Audit Log
-                        </a>
-                      </>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Tab Content */}
+            <div className="p-8">{renderTabContent()}</div>
           </div>
         </div>
       </Section>
     </>
   )
+
+  function renderTabContent() {
+    switch (activeTab) {
+      case 'profile':
+        return renderProfileTab()
+      case 'security':
+        return renderSecurityTab()
+      case 'notifications':
+        return renderNotificationsTab()
+      case 'system':
+        return renderSystemTab()
+      default:
+        return null
+    }
+  }
+
+  function renderProfileTab() {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Profile Information</h2>
+          <p className="text-sm text-gray-600">Update your personal information and account details</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Full Name
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name"
+                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="email"
+                value={user?.email || ''}
+                disabled
+                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500">Email cannot be changed</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Role
+            </label>
+            <div className="relative">
+              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                value={user?.role || ''}
+                disabled
+                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          {user?.tenantId && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Tenant ID
+              </label>
+              <div className="relative">
+                <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={user.tenantId}
+                  disabled
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed font-mono text-sm"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="pt-4 border-t border-gray-200">
+          <button
+            onClick={saveProfile}
+            disabled={savingName}
+            className="inline-flex items-center px-6 py-3 rounded-xl bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md font-medium"
+          >
+            {savingName ? (
+              <>
+                <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5 mr-2" />
+                Save Changes
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  function renderSecurityTab() {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Security Settings</h2>
+          <p className="text-sm text-gray-600">Manage your password and authentication preferences</p>
+        </div>
+
+        {/* Change Password Section */}
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-primary-100 rounded-lg">
+              <Lock className="h-5 w-5 text-primary-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Change Password</h3>
+              <p className="text-sm text-gray-600">Update your account password</p>
+            </div>
+          </div>
+
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <p className="text-xs font-semibold text-blue-900 mb-2">Password Requirements:</p>
+            <ul className="text-xs text-blue-800 space-y-1">
+              <li className="flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-blue-600" />
+                At least 8 characters long
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-blue-600" />
+                Contains at least one letter
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-blue-600" />
+                Contains at least one number
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-blue-600" />
+                Different from current password
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 transition-all ${
+                    confirmPassword && newPassword !== confirmPassword
+                      ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500'
+                      : confirmPassword && newPassword === confirmPassword
+                      ? 'border-green-300 bg-green-50 focus:ring-green-500 focus:border-green-500'
+                      : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'
+                  }`}
+                />
+                {confirmPassword && newPassword !== confirmPassword && (
+                  <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Passwords do not match
+                  </p>
+                )}
+                {confirmPassword && newPassword === confirmPassword && (
+                  <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Passwords match
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-gray-200">
+            <button
+              onClick={changePassword}
+              disabled={pwdBusy || !currentPassword || !newPassword || !confirmPassword}
+              className="inline-flex items-center px-6 py-3 rounded-xl bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md font-medium"
+            >
+              {pwdBusy ? (
+                <>
+                  <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                  Changing...
+                </>
+              ) : (
+                <>
+                  <Lock className="h-5 w-5 mr-2" />
+                  Change Password
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Two-Factor Authentication */}
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <Shield className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Two-Factor Authentication</h3>
+              <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
+            </div>
+          </div>
+          <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-100">
+            <p className="text-sm text-amber-900">
+              <span className="font-semibold">Coming Soon:</span> TOTP authentication with recovery codes. 
+              In the meantime, use strong passwords and monitor the Audit Log for account activity.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  function renderNotificationsTab() {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Notification Preferences</h2>
+          <p className="text-sm text-gray-600">Choose how you want to receive updates and alerts</p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200 hover:border-gray-300 transition-all">
+            <label className="flex items-start justify-between cursor-pointer group">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <Mail className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 mb-1">Email Notifications</p>
+                  <p className="text-sm text-gray-600">Receive alerts and reports via email</p>
+                  <p className="text-xs text-gray-500 mt-1">(Preferences stored locally)</p>
+                </div>
+              </div>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={emailNotifs}
+                  onChange={(e) => setEmailNotifs(e.target.checked)}
+                />
+                <div className={`w-11 h-6 rounded-full transition-colors ${
+                  emailNotifs ? 'bg-primary-600' : 'bg-gray-300'
+                }`}>
+                  <div className={`absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform ${
+                    emailNotifs ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200 hover:border-gray-300 transition-all">
+            <label className="flex items-start justify-between cursor-pointer group">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                  <Bell className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 mb-1">Push Notifications</p>
+                  <p className="text-sm text-gray-600">Receive real-time alerts in your browser</p>
+                  <p className="text-xs text-gray-500 mt-1">(Preferences stored locally)</p>
+                </div>
+              </div>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={pushNotifs}
+                  onChange={(e) => setPushNotifs(e.target.checked)}
+                />
+                <div className={`w-11 h-6 rounded-full transition-colors ${
+                  pushNotifs ? 'bg-primary-600' : 'bg-gray-300'
+                }`}>
+                  <div className={`absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform ${
+                    pushNotifs ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  function renderSystemTab() {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">System Information</h2>
+          <p className="text-sm text-gray-600">View system details and quick access to admin tools</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-3 border-b border-gray-200">
+              <span className="text-sm font-medium text-gray-600">Active Tenant</span>
+              <span className="font-mono text-sm bg-gray-100 px-3 py-1 rounded-lg">
+                {user?.tenantId || 'None'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-200">
+              <span className="text-sm font-medium text-gray-600">Account Role</span>
+              <span className="font-semibold text-sm text-primary-600 bg-primary-50 px-3 py-1 rounded-lg">
+                {user?.role}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-3">
+              <span className="text-sm font-medium text-gray-600">User ID</span>
+              <span className="font-mono text-sm text-gray-700">
+                {user?.id}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Access</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <a
+              href="/portal/admin"
+              className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group"
+            >
+              <Settings className="h-5 w-5 text-gray-600 group-hover:text-primary-600" />
+              <span className="font-medium text-gray-900">Admin Panel</span>
+            </a>
+            
+            {user?.role === 'MASTER_ADMIN' && (
+              <>
+                <a
+                  href="/portal/admin/tenants"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group"
+                >
+                  <Building className="h-5 w-5 text-gray-600 group-hover:text-primary-600" />
+                  <span className="font-medium text-gray-900">Tenants</span>
+                </a>
+                <a
+                  href="/portal/admin/finance"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group"
+                >
+                  <Shield className="h-5 w-5 text-gray-600 group-hover:text-primary-600" />
+                  <span className="font-medium text-gray-900">Finance</span>
+                </a>
+                <a
+                  href="/portal/admin/audit"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group"
+                >
+                  <Lock className="h-5 w-5 text-gray-600 group-hover:text-primary-600" />
+                  <span className="font-medium text-gray-900">Audit Log</span>
+                </a>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
 }
 
 
