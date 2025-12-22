@@ -220,7 +220,7 @@ async function main() {
   // Bind sensors to all 40 bays and insert events so portal shows realistic distribution:
   // 34 OCCUPIED, 5 FREE, 1 OFFLINE
   const bayRows = await sql/*sql*/`
-    SELECT id, code
+    SELECT id, code, lat, lng
     FROM bays
     WHERE "tenantId" = ${ensuredTenantId} AND "siteId" = ${demoSiteId} AND "zoneId" = ${demoZoneId}
     ORDER BY code ASC
@@ -240,8 +240,13 @@ async function main() {
       ? new Date(Date.now() - 2 * 60 * 60_000) // 2 hours ago => OFFLINE by default thresholds
       : new Date(Date.now() - ((i % 5) + 1) * 60_000) // fresh within last 1-5 minutes (not stale)
 
+    // Initialize sensor lat/lng from the bay position (ONLY if lat/lng are currently NULL).
+    // This makes the calibration map reliably show all 40 sensors, while preserving any manual calibration edits.
+    const seedLat = typeof (bay as any).lat === 'number' ? (bay as any).lat : null
+    const seedLng = typeof (bay as any).lng === 'number' ? (bay as any).lng : null
+
     const sensorInsert = await sql/*sql*/`
-      INSERT INTO sensors (id, "tenantId", "siteId", "zoneId", "bayId", "devEui", type, status, "installDate", "lastSeen", "batteryPct", "createdAt", "updatedAt")
+      INSERT INTO sensors (id, "tenantId", "siteId", "zoneId", "bayId", "devEui", type, status, "installDate", "lastSeen", "batteryPct", lat, lng, "createdAt", "updatedAt")
       VALUES (
         ${sensorId},
         ${ensuredTenantId},
@@ -254,6 +259,8 @@ async function main() {
         now() - interval '30 days',
         ${lastSeen},
         ${batteryPct},
+        ${seedLat},
+        ${seedLng},
         now(),
         now()
       )
@@ -266,6 +273,20 @@ async function main() {
             status = EXCLUDED.status,
             "lastSeen" = EXCLUDED."lastSeen",
             "batteryPct" = EXCLUDED."batteryPct",
+            -- Preserve manual calibration when it's close to the bay, but fix obviously broken/stacked coords.
+            -- If a sensor is >~100m away from its bay seed position, snap it back to the bay coordinate.
+            lat = CASE
+              WHEN sensors.lat IS NULL THEN EXCLUDED.lat
+              WHEN EXCLUDED.lat IS NULL THEN sensors.lat
+              WHEN abs(sensors.lat - EXCLUDED.lat) > 0.001 THEN EXCLUDED.lat
+              ELSE sensors.lat
+            END,
+            lng = CASE
+              WHEN sensors.lng IS NULL THEN EXCLUDED.lng
+              WHEN EXCLUDED.lng IS NULL THEN sensors.lng
+              WHEN abs(sensors.lng - EXCLUDED.lng) > 0.001 THEN EXCLUDED.lng
+              ELSE sensors.lng
+            END,
             "updatedAt" = now()
       RETURNING id
     `
@@ -298,6 +319,47 @@ async function main() {
         )
         ON CONFLICT DO NOTHING
       `
+  }
+
+  // If demo sensor coordinates are "stacked" (common after previous calibration bugs),
+  // force-reset demo sensors to their bay positions so the calibration map shows 40 distinct dots.
+  // We ONLY do this when we detect an obviously broken state (very low distinct coords),
+  // to preserve manual calibration edits during normal development.
+  try {
+    const stats = await sql/*sql*/`
+      SELECT
+        count(*)::int AS total,
+        count(*) FILTER (WHERE s.lat IS NULL OR s.lng IS NULL)::int AS null_coords,
+        count(DISTINCT concat(COALESCE(s.lat, 0)::text, ',', COALESCE(s.lng, 0)::text))::int AS distinct_coords
+      FROM sensors s
+      WHERE s."tenantId" = ${ensuredTenantId}
+        AND s."bayId" IS NOT NULL
+        AND s."devEui" LIKE ${demoDevEuiPrefix}
+    `
+    const total = stats?.[0]?.total ?? 0
+    const distinct = stats?.[0]?.distinct_coords ?? 0
+    const nullCoords = stats?.[0]?.null_coords ?? 0
+
+    // Heuristic: if we have 40 installed demo sensors but <= 5 distinct coordinate pairs,
+    // something is wrong (they're all stacked). Reset them from bay positions.
+    if (total >= 35 && distinct <= 5) {
+      await sql/*sql*/`
+        UPDATE sensors s
+        SET lat = b.lat,
+            lng = b.lng,
+            "updatedAt" = now()
+        FROM bays b
+        WHERE b.id = s."bayId"
+          AND s."tenantId" = ${ensuredTenantId}
+          AND s."bayId" IS NOT NULL
+          AND s."devEui" LIKE ${demoDevEuiPrefix}
+      `
+      console.log(
+        `🧭 Reset demo sensor coordinates from bays (detected stacked coords: total=${total}, distinct=${distinct}, null=${nullCoords})`
+      )
+    }
+  } catch (e) {
+    console.warn('⚠️  Demo sensor coordinate sanity check skipped/failed:', e)
   }
 
   console.log('✅ Seeded demo site/zone/bays/sensors for portal')

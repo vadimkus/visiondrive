@@ -37,6 +37,7 @@
     "autoprefixer": "^10.4.16",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.7",
+    "png-to-ico": "^3.0.1",
     "postcss": "^8.4.32",
     "prisma": "^7.1.0",
     "sharp": "^0.34.5",

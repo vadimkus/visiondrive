@@ -61,4 +61,65 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const session = await requirePortalSession(request)
+    assertRole(session, ['MASTER_ADMIN', 'CUSTOMER_ADMIN'])
+
+    const body = await request.json().catch(() => ({}))
+    const action = String(body?.action || '')
+
+    if (action !== 'reset_demo_coords') {
+      return NextResponse.json({ success: false, error: 'INVALID_ACTION' }, { status: 400 })
+    }
+
+    // Safety: only touch demo sensors
+    const demoPrefix = 'A1B2C3D4%'
+
+    const before = await sql/*sql*/`
+      SELECT
+        count(*)::int AS total,
+        count(DISTINCT concat(COALESCE(s.lat, 0)::text, ',', COALESCE(s.lng, 0)::text))::int AS distinct_coords
+      FROM sensors s
+      WHERE s."tenantId" = ${session.tenantId}
+        AND s."bayId" IS NOT NULL
+        AND s."devEui" LIKE ${demoPrefix}
+    `
+
+    const res = await sql/*sql*/`
+      UPDATE sensors s
+      SET lat = b.lat,
+          lng = b.lng,
+          "updatedAt" = now()
+      FROM bays b
+      WHERE b.id = s."bayId"
+        AND s."tenantId" = ${session.tenantId}
+        AND s."bayId" IS NOT NULL
+        AND s."devEui" LIKE ${demoPrefix}
+      RETURNING s.id
+    `
+
+    const after = await sql/*sql*/`
+      SELECT
+        count(*)::int AS total,
+        count(DISTINCT concat(COALESCE(s.lat, 0)::text, ',', COALESCE(s.lng, 0)::text))::int AS distinct_coords
+      FROM sensors s
+      WHERE s."tenantId" = ${session.tenantId}
+        AND s."bayId" IS NOT NULL
+        AND s."devEui" LIKE ${demoPrefix}
+    `
+
+    return NextResponse.json({
+      success: true,
+      updated: (res || []).length,
+      before: before?.[0] || null,
+      after: after?.[0] || null,
+    })
+  } catch (e: any) {
+    const msg = e?.message || 'Internal server error'
+    const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
+    return NextResponse.json({ success: false, error: msg }, { status })
+  }
+}
+
 
