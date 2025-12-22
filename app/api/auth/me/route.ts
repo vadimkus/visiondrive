@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const activeTenantId = decoded.tenantId || null
+
     const rows = await sql/*sql*/`
       SELECT
         u.id,
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
       FROM users u
       LEFT JOIN tenant_memberships tm
         ON tm."userId" = u.id
-       AND tm."tenantId" = u."defaultTenantId"
+       AND tm."tenantId" = COALESCE(${activeTenantId}::text, u."defaultTenantId")
       WHERE u.id = ${decoded.userId}
       LIMIT 1
     `
@@ -49,7 +51,9 @@ export async function GET(request: NextRequest) {
     }
 
     const effectiveRole =
-      user.membershipStatus === 'ACTIVE' && user.tenantRole ? user.tenantRole : user.role
+      decoded.role === 'MASTER_ADMIN'
+        ? 'MASTER_ADMIN'
+        : (user.membershipStatus === 'ACTIVE' && user.tenantRole ? user.tenantRole : user.role)
 
     return NextResponse.json({
       success: true,
@@ -59,7 +63,7 @@ export async function GET(request: NextRequest) {
         name: user.name,
         role: effectiveRole,
         status: user.status,
-        tenantId: user.defaultTenantId || null,
+        tenantId: activeTenantId || user.defaultTenantId || null,
       },
     })
   } catch (error) {

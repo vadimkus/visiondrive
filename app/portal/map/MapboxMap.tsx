@@ -245,7 +245,7 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
           id: 'bays-poly-outline',
           type: 'line',
           source: 'bays-poly',
-          paint: { 'line-color': '#111827', 'line-width': 1, 'line-opacity': 0.35 },
+          paint: { 'line-color': '#111827', 'line-width': 2, 'line-opacity': 0.5 },
         })
 
         // Selected bay highlight (polygon)
@@ -254,7 +254,7 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
           type: 'line',
           source: 'bays-poly',
           filter: ['==', ['get', 'bayId'], '__none__'],
-          paint: { 'line-color': '#111827', 'line-width': 3, 'line-opacity': 0.9 },
+          paint: { 'line-color': '#111827', 'line-width': 5, 'line-opacity': 0.9 },
         })
 
         // Bays point source (fallback if no polygons exist or for click targets)
@@ -264,9 +264,9 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
           type: 'circle',
           source: 'bays-pt',
           paint: {
-            'circle-radius': 5,
+            'circle-radius': 8,
             'circle-color': ['get', 'color'],
-            'circle-stroke-width': 1,
+            'circle-stroke-width': 2,
             'circle-stroke-color': '#ffffff',
             'circle-opacity': 0.9,
           },
@@ -279,9 +279,9 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
           source: 'bays-pt',
           filter: ['==', ['get', 'bayId'], '__none__'],
           paint: {
-            'circle-radius': 9,
+            'circle-radius': 14,
             'circle-color': '#ffffff',
-            'circle-stroke-width': 3,
+            'circle-stroke-width': 4,
             'circle-stroke-color': '#111827',
             'circle-opacity': 0.95,
           },
@@ -303,7 +303,7 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
           filter: ['has', 'point_count'],
           paint: {
             'circle-color': '#111827',
-            'circle-radius': ['step', ['get', 'point_count'], 16, 25, 22, 60, 28],
+            'circle-radius': ['step', ['get', 'point_count'], 20, 25, 28, 60, 36],
             'circle-opacity': 0.75,
           },
         })
@@ -324,9 +324,9 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
           source: 'sensors',
           filter: ['!', ['has', 'point_count']],
           paint: {
-            'circle-radius': 4,
+            'circle-radius': 6,
             'circle-color': '#0f172a',
-            'circle-stroke-width': 1,
+            'circle-stroke-width': 2,
             'circle-stroke-color': '#ffffff',
             'circle-opacity': 0.9,
           },
@@ -356,12 +356,12 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
             popup
               .setLngLat(coords as any)
               .setHTML(
-                `<div style=\"font-family: system-ui; font-size: 12px; line-height: 1.4;\">\n` +
-                  `<div style=\"font-weight: 700; margin-bottom: 4px;\">${bayCode}</div>\n` +
-                  `<div><b>State:</b> ${state}</div>\n` +
-                  `<div><b>Confidence:</b> ${conf}</div>\n` +
-                  `<div><b>Last seen:</b> ${last}</div>\n` +
-                  `<div><b>Sensor:</b> ${devEui}</div>\n` +
+                `<div style=\"font-family: system-ui; font-size: 14px; line-height: 1.6;\">\n` +
+                  `<div style=\"font-weight: 700; font-size: 16px; margin-bottom: 6px;\">${bayCode}</div>\n` +
+                  `<div style=\"margin-bottom: 4px;\"><b>State:</b> ${state}</div>\n` +
+                  `<div style=\"margin-bottom: 4px;\"><b>Confidence:</b> ${conf}</div>\n` +
+                  `<div style=\"margin-bottom: 4px;\"><b>Last seen:</b> ${last}</div>\n` +
+                  `<div style=\"margin-bottom: 4px;\"><b>Sensor:</b> ${devEui}</div>\n` +
                   `<div><b>Battery:</b> ${battery}</div>\n` +
                   `</div>`
               )
@@ -482,23 +482,23 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-2 text-xs">
-        <label className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-200 bg-white">
-          <input type="checkbox" checked={layers.bays} onChange={(e) => setLayers((s) => ({ ...s, bays: e.target.checked }))} />
-          Bays
+    <div className="space-y-4 h-full flex flex-col">
+      <div className="flex flex-wrap gap-3 text-sm">
+        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer">
+          <input type="checkbox" checked={layers.bays} onChange={(e) => setLayers((s) => ({ ...s, bays: e.target.checked }))} className="w-4 h-4" />
+          <span className="font-medium">Bays</span>
         </label>
-        <label className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-200 bg-white">
-          <input type="checkbox" checked={layers.sensors} onChange={(e) => setLayers((s) => ({ ...s, sensors: e.target.checked }))} />
-          Sensors (clustered)
+        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer">
+          <input type="checkbox" checked={layers.sensors} onChange={(e) => setLayers((s) => ({ ...s, sensors: e.target.checked }))} className="w-4 h-4" />
+          <span className="font-medium">Sensors (clustered)</span>
         </label>
-        <label className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-200 bg-white">
-          <input type="checkbox" checked={layers.zones} onChange={(e) => setLayers((s) => ({ ...s, zones: e.target.checked }))} />
-          Zones overlay (paid/free)
+        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer">
+          <input type="checkbox" checked={layers.zones} onChange={(e) => setLayers((s) => ({ ...s, zones: e.target.checked }))} className="w-4 h-4" />
+          <span className="font-medium">Zones overlay (paid/free)</span>
         </label>
       </div>
-      <div ref={containerRef} className="w-full h-[520px] rounded-lg overflow-hidden border border-gray-200" />
-      <div className="text-xs text-gray-500">
+      <div ref={containerRef} className="w-full flex-1 rounded-lg overflow-hidden" />
+      <div className="text-sm text-gray-600 font-medium">
         Tip: click a bay to see details. Click a sensor cluster to zoom in.
       </div>
     </div>

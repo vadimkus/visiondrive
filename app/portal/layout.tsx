@@ -1,6 +1,17 @@
+import PortalNavigation from '../components/portal/PortalNavigation'
+import PortalSidebar from '../components/portal/PortalSidebar'
+
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
-  // Global offset for the fixed header so portal navigation/buttons are never hidden.
-  return <div className="pt-24 sm:pt-28 md:pt-32">{children}</div>
+  // Portal layout: full screen with top navigation and left sidebar, no header/footer
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      <PortalSidebar />
+      <div className="flex-1 flex flex-col">
+        <PortalNavigation />
+        <div className="flex-1 pb-8 overflow-y-auto">{children}</div>
+      </div>
+    </div>
+  )
 }
 
 
