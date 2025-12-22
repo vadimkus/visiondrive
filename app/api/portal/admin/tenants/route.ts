@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
 import { randomUUID } from 'crypto'
+import { writeAuditLog } from '@/lib/audit'
 
 const DEFAULT_THRESHOLD_JSON = {
   offlineMinutes: 60,
@@ -108,6 +109,17 @@ export async function POST(request: NextRequest) {
       VALUES (${createdId}, ${sql.json(DEFAULT_THRESHOLD_JSON) as any}, now())
       ON CONFLICT ("tenantId") DO NOTHING
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      tenantId: createdId,
+      action: 'TENANT_CREATE',
+      entityType: 'Tenant',
+      entityId: createdId,
+      before: null,
+      after: { id: createdId, name, slug, status: 'ACTIVE' },
+    })
 
     return NextResponse.json({ success: true, tenant: { id: createdId, name, slug, status: 'ACTIVE' } })
   } catch (e: any) {

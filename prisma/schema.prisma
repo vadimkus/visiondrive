@@ -324,6 +324,7 @@ model SensorEvent {
   gateway Gateway? @relation(fields: [gatewayId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, time])
+  @@index([tenantId, siteId, time])
   @@index([sensorId, time])
   @@index([gatewayId, time])
   @@id([id, time])

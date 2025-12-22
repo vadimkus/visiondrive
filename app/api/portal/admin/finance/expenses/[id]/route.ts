@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function PATCH(
   request: NextRequest,
@@ -10,6 +11,14 @@ export async function PATCH(
     const session = await requirePortalSession(request)
     assertRole(session, ['MASTER_ADMIN'])
     const { id } = await params
+
+    const beforeRows = await sql/*sql*/`
+      SELECT id, "tenantId", category, vendor, description, "amountCents", currency, "occurredAt"
+      FROM expenses
+      WHERE id = ${id}
+      LIMIT 1
+    `
+    const before = beforeRows?.[0] || null
 
     const body = await request.json().catch(() => ({}))
     const category = typeof body?.category === 'string' ? body.category.trim().toUpperCase() : null
@@ -38,6 +47,17 @@ export async function PATCH(
         "updatedAt" = now()
       WHERE id = ${id}
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      tenantId: before?.tenantId || null,
+      action: 'EXPENSE_UPDATE',
+      entityType: 'Expense',
+      entityId: id,
+      before,
+      after: { category, vendor, description, currency, amountCents, occurredAt: occurredAt ? occurredAt.toISOString() : null },
+    })
     return NextResponse.json({ success: true })
   } catch (e: any) {
     const msg = e?.message || 'Internal server error'
@@ -55,7 +75,26 @@ export async function DELETE(
     assertRole(session, ['MASTER_ADMIN'])
     const { id } = await params
 
+    const beforeRows = await sql/*sql*/`
+      SELECT id, "tenantId", category, vendor, description, "amountCents", currency, "occurredAt"
+      FROM expenses
+      WHERE id = ${id}
+      LIMIT 1
+    `
+    const before = beforeRows?.[0] || null
+
     await sql/*sql*/`DELETE FROM expenses WHERE id = ${id}`
+
+    await writeAuditLog({
+      request,
+      session,
+      tenantId: before?.tenantId || null,
+      action: 'EXPENSE_DELETE',
+      entityType: 'Expense',
+      entityId: id,
+      before,
+      after: null,
+    })
     return NextResponse.json({ success: true })
   } catch (e: any) {
     const msg = e?.message || 'Internal server error'

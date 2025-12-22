@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -99,6 +100,16 @@ export async function POST(request: NextRequest) {
         now()
       )
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      action: 'REPORT_SUBSCRIPTION_CREATE',
+      entityType: 'ReportSubscription',
+      entityId: id,
+      before: null,
+      after: { id, tenantId: session.tenantId, name, kind, cadence, timezone, enabled },
+    })
 
     return NextResponse.json({ success: true, id })
   } catch (e: any) {

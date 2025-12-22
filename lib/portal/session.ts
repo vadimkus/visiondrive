@@ -27,7 +27,9 @@ export async function requirePortalSession(request: NextRequest): Promise<Portal
       u.email,
       u.name,
       u.status,
-      COALESCE(tm.role, u.role) AS role
+      u.role AS "globalRole",
+      tm.role AS "tenantRole",
+      tm.status AS "membershipStatus"
     FROM users u
     LEFT JOIN tenant_memberships tm
       ON tm."userId" = u.id
@@ -39,7 +41,18 @@ export async function requirePortalSession(request: NextRequest): Promise<Portal
   const u = rows?.[0] || null
   if (!u || u.status !== 'ACTIVE') throw new Error('UNAUTHORIZED')
 
-  return { userId: u.id, email: u.email, name: u.name, role: u.role, tenantId }
+  // Hard tenant isolation:
+  // - Non-master users MUST have an ACTIVE membership for the tenantId in the token.
+  // - MASTER_ADMIN is allowed to view any tenant context after a successful switch (token is signed),
+  //   even if they don't have an explicit membership in that tenant.
+  const globalRole = String(u.globalRole || '').toUpperCase()
+  const tenantRole = u.tenantRole ? String(u.tenantRole).toUpperCase() : null
+  const effectiveRole = tenantRole || globalRole
+  if (!tenantRole && globalRole !== 'MASTER_ADMIN') {
+    throw new Error('FORBIDDEN')
+  }
+
+  return { userId: u.id, email: u.email, name: u.name, role: effectiveRole, tenantId }
 }
 
 export function assertRole(session: PortalSession, allowed: string[]) {

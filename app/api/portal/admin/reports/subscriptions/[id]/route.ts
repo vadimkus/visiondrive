@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function PATCH(
   request: NextRequest,
@@ -10,6 +11,14 @@ export async function PATCH(
     const session = await requirePortalSession(request)
     assertRole(session, ['MASTER_ADMIN', 'ADMIN', 'CUSTOMER_ADMIN'])
     const { id } = await params
+
+    const beforeRows = await sql/*sql*/`
+      SELECT id, name, enabled, timezone, recipients, params
+      FROM report_subscriptions
+      WHERE id = ${id} AND "tenantId" = ${session.tenantId}
+      LIMIT 1
+    `
+    const before = beforeRows?.[0] || null
 
     const body = await request.json().catch(() => ({}))
     const name = typeof body?.name === 'string' ? body.name.trim() : null
@@ -38,6 +47,16 @@ export async function PATCH(
       WHERE id = ${id} AND "tenantId" = ${session.tenantId}
     `
 
+    await writeAuditLog({
+      request,
+      session,
+      action: 'REPORT_SUBSCRIPTION_UPDATE',
+      entityType: 'ReportSubscription',
+      entityId: id,
+      before,
+      after: { name, enabled, timezone, recipients, params: paramsJson },
+    })
+
     return NextResponse.json({ success: true })
   } catch (e: any) {
     const msg = e?.message || 'Internal server error'
@@ -55,10 +74,28 @@ export async function DELETE(
     assertRole(session, ['MASTER_ADMIN', 'ADMIN', 'CUSTOMER_ADMIN'])
     const { id } = await params
 
+    const beforeRows = await sql/*sql*/`
+      SELECT id, name, kind, cadence, enabled
+      FROM report_subscriptions
+      WHERE id = ${id} AND "tenantId" = ${session.tenantId}
+      LIMIT 1
+    `
+    const before = beforeRows?.[0] || null
+
     await sql/*sql*/`
       DELETE FROM report_subscriptions
       WHERE id = ${id} AND "tenantId" = ${session.tenantId}
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      action: 'REPORT_SUBSCRIPTION_DELETE',
+      entityType: 'ReportSubscription',
+      entityId: id,
+      before,
+      after: null,
+    })
 
     return NextResponse.json({ success: true })
   } catch (e: any) {

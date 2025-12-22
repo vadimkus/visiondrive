@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/sql'
 import { assertRole, requirePortalSession } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function POST(
   request: NextRequest,
@@ -22,6 +23,14 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'LAT_LNG_INVALID' }, { status: 400 })
     }
 
+    const beforeRows = await sql/*sql*/`
+      SELECT id, lat, lng
+      FROM sensors
+      WHERE "tenantId" = ${session.tenantId} AND id = ${id}
+      LIMIT 1
+    `
+    const before = beforeRows?.[0] || null
+
     const rows = await sql/*sql*/`
       UPDATE sensors
       SET lat = ${lat},
@@ -31,6 +40,16 @@ export async function POST(
       RETURNING id
     `
     if (!rows?.[0]?.id) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
+
+    await writeAuditLog({
+      request,
+      session,
+      action: 'SENSOR_LOCATION_UPDATE',
+      entityType: 'Sensor',
+      entityId: id,
+      before,
+      after: { id, lat, lng },
+    })
 
     return NextResponse.json({ success: true })
   } catch (e: any) {

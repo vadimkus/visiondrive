@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { sql } from '@/lib/sql'
-import { requirePortalSession } from '@/lib/portal/session'
+import { requirePortalSession, assertRole } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 type Action = 'ACKNOWLEDGE' | 'ASSIGN_TO_ME' | 'RESOLVE'
 
@@ -11,6 +12,8 @@ export async function PATCH(
 ) {
   try {
     const session = await requirePortalSession(request)
+    // Analysts can view alerts, but only ops/admin can take actions.
+    assertRole(session, ['MASTER_ADMIN', 'CUSTOMER_ADMIN', 'CUSTOMER_OPS'])
     const { id } = await params
 
     const body = await request.json().catch(() => ({}))
@@ -25,6 +28,7 @@ export async function PATCH(
     `
     const a = rows?.[0] || null
     if (!a) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
+    const before = { id: a.id, status: a.status }
 
     if (action === 'ACKNOWLEDGE') {
       await sql/*sql*/`
@@ -66,10 +70,20 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 })
     }
 
+    await writeAuditLog({
+      request,
+      session,
+      action: `ALERT_${action}`,
+      entityType: 'Alert',
+      entityId: id,
+      before,
+      after: { id, action, note },
+    })
+
     return NextResponse.json({ success: true })
   } catch (e: any) {
     const msg = e?.message || 'Internal server error'
-    const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : 500
+    const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }
 }

@@ -584,6 +584,7 @@ const noteSections: NoteSection[] = [
       '• ✅ Add timeseries: sensor_events hypertable (Timescale) + indexes for time + tenant/site',
       '• ✅ Enforce tenant isolation server-side on every query (never rely on UI filtering)',
       '• ✅ Audit log table: record admin/operator changes (bindings, thresholds, overrides, users)',
+      '• ✅ Hardening: `requirePortalSession()` now requires ACTIVE tenant membership for non-master users; added audit writes via `lib/audit.ts` to all key admin mutations.',
       '',
       '11.2. Phase B — Simulated Data Ingestion (gateway not required) [Week 1–2]',
       '• ✅ Build /api/replay/upload: upload JSON/CSV “uplink logs” → validate → stage in DB + dead-letter invalid rows',

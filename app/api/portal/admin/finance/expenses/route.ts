@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 function parseDate(input: string | null, fallback: Date) {
   if (!input) return fallback
@@ -118,6 +119,17 @@ export async function POST(request: NextRequest) {
         now()
       )
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      tenantId,
+      action: 'EXPENSE_CREATE',
+      entityType: 'Expense',
+      entityId: id,
+      before: null,
+      after: { id, tenantId, category, vendor, description, amountCents, currency, occurredAt: occurredAt.toISOString() },
+    })
 
     return NextResponse.json({ success: true, id })
   } catch (e: any) {

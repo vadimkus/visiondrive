@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
 import { hashPassword } from '@/lib/auth'
+import { writeAuditLog } from '@/lib/audit'
 
 function generatePassword() {
   // readable-ish random password
@@ -28,6 +29,9 @@ export async function POST(
 
     const tenant = await sql/*sql*/`SELECT id, status FROM tenants WHERE id = ${tenantId} LIMIT 1`
     if (!tenant?.[0]) return NextResponse.json({ success: false, error: 'Tenant not found' }, { status: 404 })
+    if (String(tenant?.[0]?.status || '').toUpperCase() !== 'ACTIVE') {
+      return NextResponse.json({ success: false, error: 'Tenant is not ACTIVE' }, { status: 400 })
+    }
 
     const passwordHash = await hashPassword(password)
     const userId = randomUUID()
@@ -56,6 +60,17 @@ export async function POST(
             status = 'ACTIVE',
             "updatedAt" = now()
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      tenantId,
+      action: 'TENANT_ADMIN_CREATE',
+      entityType: 'TenantMembership',
+      entityId: `${tenantId}:${ensuredUserId}`,
+      before: null,
+      after: { tenantId, userId: ensuredUserId, email, name, role: 'CUSTOMER_ADMIN', status: 'ACTIVE' },
+    })
 
     return NextResponse.json({
       success: true,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
 import { generateToken } from '@/lib/auth'
 import { sql } from '@/lib/sql'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,9 @@ export async function POST(request: NextRequest) {
 
     const t = await sql/*sql*/`SELECT id, status FROM tenants WHERE id = ${tenantId} LIMIT 1`
     if (!t?.[0]) return NextResponse.json({ success: false, error: 'Tenant not found' }, { status: 404 })
+    if (String(t?.[0]?.status || '').toUpperCase() !== 'ACTIVE') {
+      return NextResponse.json({ success: false, error: 'Tenant is not ACTIVE' }, { status: 400 })
+    }
 
     // Keep role MASTER_ADMIN, swap tenant context.
     const token = generateToken(session.userId, session.email, 'MASTER_ADMIN', tenantId)
@@ -24,6 +28,18 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7,
     })
+
+    await writeAuditLog({
+      request,
+      session,
+      tenantId,
+      action: 'MASTER_TENANT_SWITCH',
+      entityType: 'Tenant',
+      entityId: tenantId,
+      before: { previousTenantId: session.tenantId },
+      after: { tenantId },
+    })
+
     return res
   } catch (e: any) {
     const msg = e?.message || 'Internal server error'

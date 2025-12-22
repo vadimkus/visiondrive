@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { sql } from '@/lib/sql'
 import { assertRole, requirePortalSession } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 function normalizeJson(value: any) {
   if (value === null || typeof value === 'undefined') return null
@@ -91,6 +92,14 @@ export async function POST(request: NextRequest) {
     }
     if (!siteId) return NextResponse.json({ success: false, error: 'SITE_REQUIRED' }, { status: 400 })
 
+    const beforeRows = await sql/*sql*/`
+      SELECT id, name, kind, "siteId", geojson, tariff
+      FROM zones
+      WHERE "tenantId" = ${session.tenantId} AND id = ${id}
+      LIMIT 1
+    `
+    const before = beforeRows?.[0] || null
+
     await sql/*sql*/`
       INSERT INTO zones (id, "tenantId", "siteId", name, kind, geojson, tariff, "createdAt", "updatedAt")
       VALUES (
@@ -111,6 +120,16 @@ export async function POST(request: NextRequest) {
             tariff = EXCLUDED.tariff,
             "updatedAt" = now()
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      action: before ? 'ZONE_UPDATE' : 'ZONE_CREATE',
+      entityType: 'Zone',
+      entityId: id,
+      before,
+      after: { id, tenantId: session.tenantId, siteId, name, kind, hasGeojson: true, hasTariff: !!tariff },
+    })
 
     return NextResponse.json({ success: true, id })
   } catch (e: any) {

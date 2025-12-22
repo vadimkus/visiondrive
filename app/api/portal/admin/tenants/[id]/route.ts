@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function PATCH(
   request: NextRequest,
@@ -10,6 +11,14 @@ export async function PATCH(
     const session = await requirePortalSession(request)
     assertRole(session, ['MASTER_ADMIN'])
     const { id } = await params
+
+    const beforeRows = await sql/*sql*/`
+      SELECT id, name, slug, status
+      FROM tenants
+      WHERE id = ${id}
+      LIMIT 1
+    `
+    const before = beforeRows?.[0] || null
 
     const body = await request.json().catch(() => ({}))
     const name = typeof body?.name === 'string' ? body.name.trim() : null
@@ -30,6 +39,17 @@ export async function PATCH(
     `
     const t = rows?.[0] || null
     if (!t) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
+
+    await writeAuditLog({
+      request,
+      session,
+      tenantId: id,
+      action: 'TENANT_UPDATE',
+      entityType: 'Tenant',
+      entityId: id,
+      before,
+      after: { id: t.id, name: t.name, slug: t.slug, status: t.status },
+    })
 
     return NextResponse.json({
       success: true,

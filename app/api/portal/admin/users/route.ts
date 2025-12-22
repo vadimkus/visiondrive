@@ -3,6 +3,7 @@ import { sql } from '@/lib/sql'
 import { assertRole, requirePortalSession } from '@/lib/portal/session'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
+import { writeAuditLog } from '@/lib/audit'
 
 function randomPassword(len = 12) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
@@ -91,6 +92,16 @@ export async function POST(request: NextRequest) {
           "updatedAt" = now()
       WHERE id = ${ensuredUserId}
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      action: 'TENANT_USER_UPSERT',
+      entityType: 'TenantMembership',
+      entityId: `${session.tenantId}:${ensuredUserId}`,
+      before: null,
+      after: { tenantId: session.tenantId, userId: ensuredUserId, email, name, role, status: 'ACTIVE' },
+    })
 
     return NextResponse.json({
       success: true,

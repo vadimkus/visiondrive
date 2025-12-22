@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/sql'
 import { assertRole, requirePortalSession } from '@/lib/portal/session'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,13 +30,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const thresholds = body?.thresholds || {}
 
+    const beforeRows = await sql/*sql*/`
+      SELECT thresholds
+      FROM tenant_settings
+      WHERE "tenantId" = ${session.tenantId}
+      LIMIT 1
+    `
+    const before = beforeRows?.[0]?.thresholds || {}
+
     await sql/*sql*/`
       INSERT INTO tenant_settings ("tenantId", thresholds, "updatedAt")
-      VALUES (${session.tenantId}, ${thresholds as any}, now())
+      VALUES (${session.tenantId}, ${sql.json(thresholds) as any}, now())
       ON CONFLICT ("tenantId") DO UPDATE
         SET thresholds = EXCLUDED.thresholds,
             "updatedAt" = now()
     `
+
+    await writeAuditLog({
+      request,
+      session,
+      action: 'TENANT_SETTINGS_UPDATE',
+      entityType: 'TenantSetting',
+      entityId: session.tenantId,
+      before,
+      after: thresholds,
+    })
 
     return NextResponse.json({ success: true })
   } catch (e: any) {
