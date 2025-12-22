@@ -3,7 +3,22 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Section from '../../components/common/Section'
-import { ArrowLeft, FlaskConical, AlertTriangle, Loader2 } from 'lucide-react'
+import { 
+  FlaskConical, 
+  AlertTriangle, 
+  Loader2,
+  Play,
+  Save,
+  Search,
+  FileCode,
+  Calendar,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  RefreshCw,
+  Code2,
+  Zap
+} from 'lucide-react'
 
 type Tab = 'bench' | 'deadletters'
 
@@ -131,185 +146,329 @@ export default function ReplayToolsPage() {
 
   if (loadingUser) {
     return (
-      <Section className="pt-32 pb-12">
-        <div className="text-center text-gray-600">Loading...</div>
+      <Section className="pt-32 pb-12 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+        <div className="flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600 mr-3" />
+          <span className="text-gray-600 text-lg">Loading replay tools...</span>
+        </div>
       </Section>
     )
   }
 
   return (
-    <Section className="pt-6 pb-12">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <button onClick={() => router.back()} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Replay & Decoder Tools</h1>
-          <p className="text-gray-600">Use simulated events to develop the portal before gateways arrive.</p>
+    <Section className="pt-6 pb-12 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Replay & Decoder Tools</h1>
+          <p className="text-gray-600">Test payload decoding and review failed data ingestion events</p>
         </div>
 
-        <div className="flex gap-2 mb-6">
+        {/* Tab Navigation */}
+        <div className="flex gap-3 mb-6">
           <button
             onClick={() => setTab('bench')}
-            className={`inline-flex items-center px-4 py-2 rounded-lg border ${
-              tab === 'bench' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            className={`inline-flex items-center px-6 py-3 rounded-xl border-2 font-medium transition-all ${
+              tab === 'bench' 
+                ? 'bg-purple-600 text-white border-purple-600 shadow-lg' 
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 shadow-sm'
             }`}
           >
-            <FlaskConical className="h-4 w-4 mr-2" />
+            <FlaskConical className="h-5 w-5 mr-2" />
             Decoder Bench
           </button>
           <button
             onClick={() => setTab('deadletters')}
-            className={`inline-flex items-center px-4 py-2 rounded-lg border ${
-              tab === 'deadletters' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            className={`inline-flex items-center px-6 py-3 rounded-xl border-2 font-medium transition-all ${
+              tab === 'deadletters' 
+                ? 'bg-orange-600 text-white border-orange-600 shadow-lg' 
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 shadow-sm'
             }`}
           >
-            <AlertTriangle className="h-4 w-4 mr-2" />
-            Dead Letters
+            <AlertTriangle className="h-5 w-5 mr-2" />
+            Dead Letters ({deadLettersTotal})
           </button>
         </div>
 
         {tab === 'bench' && (
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Paste payload → preview → save event</h2>
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-purple-100 rounded-xl">
+                  <FlaskConical className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Decoder Bench</h2>
+                  <p className="text-sm text-gray-600">Test payload decoding and simulate sensor events</p>
+                </div>
+              </div>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">DevEUI</label>
-                <input
-                  value={devEui}
-                  onChange={(e) => setDevEui(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="ABCDEF..."
+            <div className="p-6">
+              {/* Input Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <Code2 className="h-4 w-4 text-gray-500" />
+                    DevEUI
+                  </label>
+                  <input
+                    value={devEui}
+                    onChange={(e) => setDevEui(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    placeholder="ABCDEF0000000001"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-gray-500" />
+                    Sensor Type
+                  </label>
+                  <select
+                    value={sensorType}
+                    onChange={(e) => setSensorType(e.target.value as any)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  >
+                    <option value="PARKING">PARKING</option>
+                    <option value="WEATHER">WEATHER</option>
+                    <option value="OTHER">OTHER</option>
+                  </select>
+                </div>
+                <div className="flex items-end gap-2">
+                  <button
+                    onClick={runPreview}
+                    disabled={previewLoading}
+                    className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 transition-all shadow-lg font-medium"
+                  >
+                    {previewLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    ) : (
+                      <Eye className="h-5 w-5 mr-2" />
+                    )}
+                    Preview
+                  </button>
+                  <button
+                    onClick={runSave}
+                    disabled={saveLoading}
+                    className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-60 transition-all shadow-lg font-medium"
+                  >
+                    {saveLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    ) : (
+                      <Save className="h-5 w-5 mr-2" />
+                    )}
+                    Save
+                  </button>
+                </div>
+              </div>
+
+              {/* Payload Input */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <FileCode className="h-4 w-4 text-gray-500" />
+                  Raw Payload (JSON or HEX)
+                </label>
+                <textarea
+                  value={rawPayload}
+                  onChange={(e) => setRawPayload(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  rows={8}
+                  placeholder='{"occupied":false,"batteryPct":90}  OR  0164'
                 />
+                <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Spaces are ignored for HEX. JSON is parsed as-is.
+                </p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sensor Type</label>
-                <select
-                  value={sensorType}
-                  onChange={(e) => setSensorType(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
-                >
-                  <option value="PARKING">PARKING</option>
-                  <option value="WEATHER">WEATHER</option>
-                  <option value="OTHER">OTHER</option>
-                </select>
-              </div>
-              <div className="flex items-end gap-2">
-                <button
-                  onClick={runPreview}
-                  disabled={previewLoading}
-                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60 w-full"
-                >
-                  {previewLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Preview
-                </button>
-                <button
-                  onClick={runSave}
-                  disabled={saveLoading}
-                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60 w-full"
-                >
-                  {saveLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Save
-                </button>
-              </div>
+
+              {/* Preview Error */}
+              {previewError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-red-900">Preview Error</p>
+                    <p className="text-sm text-red-800 mt-1">{previewError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Preview Result */}
+              {preview && (
+                <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-100 to-blue-50 p-4 border-b border-blue-200">
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-5 w-5 text-blue-600" />
+                      <p className="font-semibold text-blue-900">Decoded Preview</p>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <pre className="text-sm overflow-auto font-mono bg-white p-4 rounded-lg border border-blue-200">
+                      {JSON.stringify(preview, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+
+              {/* Save Error */}
+              {saveError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-red-900">Save Error</p>
+                    <p className="text-sm text-red-800 mt-1">{saveError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Save Result */}
+              {saveResult && (
+                <div className="bg-green-50 border border-green-200 rounded-xl overflow-hidden">
+                  <div className="bg-gradient-to-r from-green-100 to-green-50 p-4 border-b border-green-200">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <p className="font-semibold text-green-900">Event Saved Successfully</p>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <pre className="text-sm overflow-auto font-mono bg-white p-4 rounded-lg border border-green-200">
+                      {JSON.stringify(saveResult, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Raw Payload (JSON or HEX)</label>
-              <textarea
-                value={rawPayload}
-                onChange={(e) => setRawPayload(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm"
-                rows={6}
-                placeholder='{"occupied":false,"batteryPct":90}  OR  0164'
-              />
-              <p className="text-xs text-gray-500 mt-1">Spaces are ignored for HEX. JSON is parsed as-is.</p>
-            </div>
-
-            {previewError && <p className="text-sm text-red-600 mb-3">{previewError}</p>}
-            {preview && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                <p className="text-sm font-medium text-gray-900 mb-2">Preview</p>
-                <pre className="text-xs overflow-auto">{JSON.stringify(preview, null, 2)}</pre>
-              </div>
-            )}
-
-            {saveError && <p className="text-sm text-red-600 mb-3">{saveError}</p>}
-            {saveResult && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-green-900 mb-2">Saved</p>
-                <pre className="text-xs overflow-auto">{JSON.stringify(saveResult, null, 2)}</pre>
-              </div>
-            )}
           </div>
         )}
 
         {tab === 'deadletters' && (
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">Dead Letters</h2>
-                <p className="text-sm text-gray-600">Invalid payloads / validation failures from uploads.</p>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="Search reason..."
-                />
-                <button
-                  onClick={fetchDeadLetters}
-                  disabled={deadLettersLoading}
-                  className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-60"
-                >
-                  {deadLettersLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Refresh
-                </button>
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-orange-100 rounded-xl">
+                    <AlertTriangle className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Dead Letters</h2>
+                    <p className="text-sm text-gray-600">Failed payloads and validation errors from data ingestion</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-gray-200">
+                    <span className="text-sm font-medium text-gray-600">Total:</span>
+                    <span className="text-lg font-bold text-orange-600">{deadLettersTotal}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <p className="text-sm text-gray-600 mb-3">Total: {deadLettersTotal}</p>
-
-            <div className="overflow-auto border border-gray-200 rounded-lg">
-              <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-gray-700">
-                  <tr>
-                    <th className="text-left px-3 py-2">Time</th>
-                    <th className="text-left px-3 py-2">File</th>
-                    <th className="text-left px-3 py-2">Row</th>
-                    <th className="text-left px-3 py-2">Reason</th>
-                    <th className="text-left px-3 py-2">Raw</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deadLetters.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-3 py-6 text-center text-gray-500">
-                        {deadLettersLoading ? 'Loading…' : 'No dead letters found'}
-                      </td>
-                    </tr>
+            <div className="p-6">
+              {/* Search Bar */}
+              <div className="flex gap-3 mb-6">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && fetchDeadLetters()}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    placeholder="Search by reason..."
+                  />
+                </div>
+                <button
+                  onClick={fetchDeadLetters}
+                  disabled={deadLettersLoading}
+                  className="inline-flex items-center px-6 py-3 rounded-xl bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60 transition-all shadow-lg font-medium"
+                >
+                  {deadLettersLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  ) : (
+                    <RefreshCw className="h-5 w-5 mr-2" />
                   )}
-                  {deadLetters.map((d) => (
-                    <tr key={d.id} className="border-t border-gray-100 align-top">
-                      <td className="px-3 py-2 whitespace-nowrap text-gray-600">{new Date(d.createdAt).toLocaleString()}</td>
-                      <td className="px-3 py-2 text-gray-700">{d.filename}</td>
-                      <td className="px-3 py-2 text-gray-700">{d.rowIndex ?? '-'}</td>
-                      <td className="px-3 py-2 text-red-700">{d.reason}</td>
-                      <td className="px-3 py-2">
-                        <details>
-                          <summary className="cursor-pointer text-gray-700">View</summary>
-                          <pre className="text-xs mt-2 bg-gray-50 border border-gray-200 rounded p-2 overflow-auto max-w-[600px]">
-                            {JSON.stringify(d.raw, null, 2)}
-                          </pre>
-                        </details>
-                      </td>
+                  Refresh
+                </button>
+              </div>
+
+              {/* Dead Letters Table */}
+              <div className="overflow-auto border border-gray-200 rounded-xl">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50">
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Time
+                        </div>
+                      </th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <FileCode className="h-4 w-4" />
+                          File
+                        </div>
+                      </th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Row</th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          Reason
+                        </div>
+                      </th>
+                      <th className="text-left px-6 py-4 font-semibold text-gray-700">Raw Data</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {deadLettersLoading && (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center">
+                          <Loader2 className="h-8 w-8 animate-spin text-orange-600 mx-auto mb-3" />
+                          <p className="text-gray-600">Loading dead letters...</p>
+                        </td>
+                      </tr>
+                    )}
+                    {!deadLettersLoading && deadLetters.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center">
+                          <CheckCircle2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500 font-medium">No dead letters found</p>
+                          <p className="text-sm text-gray-400 mt-1">All payloads processed successfully!</p>
+                        </td>
+                      </tr>
+                    )}
+                    {!deadLettersLoading && deadLetters.map((d) => (
+                      <tr key={d.id} className="border-b border-gray-100 hover:bg-orange-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                          {new Date(d.createdAt).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-900">
+                            {d.filename}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-700 font-medium">{d.rowIndex ?? '—'}</td>
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium inline-flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {d.reason}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <details className="cursor-pointer">
+                            <summary className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
+                              <Eye className="h-4 w-4" />
+                              View JSON
+                            </summary>
+                            <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-3 max-w-[600px]">
+                              <pre className="text-xs overflow-auto font-mono">
+                                {JSON.stringify(d.raw, null, 2)}
+                              </pre>
+                            </div>
+                          </details>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
