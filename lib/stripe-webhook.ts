@@ -4,6 +4,7 @@ export function verifyStripeSignature(params: {
   payload: string
   signatureHeader: string | null
   webhookSecret: string
+  toleranceSeconds?: number
 }) {
   const { payload, signatureHeader, webhookSecret } = params
   if (!signatureHeader) return false
@@ -12,6 +13,13 @@ export function verifyStripeSignature(params: {
   const v1Parts = parts.filter((p) => p.startsWith('v1='))
   const t = tPart?.slice(2)
   if (!t || v1Parts.length === 0) return false
+
+  // Replay protection: require timestamp within tolerance.
+  const tolerance = typeof params.toleranceSeconds === 'number' ? params.toleranceSeconds : 300
+  const tNum = Number(t)
+  if (!Number.isFinite(tNum)) return false
+  const now = Math.floor(Date.now() / 1000)
+  if (Math.abs(now - tNum) > tolerance) return false
 
   const signedPayload = `${t}.${payload}`
   const expected = createHmac('sha256', webhookSecret).update(signedPayload, 'utf8').digest('hex')

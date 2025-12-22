@@ -3,6 +3,8 @@ import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
 import { writeAuditLog } from '@/lib/audit'
 
+const ALLOWED_CATEGORIES = new Set(['CLOUD', 'HARDWARE', 'OPS', 'SUPPORT', 'MARKETING', 'SOFTWARE', 'OTHER'])
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -28,6 +30,12 @@ export async function PATCH(
     const amountCents = typeof body?.amountCents === 'number' ? Number(body.amountCents) : null
     const occurredAt = typeof body?.occurredAt === 'string' ? new Date(body.occurredAt) : null
 
+    if (category !== null && !ALLOWED_CATEGORIES.has(category)) {
+      return NextResponse.json({ success: false, error: 'Invalid category' }, { status: 400 })
+    }
+    if (currency !== null && !/^[A-Z]{3}$/.test(currency)) {
+      return NextResponse.json({ success: false, error: 'Invalid currency (3-letter code)' }, { status: 400 })
+    }
     if (occurredAt && Number.isNaN(occurredAt.getTime())) {
       return NextResponse.json({ success: false, error: 'Invalid occurredAt' }, { status: 400 })
     }

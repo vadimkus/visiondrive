@@ -239,6 +239,13 @@ export default function TenantsAdminClient() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
+              onClick={() => router.push('/portal/admin/audit')}
+              disabled={!!actionBusy}
+              className="inline-flex items-center px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Audit Log
+            </button>
+            <button
               onClick={() => router.push('/portal/admin/finance')}
               disabled={!!actionBusy}
               className="inline-flex items-center px-3 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-50"

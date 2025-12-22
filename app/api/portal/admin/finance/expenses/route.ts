@@ -4,6 +4,8 @@ import { sql } from '@/lib/sql'
 import { requirePortalSession, assertRole } from '@/lib/portal/session'
 import { writeAuditLog } from '@/lib/audit'
 
+const ALLOWED_CATEGORIES = new Set(['CLOUD', 'HARDWARE', 'OPS', 'SUPPORT', 'MARKETING', 'SOFTWARE', 'OTHER'])
+
 function parseDate(input: string | null, fallback: Date) {
   if (!input) return fallback
   const d = new Date(input)
@@ -83,6 +85,12 @@ export async function POST(request: NextRequest) {
     const amountCents = Number(body?.amountCents)
     const occurredAt = new Date(String(body?.occurredAt || ''))
 
+    if (!ALLOWED_CATEGORIES.has(category)) {
+      return NextResponse.json({ success: false, error: 'Invalid category' }, { status: 400 })
+    }
+    if (!/^[A-Z]{3}$/.test(currency)) {
+      return NextResponse.json({ success: false, error: 'Invalid currency (3-letter code)' }, { status: 400 })
+    }
     if (!Number.isFinite(amountCents) || amountCents <= 0) {
       return NextResponse.json({ success: false, error: 'amountCents must be > 0' }, { status: 400 })
     }
