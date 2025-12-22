@@ -3,7 +3,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Section from '../../components/common/Section'
-import { ArrowLeft, Plus, Save, ShieldAlert } from 'lucide-react'
+import { 
+  ArrowLeft, 
+  Plus, 
+  Save, 
+  ShieldAlert, 
+  Users as UsersIcon,
+  Settings as SettingsIcon,
+  MapPin,
+  AlertCircle,
+  CheckCircle2,
+  Loader2
+} from 'lucide-react'
 
 type PortalUser = {
   id: string
@@ -28,6 +39,8 @@ export default function PortalAdminPage() {
   const [role, setRole] = useState('CUSTOMER_OPS')
   const [password, setPassword] = useState('')
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<string | null>(null)
+  const [createStatus, setCreateStatus] = useState<string | null>(null)
 
   // zones import (GeoJSON + tariff JSON)
   const [zones, setZones] = useState<any[]>([])
@@ -71,6 +84,7 @@ export default function PortalAdminPage() {
 
   const createUser = async () => {
     setGeneratedPassword(null)
+    setCreateStatus(null)
     const res = await fetch('/api/portal/admin/users', {
       method: 'POST',
       credentials: 'include',
@@ -83,18 +97,24 @@ export default function PortalAdminPage() {
       setName('')
       setPassword('')
       if (json.generatedPassword) setGeneratedPassword(json.generatedPassword)
+      setCreateStatus('User created successfully!')
       await load()
+    } else {
+      setCreateStatus(`Error: ${json.error || 'Failed to create user'}`)
     }
   }
 
   const saveThresholds = async () => {
+    setSaveStatus(null)
     await fetch('/api/portal/admin/settings', {
       method: 'POST',
       credentials: 'include',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ thresholds }),
     })
+    setSaveStatus('Thresholds saved successfully!')
     await load()
+    setTimeout(() => setSaveStatus(null), 3000)
   }
 
   const importZone = async () => {
@@ -132,245 +152,414 @@ export default function PortalAdminPage() {
   if (loading) {
     return (
       <Section className="pt-32 pb-12">
-        <div className="text-center text-gray-600">Loading…</div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-10 w-10 animate-spin text-primary-600 mx-auto mb-4" />
+            <p className="text-gray-600 font-medium">Loading admin panel...</p>
+          </div>
+        </div>
       </Section>
     )
   }
 
   return (
-    <Section className="pt-6 pb-12">
-      <div className="max-w-6xl mx-auto">
-        <button onClick={() => router.push('/portal')} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </button>
+    <Section className="pt-6 pb-12 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Administrator</h1>
+          <p className="text-gray-600">Manage tenant settings, users, and parking zones</p>
+        </div>
 
-        {me?.role === 'MASTER_ADMIN' ? (
-          <div className="mb-6 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {/* Master Admin Banner */}
+        {me?.role === 'MASTER_ADMIN' && (
+          <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-xl p-6 text-white">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Master Admin</h2>
-                <p className="text-sm text-gray-600">Global view across all tenants (map + KPIs + drilldown).</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <ShieldAlert className="h-6 w-6" />
+                  <h2 className="text-2xl font-bold">Master Admin Access</h2>
+                </div>
+                <p className="text-blue-100">Global view across all tenants with enhanced permissions</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3">
                 <a
                   href="/portal/admin/audit"
-                  className="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="inline-flex items-center px-5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur transition-all font-medium"
                 >
                   Audit Log
                 </a>
                 <a
                   href="/portal/admin/finance"
-                  className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black"
+                  className="inline-flex items-center px-5 py-2.5 rounded-xl bg-white text-blue-600 hover:bg-blue-50 transition-all font-medium shadow-lg"
                 >
                   Finance
                 </a>
                 <a
                   href="/portal/admin/tenants"
-                  className="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="inline-flex items-center px-5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur transition-all font-medium"
                 >
                   <ShieldAlert className="h-4 w-4 mr-2" />
-                  Open Global View
+                  Global View
                 </a>
               </div>
             </div>
           </div>
-        ) : null}
+        )}
 
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin</h1>
-          <p className="text-sm text-gray-600">Tenant settings + user management (customer admin view).</p>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Tenant Thresholds</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Offline minutes</label>
-                <input
-                  type="number"
-                  value={thresholds.offlineMinutes ?? 60}
-                  onChange={(e) => setThresholds({ ...thresholds, offlineMinutes: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Low battery %</label>
-                <input
-                  type="number"
-                  value={thresholds.lowBatteryPct ?? 20}
-                  onChange={(e) => setThresholds({ ...thresholds, lowBatteryPct: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Stale event minutes</label>
-                <input
-                  type="number"
-                  value={thresholds.staleEventMinutes ?? 15}
-                  onChange={(e) => setThresholds({ ...thresholds, staleEventMinutes: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          {/* Tenant Thresholds Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-orange-100 rounded-xl">
+                  <SettingsIcon className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Tenant Thresholds</h2>
+                  <p className="text-sm text-gray-600">Configure alert trigger values</p>
+                </div>
               </div>
             </div>
-            <button onClick={saveThresholds} className="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black">
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </button>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Create User</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Offline minutes</label>
+                  <input
+                    type="number"
+                    value={thresholds.offlineMinutes ?? 60}
+                    onChange={(e) => setThresholds({ ...thresholds, offlineMinutes: Number(e.target.value) })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Low battery %</label>
+                  <input
+                    type="number"
+                    value={thresholds.lowBatteryPct ?? 20}
+                    onChange={(e) => setThresholds({ ...thresholds, lowBatteryPct: Number(e.target.value) })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Stale event minutes</label>
+                  <input
+                    type="number"
+                    value={thresholds.staleEventMinutes ?? 15}
+                    onChange={(e) => setThresholds({ ...thresholds, staleEventMinutes: Number(e.target.value) })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Role</label>
-                <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                  <option value="CUSTOMER_ADMIN">CUSTOMER_ADMIN</option>
-                  <option value="CUSTOMER_OPS">CUSTOMER_OPS</option>
-                  <option value="CUSTOMER_ANALYST">CUSTOMER_ANALYST</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Password (optional)</label>
-                <input value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-              </div>
-            </div>
-            <button onClick={createUser} className="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Create
-            </button>
-            {generatedPassword && (
-              <p className="mt-3 text-sm text-gray-700">
-                Generated password (copy now): <span className="font-mono font-semibold">{generatedPassword}</span>
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">Parking Zones (GeoJSON import)</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Paste a GeoJSON <span className="font-mono">Feature</span> or <span className="font-mono">FeatureCollection</span> and optional tariff JSON (e.g. from Dubai Pulse exports).
-          </p>
-          <p className="text-sm text-gray-600 mb-4">
-            Need to fix sensor placement? Use{' '}
-            <a href="/portal/calibration" className="text-primary-700 hover:underline font-medium">
-              Map Calibration (Sensors)
-            </a>
-            . Want to review hardware issues? Open{' '}
-            <a href="/portal/alerts" className="text-primary-700 hover:underline font-medium">
-              Alerts
-            </a>
-            .
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Zone name</label>
-              <input value={zoneName} onChange={(e) => setZoneName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Kind</label>
-              <select value={zoneKind} onChange={(e) => setZoneKind(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                <option value="PAID">PAID</option>
-                <option value="FREE">FREE</option>
-                <option value="RESIDENT">RESIDENT</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <button onClick={importZone} className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black">
-                <Plus className="h-4 w-4 mr-2" />
-                Import
+              {saveStatus && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <p className="text-sm font-medium text-green-900">{saveStatus}</p>
+                </div>
+              )}
+              <button 
+                onClick={saveThresholds} 
+                className="mt-4 inline-flex items-center px-6 py-3 rounded-xl bg-gray-900 text-white hover:bg-black transition-all shadow-lg hover:shadow-xl font-medium"
+              >
+                <Save className="h-5 w-5 mr-2" />
+                Save Thresholds
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">GeoJSON</label>
-              <textarea
-                value={zoneGeojsonText}
-                onChange={(e) => setZoneGeojsonText(e.target.value)}
-                placeholder='{"type":"FeatureCollection","features":[...]}'
-                className="w-full h-48 px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs"
-              />
+          {/* Create User Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-50 to-white p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <UsersIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Create User</h2>
+                  <p className="text-sm text-gray-600">Add new team member</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Tariff JSON (optional)</label>
-              <textarea
-                value={zoneTariffText}
-                onChange={(e) => setZoneTariffText(e.target.value)}
-                placeholder='{"rateAedPerHour":4,"hours":"8:00-22:00"}'
-                className="w-full h-48 px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs"
-              />
-            </div>
-          </div>
-          {zoneImportStatus && <p className="mt-3 text-sm text-gray-700">{zoneImportStatus}</p>}
-
-          <div className="mt-5 border-t border-gray-100 pt-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Zones in tenant</h3>
-            <div className="text-xs text-gray-600">
-              {zones.length ? (
-                <ul className="space-y-1">
-                  {zones.slice(0, 20).map((z) => (
-                    <li key={z.id} className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">{z.name}</span>
-                      <span className="text-gray-600">
-                        {z.kind} · geojson: {z.hasGeojson ? 'yes' : 'no'} · tariff: {z.hasTariff ? 'yes' : 'no'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span>No zones yet.</span>
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                  <input 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    placeholder="user@example.com"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
+                  <input 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    placeholder="Full name"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Role</label>
+                  <select 
+                    value={role} 
+                    onChange={(e) => setRole(e.target.value)} 
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+                  >
+                    <option value="CUSTOMER_ADMIN">CUSTOMER_ADMIN</option>
+                    <option value="CUSTOMER_OPS">CUSTOMER_OPS</option>
+                    <option value="CUSTOMER_ANALYST">CUSTOMER_ANALYST</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Password (optional)</label>
+                  <input 
+                    type="password"
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    placeholder="Leave empty to auto-generate"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
+                  />
+                </div>
+              </div>
+              {generatedPassword && (
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <p className="text-sm font-semibold text-amber-900 mb-1">Generated password (copy now):</p>
+                  <p className="font-mono text-lg font-bold text-amber-700">{generatedPassword}</p>
+                </div>
               )}
+              {createStatus && (
+                <div className={`mt-4 p-3 rounded-xl flex items-center gap-2 ${
+                  createStatus.includes('Error') 
+                    ? 'bg-red-50 border border-red-200' 
+                    : 'bg-green-50 border border-green-200'
+                }`}>
+                  {createStatus.includes('Error') ? (
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  ) : (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  )}
+                  <p className={`text-sm font-medium ${
+                    createStatus.includes('Error') ? 'text-red-900' : 'text-green-900'
+                  }`}>{createStatus}</p>
+                </div>
+              )}
+              <button 
+                onClick={createUser} 
+                className="mt-4 inline-flex items-center px-6 py-3 rounded-xl bg-primary-600 text-white hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl font-medium"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create User
+              </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              View overlays on <span className="font-mono">/portal/map</span> using the “Zones overlay” toggle.
-            </p>
           </div>
         </div>
 
-        <div className="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm overflow-auto">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900">Users in this tenant</h2>
+        {/* Parking Zones Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-green-50 to-white p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-green-100 rounded-xl">
+                <MapPin className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Parking Zones (GeoJSON import)</h2>
+                <p className="text-sm text-gray-600">Import zones from Dubai Pulse or other GeoJSON sources</p>
+              </div>
+            </div>
           </div>
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700">
-              <tr>
-                <th className="text-left px-4 py-3">Email</th>
-                <th className="text-left px-4 py-3">Role</th>
-                <th className="text-left px-4 py-3">Status</th>
-                <th className="text-left px-4 py-3">Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-t border-gray-100">
-                  <td className="px-4 py-3 font-medium text-gray-900">{u.email}</td>
-                  <td className="px-4 py-3 text-gray-700">{u.tenantRole}</td>
-                  <td className="px-4 py-3 text-gray-700">{u.membershipStatus}</td>
-                  <td className="px-4 py-3 text-gray-600">{new Date(u.createdAt).toLocaleString()}</td>
-                </tr>
-              ))}
-              {users.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
-                    No users yet
-                  </td>
-                </tr>
+          
+          <div className="p-6">
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+              <p className="text-sm text-blue-900 mb-2">
+                Need to fix sensor placement? Use{' '}
+                <a href="/portal/calibration" className="text-blue-700 hover:underline font-semibold">
+                  Map Calibration (Sensors)
+                </a>
+              </p>
+              <p className="text-sm text-blue-900">
+                Want to review hardware issues? Open{' '}
+                <a href="/portal/alerts" className="text-blue-700 hover:underline font-semibold">
+                  Alerts
+                </a>
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Zone name</label>
+                <input 
+                  value={zoneName} 
+                  onChange={(e) => setZoneName(e.target.value)} 
+                  placeholder="Enter zone name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Kind</label>
+                <select 
+                  value={zoneKind} 
+                  onChange={(e) => setZoneKind(e.target.value)} 
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white"
+                >
+                  <option value="PAID">PAID</option>
+                  <option value="FREE">FREE</option>
+                  <option value="RESIDENT">RESIDENT</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">GeoJSON</label>
+                <textarea
+                  value={zoneGeojsonText}
+                  onChange={(e) => setZoneGeojsonText(e.target.value)}
+                  placeholder='{"type":"FeatureCollection","features":[...]}'
+                  className="w-full h-48 px-4 py-3 border border-gray-300 rounded-xl font-mono text-xs focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Tariff JSON (optional)</label>
+                <textarea
+                  value={zoneTariffText}
+                  onChange={(e) => setZoneTariffText(e.target.value)}
+                  placeholder='{"rateAedPerHour":4,"hours":"8:00-22:00"}'
+                  className="w-full h-48 px-4 py-3 border border-gray-300 rounded-xl font-mono text-xs focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                />
+              </div>
+            </div>
+            
+            {zoneImportStatus && (
+              <div className={`mb-4 p-3 rounded-xl flex items-center gap-2 ${
+                zoneImportStatus.includes('failed') || zoneImportStatus.includes('Invalid')
+                  ? 'bg-red-50 border border-red-200' 
+                  : 'bg-green-50 border border-green-200'
+              }`}>
+                {zoneImportStatus.includes('failed') || zoneImportStatus.includes('Invalid') ? (
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                )}
+                <p className={`text-sm font-medium ${
+                  zoneImportStatus.includes('failed') || zoneImportStatus.includes('Invalid') 
+                    ? 'text-red-900' 
+                    : 'text-green-900'
+                }`}>{zoneImportStatus}</p>
+              </div>
+            )}
+
+            <button 
+              onClick={importZone} 
+              className="inline-flex items-center px-6 py-3 rounded-xl bg-gray-900 text-white hover:bg-black transition-all shadow-lg hover:shadow-xl font-medium"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Import Zone
+            </button>
+
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Zones in tenant</h3>
+              {zones.length > 0 ? (
+                <div className="space-y-2">
+                  {zones.slice(0, 20).map((z) => (
+                    <div key={z.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <span className="font-semibold text-gray-900">{z.name}</span>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className={`px-2 py-1 rounded-lg font-medium ${
+                          z.kind === 'PAID' ? 'bg-blue-100 text-blue-700' :
+                          z.kind === 'FREE' ? 'bg-green-100 text-green-700' :
+                          'bg-purple-100 text-purple-700'
+                        }`}>
+                          {z.kind}
+                        </span>
+                        <span className="text-gray-600">
+                          geojson: {z.hasGeojson ? '✓' : '✗'} · tariff: {z.hasTariff ? '✓' : '✗'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No zones yet.</p>
               )}
-            </tbody>
-          </table>
+              <p className="text-xs text-gray-500 mt-3">
+                View overlays on <span className="font-mono bg-gray-100 px-2 py-1 rounded">/portal/map</span> using the "Zones overlay" toggle.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div className="mt-6 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-50 to-white p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <UsersIcon className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Users in this tenant</h2>
+                <p className="text-sm text-gray-600">{users.length} team member{users.length !== 1 ? 's' : ''}</p>
+              </div>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Email</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Role</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Status</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Created</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {users.map((u) => (
+                  <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-gray-900">{u.email}</div>
+                      {u.name && <div className="text-sm text-gray-600">{u.name}</div>}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-blue-100 text-blue-700">
+                        {u.tenantRole}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${
+                        u.membershipStatus === 'ACTIVE' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {u.membershipStatus}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(u.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </td>
+                  </tr>
+                ))}
+                {users.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <UsersIcon className="h-12 w-12 text-gray-300" />
+                        <p className="text-gray-500 font-medium">No users yet</p>
+                        <p className="text-sm text-gray-400">Create your first user above</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </Section>

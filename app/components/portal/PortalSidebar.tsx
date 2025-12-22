@@ -96,7 +96,6 @@ export default function PortalSidebar() {
   const reportsItems = [
     { icon: BarChart3, label: 'Sensor Reports', path: '/portal/reports/sensors', color: 'text-teal-700', bgColor: 'bg-teal-50' },
     { icon: Network, label: 'Gateway Reports', path: '/portal/reports/gateways', color: 'text-slate-700', bgColor: 'bg-slate-50' },
-    { icon: Network, label: 'Network Overview', path: '/portal/reports/network', color: 'text-gray-700', bgColor: 'bg-gray-50' },
   ]
 
   const sensorsItems = [
@@ -113,7 +112,7 @@ export default function PortalSidebar() {
   ]
 
   const adminItems = [
-    { icon: Settings, label: 'Admin', path: '/portal/admin', color: 'text-gray-700', bgColor: 'bg-gray-50', adminOnly: true },
+    { icon: Settings, label: 'Admin', path: '/portal/admin', color: 'text-blue-600', bgColor: 'bg-blue-50', adminOnly: true },
     { icon: Settings, label: 'Settings', path: '/portal/settings', color: 'text-blue-600', bgColor: 'bg-blue-50' },
     { icon: ScrollText, label: 'Audit Log', path: '/portal/admin/audit', color: 'text-purple-700', bgColor: 'bg-purple-50', adminOnly: true },
     { icon: Globe, label: 'Master View', path: '/portal/admin/tenants', color: 'text-blue-700', bgColor: 'bg-blue-50', masterOnly: true },

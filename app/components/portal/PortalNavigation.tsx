@@ -118,7 +118,7 @@ export default function PortalNavigation() {
               )}
               <div className="flex flex-col items-start">
                 <span>Vision<span className="text-primary-600">Drive</span></span>
-                <span className="text-xs text-gray-500 font-normal ml-[30%]">Portal</span>
+                <span className="text-xs text-gray-500 font-normal ml-[30%]">Portal 🇦🇪</span>
               </div>
             </button>
           </div>
