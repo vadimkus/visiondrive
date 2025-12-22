@@ -44,6 +44,8 @@ model User {
   alertsAcknowledged Alert[] @relation("AlertAcknowledgedBy")
   alertsAssigned     Alert[] @relation("AlertAssignedTo")
   alertEvents        AlertEvent[] @relation("AlertEventActor")
+  reportSubscriptions ReportSubscription[] @relation("ReportCreatedBy")
+  expenses Expense[] @relation("ExpenseCreatedBy")
 
   @@map("users")
 }
@@ -79,6 +81,11 @@ model Tenant {
   maintenanceNotes MaintenanceNote[]
   alerts Alert[]
   alertEvents AlertEvent[]
+  reportSubscriptions ReportSubscription[]
+  reportDeliveries ReportDelivery[]
+  expenses Expense[]
+  billingEvents BillingEvent[]
+  billingSubscriptions BillingSubscription[]
 
   @@map("tenants")
 }
@@ -543,6 +550,153 @@ enum ImageType {
   PARTNER
   APP_SCREENSHOT
   OTHER
+}
+
+enum ReportKind {
+  SENSOR_PERFORMANCE
+  GATEWAY_HEALTH
+}
+
+enum ReportCadence {
+  WEEKLY
+  MONTHLY
+}
+
+enum ReportDeliveryStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum BillingProvider {
+  STRIPE
+}
+
+enum ExpenseCategory {
+  CLOUD
+  HARDWARE
+  OPS
+  SUPPORT
+  MARKETING
+  SOFTWARE
+  OTHER
+}
+
+model Expense {
+  id        String @id @default(cuid())
+  tenantId  String?
+  category  ExpenseCategory @default(OTHER)
+  vendor    String?
+  description String?
+  amountCents Int
+  currency   String @default("AED")
+  occurredAt DateTime @db.Timestamptz(6)
+  createdByUserId String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  createdBy User? @relation("ExpenseCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, occurredAt])
+  @@index([category, occurredAt])
+  @@map("expenses")
+}
+
+model BillingEvent {
+  id        String @id @default(cuid())
+  tenantId  String?
+  provider  BillingProvider @default(STRIPE)
+  providerEventId String @unique
+  type      String
+  occurredAt DateTime @db.Timestamptz(6)
+  amountCents Int?
+  currency   String?
+  customerId String?
+  subscriptionId String?
+  invoiceId  String?
+  status     String?
+  raw        Json
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, occurredAt])
+  @@index([type, occurredAt])
+  @@map("billing_events")
+}
+
+model BillingSubscription {
+  id        String @id @default(cuid())
+  tenantId  String?
+  provider  BillingProvider @default(STRIPE)
+  providerSubscriptionId String @unique
+  customerId String?
+  status    String
+  currency  String?
+  interval  String?
+  intervalCount Int?
+  mrrCents  Int @default(0)
+  currentPeriodStart DateTime? @db.Timestamptz(6)
+  currentPeriodEnd   DateTime? @db.Timestamptz(6)
+  cancelAt           DateTime? @db.Timestamptz(6)
+  canceledAt         DateTime? @db.Timestamptz(6)
+  cancelAtPeriodEnd  Boolean @default(false)
+  raw               Json?
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status])
+  @@map("billing_subscriptions")
+}
+
+model ReportSubscription {
+  id        String @id @default(cuid())
+  tenantId  String
+  name      String
+  kind      ReportKind
+  cadence   ReportCadence
+  timezone  String? // e.g. Asia/Dubai
+  recipients Json?  // [{email,name?}, ...] (email sending integration later)
+  params     Json?  // report params (zoneId, etc.)
+  enabled    Boolean @default(true)
+
+  lastRunAt  DateTime? @db.Timestamptz(6)
+  nextRunAt  DateTime? @db.Timestamptz(6)
+
+  createdByUserId String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("ReportCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  deliveries ReportDelivery[]
+
+  @@index([tenantId, enabled, nextRunAt])
+  @@index([tenantId, kind, cadence])
+  @@map("report_subscriptions")
+}
+
+model ReportDelivery {
+  id        String @id @default(cuid())
+  tenantId  String
+  subscriptionId String
+  status    ReportDeliveryStatus @default(PENDING)
+  scheduledAt DateTime @default(now()) @db.Timestamptz(6)
+  startedAt  DateTime? @db.Timestamptz(6)
+  finishedAt DateTime? @db.Timestamptz(6)
+  error      String?
+  meta       Json?
+
+  subscription ReportSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, scheduledAt])
+  @@index([subscriptionId, scheduledAt])
+  @@map("report_deliveries")
 }
 
 model Image {

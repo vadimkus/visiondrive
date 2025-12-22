@@ -7,9 +7,12 @@ export async function GET(request: NextRequest) {
     const session = await requirePortalSession(request)
     const { searchParams } = new URL(request.url)
 
-    const status = (searchParams.get('status') || '').trim().toUpperCase()
-    const type = (searchParams.get('type') || '').trim().toUpperCase()
-    const severity = (searchParams.get('severity') || '').trim().toUpperCase()
+    const statusParam = (searchParams.get('status') || '').trim().toUpperCase()
+    const typeParam = (searchParams.get('type') || '').trim().toUpperCase()
+    const severityParam = (searchParams.get('severity') || '').trim().toUpperCase()
+    const status = statusParam ? statusParam : null
+    const type = typeParam ? typeParam : null
+    const severity = severityParam ? severityParam : null
     const zoneIdParam = (searchParams.get('zoneId') || '').trim()
     const zoneId = zoneIdParam && zoneIdParam !== 'all' ? zoneIdParam : null
     const sensorId = (searchParams.get('sensorId') || '').trim() || null
@@ -52,9 +55,9 @@ export async function GET(request: NextRequest) {
       WHERE a."tenantId" = ${session.tenantId}
         AND (${zoneId}::text IS NULL OR COALESCE(a."zoneId", s."zoneId") = ${zoneId})
         AND (${sensorId}::text IS NULL OR a."sensorId" = ${sensorId})
-        AND (${status}::text = '' OR a.status = ${status}::"AlertStatus")
-        AND (${type}::text = '' OR a.type = ${type}::"AlertType")
-        AND (${severity}::text = '' OR a.severity = ${severity}::"AlertSeverity")
+        AND (${status}::text IS NULL OR a.status = ${status}::"AlertStatus")
+        AND (${type}::text IS NULL OR a.type = ${type}::"AlertType")
+        AND (${severity}::text IS NULL OR a.severity = ${severity}::"AlertSeverity")
         AND (${q}::text = '' OR a.title ILIKE ${'%' + q + '%'} OR COALESCE(s."devEui",'') ILIKE ${'%' + q + '%'} OR COALESCE(b.code,'') ILIKE ${'%' + q + '%'})
       ORDER BY
         CASE a.status WHEN 'OPEN' THEN 0 WHEN 'ACKNOWLEDGED' THEN 1 ELSE 2 END,

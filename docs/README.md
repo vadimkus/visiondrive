@@ -24,5 +24,8 @@ This folder contains **implementation documentation** aligned with `/notes` → 
 - `11.3.5-map-calibration-sensors.md`: Manual sensor placement correction page (drag & save) with 3D + satellite toggles.
 - `11.3.6-calibration-ux-all-sensors-installed-only.md`: Calibration UX upgrades (all sensors overlay, installed-only=40, map doesn’t disappear, portal map uses sensor coords).
 - `11.4-hardware-health-alerts.md`: Phase 11.4 (hardware health metrics + alerts pipeline + alerts UI) implementation notes.
+- `11.6-analytics-reporting.md`: Phase 11.6 (analytics/reporting: sensor performance + gateway overview + network overview + exports + scheduling scaffolding).
+- `11.6.1-maps-and-navigation.md`: Phase 11.6.1 (portal Mapbox + mobile Mapbox RN plan + navigation deep links).
+- `11.7-finance.md`: Phase 11.7 (Stripe billing metrics ingestion + expenses tracking + Master Admin finance dashboard).
 
 

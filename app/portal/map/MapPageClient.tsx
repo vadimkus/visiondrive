@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Section from '../../components/common/Section'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Navigation } from 'lucide-react'
 import MapboxMap from './MapboxMap'
+import { appleMapsDirectionsUrl, googleMapsDirectionsUrl } from '@/lib/navigation-links'
 
 type MapItem = {
   bayId: string
@@ -19,6 +20,8 @@ type MapItem = {
   color: 'GREEN' | 'RED' | 'GRAY'
   lat?: number | null
   lng?: number | null
+  sensorLat?: number | null
+  sensorLng?: number | null
   geojson?: any | null
 }
 
@@ -64,6 +67,31 @@ export default function PortalMapPageClient() {
     const set = new Set(active)
     return items.filter((b) => set.has(b.state))
   }, [items, filters])
+
+  const selected = useMemo(() => {
+    if (!selectedBayId) return null
+    return items.find((i) => i.bayId === selectedBayId) || null
+  }, [selectedBayId, items])
+
+  const navigateTarget = useMemo(() => {
+    // Prefer sensor coordinates (calibration result), then bay coords, then zone/site center.
+    const lat =
+      (selected?.sensorLat ?? null) ??
+      (selected?.lat ?? null) ??
+      (meta?.centerLat ?? null)
+    const lng =
+      (selected?.sensorLng ?? null) ??
+      (selected?.lng ?? null) ??
+      (meta?.centerLng ?? null)
+    if (typeof lat !== 'number' || typeof lng !== 'number') return null
+    const label =
+      selected?.bayCode
+        ? `Bay ${selected.bayCode}`
+        : meta?.zoneName
+          ? meta.zoneName
+          : meta?.siteName || 'Destination'
+    return { lat, lng, label }
+  }, [selected, meta])
 
   useEffect(() => {
     const run = async () => {
@@ -124,6 +152,32 @@ export default function PortalMapPageClient() {
             <p className="text-sm text-gray-600">
               {meta?.address ? meta.address : 'Demo location'} · Bays: {meta?.bayCount ?? summary.total} · Bay colors: Green=Free, Red=Occupied, Gray=Unknown/low confidence
             </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {navigateTarget ? (
+              <>
+                <a
+                  href={appleMapsDirectionsUrl({ lat: navigateTarget.lat, lng: navigateTarget.lng }, navigateTarget.label)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-2 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <Navigation className="h-4 w-4 mr-2" />
+                  Apple Maps
+                </a>
+                <a
+                  href={googleMapsDirectionsUrl({ lat: navigateTarget.lat, lng: navigateTarget.lng }, navigateTarget.label)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-2 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <Navigation className="h-4 w-4 mr-2" />
+                  Google Maps
+                </a>
+              </>
+            ) : (
+              <span className="text-xs text-gray-500">Navigation available when coordinates exist</span>
+            )}
           </div>
           <div className="flex gap-2 text-sm">
             <span className="px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">Free: {summary.free}</span>

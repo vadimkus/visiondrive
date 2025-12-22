@@ -49,15 +49,19 @@ See: `11.4-hardware-health-alerts.md`
 
 ## 11.6 Phase F — Analytics/Reporting (hardware + occupancy) [Week 5–6]
 
-- [ ] Sensor performance reports (rankings + trends + period comparisons)
-- [ ] Gateway units overview + coverage panels
-- [ ] Network overview graph (nodes + edges) + map pinning (optional, after MVP)
-- [ ] Exports + scheduled reports (weekly/monthly)
+- [x] Sensor performance reports (rankings + trends + period comparisons)
+- [x] Gateway units overview + coverage panels
+- [x] Network overview graph (nodes + edges) + map pinning (optional, after MVP)
+- [x] Exports + scheduled reports (weekly/monthly)
+
+See: `11.6-analytics-reporting.md`
 
 ## 11.7 Phase G — Finance (Master Admin) [Week 6+]
 
-- [ ] Integrate app billing metrics (subscriptions, payments, churn, MRR/ARR) via Stripe
-- [ ] Add expenses tracking (cloud + vendors + hardware ops) → net margin + unit economics
+- [x] Integrate app billing metrics (subscriptions, payments, churn, MRR/ARR) via Stripe (webhook ingestion + DB + KPIs)
+- [x] Add expenses tracking (cloud + vendors + hardware ops) → net margin + unit economics (DB + CRUD + dashboard)
+
+See: `11.7-finance.md`
 
 ## 11.8 Phase H — Swap Simulation → Real LoRaWAN [When gateway arrives]
 

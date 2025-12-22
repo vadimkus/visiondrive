@@ -363,6 +363,62 @@ async function main() {
     console.warn('⚠️  Skipped hypertable setup (Timescale function unavailable or permissions):', e)
   }
 
+  // ---------------------------------------------------------------------------
+  // Finance demo seed (Master Admin): expenses so /portal/admin/finance shows data immediately
+  // ---------------------------------------------------------------------------
+  try {
+    // Remove previous demo expenses for the demo tenant to keep seed deterministic
+    await sql/*sql*/`
+      DELETE FROM expenses
+      WHERE "tenantId" = ${ensuredTenantId}
+        AND (description ILIKE 'DEMO:%' OR vendor ILIKE 'DEMO:%')
+    `
+
+    const now = new Date()
+    const daysAgo = (n: number) => new Date(now.getTime() - n * 24 * 3600 * 1000)
+    const demoExpenses = [
+      { category: 'CLOUD', vendor: 'DEMO: Vercel', description: 'DEMO: Hosting (portal)', amountCents: 12900, occurredAt: daysAgo(2) },
+      { category: 'CLOUD', vendor: 'DEMO: TigerData (Timescale)', description: 'DEMO: DB + pooling', amountCents: 15900, occurredAt: daysAgo(3) },
+      { category: 'HARDWARE', vendor: 'DEMO: Sensor supplier', description: 'DEMO: Parking sensors (batch)', amountCents: 450000, occurredAt: daysAgo(10) },
+      { category: 'OPS', vendor: 'DEMO: Field ops', description: 'DEMO: Installation & calibration labor', amountCents: 95000, occurredAt: daysAgo(8) },
+      { category: 'SOFTWARE', vendor: 'DEMO: Mapbox', description: 'DEMO: Tiles & usage (estimate)', amountCents: 2500, occurredAt: daysAgo(5) },
+    ]
+
+    for (const e of demoExpenses) {
+      await sql/*sql*/`
+        INSERT INTO expenses (
+          id,
+          "tenantId",
+          category,
+          vendor,
+          description,
+          "amountCents",
+          currency,
+          "occurredAt",
+          "createdByUserId",
+          "createdAt",
+          "updatedAt"
+        )
+        VALUES (
+          ${randomUUID()},
+          ${ensuredTenantId},
+          ${e.category}::"ExpenseCategory",
+          ${e.vendor},
+          ${e.description},
+          ${e.amountCents},
+          'AED',
+          ${e.occurredAt},
+          (SELECT id FROM users WHERE email = 'admin' LIMIT 1),
+          now(),
+          now()
+        )
+      `
+    }
+    console.log('✅ Seeded demo expenses (finance)')
+  } catch (e) {
+    console.warn('⚠️ Finance demo seed skipped:', (e as any)?.message || e)
+  }
+
   // Upload logo to database if it exists (prefer jpg, fallback to png)
   const logoCandidates = [
     { path: path.join(process.cwd(), 'public', 'images', 'logo', 'logo.jpg'), mimeType: 'image/jpeg' },

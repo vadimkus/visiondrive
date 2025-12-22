@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { BarChart3, MapPin, Users, Clock, TrendingUp, Settings, ParkingCircle, Activity, AlertTriangle, ShieldAlert } from 'lucide-react'
+import { BarChart3, MapPin, Users, Clock, TrendingUp, Settings, ParkingCircle, Activity, AlertTriangle, ShieldAlert, Building2, BarChart4, Network } from 'lucide-react'
 
 interface User {
   id: string
@@ -288,6 +288,23 @@ export default function PortalPageClient() {
                 <p className="font-medium text-sm sm:text-base text-gray-900">Alerts</p>
                 <p className="text-xs sm:text-sm text-gray-600">Queue + SLA + actions</p>
               </button>
+              <button onClick={() => router.push(`/portal/reports/sensors?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <BarChart4 className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-700 mb-2" />
+                <p className="font-medium text-sm sm:text-base text-gray-900">Reports</p>
+                <p className="text-xs sm:text-sm text-gray-600">Sensor performance + gateways</p>
+              </button>
+              <button onClick={() => router.push(`/portal/reports/network?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <Network className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700 mb-2" />
+                <p className="font-medium text-sm sm:text-base text-gray-900">Network</p>
+                <p className="text-xs sm:text-sm text-gray-600">Nodes + edges overview</p>
+              </button>
+              {user?.role === 'MASTER_ADMIN' ? (
+                <button onClick={() => router.push('/portal/admin/tenants')} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                  <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-700 mb-2" />
+                  <p className="font-medium text-sm sm:text-base text-gray-900">Master Admin</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Global map + tenants</p>
+                </button>
+              ) : null}
             </div>
           </div>
 

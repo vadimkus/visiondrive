@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Section from '../../components/common/Section'
-import { ArrowLeft, Plus, Save } from 'lucide-react'
+import { ArrowLeft, Plus, Save, ShieldAlert } from 'lucide-react'
 
 type PortalUser = {
   id: string
@@ -144,6 +144,32 @@ export default function PortalAdminPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </button>
+
+        {me?.role === 'MASTER_ADMIN' ? (
+          <div className="mb-6 bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Master Admin</h2>
+                <p className="text-sm text-gray-600">Global view across all tenants (map + KPIs + drilldown).</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href="/portal/admin/finance"
+                  className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black"
+                >
+                  Finance
+                </a>
+                <a
+                  href="/portal/admin/tenants"
+                  className="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <ShieldAlert className="h-4 w-4 mr-2" />
+                  Open Global View
+                </a>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin</h1>
