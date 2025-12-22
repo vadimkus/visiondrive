@@ -10,7 +10,6 @@ import {
   ShieldAlert, 
   Users as UsersIcon,
   Settings as SettingsIcon,
-  MapPin,
   AlertCircle,
   CheckCircle2,
   Loader2
@@ -42,14 +41,6 @@ export default function PortalAdminPage() {
   const [saveStatus, setSaveStatus] = useState<string | null>(null)
   const [createStatus, setCreateStatus] = useState<string | null>(null)
 
-  // zones import (GeoJSON + tariff JSON)
-  const [zones, setZones] = useState<any[]>([])
-  const [zoneName, setZoneName] = useState('RTA Zone A (Demo Import)')
-  const [zoneKind, setZoneKind] = useState('PAID')
-  const [zoneGeojsonText, setZoneGeojsonText] = useState('')
-  const [zoneTariffText, setZoneTariffText] = useState('')
-  const [zoneImportStatus, setZoneImportStatus] = useState<string | null>(null)
-
   const load = async () => {
     const meRes = await fetch('/api/auth/me', { credentials: 'include' })
     if (!meRes.ok) {
@@ -71,10 +62,6 @@ export default function PortalAdminPage() {
     if (uJson.success) setUsers(uJson.users || [])
     const sJson = await sRes.json()
     if (sJson.success) setThresholds(sJson.thresholds || thresholds)
-
-    const zRes = await fetch('/api/portal/admin/zones', { credentials: 'include' })
-    const zJson = await zRes.json()
-    if (zJson.success) setZones(zJson.zones || [])
   }
 
   useEffect(() => {
@@ -115,38 +102,6 @@ export default function PortalAdminPage() {
     setSaveStatus('Thresholds saved successfully!')
     await load()
     setTimeout(() => setSaveStatus(null), 3000)
-  }
-
-  const importZone = async () => {
-    setZoneImportStatus(null)
-    let geojson: any = null
-    let tariff: any = null
-    try {
-      geojson = zoneGeojsonText.trim() ? JSON.parse(zoneGeojsonText) : null
-    } catch {
-      setZoneImportStatus('Invalid GeoJSON JSON (cannot parse).')
-      return
-    }
-    try {
-      tariff = zoneTariffText.trim() ? JSON.parse(zoneTariffText) : null
-    } catch {
-      setZoneImportStatus('Invalid Tariff JSON (cannot parse).')
-      return
-    }
-
-    const res = await fetch('/api/portal/admin/zones', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name: zoneName, kind: zoneKind, geojson, tariff }),
-    })
-    const json = await res.json()
-    if (!json.success) {
-      setZoneImportStatus(`Import failed: ${json.error || 'UNKNOWN'}`)
-      return
-    }
-    setZoneImportStatus(`Imported: ${json.id}`)
-    await load()
   }
 
   if (loading) {
@@ -206,6 +161,22 @@ export default function PortalAdminPage() {
             </div>
           </div>
         )}
+
+        {/* Quick Links Banner */}
+        <div className="mb-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl shadow-sm p-6 border border-green-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">Looking for Parking Zones?</h3>
+              <p className="text-sm text-gray-600">Manage GeoJSON zone imports and tariffs in Settings</p>
+            </div>
+            <a
+              href="/portal/settings"
+              className="inline-flex items-center px-5 py-2.5 rounded-xl bg-green-600 text-white hover:bg-green-700 transition-all font-medium shadow-lg hover:shadow-xl"
+            >
+              Go to Settings → Zones
+            </a>
+          </div>
+        </div>
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
@@ -353,140 +324,6 @@ export default function PortalAdminPage() {
                 <Plus className="h-5 w-5 mr-2" />
                 Create User
               </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Parking Zones Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-50 to-white p-6 border-b border-gray-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-green-100 rounded-xl">
-                <MapPin className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Parking Zones (GeoJSON import)</h2>
-                <p className="text-sm text-gray-600">Import zones from Dubai Pulse or other GeoJSON sources</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-6">
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-              <p className="text-sm text-blue-900 mb-2">
-                Need to fix sensor placement? Use{' '}
-                <a href="/portal/calibration" className="text-blue-700 hover:underline font-semibold">
-                  Map Calibration (Sensors)
-                </a>
-              </p>
-              <p className="text-sm text-blue-900">
-                Want to review hardware issues? Open{' '}
-                <a href="/portal/alerts" className="text-blue-700 hover:underline font-semibold">
-                  Alerts
-                </a>
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Zone name</label>
-                <input 
-                  value={zoneName} 
-                  onChange={(e) => setZoneName(e.target.value)} 
-                  placeholder="Enter zone name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Kind</label>
-                <select 
-                  value={zoneKind} 
-                  onChange={(e) => setZoneKind(e.target.value)} 
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white"
-                >
-                  <option value="PAID">PAID</option>
-                  <option value="FREE">FREE</option>
-                  <option value="RESIDENT">RESIDENT</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">GeoJSON</label>
-                <textarea
-                  value={zoneGeojsonText}
-                  onChange={(e) => setZoneGeojsonText(e.target.value)}
-                  placeholder='{"type":"FeatureCollection","features":[...]}'
-                  className="w-full h-48 px-4 py-3 border border-gray-300 rounded-xl font-mono text-xs focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Tariff JSON (optional)</label>
-                <textarea
-                  value={zoneTariffText}
-                  onChange={(e) => setZoneTariffText(e.target.value)}
-                  placeholder='{"rateAedPerHour":4,"hours":"8:00-22:00"}'
-                  className="w-full h-48 px-4 py-3 border border-gray-300 rounded-xl font-mono text-xs focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                />
-              </div>
-            </div>
-            
-            {zoneImportStatus && (
-              <div className={`mb-4 p-3 rounded-xl flex items-center gap-2 ${
-                zoneImportStatus.includes('failed') || zoneImportStatus.includes('Invalid')
-                  ? 'bg-red-50 border border-red-200' 
-                  : 'bg-green-50 border border-green-200'
-              }`}>
-                {zoneImportStatus.includes('failed') || zoneImportStatus.includes('Invalid') ? (
-                  <AlertCircle className="h-5 w-5 text-red-600" />
-                ) : (
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                )}
-                <p className={`text-sm font-medium ${
-                  zoneImportStatus.includes('failed') || zoneImportStatus.includes('Invalid') 
-                    ? 'text-red-900' 
-                    : 'text-green-900'
-                }`}>{zoneImportStatus}</p>
-              </div>
-            )}
-
-            <button 
-              onClick={importZone} 
-              className="inline-flex items-center px-6 py-3 rounded-xl bg-gray-900 text-white hover:bg-black transition-all shadow-lg hover:shadow-xl font-medium"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Import Zone
-            </button>
-
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Zones in tenant</h3>
-              {zones.length > 0 ? (
-                <div className="space-y-2">
-                  {zones.slice(0, 20).map((z) => (
-                    <div key={z.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                      <span className="font-semibold text-gray-900">{z.name}</span>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className={`px-2 py-1 rounded-lg font-medium ${
-                          z.kind === 'PAID' ? 'bg-blue-100 text-blue-700' :
-                          z.kind === 'FREE' ? 'bg-green-100 text-green-700' :
-                          'bg-purple-100 text-purple-700'
-                        }`}>
-                          {z.kind}
-                        </span>
-                        <span className="text-gray-600">
-                          geojson: {z.hasGeojson ? '✓' : '✗'} · tariff: {z.hasTariff ? '✓' : '✗'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4">No zones yet.</p>
-              )}
-              <p className="text-xs text-gray-500 mt-3">
-                View overlays on <span className="font-mono bg-gray-100 px-2 py-1 rounded">/portal/map</span> using the "Zones overlay" toggle.
-              </p>
             </div>
           </div>
         </div>

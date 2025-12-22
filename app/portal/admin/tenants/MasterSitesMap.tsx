@@ -258,7 +258,16 @@ export default function MasterSitesMap({
     try {
       if (enable3d && map.getStyle()?.layers?.some((l) => l.id === '3d-buildings')) return
       if (enable3d) {
-        const layers = map.getStyle().layers || []
+        // Check if the 'composite' source exists (only available in some Mapbox styles)
+        const style = map.getStyle()
+        const hasCompositeSource = style?.sources?.['composite']
+        
+        if (!hasCompositeSource) {
+          console.warn('3D buildings not available: composite source not found in current style')
+          return
+        }
+
+        const layers = style.layers || []
         const labelLayerId = layers.find((l) => l.type === 'symbol' && (l.layout as any)?.['text-field'])?.id
         map.addLayer(
           {
@@ -282,8 +291,8 @@ export default function MasterSitesMap({
         if (map.getLayer('3d-buildings')) map.removeLayer('3d-buildings')
         map.easeTo({ pitch: 0 })
       }
-    } catch {
-      // style not ready yet
+    } catch (err) {
+      console.warn('Failed to add/remove 3D buildings layer:', err)
     }
   }, [enable3d, ready])
 

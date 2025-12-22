@@ -120,7 +120,8 @@ export default function PortalSidebar() {
 
   const checkActive = (path: string) => {
     if (path === '/portal') return pathname === path
-    return pathname?.startsWith(path)
+    // Exact match to avoid highlighting parent routes
+    return pathname === path
   }
 
   const NavButton = (item: any) => {
