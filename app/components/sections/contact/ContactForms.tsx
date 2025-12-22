@@ -17,7 +17,7 @@ export default function ContactForms() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted:', formData)
+    // TODO: wire this to backend/email provider (kept intentionally no-op for now)
   }
 
   return (

@@ -13,7 +13,9 @@ import {
   LogOut,
   User,
   DollarSign,
-  Gauge
+  Gauge,
+  Languages,
+  ChevronDown
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 
@@ -31,7 +33,10 @@ export default function PortalNavigation() {
   const [user, setUser] = useState<User | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false)
+  const [language, setLanguage] = useState<'EN' | 'AR'>('EN')
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const languageMenuRef = useRef<HTMLDivElement>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [logoFailed, setLogoFailed] = useState(false)
 
@@ -82,6 +87,36 @@ export default function PortalNavigation() {
     }
   }, [isUserMenuOpen])
 
+  // Close language menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
+        setIsLanguageMenuOpen(false)
+      }
+    }
+    if (isLanguageMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isLanguageMenuOpen])
+
+  // Load language preference from localStorage
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('portal-language') as 'EN' | 'AR' | null
+    if (savedLanguage) {
+      setLanguage(savedLanguage)
+    }
+  }, [])
+
+  const handleLanguageChange = (lang: 'EN' | 'AR') => {
+    setLanguage(lang)
+    localStorage.setItem('portal-language', lang)
+    setIsLanguageMenuOpen(false)
+    // TODO: Implement actual language change logic here
+  }
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
@@ -126,8 +161,42 @@ export default function PortalNavigation() {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-2 flex-1 justify-center" />
 
-          {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          {/* User Menu & Language Toggle */}
+          <div className="flex items-center space-x-3">
+            {/* Language Toggle */}
+            <div className="relative" ref={languageMenuRef}>
+              <button
+                onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+                className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                <span>{language}</span>
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {isLanguageMenuOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <button
+                    onClick={() => handleLanguageChange('EN')}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between ${
+                      language === 'EN' ? 'text-primary-600 font-medium bg-primary-50' : 'text-gray-700'
+                    }`}
+                  >
+                    <span>English</span>
+                    {language === 'EN' && <span className="text-primary-600">✓</span>}
+                  </button>
+                  <button
+                    onClick={() => handleLanguageChange('AR')}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between ${
+                      language === 'AR' ? 'text-primary-600 font-medium bg-primary-50' : 'text-gray-700'
+                    }`}
+                  >
+                    <span>العربية</span>
+                    {language === 'AR' && <span className="text-primary-600">✓</span>}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* User Menu */}
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}

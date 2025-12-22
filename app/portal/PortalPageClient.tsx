@@ -2,7 +2,28 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { BarChart3, MapPin, Users, Clock, TrendingUp, Settings, ParkingCircle, Activity, AlertTriangle, ShieldAlert, Building2, BarChart4, Network } from 'lucide-react'
+import { 
+  BarChart3, 
+  MapPin, 
+  Users, 
+  Clock, 
+  TrendingUp, 
+  Settings, 
+  ParkingCircle, 
+  Activity, 
+  AlertTriangle, 
+  ShieldAlert, 
+  Building2, 
+  BarChart4, 
+  Network,
+  RefreshCw,
+  ArrowRight,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  MapPinned,
+  Radio
+} from 'lucide-react'
 
 interface User {
   id: string
@@ -85,248 +106,368 @@ export default function PortalPageClient() {
     if (!loading && user) fetchDashboard()
   }, [loading, user, zoneId])
 
+  const refreshDashboard = async () => {
+    try {
+      const qs = new URLSearchParams()
+      if (zoneId) qs.set('zoneId', zoneId)
+      const res = await fetch(`/api/portal/dashboard?${qs.toString()}`, { credentials: 'include' })
+      const json = await res.json()
+      if (json.success) setDashboard(json)
+    } catch {
+      // ignore
+    }
+  }
+
   if (loading) {
     return (
-      <div className="pt-20 sm:pt-24 md:pt-32 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-gray-600">Loading...</p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <span className="text-gray-600 text-lg">Loading dashboard...</span>
         </div>
       </div>
     )
   }
 
   const kpis = dashboard?.kpis || {}
-  const stats = [
-    { icon: ParkingCircle, label: 'Total Bays', value: String(kpis.totalBays ?? 0), color: 'text-blue-600' },
-    { icon: Activity, label: 'Free Bays', value: String(kpis.freeBays ?? 0), color: 'text-green-600' },
-    { icon: TrendingUp, label: 'Occupied Bays', value: String(kpis.occupiedBays ?? 0), color: 'text-red-600' },
-    { icon: AlertTriangle, label: 'Offline Bays', value: String(kpis.offlineBays ?? 0), color: 'text-yellow-700' },
-    { icon: ShieldAlert, label: 'Open Alerts', value: String(kpis.openAlerts ?? 0), color: 'text-orange-600' },
-    { icon: Clock, label: 'Dead Letters (24h)', value: String(kpis.deadLetters24h ?? 0), color: 'text-orange-600' },
-  ]
-
   const zoneLabel = zones.find((z) => String(z.id) === String(zoneId))?.name || (zoneId === 'all' ? 'All Zones' : 'Selected Zone')
+  const occupancyRate = kpis.totalBays > 0 ? ((kpis.occupiedBays / kpis.totalBays) * 100).toFixed(1) : '0'
 
   return (
-    <>
-      <div className="pt-8 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{zoneLabel}</h1>
-              <p className="text-sm sm:text-base text-gray-600">
-                {zones.find((z) => String(z.id) === String(zoneId))?.address || 'Tenant-wide view'} · Welcome back, {user?.name || user?.email || 'User'}
-              </p>
-            </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <select
-                value={zoneId}
-                onChange={(e) => {
-                  const next = e.target.value
-                  const qs = new URLSearchParams(searchParams.toString())
-                  qs.set('zoneId', next)
-                  router.push(`/portal?${qs.toString()}`)
-                }}
-                className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg"
-              >
-                {(zones.length ? zones : [{ id: 'all', name: 'All Zones' }]).map((z) => (
-                  <option key={z.id} value={z.id}>
-                    {z.name} {typeof z.bayCount === 'number' ? `(${z.bayCount})` : ''}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => router.push('/portal/settings')}
-                className="inline-flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                <Settings className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Settings</span>
-              </button>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-6 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{zoneLabel}</h1>
+            <p className="text-gray-600">
+              {zones.find((z) => String(z.id) === String(zoneId))?.address || 'Overview across all parking zones'} · Welcome, {user?.name || user?.email?.split('@')[0] || 'User'}
+            </p>
           </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={zoneId}
+              onChange={(e) => {
+                const next = e.target.value
+                const qs = new URLSearchParams(searchParams.toString())
+                qs.set('zoneId', next)
+                router.push(`/portal?${qs.toString()}`)
+              }}
+              className="px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
+            >
+              {(zones.length ? zones : [{ id: 'all', name: 'All Zones' }]).map((z) => (
+                <option key={z.id} value={z.id}>
+                  {z.name} {typeof z.bayCount === 'number' ? `(${z.bayCount} bays)` : ''}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={refreshDashboard}
+              className="p-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all shadow-sm"
+              title="Refresh"
+            >
+              <RefreshCw className="h-5 w-5 text-gray-700" />
+            </button>
+          </div>
+        </div>
 
-          {/* Bay status (quick glance) */}
-          <div className="flex flex-wrap gap-2 text-sm mb-4 sm:mb-6">
-            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">Total: {kpis.totalBays ?? 0}</span>
-            <span className="px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">Free: {kpis.freeBays ?? 0}</span>
-            <span className="px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">Occupied: {kpis.occupiedBays ?? 0}</span>
-            <span className="px-3 py-1 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-200">Offline: {kpis.offlineBays ?? 0}</span>
-            <span className="px-3 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200">Unknown: {kpis.unknownBays ?? 0}</span>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
-            {stats.map((stat) => {
-              const Icon = stat.icon
-              return (
-                <div key={stat.label} className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">{stat.label}</p>
-                      <p className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</p>
-                    </div>
-                    <Icon className={`h-6 w-6 sm:h-8 sm:w-8 ${stat.color} flex-shrink-0 ml-2`} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          <div className="mb-6 sm:mb-8 text-xs text-gray-600">
-            Bay states: {kpis.freeBays ?? 0} free + {kpis.occupiedBays ?? 0} occupied + {kpis.offlineBays ?? 0} offline + {kpis.unknownBays ?? 0} unknown ={' '}
-            {kpis.totalBays ?? 0} total
-          </div>
-
-          {/* Main Content */}
-          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Analytics Chart */}
-            <div className="lg:col-span-2 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Parking Analytics</h2>
-              <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-gray-700">Events/hour (last 24h)</p>
-                  <a href="/portal/events" className="text-sm text-primary-700 hover:underline">
-                    Open Events
-                  </a>
-                </div>
-                {!dashboard?.trend?.length ? (
-                  <div className="h-40 flex items-center justify-center text-gray-600">
-                    <BarChart3 className="h-10 w-10 text-gray-400 mr-2" />
-                    No trend data yet
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {dashboard.trend.slice(-8).map((t: any) => (
-                      <div key={t.bucket} className="flex items-center gap-3">
-                        <div className="w-28 text-xs text-gray-600">{new Date(t.bucket).toLocaleTimeString()}</div>
-                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-primary-600" style={{ width: `${Math.min(100, (t.count / 50) * 100)}%` }} />
-                        </div>
-                        <div className="w-10 text-xs text-gray-700 text-right">{t.count}</div>
-                      </div>
-                    ))}
-                    <p className="text-xs text-gray-500 mt-2">Next upgrade: proper chart component + selectable range.</p>
-                  </div>
-                )}
+        {/* Main KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          {/* Total Bays */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <ParkingCircle className="h-6 w-6 text-blue-600" />
               </div>
             </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3 pb-4 border-b border-gray-100">
-                  <div className="w-2 h-2 bg-red-600 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Offline sensors</p>
-                    <p className="text-xs text-gray-500">{kpis.offlineSensors ?? 0} sensors require attention</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 pb-4 border-b border-gray-100">
-                  <div className="w-2 h-2 bg-yellow-600 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Offline bays</p>
-                    <p className="text-xs text-gray-500">{kpis.offlineBays ?? 0} bays have offline sensors</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 pb-4 border-b border-gray-100">
-                  <div className="w-2 h-2 bg-orange-600 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Low battery</p>
-                    <p className="text-xs text-gray-500">{kpis.lowBatterySensors ?? 0} sensors below threshold</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0">
-                  <div className="w-2 h-2 bg-gray-600 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Dead letters (24h)</p>
-                    <p className="text-xs text-gray-500">{kpis.deadLetters24h ?? 0} invalid rows from uploads</p>
-                    <button onClick={() => router.push('/portal/replay')} className="text-xs text-primary-700 hover:underline mt-1">
-                      Open Replay Tools
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0">
-                  <div className="w-2 h-2 bg-orange-600 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Open alerts</p>
-                    <p className="text-xs text-gray-500">
-                      {kpis.openAlerts ?? 0} open / {kpis.criticalAlerts ?? 0} critical
-                    </p>
-                    <button onClick={() => router.push(`/portal/alerts?zoneId=${encodeURIComponent(zoneId)}`)} className="text-xs text-primary-700 hover:underline mt-1">
-                      Open Alerts
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Total Bays</div>
+            <div className="text-3xl font-bold text-blue-700">{kpis.totalBays ?? 0}</div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="mt-4 sm:mt-6 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              <button onClick={() => router.push(`/portal/events?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
-                <p className="font-medium text-sm sm:text-base text-gray-900">Events & Export</p>
-                <p className="text-xs sm:text-sm text-gray-600">Time-series viewer + CSV</p>
-              </button>
-              <button onClick={() => router.push(`/portal/map?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
-                <p className="font-medium text-sm sm:text-base text-gray-900">Live Map</p>
-                <p className="text-xs sm:text-sm text-gray-600">Bay colors + confidence</p>
-              </button>
-              <button onClick={() => router.push('/portal/replay')} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
-                <p className="font-medium text-sm sm:text-base text-gray-900">Replay & Decoder Tools</p>
-                <p className="text-xs sm:text-sm text-gray-600">Upload/replay events and test decoders</p>
-              </button>
-              <button onClick={() => router.push(`/portal/alerts?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <ShieldAlert className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 mb-2" />
-                <p className="font-medium text-sm sm:text-base text-gray-900">Alerts</p>
-                <p className="text-xs sm:text-sm text-gray-600">Queue + SLA + actions</p>
-              </button>
-              <button onClick={() => router.push(`/portal/reports/sensors?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <BarChart4 className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-700 mb-2" />
-                <p className="font-medium text-sm sm:text-base text-gray-900">Reports</p>
-                <p className="text-xs sm:text-sm text-gray-600">Sensor performance + gateways</p>
-              </button>
-              <button onClick={() => router.push(`/portal/reports/network?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <Network className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700 mb-2" />
-                <p className="font-medium text-sm sm:text-base text-gray-900">Network</p>
-                <p className="text-xs sm:text-sm text-gray-600">Nodes + edges overview</p>
-              </button>
-              {user?.role === 'MASTER_ADMIN' ? (
-                <button onClick={() => router.push('/portal/admin/tenants')} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                  <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-700 mb-2" />
-                  <p className="font-medium text-sm sm:text-base text-gray-900">Master Admin</p>
-                  <p className="text-xs sm:text-sm text-gray-600">Global map + tenants</p>
+          {/* Free Bays */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-green-100 rounded-xl">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Available</div>
+            <div className="text-3xl font-bold text-green-700">{kpis.freeBays ?? 0}</div>
+            <div className="text-xs text-gray-600 mt-2">{((kpis.freeBays / (kpis.totalBays || 1)) * 100).toFixed(0)}% free</div>
+          </div>
+
+          {/* Occupied Bays */}
+          <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-red-100 rounded-xl">
+                <XCircle className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Occupied</div>
+            <div className="text-3xl font-bold text-red-700">{kpis.occupiedBays ?? 0}</div>
+            <div className="text-xs text-gray-600 mt-2">{occupancyRate}% occupancy</div>
+          </div>
+
+          {/* Offline Bays */}
+          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-yellow-100 rounded-xl">
+                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Offline</div>
+            <div className="text-3xl font-bold text-yellow-700">{kpis.offlineBays ?? 0}</div>
+            <div className="text-xs text-gray-600 mt-2">{kpis.offlineSensors ?? 0} sensors</div>
+          </div>
+
+          {/* Open Alerts */}
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <ShieldAlert className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Alerts</div>
+            <div className="text-3xl font-bold text-orange-700">{kpis.openAlerts ?? 0}</div>
+            <div className="text-xs text-gray-600 mt-2">{kpis.criticalAlerts ?? 0} critical</div>
+          </div>
+        </div>
+
+        {/* Two Column Layout */}
+        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+          {/* Analytics Chart - Takes 2/3 */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-xl">
+                    <BarChart3 className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Parking Analytics</h2>
+                    <p className="text-sm text-gray-600">Events per hour (last 24h)</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => router.push('/portal/events')}
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+                >
+                  View All <ArrowRight className="h-4 w-4" />
                 </button>
-              ) : null}
+              </div>
+            </div>
+            <div className="p-6">
+              {!dashboard?.trend?.length ? (
+                <div className="h-64 flex flex-col items-center justify-center text-gray-500">
+                  <BarChart3 className="h-16 w-16 text-gray-300 mb-3" />
+                  <p className="font-medium">No trend data available yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Data will appear as events are recorded</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {dashboard.trend.slice(-10).map((t: any) => (
+                    <div key={t.bucket} className="flex items-center gap-4">
+                      <div className="w-32 text-sm text-gray-600 font-medium">
+                        {new Date(t.bucket).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-purple-500 to-violet-600 rounded-full transition-all" 
+                          style={{ width: `${Math.min(100, (t.count / 50) * 100)}%` }} 
+                        />
+                      </div>
+                      <div className="w-12 text-sm text-gray-900 font-bold text-right">{t.count}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="mt-4 sm:mt-6 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Navigation</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              <button onClick={() => router.push(`/portal/sensors?zoneId=${encodeURIComponent(zoneId)}`)} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
-                <p className="font-medium text-sm sm:text-base text-gray-900">Sensors</p>
-                <p className="text-xs sm:text-sm text-gray-600">Health + maintenance notes</p>
+          {/* System Health - Takes 1/3 */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-teal-50 to-cyan-50 p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-teal-100 rounded-xl">
+                  <Activity className="h-6 w-6 text-teal-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">System Health</h2>
+                  <p className="text-sm text-gray-600">Status overview</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
+                <div className="w-2 h-2 bg-red-600 rounded-full mt-2"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Offline Sensors</p>
+                  <p className="text-xs text-gray-600 mt-1">{kpis.offlineSensors ?? 0} sensors require attention</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-xl border border-yellow-100">
+                <div className="w-2 h-2 bg-yellow-600 rounded-full mt-2"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Low Battery</p>
+                  <p className="text-xs text-gray-600 mt-1">{kpis.lowBatterySensors ?? 0} sensors below threshold</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
+                <div className="w-2 h-2 bg-orange-600 rounded-full mt-2"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Open Alerts</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {kpis.openAlerts ?? 0} total ({kpis.criticalAlerts ?? 0} critical)
+                  </p>
+                  <button 
+                    onClick={() => router.push(`/portal/alerts?zoneId=${encodeURIComponent(zoneId)}`)} 
+                    className="text-xs text-orange-600 hover:text-orange-700 font-medium mt-2 flex items-center gap-1"
+                  >
+                    View Alerts <ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="w-2 h-2 bg-gray-600 rounded-full mt-2"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Dead Letters (24h)</p>
+                  <p className="text-xs text-gray-600 mt-1">{kpis.deadLetters24h ?? 0} failed ingestion events</p>
+                  <button 
+                    onClick={() => router.push('/portal/replay')} 
+                    className="text-xs text-gray-600 hover:text-gray-700 font-medium mt-2 flex items-center gap-1"
+                  >
+                    Open Tools <ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden mb-8">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-xl">
+                <TrendingUp className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Quick Actions</h2>
+                <p className="text-sm text-gray-600">Access key features and reports</p>
+              </div>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <button 
+                onClick={() => router.push(`/portal/map?zoneId=${encodeURIComponent(zoneId)}`)} 
+                className="p-5 border-2 border-gray-200 rounded-xl hover:border-green-300 hover:bg-green-50 text-left transition-all group"
+              >
+                <MapPinned className="h-8 w-8 text-green-600 mb-3 group-hover:scale-110 transition-transform" />
+                <p className="font-bold text-gray-900 mb-1">Live Map</p>
+                <p className="text-sm text-gray-600">Real-time bay status visualization</p>
               </button>
-              <button onClick={() => router.push('/portal/admin')} className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <Settings className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mb-2" />
-                <p className="font-medium text-sm sm:text-base text-gray-900">Admin</p>
-                <p className="text-xs sm:text-sm text-gray-600">Users + thresholds</p>
+              
+              <button 
+                onClick={() => router.push(`/portal/alerts?zoneId=${encodeURIComponent(zoneId)}`)} 
+                className="p-5 border-2 border-gray-200 rounded-xl hover:border-orange-300 hover:bg-orange-50 text-left transition-all group"
+              >
+                <ShieldAlert className="h-8 w-8 text-orange-600 mb-3 group-hover:scale-110 transition-transform" />
+                <p className="font-bold text-gray-900 mb-1">Alerts</p>
+                <p className="text-sm text-gray-600">Monitor and manage system alerts</p>
+              </button>
+              
+              <button 
+                onClick={() => router.push(`/portal/events?zoneId=${encodeURIComponent(zoneId)}`)} 
+                className="p-5 border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 text-left transition-all group"
+              >
+                <Activity className="h-8 w-8 text-purple-600 mb-3 group-hover:scale-110 transition-transform" />
+                <p className="font-bold text-gray-900 mb-1">Events</p>
+                <p className="text-sm text-gray-600">Time-series data and CSV export</p>
+              </button>
+              
+              <button 
+                onClick={() => router.push(`/portal/sensors?zoneId=${encodeURIComponent(zoneId)}`)} 
+                className="p-5 border-2 border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 text-left transition-all group"
+              >
+                <Radio className="h-8 w-8 text-indigo-600 mb-3 group-hover:scale-110 transition-transform" />
+                <p className="font-bold text-gray-900 mb-1">Sensors</p>
+                <p className="text-sm text-gray-600">Fleet health and maintenance</p>
+              </button>
+              
+              <button 
+                onClick={() => router.push(`/portal/reports/sensors?zoneId=${encodeURIComponent(zoneId)}`)} 
+                className="p-5 border-2 border-gray-200 rounded-xl hover:border-teal-300 hover:bg-teal-50 text-left transition-all group"
+              >
+                <BarChart4 className="h-8 w-8 text-teal-600 mb-3 group-hover:scale-110 transition-transform" />
+                <p className="font-bold text-gray-900 mb-1">Reports</p>
+                <p className="text-sm text-gray-600">Performance analytics and insights</p>
+              </button>
+              
+              <button 
+                onClick={() => router.push('/portal/reports/network')} 
+                className="p-5 border-2 border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 text-left transition-all group"
+              >
+                <Network className="h-8 w-8 text-gray-700 mb-3 group-hover:scale-110 transition-transform" />
+                <p className="font-bold text-gray-900 mb-1">Network</p>
+                <p className="text-sm text-gray-600">Gateway and connectivity overview</p>
               </button>
             </div>
           </div>
         </div>
+
+        {/* Admin Actions (if applicable) */}
+        {(user?.role === 'MASTER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'CUSTOMER_ADMIN') && (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-slate-100 rounded-xl">
+                  <Settings className="h-6 w-6 text-slate-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Administration</h2>
+                  <p className="text-sm text-gray-600">Manage system settings and configuration</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button 
+                  onClick={() => router.push('/portal/admin')} 
+                  className="p-5 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 text-left transition-all group"
+                >
+                  <Settings className="h-8 w-8 text-blue-600 mb-3 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-gray-900 mb-1">Admin Panel</p>
+                  <p className="text-sm text-gray-600">Users, thresholds, and settings</p>
+                </button>
+                
+                <button 
+                  onClick={() => router.push('/portal/settings')} 
+                  className="p-5 border-2 border-gray-200 rounded-xl hover:border-green-300 hover:bg-green-50 text-left transition-all group"
+                >
+                  <Users className="h-8 w-8 text-green-600 mb-3 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-gray-900 mb-1">Settings</p>
+                  <p className="text-sm text-gray-600">Profile and preferences</p>
+                </button>
+                
+                {user?.role === 'MASTER_ADMIN' && (
+                  <button 
+                    onClick={() => router.push('/portal/admin/tenants')} 
+                    className="p-5 border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 text-left transition-all group"
+                  >
+                    <Building2 className="h-8 w-8 text-purple-600 mb-3 group-hover:scale-110 transition-transform" />
+                    <p className="font-bold text-gray-900 mb-1">Master Admin</p>
+                    <p className="text-sm text-gray-600">Global map and tenant management</p>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   )
 }
-
-

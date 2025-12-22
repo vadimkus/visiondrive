@@ -3,7 +3,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Section from '../../components/common/Section'
-import { ArrowLeft, RefreshCw, AlertTriangle, ShieldAlert, CheckCircle2, UserPlus } from 'lucide-react'
+import { 
+  RefreshCw, 
+  AlertTriangle, 
+  ShieldAlert, 
+  CheckCircle2, 
+  UserPlus,
+  Clock,
+  Filter,
+  MapPin,
+  Radio,
+  Loader2,
+  Play,
+  Eye
+} from 'lucide-react'
 
 type AlertItem = {
   id: string
@@ -49,15 +62,15 @@ function fmtDue(iso: string | null) {
 }
 
 function severityPill(sev: string) {
-  if (sev === 'CRITICAL') return 'bg-red-50 border-red-200 text-red-700'
-  if (sev === 'WARNING') return 'bg-yellow-50 border-yellow-200 text-yellow-800'
-  return 'bg-blue-50 border-blue-200 text-blue-700'
+  if (sev === 'CRITICAL') return 'bg-red-100 text-red-700 border-red-200'
+  if (sev === 'WARNING') return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+  return 'bg-blue-100 text-blue-700 border-blue-200'
 }
 
 function statusPill(st: string) {
-  if (st === 'OPEN') return 'bg-orange-50 border-orange-200 text-orange-700'
-  if (st === 'ACKNOWLEDGED') return 'bg-purple-50 border-purple-200 text-purple-700'
-  return 'bg-green-50 border-green-200 text-green-700'
+  if (st === 'OPEN') return 'bg-orange-100 text-orange-700 border-orange-200'
+  if (st === 'ACKNOWLEDGED') return 'bg-purple-100 text-purple-700 border-purple-200'
+  return 'bg-green-100 text-green-700 border-green-200'
 }
 
 export default function AlertsPageClient() {
@@ -186,246 +199,404 @@ export default function AlertsPageClient() {
 
   const openCount = items.filter((i) => i.status === 'OPEN').length
   const criticalCount = items.filter((i) => i.severity === 'CRITICAL' && i.status !== 'RESOLVED').length
+  const acknowledgedCount = items.filter((i) => i.status === 'ACKNOWLEDGED').length
 
   return (
-    <Section className="pt-6 pb-12">
+    <Section className="pt-6 pb-12 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <button onClick={() => router.push(`/portal?zoneId=${encodeURIComponent(zoneId)}`)} className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </button>
-
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Alerts</h1>
-            <p className="text-sm text-gray-600">Queue + SLA timers + audit trail. Use “Run Scan” to recompute alerts from sensor data.</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Alert Management</h1>
+            <p className="text-gray-600">Monitor and resolve system alerts with SLA tracking</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={runScan}
               disabled={actionBusy === 'scan'}
-              className="inline-flex items-center px-3 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-50"
+              className="inline-flex items-center px-4 py-3 rounded-xl bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 transition-all shadow-lg font-medium"
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              {actionBusy === 'scan' ? 'Scanning…' : 'Run Scan'}
+              {actionBusy === 'scan' ? (
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              ) : (
+                <Play className="h-5 w-5 mr-2" />
+              )}
+              {actionBusy === 'scan' ? 'Scanning...' : 'Run Scan'}
             </button>
             <button
               onClick={refresh}
               disabled={loading}
-              className="inline-flex items-center px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="p-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all shadow-sm"
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              <RefreshCw className={`h-5 w-5 text-gray-700 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-sm mb-4">
-          <span className="px-3 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200">Open: {openCount}</span>
-          <span className="px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">Critical: {criticalCount}</span>
-          <span className="px-3 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200">Total: {items.length}</span>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <AlertTriangle className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Open</div>
+            <div className="text-3xl font-bold text-orange-700">{openCount}</div>
+          </div>
+
+          <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-red-100 rounded-xl">
+                <ShieldAlert className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Critical</div>
+            <div className="text-3xl font-bold text-red-700">{criticalCount}</div>
+          </div>
+
+          <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <CheckCircle2 className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Acknowledged</div>
+            <div className="text-3xl font-bold text-purple-700">{acknowledgedCount}</div>
+          </div>
+
+          <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl shadow-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-3 bg-gray-100 rounded-xl">
+                <ShieldAlert className="h-6 w-6 text-gray-600" />
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Total</div>
+            <div className="text-3xl font-bold text-gray-900">{items.length}</div>
+          </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Zone</label>
-              <select value={zoneId} onChange={(e) => setParam('zoneId', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                {(zones.length ? zones : [{ id: 'all', name: 'All Zones' }]).map((z) => (
-                  <option key={z.id} value={z.id}>
-                    {z.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
-              <select value={status} onChange={(e) => setParam('status', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                <option value="OPEN">OPEN</option>
-                <option value="ACKNOWLEDGED">ACKNOWLEDGED</option>
-                <option value="RESOLVED">RESOLVED</option>
-                <option value="">All</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Severity</label>
-              <select value={severity} onChange={(e) => setParam('severity', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                <option value="">All</option>
-                <option value="CRITICAL">CRITICAL</option>
-                <option value="WARNING">WARNING</option>
-                <option value="INFO">INFO</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
-              <select value={type} onChange={(e) => setParam('type', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                <option value="">All</option>
-                <option value="SENSOR_OFFLINE">SENSOR_OFFLINE</option>
-                <option value="LOW_BATTERY">LOW_BATTERY</option>
-                <option value="POOR_SIGNAL">POOR_SIGNAL</option>
-                <option value="FLAPPING">FLAPPING</option>
-                <option value="DECODE_ERRORS">DECODE_ERRORS</option>
-              </select>
+        {/* Filters */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden mb-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-xl">
+                <Filter className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Filters</h2>
+                <p className="text-sm text-gray-600">Refine alert list by criteria</p>
+              </div>
             </div>
           </div>
-          {sensorId ? (
-            <div className="mt-3 flex items-center justify-between text-xs">
-              <div className="text-gray-600">
-                Filtering by <span className="font-semibold">sensorId</span>: <span className="font-mono">{sensorId}</span>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Zone</label>
+                <select 
+                  value={zoneId} 
+                  onChange={(e) => setParam('zoneId', e.target.value)} 
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                >
+                  {(zones.length ? zones : [{ id: 'all', name: 'All Zones' }]).map((z) => (
+                    <option key={z.id} value={z.id}>
+                      {z.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <button onClick={() => setParam('sensorId', '')} className="text-primary-700 hover:underline">
-                Clear sensor filter
-              </button>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                <select 
+                  value={status} 
+                  onChange={(e) => setParam('status', e.target.value)} 
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                >
+                  <option value="OPEN">OPEN</option>
+                  <option value="ACKNOWLEDGED">ACKNOWLEDGED</option>
+                  <option value="RESOLVED">RESOLVED</option>
+                  <option value="">All</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Severity</label>
+                <select 
+                  value={severity} 
+                  onChange={(e) => setParam('severity', e.target.value)} 
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                >
+                  <option value="">All</option>
+                  <option value="CRITICAL">CRITICAL</option>
+                  <option value="WARNING">WARNING</option>
+                  <option value="INFO">INFO</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+                <select 
+                  value={type} 
+                  onChange={(e) => setParam('type', e.target.value)} 
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                >
+                  <option value="">All</option>
+                  <option value="SENSOR_OFFLINE">SENSOR_OFFLINE</option>
+                  <option value="LOW_BATTERY">LOW_BATTERY</option>
+                  <option value="POOR_SIGNAL">POOR_SIGNAL</option>
+                  <option value="FLAPPING">FLAPPING</option>
+                  <option value="DECODE_ERRORS">DECODE_ERRORS</option>
+                </select>
+              </div>
             </div>
-          ) : null}
+            {sensorId ? (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+                <div className="text-sm text-blue-900">
+                  Filtering by sensor: <span className="font-mono font-semibold">{sensorId}</span>
+                </div>
+                <button 
+                  onClick={() => setParam('sensorId', '')} 
+                  className="text-sm text-blue-700 hover:text-blue-800 font-medium"
+                >
+                  Clear filter
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg overflow-auto shadow-sm">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-gray-700">
-                <tr>
-                  <th className="text-left px-4 py-3">Alert</th>
-                  <th className="text-left px-4 py-3">SLA</th>
-                  <th className="text-left px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading && (
-                  <tr>
-                    <td colSpan={3} className="px-4 py-6 text-center text-gray-500">
-                      Loading…
-                    </td>
+        {/* Alerts Table + Audit Trail */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Alerts List */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-100 rounded-xl">
+                  <ShieldAlert className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Active Alerts</h2>
+                  <p className="text-sm text-gray-600">{items.length} alert{items.length !== 1 ? 's' : ''} found</p>
+                </div>
+              </div>
+            </div>
+            <div className="overflow-auto max-h-[800px]">
+              <table className="min-w-full">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Alert Details</th>
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">SLA</th>
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
-                )}
-                {!loading && items.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-4 py-6 text-center text-gray-500">
-                      No alerts
-                    </td>
-                  </tr>
-                )}
-                {items.map((a) => (
-                  <tr
-                    key={a.id}
-                    className={`border-t border-gray-100 hover:bg-gray-50 cursor-pointer ${selectedAlertId === a.id ? 'bg-gray-50' : ''}`}
-                    onClick={() => setSelectedAlertId(a.id)}
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5">
-                          {a.severity === 'CRITICAL' ? (
-                            <ShieldAlert className="h-5 w-5 text-red-600" />
-                          ) : a.severity === 'WARNING' ? (
-                            <AlertTriangle className="h-5 w-5 text-yellow-700" />
-                          ) : (
-                            <CheckCircle2 className="h-5 w-5 text-blue-700" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-full border text-xs font-semibold ${severityPill(a.severity)}`}>{a.severity}</span>
-                            <span className={`px-2 py-0.5 rounded-full border text-xs font-semibold ${statusPill(a.status)}`}>{a.status}</span>
-                            <span className="text-xs text-gray-500">{a.type}</span>
-                          </div>
-                          <div className="font-medium text-gray-900 mt-1">{a.title}</div>
-                          <div className="text-xs text-gray-600 mt-1">
-                            {a.sensor ? (
-                              <>
-                                Sensor: <span className="font-mono">{a.sensor.devEui}</span>
-                                {a.sensor.bayCode ? ` · Bay ${a.sensor.bayCode}` : ''} {a.sensor.zoneName ? ` · ${a.sensor.zoneName}` : ''}
-                              </>
+                </thead>
+                <tbody>
+                  {loading && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-12 text-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-orange-600 mx-auto mb-3" />
+                        <p className="text-gray-600">Loading alerts...</p>
+                      </td>
+                    </tr>
+                  )}
+                  {!loading && items.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-12 text-center">
+                        <CheckCircle2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 font-medium">No alerts found</p>
+                        <p className="text-sm text-gray-400 mt-1">All systems operating normally!</p>
+                      </td>
+                    </tr>
+                  )}
+                  {items.map((a) => (
+                    <tr
+                      key={a.id}
+                      className={`border-b border-gray-100 hover:bg-orange-50 cursor-pointer transition-colors ${
+                        selectedAlertId === a.id ? 'bg-orange-50' : ''
+                      }`}
+                      onClick={() => setSelectedAlertId(a.id)}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-start gap-4">
+                          <div className="mt-1">
+                            {a.severity === 'CRITICAL' ? (
+                              <ShieldAlert className="h-6 w-6 text-red-600" />
+                            ) : a.severity === 'WARNING' ? (
+                              <AlertTriangle className="h-6 w-6 text-yellow-600" />
                             ) : (
-                              <span>Tenant-wide</span>
+                              <CheckCircle2 className="h-6 w-6 text-blue-600" />
                             )}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Last detected: {fmtAgo(a.lastDetectedAt)} · Opened: {fmtAgo(a.openedAt)}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <span className={`px-3 py-1 rounded-lg border text-xs font-bold ${severityPill(a.severity)}`}>
+                                {a.severity}
+                              </span>
+                              <span className={`px-3 py-1 rounded-lg border text-xs font-bold ${statusPill(a.status)}`}>
+                                {a.status}
+                              </span>
+                              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                                {a.type}
+                              </span>
+                            </div>
+                            <div className="font-semibold text-gray-900 text-base mb-2">{a.title}</div>
+                            {a.sensor && (
+                              <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                                <Radio className="h-4 w-4" />
+                                <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">{a.sensor.devEui}</span>
+                                {a.sensor.bayCode && <span>• Bay {a.sensor.bayCode}</span>}
+                                {a.sensor.zoneName && (
+                                  <>
+                                    <MapPin className="h-3 w-3" />
+                                    <span>{a.sensor.zoneName}</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <Clock className="h-3 w-3" />
+                              <span>Last detected: {fmtAgo(a.lastDetectedAt)}</span>
+                              <span>•</span>
+                              <span>Opened: {fmtAgo(a.openedAt)}</span>
+                            </div>
+                            {a.assignedToEmail && (
+                              <div className="text-xs text-gray-600 mt-1">
+                                <UserPlus className="h-3 w-3 inline mr-1" />
+                                Assigned: {a.assignedToEmail}
+                              </div>
+                            )}
+                            {a.acknowledgedByEmail && (
+                              <div className="text-xs text-gray-600 mt-1">
+                                <CheckCircle2 className="h-3 w-3 inline mr-1" />
+                                Acknowledged by: {a.acknowledgedByEmail}
+                              </div>
+                            )}
                           </div>
-                          {a.assignedToEmail && <div className="text-xs text-gray-500 mt-1">Assigned: {a.assignedToEmail}</div>}
-                          {a.acknowledgedByEmail && <div className="text-xs text-gray-500 mt-1">Acknowledged: {a.acknowledgedByEmail}</div>}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs">
-                      <div className="text-gray-700">
+                      </td>
+                      <td className="px-6 py-4">
                         {a.status === 'RESOLVED' ? (
-                          <span className="text-green-700">Resolved</span>
+                          <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-semibold">
+                            Resolved
+                          </span>
                         ) : (
-                          <>
-                            Due: <span className={a.slaDueAt && new Date(a.slaDueAt).getTime() < Date.now() ? 'text-red-700 font-semibold' : 'font-semibold'}>{fmtDue(a.slaDueAt)}</span>
-                          </>
+                          <div className="text-sm">
+                            <div className="text-gray-600 mb-1">Due in:</div>
+                            <div className={`font-bold text-lg ${
+                              a.slaDueAt && new Date(a.slaDueAt).getTime() < Date.now() 
+                                ? 'text-red-700' 
+                                : 'text-gray-900'
+                            }`}>
+                              {fmtDue(a.slaDueAt)}
+                            </div>
+                          </div>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            act(a.id, 'ACKNOWLEDGE')
-                          }}
-                          disabled={actionBusy === `ACKNOWLEDGE:${a.id}` || a.status !== 'OPEN'}
-                          className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                        >
-                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Ack
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            act(a.id, 'ASSIGN_TO_ME')
-                          }}
-                          disabled={actionBusy === `ASSIGN_TO_ME:${a.id}`}
-                          className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                        >
-                          <UserPlus className="h-4 w-4 mr-1" />
-                          Assign me
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            act(a.id, 'RESOLVE')
-                          }}
-                          disabled={actionBusy === `RESOLVE:${a.id}` || a.status === 'RESOLVED'}
-                          className="inline-flex items-center px-3 py-1.5 text-xs rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-50"
-                        >
-                          Resolve
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              act(a.id, 'ACKNOWLEDGE')
+                            }}
+                            disabled={actionBusy === `ACKNOWLEDGE:${a.id}` || a.status !== 'OPEN'}
+                            className="inline-flex items-center justify-center px-4 py-2 text-sm rounded-xl bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-all font-medium"
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Acknowledge
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              act(a.id, 'ASSIGN_TO_ME')
+                            }}
+                            disabled={actionBusy === `ASSIGN_TO_ME:${a.id}`}
+                            className="inline-flex items-center justify-center px-4 py-2 text-sm rounded-xl bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-all font-medium"
+                          >
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Assign Me
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              act(a.id, 'RESOLVE')
+                            }}
+                            disabled={actionBusy === `RESOLVE:${a.id}` || a.status === 'RESOLVED'}
+                            className="inline-flex items-center justify-center px-4 py-2 text-sm rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all shadow-lg font-medium"
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Resolve
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h2 className="font-semibold text-gray-900 mb-2">Audit Trail</h2>
-            {!selectedAlertId && <p className="text-sm text-gray-500">Select an alert to view its history.</p>}
-            {selectedAlertId && eventsLoading && <p className="text-sm text-gray-500">Loading…</p>}
-            {selectedAlertId && !eventsLoading && (
-              <div className="space-y-2 max-h-[520px] overflow-auto">
-                {events.length === 0 && <p className="text-sm text-gray-500">No events</p>}
-                {events.map((e) => (
-                  <div key={e.id} className="border border-gray-100 rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs font-semibold text-gray-900">{e.action}</div>
-                      <div className="text-xs text-gray-500">{fmtAgo(e.createdAt)}</div>
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      {e.actorEmail ? `By ${e.actorEmail}` : 'System'}
-                    </div>
-                    {e.note && <div className="text-xs text-gray-700 mt-2">{e.note}</div>}
-                  </div>
-                ))}
+          {/* Audit Trail */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-xl">
+                  <Eye className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Audit Trail</h2>
+                  <p className="text-sm text-gray-600">Event history</p>
+                </div>
               </div>
-            )}
+            </div>
+            <div className="p-6">
+              {!selectedAlertId && (
+                <div className="text-center py-12">
+                  <Eye className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">No alert selected</p>
+                  <p className="text-sm text-gray-400 mt-1">Click an alert to view its history</p>
+                </div>
+              )}
+              {selectedAlertId && eventsLoading && (
+                <div className="text-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-3" />
+                  <p className="text-gray-600">Loading events...</p>
+                </div>
+              )}
+              {selectedAlertId && !eventsLoading && (
+                <div className="space-y-3 max-h-[700px] overflow-auto">
+                  {events.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">No events recorded</p>
+                  )}
+                  {events.map((e) => (
+                    <div key={e.id} className="bg-purple-50 border border-purple-200 rounded-xl p-4 hover:bg-purple-100 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm font-bold text-gray-900">{e.action}</div>
+                        <div className="text-xs text-gray-600 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {fmtAgo(e.createdAt)}
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-700">
+                        {e.actorEmail ? (
+                          <>
+                            <UserPlus className="h-3 w-3 inline mr-1" />
+                            By {e.actorEmail}
+                          </>
+                        ) : (
+                          'System action'
+                        )}
+                      </div>
+                      {e.note && (
+                        <div className="text-sm text-gray-600 mt-2 p-2 bg-white rounded border border-purple-200">
+                          {e.note}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
     </Section>
   )
 }
-
-

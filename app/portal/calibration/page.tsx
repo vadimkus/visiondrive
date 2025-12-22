@@ -340,9 +340,7 @@ export default function CalibrationPage() {
       }
     })
 
-    map.on('load', () => {
-      console.log('Map loaded successfully')
-    })
+    // map load event is handled by layer bootstrap; no debug logs in production
   }, [token, satellite, mode3d])
 
   // Update map center when center changes
