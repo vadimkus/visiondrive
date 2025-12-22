@@ -116,8 +116,10 @@ export default function PortalNavigation() {
                   <span className="text-xs font-bold text-primary-700">VD</span>
                 </div>
               )}
-              <span>Vision<span className="text-primary-600">Drive</span></span>
-              <span className="text-xs text-gray-500 ml-2">Portal</span>
+              <div className="flex flex-col items-start">
+                <span>Vision<span className="text-primary-600">Drive</span></span>
+                <span className="text-xs text-gray-500 font-normal ml-[30%]">Portal</span>
+              </div>
             </button>
           </div>
 

@@ -34,6 +34,8 @@ export default function PortalSidebar() {
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -52,12 +54,25 @@ export default function PortalSidebar() {
     fetchUser()
   }, [])
 
+  // Mark component as mounted (client-side only)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Load collapsed state from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('portal-sidebar-collapsed')
     if (saved === 'true') {
       setIsCollapsed(true)
     }
+  }, [])
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    return () => clearInterval(timer)
   }, [])
 
   const toggleCollapse = () => {
@@ -99,6 +114,7 @@ export default function PortalSidebar() {
 
   const adminItems = [
     { icon: Settings, label: 'Admin', path: '/portal/admin', color: 'text-gray-700', bgColor: 'bg-gray-50', adminOnly: true },
+    { icon: Settings, label: 'Settings', path: '/portal/settings', color: 'text-blue-600', bgColor: 'bg-blue-50' },
     { icon: ScrollText, label: 'Audit Log', path: '/portal/admin/audit', color: 'text-purple-700', bgColor: 'bg-purple-50', adminOnly: true },
     { icon: Globe, label: 'Master View', path: '/portal/admin/tenants', color: 'text-blue-700', bgColor: 'bg-blue-50', masterOnly: true },
   ]
@@ -152,6 +168,25 @@ export default function PortalSidebar() {
           )}
         </button>
       </div>
+
+      {/* Digital Clock */}
+      {!isCollapsed && mounted && (
+        <div className="mx-4 mt-4 mb-2 bg-white border-2 border-gray-300 rounded-xl px-4 py-3 shadow-sm">
+          <div className="text-center">
+            <div className="font-mono text-2xl font-bold text-gray-900 tracking-wide mb-1">
+              {currentTime.toLocaleTimeString('en-US', { hour12: false })}
+            </div>
+            <div className="font-mono text-xs text-gray-600">
+              {currentTime.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navigation Items */}
       <nav className="flex-1 overflow-y-auto py-4">
