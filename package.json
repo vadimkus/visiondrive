@@ -11,7 +11,9 @@
     "type-check": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "fetch:2gis": "node scripts/fetch-2gis-parking.js",
+    "import:2gis": "tsx scripts/import-2gis-parking.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.1.0",

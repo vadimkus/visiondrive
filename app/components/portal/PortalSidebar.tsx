@@ -17,7 +17,8 @@ import {
   Globe,
   Gauge,
   Settings,
-  ScrollText
+  ScrollText,
+  CloudSun
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -36,6 +37,8 @@ export default function PortalSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mounted, setMounted] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoFailed, setLogoFailed] = useState(false)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -52,6 +55,21 @@ export default function PortalSidebar() {
       }
     }
     fetchUser()
+  }, [])
+
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const res = await fetch('/api/images/logo', { credentials: 'include' })
+        const json = await res.json().catch(() => ({}))
+        if (json?.success && json?.image?.data) {
+          setLogoUrl(String(json.image.data))
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadLogo()
   }, [])
 
   // Mark component as mounted (client-side only)
@@ -109,6 +127,7 @@ export default function PortalSidebar() {
 
   const networkItems = [
     { icon: Network, label: 'Network', path: '/portal/reports/network', color: 'text-gray-700', bgColor: 'bg-gray-50' },
+    { icon: CloudSun, label: 'Weather', path: '/portal/weather', color: 'text-sky-700', bgColor: 'bg-sky-50' },
   ]
 
   const adminItems = [
@@ -154,8 +173,41 @@ export default function PortalSidebar() {
     <aside className={`bg-white border-r border-gray-200 transition-all duration-300 ${
       isCollapsed ? 'w-16' : 'w-64'
     } hidden lg:flex flex-col h-screen sticky top-0`}>
+      {/* Logo Section */}
+      <div className="p-4 border-b border-gray-200">
+        <button
+          onClick={() => router.push('/portal')}
+          className={`flex items-center space-x-2 text-xl font-bold text-gray-900 hover:text-primary-600 transition-colors ${
+            isCollapsed ? 'justify-center' : ''
+          }`}
+        >
+          {!logoFailed && logoUrl ? (
+            <img
+              src={logoUrl}
+              alt="VisionDrive"
+              className={`rounded-lg border border-gray-200 bg-white object-contain ${
+                isCollapsed ? 'h-8 w-8' : 'h-9 w-9'
+              }`}
+              onError={() => setLogoFailed(true)}
+            />
+          ) : (
+            <div className={`rounded-lg border border-gray-200 bg-white flex items-center justify-center ${
+              isCollapsed ? 'h-8 w-8' : 'h-9 w-9'
+            }`}>
+              <span className="text-xs font-bold text-primary-700">VD</span>
+            </div>
+          )}
+          {!isCollapsed && (
+            <div className="flex flex-col items-start">
+              <span>Vision<span className="text-primary-600">Drive</span></span>
+              <span className="text-xs text-gray-500 font-normal ml-[30%]">Portal 🇦🇪</span>
+            </div>
+          )}
+        </button>
+      </div>
+
       {/* Collapse Toggle */}
-      <div className="flex items-center justify-end p-4 border-b border-gray-200">
+      <div className="flex items-center justify-end px-4 py-2 border-b border-gray-200">
         <button
           onClick={toggleCollapse}
           className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"

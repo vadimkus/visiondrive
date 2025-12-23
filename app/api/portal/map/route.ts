@@ -64,37 +64,6 @@ export async function GET(request: NextRequest) {
     `
     const meta = metaRows?.[0]
 
-    // Overlay zones for the same site (paid/free zone polygons + tariff metadata).
-    const overlayZoneRows = await sql/*sql*/`
-      SELECT id, name, kind, geojson, tariff
-      FROM zones
-      WHERE "tenantId" = ${session.tenantId}
-        AND geojson IS NOT NULL
-        AND (${meta?.siteId || null}::text IS NULL OR "siteId" = ${meta?.siteId || null})
-      ORDER BY name ASC
-      LIMIT 2000
-    `
-
-    const zonesOverlay = {
-      type: 'FeatureCollection',
-      features: (overlayZoneRows || [])
-        .map((z: any) => {
-          const gj = normalizeJson(z.geojson)
-          if (!gj?.geometry) return null
-          return {
-            type: 'Feature',
-            geometry: gj.geometry,
-            properties: {
-              id: z.id,
-              name: z.name,
-              kind: z.kind,
-              tariff: normalizeJson(z.tariff),
-            },
-          }
-        })
-        .filter(Boolean),
-    }
-
     const rows = await sql/*sql*/`
       SELECT
         b.id AS "bayId",
@@ -168,6 +137,41 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    const gatewayRows = await sql/*sql*/`
+      SELECT
+        g.id,
+        g.name,
+        g.status,
+        g.backhaul,
+        g."lastHeartbeat",
+        g.lat,
+        g.lng
+      FROM gateways g
+      WHERE g."tenantId" = ${session.tenantId}
+        AND g.lat IS NOT NULL
+        AND g.lng IS NOT NULL
+        AND (${meta?.siteId || null}::text IS NULL OR g."siteId" = ${meta?.siteId || null})
+      ORDER BY g.name ASC
+      LIMIT 2000
+    `
+
+    const gateways = (gatewayRows || []).map((g: any) => {
+      const hb = g.lastHeartbeat ? new Date(g.lastHeartbeat) : null
+      const ageMin = hb ? Math.floor((Date.now() - hb.getTime()) / 60000) : null
+      const isOffline = typeof ageMin === 'number' ? ageMin > Math.max(offlineMinutes, 30) : true
+      return {
+        id: g.id,
+        name: g.name,
+        status: g.status,
+        backhaul: g.backhaul,
+        lastHeartbeat: hb ? hb.toISOString() : null,
+        ageMinutes: typeof ageMin === 'number' && Number.isFinite(ageMin) ? ageMin : null,
+        state: isOffline ? 'OFFLINE' : 'ONLINE',
+        lat: typeof g.lat === 'number' ? g.lat : null,
+        lng: typeof g.lng === 'number' ? g.lng : null,
+      }
+    })
+
     return NextResponse.json({
       success: true,
       zoneId,
@@ -183,7 +187,7 @@ export async function GET(request: NextRequest) {
             bayCount: meta.bayCount || items.length,
           }
         : { siteId: null, siteName: null, zoneName: null, address: null, centerLat: null, centerLng: null, zoneGeojson: null, bayCount: items.length },
-      overlays: { zones: zonesOverlay },
+      gateways,
       items,
     })
   } catch (e: any) {

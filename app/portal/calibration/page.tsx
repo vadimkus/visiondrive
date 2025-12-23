@@ -22,8 +22,8 @@ import {
   Move,
   Maximize2,
   X,
-  ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Car
 } from 'lucide-react'
 
 type SensorRow = {
@@ -40,13 +40,30 @@ type SensorRow = {
   siteName: string | null
 }
 
+type GatewayRow = {
+  id: string
+  name: string
+  lat: number | null
+  lng: number | null
+  lastHeartbeat?: string | null
+  state?: string | null
+}
+
+function labelFromBayCode(bayCode: string | null | undefined) {
+  const s = (bayCode || '').trim()
+  if (!s) return ''
+  const m = /^A0*(\d+)$/.exec(s)
+  if (m?.[1]) return `A${Number(m[1])}`
+  return s
+}
+
 export default function CalibrationPage() {
   const router = useRouter()
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ''
 
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markerRef = useRef<mapboxgl.Marker | null>(null)
-  const containerRef = useRef<HTMLDivElement | null>(null)
+  const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null)
   const multiBaseRef = useRef<Map<string, { lat: number; lng: number }>>(new Map())
   const multiMarkerBaseRef = useRef<{ lat: number; lng: number } | null>(null)
   const multiBaselineKeyRef = useRef<string>('')
@@ -54,6 +71,8 @@ export default function CalibrationPage() {
   const [bootLoading, setBootLoading] = useState(true)
   const [listLoading, setListLoading] = useState(false)
   const [items, setItems] = useState<SensorRow[]>([])
+  const [gateways, setGateways] = useState<GatewayRow[]>([])
+  const [zones, setZones] = useState<any[]>([])
   const [q, setQ] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -64,22 +83,12 @@ export default function CalibrationPage() {
 
   const [satellite, setSatellite] = useState(false)
   const [mode3d, setMode3d] = useState(false)
+  const [traffic, setTraffic] = useState(false)
+  const [showZones, setShowZones] = useState(false)
   const [installedOnly, setInstalledOnly] = useState(true)
   const [showAllOnMap, setShowAllOnMap] = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
 
-  // Resize map when sidebar is toggled
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map) return
-    
-    // Small delay to let CSS transition complete
-    const timer = setTimeout(() => {
-      map.resize()
-    }, 350) // Match the transition duration (300ms) + small buffer
-
-    return () => clearTimeout(timer)
-  }, [sidebarOpen])
+  const [mapReadyTick, setMapReadyTick] = useState(0)
 
   const allSensorsGeojson = useMemo(() => {
     const features = (items || [])
@@ -93,6 +102,7 @@ export default function CalibrationPage() {
           properties: {
             id: s.id,
             devEui: s.devEui,
+            label: labelFromBayCode(s.bayCode),
             selected: selectedId === s.id ? 1 : 0,
             multiSelected: selectedIds.has(s.id) ? 1 : 0,
           },
@@ -101,6 +111,46 @@ export default function CalibrationPage() {
       .filter(Boolean)
     return { type: 'FeatureCollection', features }
   }, [items, selectedId, selectedIds])
+
+  const gatewaysGeojson = useMemo(() => {
+    const features = (gateways || [])
+      .map((g) => {
+        if (typeof g.lat !== 'number' || typeof g.lng !== 'number') return null
+        return {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [g.lng, g.lat] },
+          properties: {
+            id: g.id,
+            name: g.name,
+            label: 'G',
+            lastHeartbeat: g.lastHeartbeat || '',
+            state: g.state || '',
+          },
+        }
+      })
+      .filter(Boolean)
+    return { type: 'FeatureCollection', features }
+  }, [gateways])
+
+  const zonesGeojson = useMemo(() => {
+    if (!zones || !zones.length) return { type: 'FeatureCollection', features: [] }
+    const features = zones
+      .filter((z) => z.geojson && z.geojson.geometry)
+      .map((z) => ({
+        ...z.geojson,
+        properties: {
+          ...z.geojson.properties,
+          zoneId: z.id,
+          name: z.name,
+          kind: z.kind,
+          bayCount: z.bayCount,
+          address: z.geojson.properties?.address || z.address || '',
+          source: z.geojson.properties?.source || 'VisionDrive',
+          tariff: z.tariff ? JSON.stringify(z.tariff) : null,
+        },
+      }))
+    return { type: 'FeatureCollection', features }
+  }, [zones])
 
   const fitSensorsOnMap = useCallback(() => {
     const map = mapRef.current
@@ -270,6 +320,25 @@ export default function CalibrationPage() {
       )
       const json = await res.json()
       if (json.success) setItems(json.items || [])
+
+      // Also load gateways for calibration map (so we can place sensors relative to gateway coverage).
+      // We reuse /api/portal/map which already returns tenant-scoped gateways with lat/lng.
+      try {
+        const mapRes = await fetch(`/api/portal/map?zoneId=all`, { credentials: 'include' })
+        const mapJson = await mapRes.json()
+        if (mapJson?.success) setGateways(mapJson.gateways || [])
+      } catch {
+        // ignore (gateways optional)
+      }
+
+      // Load parking zones
+      try {
+        const zonesRes = await fetch(`/api/portal/zones`, { credentials: 'include' })
+        const zonesJson = await zonesRes.json()
+        if (zonesJson?.success) setZones(zonesJson.zones || [])
+      } catch {
+        // ignore (zones optional)
+      }
     } finally {
       if (boot) setBootLoading(false)
       else setListLoading(false)
@@ -293,13 +362,13 @@ export default function CalibrationPage() {
       console.error('Mapbox token not found')
       return
     }
-    if (!containerRef.current) return
+    if (!containerEl) return
     if (mapRef.current) return
 
     ;(mapboxgl as any).accessToken = token
 
     const map = new mapboxgl.Map({
-      container: containerRef.current,
+      container: containerEl,
       style: satellite ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v12',
       center: [center.lng, center.lat],
       zoom: satellite ? 19 : 18,
@@ -309,7 +378,60 @@ export default function CalibrationPage() {
     mapRef.current = map
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
 
+    // Ensure the map renders on first paint (container sizing can settle after initial layout).
+    map.once('load', () => {
+      setMapReadyTick((t) => t + 1)
+      requestAnimationFrame(() => {
+        try {
+          map.resize()
+        } catch {
+          // ignore
+        }
+      })
+    })
+
     map.on('style.load', () => {
+      // Traffic layer
+      try {
+        if (!map.getSource('mapbox-traffic')) {
+          map.addSource('mapbox-traffic', {
+            type: 'vector',
+            url: 'mapbox://mapbox.mapbox-traffic-v1',
+          } as any)
+        }
+        
+        if (!map.getLayer('traffic-flow')) {
+          map.addLayer({
+            id: 'traffic-flow',
+            type: 'line',
+            source: 'mapbox-traffic',
+            'source-layer': 'traffic',
+            layout: {
+              'line-cap': 'round',
+              'line-join': 'round',
+              'visibility': traffic ? 'visible' : 'none',
+            },
+            paint: {
+              'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1, 15, 3, 18, 6],
+              'line-color': [
+                'case',
+                ['==', 'low', ['get', 'congestion']],
+                '#16a34a',
+                ['==', 'moderate', ['get', 'congestion']],
+                '#f59e0b',
+                ['==', 'heavy', ['get', 'congestion']],
+                '#dc2626',
+                ['==', 'severe', ['get', 'congestion']],
+                '#7f1d1d',
+                '#3b82f6',
+              ],
+            },
+          } as any, 'road-label')
+        }
+      } catch {
+        // ignore
+      }
+
       // 3D buildings layer
       try {
         if (mode3d && !map.getLayer('3d-buildings') && map.getSource('composite')) {
@@ -341,13 +463,14 @@ export default function CalibrationPage() {
     })
 
     // map load event is handled by layer bootstrap; no debug logs in production
-  }, [token, satellite, mode3d])
+  }, [token, containerEl, satellite, mode3d])
 
   // Update map center when center changes
   useEffect(() => {
     const map = mapRef.current
     if (!map || !map.isStyleLoaded()) return
-    map.flyTo({ center: [center.lng, center.lat], zoom: 18, duration: 1000 })
+    // Pan only (do not change zoom automatically). This keeps calibration comfortable while dragging markers.
+    map.easeTo({ center: [center.lng, center.lat], duration: 600 })
   }, [center.lat, center.lng])
 
   // Update style (satellite toggle)
@@ -365,11 +488,29 @@ export default function CalibrationPage() {
     map.easeTo({ pitch: mode3d ? 45 : 0, duration: 600 })
   }, [mode3d])
 
+  // Update traffic visibility
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.isStyleLoaded()) return
+    if (map.getLayer('traffic-flow')) {
+      map.setLayoutProperty('traffic-flow', 'visibility', traffic ? 'visible' : 'none')
+    }
+  }, [traffic])
+
+  // Update zones visibility
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.isStyleLoaded()) return
+    const vis = showZones ? 'visible' : 'none'
+    if (map.getLayer('calib-zones-fills')) map.setLayoutProperty('calib-zones-fills', 'visibility', vis)
+    if (map.getLayer('calib-zones-outlines')) map.setLayoutProperty('calib-zones-outlines', 'visibility', vis)
+    if (map.getLayer('calib-zones-labels')) map.setLayoutProperty('calib-zones-labels', 'visibility', vis)
+  }, [showZones])
+
   // Add/update "all sensors" layer for visual reference
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    if (!items.length) return // Don't try to add layers if no data yet
 
     const ensureLayers = () => {
       // Ensure map is ready
@@ -381,6 +522,128 @@ export default function CalibrationPage() {
         ;(map.getSource('calib-sensors') as any).setData(allSensorsGeojson as any)
       }
 
+      // Gateways (blue "G") for reference
+      if (!map.getSource('calib-gateways')) {
+        map.addSource('calib-gateways', { type: 'geojson', data: gatewaysGeojson as any })
+      } else {
+        ;(map.getSource('calib-gateways') as any).setData(gatewaysGeojson as any)
+      }
+
+      // Parking Zones
+      if (!map.getSource('calib-zones')) {
+        map.addSource('calib-zones', { type: 'geojson', data: zonesGeojson as any })
+      } else {
+        ;(map.getSource('calib-zones') as any).setData(zonesGeojson as any)
+      }
+
+      if (!map.getLayer('calib-zones-fills')) {
+        map.addLayer({
+          id: 'calib-zones-fills',
+          type: 'fill',
+          source: 'calib-zones',
+          layout: {
+            'visibility': 'none',
+          },
+          paint: {
+            'fill-color': [
+              'match',
+              ['get', 'kind'],
+              'FREE',
+              '#10b981', // green
+              'PAID',
+              '#3b82f6', // blue
+              'PRIVATE',
+              '#8b5cf6', // purple
+              '#6b7280', // gray default
+            ],
+            'fill-opacity': 0.15,
+          },
+        })
+      }
+
+      if (!map.getLayer('calib-zones-outlines')) {
+        map.addLayer({
+          id: 'calib-zones-outlines',
+          type: 'line',
+          source: 'calib-zones',
+          layout: {
+            'visibility': 'none',
+          },
+          paint: {
+            'line-color': [
+              'match',
+              ['get', 'kind'],
+              'FREE',
+              '#10b981',
+              'PAID',
+              '#3b82f6',
+              'PRIVATE',
+              '#8b5cf6',
+              '#6b7280',
+            ],
+            'line-width': 2,
+            'line-opacity': 0.8,
+          },
+        })
+      }
+
+      if (!map.getLayer('calib-zones-labels')) {
+        map.addLayer({
+          id: 'calib-zones-labels',
+          type: 'symbol',
+          source: 'calib-zones',
+          layout: {
+            'visibility': 'none',
+            'text-field': ['get', 'name'],
+            'text-size': 12,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+          },
+          paint: {
+            'text-color': '#1f2937',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 2,
+          },
+        })
+      }
+
+      if (!map.getLayer('calib-gateways-dots')) {
+        map.addLayer({
+          id: 'calib-gateways-dots',
+          type: 'circle',
+          source: 'calib-gateways',
+          paint: {
+            'circle-radius': 5,
+            'circle-color': '#2563eb',
+            'circle-opacity': 0.9,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+          },
+        })
+      }
+
+      if (!map.getLayer('calib-gateways-labels')) {
+        map.addLayer({
+          id: 'calib-gateways-labels',
+          type: 'symbol',
+          source: 'calib-gateways',
+          filter: ['!=', ['get', 'label'], ''],
+          layout: {
+            'text-field': ['get', 'label'],
+            'text-size': 10,
+            'text-offset': [0, 0.8],
+            'text-anchor': 'top',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
+          },
+          paint: {
+            'text-color': '#111827',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 1.25,
+          },
+        })
+      }
+
       // base dots
       if (!map.getLayer('calib-sensors-dots')) {
         map.addLayer({
@@ -389,10 +652,10 @@ export default function CalibrationPage() {
           source: 'calib-sensors',
           filter: ['!=', ['get', 'multiSelected'], 1],
           paint: {
-            'circle-radius': 6,
+            'circle-radius': 4,
             'circle-color': '#3b82f6',
             'circle-opacity': 0.8,
-            'circle-stroke-width': 2,
+            'circle-stroke-width': 1.5,
             'circle-stroke-color': '#ffffff',
           },
         })
@@ -406,7 +669,7 @@ export default function CalibrationPage() {
           source: 'calib-sensors',
           filter: ['==', ['get', 'multiSelected'], 1],
           paint: {
-            'circle-radius': 8,
+            'circle-radius': 6,
             'circle-color': '#f97316',
             'circle-opacity': 0.9,
             'circle-stroke-width': 3,
@@ -423,7 +686,7 @@ export default function CalibrationPage() {
           source: 'calib-sensors',
           filter: ['==', ['get', 'selected'], 1],
           paint: {
-            'circle-radius': 12,
+            'circle-radius': 10,
             'circle-color': '#22c55e',
             'circle-opacity': 0.95,
             'circle-stroke-width': 3,
@@ -432,6 +695,94 @@ export default function CalibrationPage() {
         })
       } else {
         map.setFilter('calib-sensors-selected', ['==', ['get', 'selected'], 1])
+      }
+
+      // labels (A1..A40)
+      if (!map.getLayer('calib-sensors-labels')) {
+        map.addLayer({
+          id: 'calib-sensors-labels',
+          type: 'symbol',
+          source: 'calib-sensors',
+          filter: ['!=', ['get', 'label'], ''],
+          layout: {
+            'text-field': ['get', 'label'],
+            'text-size': 10,
+            'text-offset': [0, 0.8],
+            'text-anchor': 'top',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
+          },
+          paint: {
+            'text-color': '#111827',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 1.25,
+          },
+        })
+      }
+
+      // Parking zones - hover and click handlers
+      if (!(map as any).__calibZonesClickBound) {
+        const zonePopup = new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
+        
+        map.on('mouseenter', 'calib-zones-fills', () => (map.getCanvas().style.cursor = 'pointer'))
+        map.on('mouseleave', 'calib-zones-fills', () => (map.getCanvas().style.cursor = ''))
+        map.on('click', 'calib-zones-fills', (e) => {
+          const f = e.features?.[0] as any
+          if (!f) return
+          
+          // Get center of the zone polygon
+          const bounds = new mapboxgl.LngLatBounds()
+          if (f.geometry.type === 'Polygon') {
+            const coords = f.geometry.coordinates[0]
+            coords.forEach((coord: [number, number]) => bounds.extend(coord))
+          }
+          const center = bounds.getCenter()
+          
+          const p = f.properties || {}
+          const name = p.name || 'Parking Zone'
+          const kind = p.kind || 'PAID'
+          const address = p.address || '—'
+          const source = p.source || 'VisionDrive'
+          
+          // Parse tariff if available
+          let tariffHTML = ''
+          if (p.tariff) {
+            try {
+              const tariff = JSON.parse(p.tariff)
+              tariffHTML = `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">` +
+                `<div style="font-weight: 600; margin-bottom: 4px;">💰 Tariff</div>` +
+                `<div style="margin-bottom: 2px;">Rate: ${tariff.rateAedPerHour} AED/hour</div>` +
+                `<div style="margin-bottom: 2px;">Hours: ${tariff.hours}</div>` +
+                `<div>Max Daily: ${tariff.maxDailyAed} AED</div>` +
+                `</div>`
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+          
+          // Color-coded badge for zone type
+          const kindColor = kind === 'FREE' ? '#10b981' : kind === 'PAID' ? '#3b82f6' : '#8b5cf6'
+          const kindEmoji = kind === 'FREE' ? '🆓' : kind === 'PAID' ? '💳' : '🔒'
+          
+          zonePopup
+            .setLngLat(center)
+            .setHTML(
+              `<div style="font-family: system-ui; font-size: 14px; line-height: 1.6;">` +
+                `<div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">${name}</div>` +
+                `<div style="margin-bottom: 4px;">` +
+                  `<span style="display: inline-block; padding: 2px 8px; background: ${kindColor}; color: white; border-radius: 4px; font-size: 12px; font-weight: 600;">` +
+                    `${kindEmoji} ${kind}` +
+                  `</span>` +
+                `</div>` +
+                `<div style="margin-bottom: 4px;"><b>📍 Location:</b> ${address}</div>` +
+                `<div style="margin-bottom: 4px; font-size: 12px; color: #6b7280;">Source: ${source}</div>` +
+                tariffHTML +
+              `</div>`
+            )
+            .addTo(map)
+        })
+        
+        ;(map as any).__calibZonesClickBound = true
       }
 
       // click to select
@@ -501,6 +852,11 @@ export default function CalibrationPage() {
       if (map.getLayer('calib-sensors-dots')) map.setLayoutProperty('calib-sensors-dots', 'visibility', vis)
       if (map.getLayer('calib-sensors-multi')) map.setLayoutProperty('calib-sensors-multi', 'visibility', vis)
       if (map.getLayer('calib-sensors-selected')) map.setLayoutProperty('calib-sensors-selected', 'visibility', vis)
+      if (map.getLayer('calib-sensors-labels')) map.setLayoutProperty('calib-sensors-labels', 'visibility', vis)
+
+      // Gateways always visible (independent of showAllOnMap)
+      if (map.getLayer('calib-gateways-dots')) map.setLayoutProperty('calib-gateways-dots', 'visibility', 'visible')
+      if (map.getLayer('calib-gateways-labels')) map.setLayoutProperty('calib-gateways-labels', 'visibility', 'visible')
     }
 
     // Ensure on first render (map may still be loading) and re-ensure on every style reload
@@ -521,7 +877,7 @@ export default function CalibrationPage() {
       map.off('load', ensureLayers)
       map.off('idle', ensureLayers)
     }
-  }, [sensorsLayerKey])
+  }, [sensorsLayerKey, mapReadyTick, gatewaysGeojson])
 
   // Place / update draggable marker for selected sensor or multi-select center
   useEffect(() => {
@@ -622,7 +978,7 @@ export default function CalibrationPage() {
       setDraft({ lat: start.lat, lng: start.lng })
     }
 
-    map.easeTo({ center: [start.lng, start.lat], zoom: 19, duration: 450 })
+    // Do not auto-zoom/pan here. The user controls the camera while calibrating.
   }, [selectedId, selected?.lat, selected?.lng, draft.lat, draft.lng, multiSelectMode, selectedIds, items])
 
   // Cleanup map
@@ -671,7 +1027,10 @@ export default function CalibrationPage() {
           method: 'POST',
           credentials: 'include',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'bulk_update_locations', updates }),
+          body: JSON.stringify({
+            action: 'bulk_update_locations',
+            updates,
+          }),
         })
         const json = await res.json()
         if (!json?.success) {
@@ -724,343 +1083,221 @@ export default function CalibrationPage() {
 
   if (!token) {
     return (
-      <Section className="pt-32 pb-12 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-        <div className="max-w-6xl mx-auto">
-          <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-6 shadow-md">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-[1920px] mx-auto">
+          <div className="rounded-xl border-2 border-yellow-200 bg-yellow-50 p-6 shadow-lg">
             <p className="text-sm text-yellow-900">
               Set <code className="font-mono font-semibold">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> to use Calibration.
             </p>
           </div>
         </div>
-      </Section>
+      </div>
     )
   }
 
   if (bootLoading) {
     return (
-      <Section className="pt-6 pb-12 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-        <div className="flex items-center justify-center min-h-[600px]">
-          <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-700 font-medium">Loading calibration tools...</p>
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-[1920px] mx-auto">
+          <div className="flex items-center justify-center min-h-[600px]">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+              <p className="text-gray-700 font-medium">Loading calibration tools...</p>
+            </div>
           </div>
         </div>
-      </Section>
+      </div>
     )
   }
 
   return (
-    <Section className="pt-6 pb-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-      <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[2000px] mx-auto">
-        {/* Header Bar */}
-        <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg">
-                <MapPin className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Sensor Calibration</h1>
-                <p className="text-sm text-gray-600">Drag sensors to their exact location on the map</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (multiSelectMode) {
-                    // Exit multi-select mode
-                    setSelectedIds(new Set())
-                    setMultiSelectMode(false)
-                  } else {
-                    // Enter multi-select mode
-                    setSelectedId(null)
-                    setMultiSelectMode(true)
-                  }
-                }}
-                className={`inline-flex items-center px-4 py-2 rounded-xl font-medium transition-all shadow-sm ${
-                  multiSelectMode
-                    ? 'bg-orange-600 text-white shadow-lg' 
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <MousePointer2 className="h-4 w-4 mr-2" />
-                {multiSelectMode ? 'Exit Multi-Select' : 'Multi-Select'}
-              </button>
-              
-              {multiSelectMode && (
-                <>
-                  <button
-                    onClick={() => {
-                      const visibleIds = new Set(filtered.map(s => s.id))
-                      setSelectedIds(visibleIds)
-                    }}
-                    className="inline-flex items-center px-4 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all shadow-sm font-medium"
-                  >
-                    Select All Visible
-                  </button>
-                  <button
-                    onClick={() => setSelectedIds(new Set())}
-                    className="inline-flex items-center px-4 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all shadow-sm font-medium"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Clear ({selectedIds.size})
-                  </button>
-                </>
-              )}
-              
-              <button
-                onClick={() => setSatellite((v) => !v)}
-                className={`inline-flex items-center px-4 py-2 rounded-xl font-medium transition-all shadow-sm ${
-                  satellite 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Satellite className="h-4 w-4 mr-2" />
-                Satellite
-              </button>
-              <button
-                onClick={() => setMode3d((v) => !v)}
-                className={`inline-flex items-center px-4 py-2 rounded-xl font-medium transition-all shadow-sm ${
-                  mode3d 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Box className="h-4 w-4 mr-2" />
-                3D
-              </button>
-            </div>
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-[1920px] mx-auto">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2">Sensor Calibration</h1>
+            <p className="text-base sm:text-lg text-gray-600">
+              Drag sensors to their exact location on the map · {filtered.length} visible sensor{filtered.length !== 1 ? 's' : ''}
+              {multiSelectMode ? ` · Multi-select: ${selectedIds.size} selected` : selected ? ` · Selected: ${selected.devEui}` : ''}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                if (multiSelectMode) {
+                  setSelectedIds(new Set())
+                  setMultiSelectMode(false)
+                } else {
+                  setSelectedId(null)
+                  setMultiSelectMode(true)
+                }
+              }}
+              className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors border-2 ${
+                multiSelectMode ? 'bg-orange-600 border-orange-700 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <MousePointer2 className="h-5 w-5 mr-2" />
+              {multiSelectMode ? 'Exit Multi-Select' : 'Multi-Select'}
+            </button>
+
+            {multiSelectMode && (
+              <>
+                <button
+                  onClick={() => {
+                    const visibleIds = new Set(filtered.map((s) => s.id))
+                    setSelectedIds(visibleIds)
+                  }}
+                  className="inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Select All Visible
+                </button>
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  className="inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <X className="h-5 w-5 mr-2" />
+                  Clear ({selectedIds.size})
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={() => setSatellite((v) => !v)}
+              className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors border-2 ${
+                satellite ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Satellite className="h-5 w-5 mr-2" />
+              Satellite
+            </button>
+            <button
+              onClick={() => setMode3d((v) => !v)}
+              className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors border-2 ${
+                mode3d ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Box className="h-5 w-5 mr-2" />
+              3D
+            </button>
+            <button
+              onClick={() => setTraffic((v) => !v)}
+              className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors border-2 ${
+                traffic ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+              title="Toggle real-time traffic data for Dubai"
+            >
+              <Car className="h-5 w-5 mr-2" />
+              Traffic
+            </button>
+            <button
+              onClick={() => setShowZones((v) => !v)}
+              className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors border-2 ${
+                showZones ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+              title="Toggle parking zones"
+            >
+              <MapPin className="h-5 w-5 mr-2" />
+              Parking Areas ({zones.length})
+            </button>
           </div>
         </div>
 
-        {/* Main Layout */}
-        <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)] relative">
-          {/* Sidebar */}
-          <div className={`${sidebarOpen ? 'col-span-12 lg:col-span-3' : 'col-span-0'} bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col transition-all duration-300 relative ${!sidebarOpen && 'hidden'}`}>
-            {/* Chevron Toggle Button */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="absolute top-4 -right-3 z-10 bg-white border border-gray-300 rounded-full p-1.5 shadow-lg hover:bg-gray-50 transition-all hover:scale-110"
-              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            >
-              {sidebarOpen ? (
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-gray-600" />
-              )}
-            </button>
-
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border-b border-gray-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Navigation className="h-5 w-5 text-blue-600" />
-                  <h2 className="font-bold text-gray-900">Sensors</h2>
-                </div>
-
-                {looksStacked && (
-                  <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                    <div className="font-semibold">Demo sensor positions look stacked</div>
-                    <div className="mt-0.5">
-                      Only {sensorCoordDistinct} distinct sensor coordinate pairs detected. Click “Reset demo coords” to
-                      restore 40 distinct points from bay positions.
-                    </div>
-                    <div className="mt-2">
-                      <button
-                        type="button"
-                        onClick={resetDemoCoords}
-                        className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-1.5 text-white hover:bg-amber-700 transition-colors"
-                      >
-                        Reset demo coords
-                      </button>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Search className="h-4 w-4 text-gray-400 absolute left-3 top-3" />
-                    <input
-                      value={q}
-                      onChange={(e) => setQ(e.target.value)}
-                      placeholder="Search DevEUI / bay..."
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 text-xs cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={installedOnly} 
-                        onChange={(e) => setInstalledOnly(e.target.checked)}
-                        className="rounded"
-                      />
-                      <span className="text-gray-700">Installed only</span>
-                    </label>
-                    <label className="flex items-center gap-2 text-xs cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={showAllOnMap} 
-                        onChange={(e) => setShowAllOnMap(e.target.checked)}
-                        className="rounded"
-                      />
-                      <span className="text-gray-700">Show all on map</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={fitSensorsOnMap}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all shadow-sm text-xs"
-                      title="Fit all sensors on map"
-                    >
-                      <Maximize2 className="h-3.5 w-3.5 text-blue-600" />
-                      Fit
-                    </button>
-                    <button
-                      onClick={() => load(false)}
-                      disabled={listLoading}
-                      className="ml-auto p-1 hover:bg-blue-100 rounded transition-colors"
-                      title="Refresh"
-                    >
-                      <RefreshCw className={`h-4 w-4 text-blue-600 ${listLoading ? 'animate-spin' : ''}`} />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="text-xs text-gray-600 mt-2">
-                  {filtered.length} sensor{filtered.length !== 1 ? 's' : ''}
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-auto">
-                {filtered.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      if (multiSelectMode) {
-                        setSelectedIds(prev => {
-                          const next = new Set(prev)
-                          if (next.has(s.id)) {
-                            next.delete(s.id)
-                          } else {
-                            next.add(s.id)
-                          }
-                          return next
-                        })
-                      } else {
-                        setSelectedId(s.id)
-                        const fallback =
-                          typeof s.lat === 'number' && typeof s.lng === 'number'
-                            ? { lat: s.lat, lng: s.lng }
-                            : typeof s.bayLat === 'number' && typeof s.bayLng === 'number'
-                              ? { lat: s.bayLat, lng: s.bayLng }
-                              : (() => {
-                                  const c = mapRef.current?.getCenter()
-                                  return c ? { lat: c.lat, lng: c.lng } : { lat: 25.1016, lng: 55.1622 }
-                                })()
-                        setDraft({ lat: fallback.lat, lng: fallback.lng })
-                        setStatus(null)
-                      }
-                    }}
-                    className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-blue-50 transition-colors ${
-                      multiSelectMode && selectedIds.has(s.id)
-                        ? 'bg-orange-50 border-l-4 border-l-orange-600'
-                        : selectedId === s.id && !multiSelectMode
-                        ? 'bg-blue-50 border-l-4 border-l-blue-600'
-                        : ''
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      {multiSelectMode && (
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(s.id)}
-                          onChange={() => {}}
-                          className="mt-1 rounded"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-mono text-sm font-semibold text-gray-900 truncate">{s.devEui}</div>
-                        <div className="text-xs text-gray-600 truncate mt-1">
-                          {s.siteName || '—'} · {s.zoneName || '—'} · Bay {s.bayCode || '—'}
-                        </div>
-                        <div className="flex items-center gap-1 mt-1">
-                          {typeof s.lat === 'number' && typeof s.lng === 'number' ? (
-                            <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded">
-                              <CheckCircle2 className="h-3 w-3" />
-                              Calibrated
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
-                              <AlertCircle className="h-3 w-3" />
-                              Needs position
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-                {!filtered.length && (
-                  <div className="p-8 text-center text-gray-500">
-                    <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm font-medium">No sensors found</p>
-                  </div>
-                )}
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Map (wide) */}
+          <div className="lg:col-span-3 bg-white rounded-xl shadow-lg border-2 border-gray-200 p-6 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Calibration Map (Mapbox)</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={save}
+                  disabled={
+                    saving ||
+                    typeof draft.lat !== 'number' ||
+                    typeof draft.lng !== 'number' ||
+                    (!selectedId && !(multiSelectMode && selectedIds.size > 0))
+                  }
+                  className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                    multiSelectMode && selectedIds.size > 0 ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                  title="Save sensor position"
+                >
+                  <Save className="h-5 w-5 mr-2" />
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={fitSensorsOnMap}
+                  className="inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+                  title="Fit all sensors on map"
+                >
+                  <Maximize2 className="h-5 w-5 mr-2 text-blue-600" />
+                  Fit
+                </button>
+                <button
+                  onClick={() => load(false)}
+                  disabled={listLoading}
+                  className="inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-gray-900 text-white hover:bg-black disabled:opacity-50"
+                  title="Refresh"
+                >
+                  <RefreshCw className={`h-5 w-5 mr-2 ${listLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
               </div>
             </div>
-          {/* Chevron Toggle Button - Visible when sidebar is closed */}
-          {!sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="absolute left-0 top-4 z-10 bg-white border border-gray-300 rounded-r-full pl-1.5 pr-2 py-2 shadow-lg hover:bg-gray-50 transition-all hover:scale-110"
-              title="Expand sidebar"
-            >
-              <ChevronRight className="h-5 w-5 text-gray-600" />
-            </button>
-          )}
 
-          {/* Map Container */}
-          <div className={`${sidebarOpen ? 'col-span-12 lg:col-span-9' : 'col-span-12'} bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col`}>
-            {/* Map Header */}
-            {multiSelectMode && selectedIds.size > 0 ? (
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="p-2 bg-orange-600 rounded-lg">
-                      <Move className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-bold text-gray-900">
-                        Multi-Select Mode: {selectedIds.size} sensor{selectedIds.size !== 1 ? 's' : ''} selected
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        Drag the marker to set position for all selected sensors
-                      </div>
-                      {typeof draft.lat === 'number' && typeof draft.lng === 'number' && (
-                        <div className="text-xs text-gray-500 font-mono mt-1">
-                          Target position: {draft.lat.toFixed(6)}, {draft.lng.toFixed(6)}
+            {(multiSelectMode && selectedIds.size > 0) || selected ? (
+              <div className="mb-4 rounded-lg border-2 border-gray-200 bg-gray-50 p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    {multiSelectMode && selectedIds.size > 0 ? (
+                      <>
+                        <div className="text-sm font-semibold text-gray-900">
+                          Multi-select: {selectedIds.size} sensor{selectedIds.size !== 1 ? 's' : ''} selected
                         </div>
-                      )}
-                    </div>
+                        <div className="text-xs text-gray-600">Drag the marker to set position for all selected sensors.</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-mono text-sm font-semibold text-gray-900 truncate">{selected?.devEui}</div>
+                        <div className="text-xs text-gray-600 truncate">
+                          {selected?.siteName || '—'} · {selected?.zoneName || '—'} · Bay {selected?.bayCode || '—'}
+                        </div>
+                      </>
+                    )}
+                    {typeof draft.lat === 'number' && typeof draft.lng === 'number' && (
+                      <div className="text-xs text-gray-500 font-mono mt-1">
+                        Target: {draft.lat.toFixed(6)}, {draft.lng.toFixed(6)}
+                      </div>
+                    )}
                   </div>
+
                   <button
                     onClick={save}
                     disabled={saving || typeof draft.lat !== 'number' || typeof draft.lng !== 'number'}
-                    className="inline-flex items-center px-6 py-3 rounded-xl bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg font-semibold"
+                    className={`inline-flex items-center px-5 py-3 text-sm font-medium rounded-lg text-white disabled:opacity-50 ${
+                      multiSelectMode ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'
+                    }`}
                   >
                     <Save className="h-5 w-5 mr-2" />
-                    {saving ? 'Saving...' : `Save ${selectedIds.size} Position${selectedIds.size !== 1 ? 's' : ''}`}
+                    {saving
+                      ? 'Saving...'
+                      : multiSelectMode
+                        ? `Save ${selectedIds.size} Position${selectedIds.size !== 1 ? 's' : ''}`
+                        : 'Save Position'}
                   </button>
                 </div>
+
                 {status && (
-                  <div className={`mt-3 p-3 rounded-xl flex items-center gap-2 ${
-                    status.includes('✓') || status.includes('success') || status.includes('Saved')
-                      ? 'bg-green-100 text-green-800 border border-green-200'
-                      : status.includes('failed') || status.includes('error')
-                      ? 'bg-red-100 text-red-800 border border-red-200'
-                      : 'bg-blue-100 text-blue-800 border border-blue-200'
-                  }`}>
+                  <div
+                    className={`mt-3 p-3 rounded-lg flex items-center gap-2 border ${
+                      status.includes('✓') || status.includes('success') || status.includes('Saved')
+                        ? 'bg-green-50 text-green-800 border-green-200'
+                        : status.includes('failed') || status.includes('error')
+                          ? 'bg-red-50 text-red-800 border-red-200'
+                          : 'bg-blue-50 text-blue-800 border-blue-200'
+                    }`}
+                  >
                     {status.includes('✓') || status.includes('success') || status.includes('Saved') ? (
                       <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
                     ) : status.includes('failed') || status.includes('error') ? (
@@ -1072,63 +1309,139 @@ export default function CalibrationPage() {
                   </div>
                 )}
               </div>
-            ) : selected && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="p-2 bg-green-600 rounded-lg">
-                      <MapPin className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-mono text-sm font-bold text-gray-900 truncate">{selected.devEui}</div>
-                      <div className="text-xs text-gray-600 truncate">
-                        {selected.siteName} · {selected.zoneName} · Bay {selected.bayCode}
-                      </div>
-                      {typeof draft.lat === 'number' && typeof draft.lng === 'number' && (
-                        <div className="text-xs text-gray-500 font-mono mt-1">
-                          Position: {draft.lat.toFixed(6)}, {draft.lng.toFixed(6)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    onClick={save}
-                    disabled={saving || typeof draft.lat !== 'number' || typeof draft.lng !== 'number'}
-                    className="inline-flex items-center px-6 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg font-semibold"
-                  >
-                    <Save className="h-5 w-5 mr-2" />
-                    {saving ? 'Saving...' : 'Save Position'}
-                  </button>
-                </div>
-                {status && (
-                  <div className={`mt-3 p-3 rounded-xl flex items-center gap-2 ${
-                    status.includes('✓') || status.includes('success')
-                      ? 'bg-green-100 text-green-800 border border-green-200'
-                      : status.includes('failed') || status.includes('error')
-                      ? 'bg-red-100 text-red-800 border border-red-200'
-                      : 'bg-blue-100 text-blue-800 border border-blue-200'
-                  }`}>
-                    {status.includes('✓') || status.includes('success') ? (
-                      <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
-                    ) : status.includes('failed') || status.includes('error') ? (
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                    ) : (
-                      <Info className="h-4 w-4 flex-shrink-0" />
-                    )}
-                    <span className="text-sm font-medium">{status}</span>
-                  </div>
-                )}
+            ) : (
+              <div className="mb-4 text-sm text-gray-600">
+                Select a sensor from the list (or enable Multi-Select) to move it on the map.
               </div>
             )}
 
-            {/* Map */}
-            <div className="flex-1 relative">
-              <div ref={containerRef} className="w-full h-full" />
+            <div className="h-[600px] sm:h-[700px] lg:h-[900px] xl:h-[1000px] rounded-lg overflow-hidden border border-gray-200">
+              <div ref={setContainerEl} className="w-full h-full" />
+            </div>
+          </div>
+
+          {/* Sensors (right) */}
+          <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-6 flex flex-col">
+            <div className="mb-4">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-gray-900">Sensors</h2>
+                <span className="text-sm text-gray-600 font-medium">{filtered.length}</span>
+              </div>
+
+              {looksStacked && (
+                <div className="mt-3 rounded-lg border-2 border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  <div className="font-semibold">Demo sensor positions look stacked</div>
+                  <div className="mt-1 text-xs">
+                    Only {sensorCoordDistinct} distinct coordinate pairs detected. Click “Reset demo coords” to restore 40 distinct points from bay
+                    positions.
+                  </div>
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={resetDemoCoords}
+                      className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-white hover:bg-amber-700"
+                    >
+                      Reset demo coords
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-4 space-y-3">
+                <div className="relative">
+                  <Search className="h-4 w-4 text-gray-400 absolute left-3 top-3" />
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search DevEUI / bay..."
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={installedOnly} onChange={(e) => setInstalledOnly(e.target.checked)} className="w-4 h-4" />
+                    <span className="text-gray-700 font-medium">Installed only</span>
+                  </label>
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={showAllOnMap} onChange={(e) => setShowAllOnMap(e.target.checked)} className="w-4 h-4" />
+                    <span className="text-gray-700 font-medium">Show all on map</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto -mx-6 border-t border-gray-100">
+              {filtered.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    if (multiSelectMode) {
+                      setSelectedIds((prev) => {
+                        const next = new Set(prev)
+                        if (next.has(s.id)) next.delete(s.id)
+                        else next.add(s.id)
+                        return next
+                      })
+                    } else {
+                      setSelectedId(s.id)
+                      const fallback =
+                        typeof s.lat === 'number' && typeof s.lng === 'number'
+                          ? { lat: s.lat, lng: s.lng }
+                          : typeof s.bayLat === 'number' && typeof s.bayLng === 'number'
+                            ? { lat: s.bayLat, lng: s.bayLng }
+                            : (() => {
+                                const c = mapRef.current?.getCenter()
+                                return c ? { lat: c.lat, lng: c.lng } : { lat: 25.1016, lng: 55.1622 }
+                              })()
+                      setDraft({ lat: fallback.lat, lng: fallback.lng })
+                      setStatus(null)
+                    }
+                  }}
+                  className={`w-full text-left px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                    multiSelectMode && selectedIds.has(s.id)
+                      ? 'bg-orange-50 border-l-4 border-l-orange-600'
+                      : selectedId === s.id && !multiSelectMode
+                        ? 'bg-blue-50 border-l-4 border-l-blue-600'
+                        : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {multiSelectMode && <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => {}} className="mt-1 rounded" />}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-mono text-sm font-semibold text-gray-900 truncate">{s.devEui}</div>
+                      <div className="text-xs text-gray-600 truncate mt-1">
+                        {s.siteName || '—'} · {s.zoneName || '—'} · Bay {s.bayCode || '—'}
+                      </div>
+                      <div className="flex items-center gap-1 mt-2">
+                        {typeof s.lat === 'number' && typeof s.lng === 'number' ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Calibrated
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                            <AlertCircle className="h-3 w-3" />
+                            Needs position
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+
+              {!filtered.length && (
+                <div className="p-8 text-center text-gray-500">
+                  <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm font-medium">No sensors found</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </Section>
+    </div>
   )
 }
 

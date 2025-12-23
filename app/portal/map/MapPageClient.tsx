@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Section from '../../components/common/Section'
-import { ArrowLeft, Loader2, Navigation } from 'lucide-react'
+import { ArrowLeft, Loader2, Navigation, MapPin } from 'lucide-react'
 import MapboxMap from './MapboxMap'
 import { appleMapsDirectionsUrl, googleMapsDirectionsUrl } from '@/lib/navigation-links'
 
@@ -42,10 +42,12 @@ export default function PortalMapPageClient() {
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<MapItem[]>([])
   const [meta, setMeta] = useState<MapMeta | null>(null)
-  const [overlays, setOverlays] = useState<any>(null)
+  const [gateways, setGateways] = useState<any[]>([])
   const zoneId = searchParams.get('zoneId') || 'all'
   const [selectedBayId, setSelectedBayId] = useState<string | null>(null)
   const [filters, setFilters] = useState({ OCCUPIED: false, OFFLINE: false, UNKNOWN: false })
+  const [zones, setZones] = useState<any[]>([])
+  const [showZones, setShowZones] = useState(false)
 
   const summary = useMemo(() => {
     let free = 0
@@ -108,7 +110,14 @@ export default function PortalMapPageClient() {
         if (json.success) {
           setItems(json.items || [])
           setMeta(json.meta || null)
-          setOverlays(json.overlays || null)
+          setGateways(json.gateways || [])
+        }
+
+        // Fetch all zones
+        const zonesRes = await fetch('/api/portal/zones', { credentials: 'include' })
+        const zonesJson = await zonesRes.json()
+        if (zonesJson.success) {
+          setZones(zonesJson.zones || [])
         }
       } finally {
         setLoading(false)
@@ -201,7 +210,7 @@ export default function PortalMapPageClient() {
                   if (json.success) {
                     setItems(json.items || [])
                     setMeta(json.meta || null)
-                    setOverlays(json.overlays || null)
+                    setGateways(json.gateways || [])
                   }
                   setLoading(false)
                 }}
@@ -209,6 +218,18 @@ export default function PortalMapPageClient() {
               >
                 <Loader2 className="h-5 w-5 mr-2" />
                 Refresh
+              </button>
+              <button
+                onClick={() => setShowZones(!showZones)}
+                className={`inline-flex items-center px-5 py-3 text-base font-medium rounded-lg transition-colors ${
+                  showZones 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+                title={`${showZones ? 'Hide' : 'Show'} parking zones on map`}
+              >
+                <MapPin className="h-5 w-5 mr-2" />
+                Parking Areas ({zones.length})
               </button>
             </div>
 
@@ -240,10 +261,10 @@ export default function PortalMapPageClient() {
               <MapboxMap
                 meta={meta as any}
                 items={filteredItems as any}
-                selectedBayId={selectedBayId}
-                onSelectBay={(bayId) => setSelectedBayId(bayId)}
-                overlays={overlays}
-                initialLayers={{ bays: true, sensors: true, zones: true }}
+                gateways={gateways as any}
+                zones={zones}
+                showZones={showZones}
+                initialLayers={{ sensors: true, gateways: true, traffic: false }}
               />
             </div>
           </div>

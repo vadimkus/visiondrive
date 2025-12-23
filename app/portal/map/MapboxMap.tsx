@@ -31,39 +31,73 @@ type MapMeta = {
   bayCount: number
 }
 
+type GatewayItem = {
+  id: string
+  name: string
+  status?: string | null
+  backhaul?: string | null
+  lastHeartbeat?: string | null
+  ageMinutes?: number | null
+  state?: 'ONLINE' | 'OFFLINE'
+  lat: number | null
+  lng: number | null
+}
+
 type Props = {
   meta: MapMeta | null
   items: MapItem[]
-  selectedBayId?: string | null
-  onSelectBay?: (bayId: string) => void
-  overlays?: any
-  initialLayers?: { bays?: boolean; sensors?: boolean; zones?: boolean }
+  gateways?: GatewayItem[]
+  zones?: any[]
+  showZones?: boolean
+  initialLayers?: { sensors?: boolean; gateways?: boolean; traffic?: boolean }
 }
 
 function asFeatureCollection(features: any[]) {
   return { type: 'FeatureCollection', features }
 }
 
-function colorForState(state: MapItem['state']) {
-  if (state === 'FREE') return '#16a34a' // green-600
-  if (state === 'OCCUPIED') return '#dc2626' // red-600
-  if (state === 'OFFLINE') return '#d97706' // amber-600
-  return '#6b7280' // gray-500
+function labelFromBayCode(bayCode: string | null | undefined) {
+  const s = (bayCode || '').trim()
+  if (!s) return ''
+  const m = /^A0*(\d+)$/.exec(s)
+  if (m?.[1]) return `A${Number(m[1])}`
+  return s
 }
 
-export default function MapboxMap({ meta, items, initialLayers, selectedBayId, onSelectBay, overlays }: Props) {
+function colorForState(state: MapItem['state']) {
+  // Requested scheme:
+  // - free: green
+  // - occupied: red
+  // - offline: black
+  // - online/unknown: blue
+  if (state === 'FREE') return '#16a34a' // green-600
+  if (state === 'OCCUPIED') return '#dc2626' // red-600
+  if (state === 'OFFLINE') return '#000000' // black
+  return '#2563eb' // blue-600
+}
+
+export default function MapboxMap({ meta, items, gateways, zones, showZones, initialLayers }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
-  const onSelectBayRef = useRef<Props['onSelectBay']>(undefined)
-
-  // Keep latest callback without re-registering map handlers.
-  onSelectBayRef.current = onSelectBay
 
   const [layers, setLayers] = useState({
-    bays: initialLayers?.bays ?? true,
     sensors: initialLayers?.sensors ?? true,
-    zones: initialLayers?.zones ?? true,
+    gateways: initialLayers?.gateways ?? true,
+    traffic: initialLayers?.traffic ?? false,
   })
+
+  // Update zones visibility when showZones prop changes
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.isStyleLoaded()) return
+    const setVis = (id: string, on: boolean) => {
+      if (!map.getLayer(id)) return
+      map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+    }
+    setVis('zone-fills', showZones ?? false)
+    setVis('zone-outlines', showZones ?? false)
+    setVis('zone-labels', showZones ?? false)
+  }, [showZones])
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ''
 
@@ -77,55 +111,6 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
     const lng = pts.reduce((s, p) => s + (p.lng as number), 0) / pts.length
     return { lat, lng }
   }, [items, meta?.centerLat, meta?.centerLng])
-
-  const bayPolygons = useMemo(() => {
-    return asFeatureCollection(
-      items
-        .map((b) => {
-          const gj = b.geojson?.geometry ? b.geojson : null
-          if (!gj) return null
-          return {
-            type: 'Feature',
-            geometry: gj.geometry,
-            properties: {
-              bayId: b.bayId,
-              bayCode: b.bayCode || '',
-              state: b.state,
-              confidence: b.confidence,
-              lastSeen: b.lastSeen || '',
-              devEui: b.devEui || '',
-              batteryPct: typeof b.batteryPct === 'number' ? b.batteryPct : null,
-              color: colorForState(b.state),
-            },
-          }
-        })
-        .filter(Boolean)
-    )
-  }, [items])
-
-  const bayPoints = useMemo(() => {
-    return asFeatureCollection(
-      items
-        .map((b) => {
-          if (typeof b.lat !== 'number' || typeof b.lng !== 'number') return null
-          return {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [b.lng, b.lat] },
-            properties: {
-              bayId: b.bayId,
-              bayCode: b.bayCode || '',
-              state: b.state,
-              confidence: b.confidence,
-              lastSeen: b.lastSeen || '',
-              devEui: b.devEui || '',
-              batteryPct: typeof b.batteryPct === 'number' ? b.batteryPct : null,
-              color: colorForState(b.state),
-            },
-          }
-        })
-        .filter(Boolean)
-    )
-  }, [items])
 
   const sensorPoints = useMemo(() => {
     return asFeatureCollection(
@@ -143,6 +128,7 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
               devEui: b.devEui || '',
               state: b.state,
               color: colorForState(b.state),
+              label: labelFromBayCode(b.bayCode),
             },
           }
         })
@@ -150,23 +136,50 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
     )
   }, [items])
 
-  const currentZoneFeature = useMemo(() => {
-    const z = meta?.zoneGeojson
-    if (!z?.geometry) return asFeatureCollection([])
-    return asFeatureCollection([
-      {
-        type: 'Feature',
-        geometry: z.geometry,
-        properties: { name: meta?.zoneName || '' },
-      },
-    ])
-  }, [meta?.zoneGeojson, meta?.zoneName])
+  const gatewayPoints = useMemo(() => {
+    return asFeatureCollection(
+      (gateways || [])
+        .map((g) => {
+          if (typeof g.lat !== 'number' || typeof g.lng !== 'number') return null
+          return {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [g.lng, g.lat] },
+            properties: {
+              id: g.id,
+              name: g.name,
+              label: 'G',
+              status: g.status || '',
+              backhaul: g.backhaul || '',
+              lastHeartbeat: g.lastHeartbeat || '',
+              ageMinutes: typeof g.ageMinutes === 'number' ? g.ageMinutes : null,
+              state: g.state || '',
+            },
+          }
+        })
+        .filter(Boolean)
+    )
+  }, [gateways])
 
-  const overlayZones = useMemo(() => {
-    const z = overlays?.zones
-    if (!z?.features) return asFeatureCollection([])
-    return z
-  }, [overlays])
+  const zonesGeojson = useMemo(() => {
+    if (!zones || !zones.length) return asFeatureCollection([])
+    return asFeatureCollection(
+      zones
+        .filter((z) => z.geojson && z.geojson.geometry)
+        .map((z) => ({
+          ...z.geojson,
+          properties: {
+            ...z.geojson.properties,
+            zoneId: z.id,
+            name: z.name,
+            kind: z.kind,
+            bayCount: z.bayCount,
+            address: z.geojson.properties?.address || z.address || '',
+            source: z.geojson.properties?.source || 'VisionDrive',
+            tariff: z.tariff ? JSON.stringify(z.tariff) : null,
+          },
+        }))
+    )
+  }, [zones])
 
   // Build / update map
   useEffect(() => {
@@ -189,103 +202,40 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
       map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
 
       map.on('load', () => {
-        // Current zone boundary (selected zone context)
-        map.addSource('zone-current', { type: 'geojson', data: currentZoneFeature as any })
-        map.addLayer({
-          id: 'zone-current-fill',
-          type: 'fill',
-          source: 'zone-current',
-          paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.08 },
-        })
-        map.addLayer({
-          id: 'zone-current-outline',
-          type: 'line',
-          source: 'zone-current',
-          paint: { 'line-color': '#2563eb', 'line-width': 2, 'line-opacity': 0.45 },
-        })
+        // Add Mapbox Traffic layer (v1 - shows real-time traffic)
+        // This layer is part of Mapbox's standard traffic data
+        map.addSource('mapbox-traffic', {
+          type: 'vector',
+          url: 'mapbox://mapbox.mapbox-traffic-v1',
+        } as any)
 
-        // Overlay zones (e.g., paid parking zones + tariffs)
-        map.addSource('zones-overlay', { type: 'geojson', data: overlayZones as any })
-        const zoneColor = [
-          'match',
-          ['get', 'kind'],
-          'PAID',
-          '#9333ea',
-          'FREE',
-          '#16a34a',
-          'RESIDENT',
-          '#2563eb',
-          '#6b7280',
-        ] as any
+        // Traffic flow layer (colored lines showing traffic speed)
         map.addLayer({
-          id: 'zones-overlay-fill',
-          type: 'fill',
-          source: 'zones-overlay',
-          paint: { 'fill-color': zoneColor, 'fill-opacity': 0.06 },
-        })
-        map.addLayer({
-          id: 'zones-overlay-outline',
+          id: 'traffic-flow',
           type: 'line',
-          source: 'zones-overlay',
-          paint: { 'line-color': zoneColor, 'line-width': 1.5, 'line-opacity': 0.6 },
-        })
-
-        // Bays polygon source + layers
-        map.addSource('bays-poly', { type: 'geojson', data: bayPolygons as any })
-        map.addLayer({
-          id: 'bays-poly-fill',
-          type: 'fill',
-          source: 'bays-poly',
-          paint: {
-            'fill-color': ['get', 'color'],
-            'fill-opacity': 0.4,
+          source: 'mapbox-traffic',
+          'source-layer': 'traffic',
+          layout: {
+            'line-cap': 'round',
+            'line-join': 'round',
+            'visibility': layers.traffic ? 'visible' : 'none',
           },
-        })
-        map.addLayer({
-          id: 'bays-poly-outline',
-          type: 'line',
-          source: 'bays-poly',
-          paint: { 'line-color': '#111827', 'line-width': 2, 'line-opacity': 0.5 },
-        })
-
-        // Selected bay highlight (polygon)
-        map.addLayer({
-          id: 'bays-selected-outline',
-          type: 'line',
-          source: 'bays-poly',
-          filter: ['==', ['get', 'bayId'], '__none__'],
-          paint: { 'line-color': '#111827', 'line-width': 5, 'line-opacity': 0.9 },
-        })
-
-        // Bays point source (fallback if no polygons exist or for click targets)
-        map.addSource('bays-pt', { type: 'geojson', data: bayPoints as any })
-        map.addLayer({
-          id: 'bays-pt',
-          type: 'circle',
-          source: 'bays-pt',
           paint: {
-            'circle-radius': 8,
-            'circle-color': ['get', 'color'],
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#ffffff',
-            'circle-opacity': 0.9,
+            'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1, 15, 3, 18, 6],
+            'line-color': [
+              'case',
+              ['==', 'low', ['get', 'congestion']],
+              '#16a34a', // green - free flow
+              ['==', 'moderate', ['get', 'congestion']],
+              '#f59e0b', // amber - moderate
+              ['==', 'heavy', ['get', 'congestion']],
+              '#dc2626', // red - heavy
+              ['==', 'severe', ['get', 'congestion']],
+              '#7f1d1d', // dark red - severe
+              '#3b82f6', // blue - default
+            ],
           },
-        })
-
-        // Selected bay highlight (point fallback)
-        map.addLayer({
-          id: 'bays-selected-pt',
-          type: 'circle',
-          source: 'bays-pt',
-          filter: ['==', ['get', 'bayId'], '__none__'],
-          paint: {
-            'circle-radius': 14,
-            'circle-color': '#ffffff',
-            'circle-stroke-width': 4,
-            'circle-stroke-color': '#111827',
-            'circle-opacity': 0.95,
-          },
-        })
+        } as any, 'road-label') // Place below road labels
 
         // Sensor points (clustered)
         map.addSource('sensors', {
@@ -324,58 +274,183 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
           source: 'sensors',
           filter: ['!', ['has', 'point_count']],
           paint: {
-            'circle-radius': 6,
-            'circle-color': '#0f172a',
+            'circle-radius': 4,
+            'circle-color': [
+              'match',
+              ['get', 'state'],
+              'FREE',
+              '#16a34a',
+              'OCCUPIED',
+              '#dc2626',
+              'OFFLINE',
+              '#000000',
+              '#2563eb',
+            ],
+            'circle-stroke-width': 1.5,
+            'circle-stroke-color': '#ffffff',
+            'circle-opacity': 0.9,
+          },
+        })
+
+        // Sensor labels (A1..A40)
+        map.addLayer({
+          id: 'sensor-labels',
+          type: 'symbol',
+          source: 'sensors',
+          filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'label'], '']],
+          layout: {
+            'text-field': ['get', 'label'],
+            'text-size': 10,
+            'text-offset': [0, 0.8],
+            'text-anchor': 'top',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
+          },
+          paint: {
+            'text-color': '#111827',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 1.25,
+          },
+        })
+
+        // Gateways (clustered)
+        map.addSource('gateways', {
+          type: 'geojson',
+          data: gatewayPoints as any,
+          cluster: true,
+          clusterRadius: 50,
+          clusterMaxZoom: 16,
+        } as any)
+        map.addLayer({
+          id: 'gateway-clusters',
+          type: 'circle',
+          source: 'gateways',
+          filter: ['has', 'point_count'],
+          paint: {
+            'circle-color': '#2563eb',
+            'circle-radius': ['step', ['get', 'point_count'], 18, 10, 24, 30, 30],
+            'circle-opacity': 0.75,
+          },
+        })
+        map.addLayer({
+          id: 'gateway-cluster-count',
+          type: 'symbol',
+          source: 'gateways',
+          filter: ['has', 'point_count'],
+          layout: { 'text-field': '{point_count_abbreviated}', 'text-size': 12 },
+          paint: { 'text-color': '#ffffff' },
+        })
+        map.addLayer({
+          id: 'gateway-unclustered',
+          type: 'circle',
+          source: 'gateways',
+          filter: ['!', ['has', 'point_count']],
+          paint: {
+            'circle-radius': 7,
+            'circle-color': '#2563eb',
             'circle-stroke-width': 2,
             'circle-stroke-color': '#ffffff',
             'circle-opacity': 0.9,
           },
         })
 
-        const popup = new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
+        // Gateway label ("G")
+        map.addLayer({
+          id: 'gateway-labels',
+          type: 'symbol',
+          source: 'gateways',
+          filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'label'], '']],
+          layout: {
+            'text-field': ['get', 'label'],
+            'text-size': 10,
+            'text-offset': [0, 0.8],
+            'text-anchor': 'top',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
+          },
+          paint: {
+            'text-color': '#111827',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 1.25,
+          },
+        })
 
-        const attachBayPopup = (layerId: string) => {
-          map.on('click', layerId, (e) => {
-            const f = e.features?.[0] as any
-            if (!f) return
-            const coords =
-              f.geometry?.type === 'Point'
-                ? (f.geometry.coordinates as [number, number])
-                : (e.lngLat ? [e.lngLat.lng, e.lngLat.lat] : [center.lng, center.lat])
+        // Parking Zones (polygons)
+        map.addSource('zones', {
+          type: 'geojson',
+          data: zonesGeojson as any,
+        } as any)
 
-            const p = f.properties || {}
-            const bayId = String(p.bayId || '')
-            if (bayId) onSelectBayRef.current?.(bayId)
-            const bayCode = p.bayCode || 'Bay'
-            const state = p.state || 'UNKNOWN'
-            const conf = typeof p.confidence === 'number' ? `${Math.round(p.confidence * 100)}%` : String(p.confidence || '')
-            const last = p.lastSeen ? new Date(p.lastSeen).toLocaleString() : '—'
-            const devEui = p.devEui || '—'
-            const battery = p.batteryPct === null || typeof p.batteryPct === 'undefined' ? '—' : `${Math.round(Number(p.batteryPct))}%`
+        // Zone fill layer
+        map.addLayer({
+          id: 'zone-fills',
+          type: 'fill',
+          source: 'zones',
+          layout: {
+            'visibility': 'none',
+          },
+          paint: {
+            'fill-color': [
+              'match',
+              ['get', 'kind'],
+              'FREE',
+              '#10b981', // green
+              'PAID',
+              '#3b82f6', // blue
+              'PRIVATE',
+              '#8b5cf6', // purple
+              '#6b7280', // gray default
+            ],
+            'fill-opacity': 0.15,
+          },
+        })
 
-            popup
-              .setLngLat(coords as any)
-              .setHTML(
-                `<div style=\"font-family: system-ui; font-size: 14px; line-height: 1.6;\">\n` +
-                  `<div style=\"font-weight: 700; font-size: 16px; margin-bottom: 6px;\">${bayCode}</div>\n` +
-                  `<div style=\"margin-bottom: 4px;\"><b>State:</b> ${state}</div>\n` +
-                  `<div style=\"margin-bottom: 4px;\"><b>Confidence:</b> ${conf}</div>\n` +
-                  `<div style=\"margin-bottom: 4px;\"><b>Last seen:</b> ${last}</div>\n` +
-                  `<div style=\"margin-bottom: 4px;\"><b>Sensor:</b> ${devEui}</div>\n` +
-                  `<div><b>Battery:</b> ${battery}</div>\n` +
-                  `</div>`
-              )
-              .addTo(map)
-          })
-        }
+        // Zone outline layer
+        map.addLayer({
+          id: 'zone-outlines',
+          type: 'line',
+          source: 'zones',
+          layout: {
+            'visibility': 'none',
+          },
+          paint: {
+            'line-color': [
+              'match',
+              ['get', 'kind'],
+              'FREE',
+              '#10b981',
+              'PAID',
+              '#3b82f6',
+              'PRIVATE',
+              '#8b5cf6',
+              '#6b7280',
+            ],
+            'line-width': 2,
+            'line-opacity': 0.8,
+          },
+        })
 
-        attachBayPopup('bays-poly-fill')
-        attachBayPopup('bays-pt')
+        // Zone labels
+        map.addLayer({
+          id: 'zone-labels',
+          type: 'symbol',
+          source: 'zones',
+          layout: {
+            'visibility': 'none',
+            'text-field': ['get', 'name'],
+            'text-size': 12,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+          },
+          paint: {
+            'text-color': '#1f2937',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 2,
+          },
+        })
 
-        map.on('mouseenter', 'bays-poly-fill', () => (map.getCanvas().style.cursor = 'pointer'))
-        map.on('mouseleave', 'bays-poly-fill', () => (map.getCanvas().style.cursor = ''))
-        map.on('mouseenter', 'bays-pt', () => (map.getCanvas().style.cursor = 'pointer'))
-        map.on('mouseleave', 'bays-pt', () => (map.getCanvas().style.cursor = ''))
+        const gatewayPopup = new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
+        const zonePopup = new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
 
         map.on('click', 'sensor-clusters', (e) => {
           const features = map.queryRenderedFeatures(e.point, { layers: ['sensor-clusters'] })
@@ -388,20 +463,113 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
           })
         })
 
-        // Initial visibility
-        const setVis = (id: string, on: boolean) => map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
-        setVis('zone-current-fill', layers.zones)
-        setVis('zone-current-outline', layers.zones)
-        setVis('zones-overlay-fill', layers.zones)
-        setVis('zones-overlay-outline', layers.zones)
-        setVis('bays-poly-fill', layers.bays)
-        setVis('bays-poly-outline', layers.bays)
-        setVis('bays-selected-outline', layers.bays)
-        setVis('bays-pt', layers.bays)
-        setVis('bays-selected-pt', layers.bays)
+        map.on('click', 'gateway-clusters', (e) => {
+          const features = map.queryRenderedFeatures(e.point, { layers: ['gateway-clusters'] })
+          const clusterId = features[0]?.properties?.cluster_id
+          const src = map.getSource('gateways') as any
+          src.getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
+            if (err) return
+            const c = (features[0].geometry as any).coordinates
+            map.easeTo({ center: c, zoom })
+          })
+        })
+
+        map.on('mouseenter', 'gateway-unclustered', () => (map.getCanvas().style.cursor = 'pointer'))
+        map.on('mouseleave', 'gateway-unclustered', () => (map.getCanvas().style.cursor = ''))
+        map.on('click', 'gateway-unclustered', (e) => {
+          const f = e.features?.[0] as any
+          if (!f) return
+          const coords = (f.geometry.coordinates as [number, number]) || [center.lng, center.lat]
+          const p = f.properties || {}
+          const name = p.name || 'Gateway'
+          const state = p.state || '—'
+          const backhaul = p.backhaul || '—'
+          const last = p.lastHeartbeat ? new Date(p.lastHeartbeat).toLocaleString() : '—'
+          gatewayPopup
+            .setLngLat(coords as any)
+            .setHTML(
+              `<div style="font-family: system-ui; font-size: 14px; line-height: 1.6;">` +
+                `<div style="font-weight: 700; font-size: 16px; margin-bottom: 6px;">${name}</div>` +
+                `<div style="margin-bottom: 4px;"><b>State:</b> ${state}</div>` +
+                `<div style="margin-bottom: 4px;"><b>Backhaul:</b> ${backhaul}</div>` +
+                `<div><b>Last heartbeat:</b> ${last}</div>` +
+                `</div>`
+            )
+            .addTo(map)
+        })
+
+        // Parking Zones - hover and click handlers
+        map.on('mouseenter', 'zone-fills', () => (map.getCanvas().style.cursor = 'pointer'))
+        map.on('mouseleave', 'zone-fills', () => (map.getCanvas().style.cursor = ''))
+        map.on('click', 'zone-fills', (e) => {
+          const f = e.features?.[0] as any
+          if (!f) return
+          
+          // Get center of the zone polygon
+          const bounds = new mapboxgl.LngLatBounds()
+          if (f.geometry.type === 'Polygon') {
+            const coords = f.geometry.coordinates[0]
+            coords.forEach((coord: [number, number]) => bounds.extend(coord))
+          }
+          const center = bounds.getCenter()
+          
+          const p = f.properties || {}
+          const name = p.name || 'Parking Zone'
+          const kind = p.kind || 'PAID'
+          const address = p.address || '—'
+          const source = p.source || 'VisionDrive'
+          
+          // Parse tariff if available
+          let tariffHTML = ''
+          if (p.tariff) {
+            try {
+              const tariff = JSON.parse(p.tariff)
+              tariffHTML = `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">` +
+                `<div style="font-weight: 600; margin-bottom: 4px;">💰 Tariff</div>` +
+                `<div style="margin-bottom: 2px;">Rate: ${tariff.rateAedPerHour} AED/hour</div>` +
+                `<div style="margin-bottom: 2px;">Hours: ${tariff.hours}</div>` +
+                `<div>Max Daily: ${tariff.maxDailyAed} AED</div>` +
+                `</div>`
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+          
+          // Color-coded badge for zone type
+          const kindColor = kind === 'FREE' ? '#10b981' : kind === 'PAID' ? '#3b82f6' : '#8b5cf6'
+          const kindEmoji = kind === 'FREE' ? '🆓' : kind === 'PAID' ? '💳' : '🔒'
+          
+          zonePopup
+            .setLngLat(center)
+            .setHTML(
+              `<div style="font-family: system-ui; font-size: 14px; line-height: 1.6;">` +
+                `<div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">${name}</div>` +
+                `<div style="margin-bottom: 4px;">` +
+                  `<span style="display: inline-block; padding: 2px 8px; background: ${kindColor}; color: white; border-radius: 4px; font-size: 12px; font-weight: 600;">` +
+                    `${kindEmoji} ${kind}` +
+                  `</span>` +
+                `</div>` +
+                `<div style="margin-bottom: 4px;"><b>📍 Location:</b> ${address}</div>` +
+                `<div style="margin-bottom: 4px; font-size: 12px; color: #6b7280;">Source: ${source}</div>` +
+                tariffHTML +
+              `</div>`
+            )
+            .addTo(map)
+        })
+
+        // Initial visibility (guard missing layers)
+        const setVis = (id: string, on: boolean) => {
+          if (!map.getLayer(id)) return
+          map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+        }
         setVis('sensor-clusters', layers.sensors)
         setVis('sensor-cluster-count', layers.sensors)
         setVis('sensor-unclustered', layers.sensors)
+        setVis('sensor-labels', layers.sensors)
+        setVis('gateway-clusters', layers.gateways)
+        setVis('gateway-cluster-count', layers.gateways)
+        setVis('gateway-unclustered', layers.gateways)
+        setVis('gateway-labels', layers.gateways)
       })
     }
 
@@ -410,16 +578,12 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
     if (!map) return
 
     const updateSources = () => {
-      const zc = map.getSource('zone-current') as any
-      if (zc) zc.setData(currentZoneFeature as any)
-      const zo = map.getSource('zones-overlay') as any
-      if (zo) zo.setData(overlayZones as any)
-      const baysPoly = map.getSource('bays-poly') as any
-      if (baysPoly) baysPoly.setData(bayPolygons as any)
-      const baysPt = map.getSource('bays-pt') as any
-      if (baysPt) baysPt.setData(bayPoints as any)
       const sensors = map.getSource('sensors') as any
       if (sensors) sensors.setData(sensorPoints as any)
+      const gws = map.getSource('gateways') as any
+      if (gws) gws.setData(gatewayPoints as any)
+      const zns = map.getSource('zones') as any
+      if (zns) zns.setData(zonesGeojson as any)
     }
 
     if (map.isStyleLoaded()) updateSources()
@@ -429,7 +593,7 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
     return () => {
       // Keep map across renders; do not destroy here.
     }
-  }, [token, center.lat, center.lng, bayPolygons, bayPoints, sensorPoints, currentZoneFeature, overlayZones])
+  }, [token, center.lat, center.lng, sensorPoints, gatewayPoints, zonesGeojson])
 
   // Toggle visibility
   useEffect(() => {
@@ -439,28 +603,16 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
       if (!map.getLayer(id)) return
       map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
     }
-    setVis('zone-current-fill', layers.zones)
-    setVis('zone-current-outline', layers.zones)
-    setVis('zones-overlay-fill', layers.zones)
-    setVis('zones-overlay-outline', layers.zones)
-    setVis('bays-poly-fill', layers.bays)
-    setVis('bays-poly-outline', layers.bays)
-    setVis('bays-selected-outline', layers.bays)
-    setVis('bays-pt', layers.bays)
-    setVis('bays-selected-pt', layers.bays)
     setVis('sensor-clusters', layers.sensors)
     setVis('sensor-cluster-count', layers.sensors)
     setVis('sensor-unclustered', layers.sensors)
+    setVis('sensor-labels', layers.sensors)
+    setVis('gateway-clusters', layers.gateways)
+    setVis('gateway-cluster-count', layers.gateways)
+    setVis('gateway-unclustered', layers.gateways)
+    setVis('gateway-labels', layers.gateways)
+    setVis('traffic-flow', layers.traffic)
   }, [layers])
-
-  // Selected bay highlight filter
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !map.isStyleLoaded()) return
-    const id = selectedBayId ? String(selectedBayId) : '__none__'
-    if (map.getLayer('bays-selected-outline')) map.setFilter('bays-selected-outline', ['==', ['get', 'bayId'], id])
-    if (map.getLayer('bays-selected-pt')) map.setFilter('bays-selected-pt', ['==', ['get', 'bayId'], id])
-  }, [selectedBayId])
 
   // Destroy on unmount
   useEffect(() => {
@@ -485,21 +637,21 @@ export default function MapboxMap({ meta, items, initialLayers, selectedBayId, o
     <div className="space-y-4 h-full flex flex-col">
       <div className="flex flex-wrap gap-3 text-sm">
         <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer">
-          <input type="checkbox" checked={layers.bays} onChange={(e) => setLayers((s) => ({ ...s, bays: e.target.checked }))} className="w-4 h-4" />
-          <span className="font-medium">Bays</span>
-        </label>
-        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer">
           <input type="checkbox" checked={layers.sensors} onChange={(e) => setLayers((s) => ({ ...s, sensors: e.target.checked }))} className="w-4 h-4" />
           <span className="font-medium">Sensors (clustered)</span>
         </label>
         <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 cursor-pointer">
-          <input type="checkbox" checked={layers.zones} onChange={(e) => setLayers((s) => ({ ...s, zones: e.target.checked }))} className="w-4 h-4" />
-          <span className="font-medium">Zones overlay (paid/free)</span>
+          <input type="checkbox" checked={layers.gateways} onChange={(e) => setLayers((s) => ({ ...s, gateways: e.target.checked }))} className="w-4 h-4" />
+          <span className="font-medium">Gateways</span>
+        </label>
+        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 cursor-pointer">
+          <input type="checkbox" checked={layers.traffic} onChange={(e) => setLayers((s) => ({ ...s, traffic: e.target.checked }))} className="w-4 h-4" />
+          <span className="font-medium">🚦 Live Traffic (Dubai)</span>
         </label>
       </div>
       <div ref={containerRef} className="w-full flex-1 rounded-lg overflow-hidden" />
       <div className="text-sm text-gray-600 font-medium">
-        Tip: click a bay to see details. Click a sensor cluster to zoom in.
+        Tip: click a sensor/gateway cluster to zoom in. Toggle traffic to see real-time congestion on Dubai roads.
       </div>
     </div>
   )

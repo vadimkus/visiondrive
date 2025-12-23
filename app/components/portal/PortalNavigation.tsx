@@ -15,7 +15,14 @@ import {
   DollarSign,
   Gauge,
   Languages,
-  ChevronDown
+  ChevronDown,
+  Thermometer,
+  Wind,
+  Droplets,
+  Cloud,
+  Leaf,
+  Radio,
+  Shield
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 
@@ -25,6 +32,15 @@ interface User {
   name: string | null
   role: string
   tenantId?: string | null
+}
+
+interface TelemetryData {
+  temperature: number
+  humidity: number
+  windSpeed: number
+  windDirection: string
+  pm25: number
+  co2: number
 }
 
 export default function PortalNavigation() {
@@ -37,8 +53,14 @@ export default function PortalNavigation() {
   const [language, setLanguage] = useState<'EN' | 'AR'>('EN')
   const userMenuRef = useRef<HTMLDivElement>(null)
   const languageMenuRef = useRef<HTMLDivElement>(null)
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [logoFailed, setLogoFailed] = useState(false)
+  const [telemetry, setTelemetry] = useState<TelemetryData>({
+    temperature: 34,
+    humidity: 42,
+    windSpeed: 12,
+    windDirection: 'NW',
+    pm25: 12,
+    co2: 420,
+  })
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -55,21 +77,6 @@ export default function PortalNavigation() {
       }
     }
     fetchUser()
-  }, [])
-
-  useEffect(() => {
-    const loadLogo = async () => {
-      try {
-        const res = await fetch('/api/images/logo', { credentials: 'include' })
-        const json = await res.json().catch(() => ({}))
-        if (json?.success && json?.image?.data) {
-          setLogoUrl(String(json.image.data))
-        }
-      } catch {
-        // ignore
-      }
-    }
-    loadLogo()
   }, [])
 
   // Close user menu when clicking outside
@@ -110,6 +117,21 @@ export default function PortalNavigation() {
     }
   }, [])
 
+  // Simulate real-time telemetry updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTelemetry(prev => ({
+        temperature: prev.temperature + (Math.random() - 0.5) * 0.5,
+        humidity: Math.max(0, Math.min(100, prev.humidity + (Math.random() - 0.5) * 2)),
+        windSpeed: Math.max(0, prev.windSpeed + (Math.random() - 0.5) * 2),
+        windDirection: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(Math.random() * 8)],
+        pm25: Math.max(0, prev.pm25 + (Math.random() - 0.5) * 3),
+        co2: Math.max(400, prev.co2 + (Math.random() - 0.5) * 10),
+      }))
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
   const handleLanguageChange = (lang: 'EN' | 'AR') => {
     setLanguage(lang)
     localStorage.setItem('portal-language', lang)
@@ -128,38 +150,90 @@ export default function PortalNavigation() {
 
   const isAdmin = user?.role === 'MASTER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'CUSTOMER_ADMIN'
 
+  // Color coding for air quality
+  const getPM25Status = (value: number) => {
+    if (value <= 12) return 'text-green-600'
+    if (value <= 35) return 'text-yellow-600'
+    if (value <= 55) return 'text-orange-600'
+    return 'text-red-600'
+  }
+
+  const getCO2Status = (value: number) => {
+    if (value <= 450) return 'text-green-600'
+    if (value <= 700) return 'text-yellow-600'
+    return 'text-orange-600'
+  }
+
+  const windDirectionMap: { [key: string]: number } = {
+    N: 0, NE: 45, E: 90, SE: 135, S: 180, SW: 225, W: 270, NW: 315
+  }
+
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
       {/* Full-width header so brand/logo stays left-aligned (matches dashboard references) */}
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo/Brand */}
-          <div className="flex items-center">
-            <button
-              onClick={() => router.push('/portal')}
-              className="flex items-center space-x-2 text-xl font-bold text-gray-900 hover:text-primary-600 transition-colors"
-            >
-              {!logoFailed && logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt="VisionDrive"
-                  className="h-9 w-9 rounded-lg border border-gray-200 bg-white object-contain"
-                  onError={() => setLogoFailed(true)}
-                />
-              ) : (
-                <div className="h-9 w-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center">
-                  <span className="text-xs font-bold text-primary-700">VD</span>
-                </div>
-              )}
-              <div className="flex flex-col items-start">
-                <span>Vision<span className="text-primary-600">Drive</span></span>
-                <span className="text-xs text-gray-500 font-normal ml-[30%]">Portal 🇦🇪</span>
+        <div className="flex items-center justify-between h-16">
+          {/* Left Side: Live Indicator + Telemetry Data */}
+          <div className="flex items-center gap-3 flex-1">
+            {/* Live Indicator */}
+            <div className="flex items-center gap-2 pr-3 border-r border-gray-200">
+              <div className="relative">
+                <Radio className="h-3 w-3 text-green-600" />
+                <span className="absolute inset-0 animate-ping">
+                  <Radio className="h-3 w-3 text-green-600 opacity-75" />
+                </span>
               </div>
-            </button>
-          </div>
+              <span className="text-[9px] font-mono font-semibold text-green-600 uppercase tracking-wider hidden sm:inline">
+                LIVE
+              </span>
+            </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-2 flex-1 justify-center" />
+            {/* Compact Telemetry Data */}
+            <div className="hidden lg:flex items-center gap-3">
+              {/* Temperature */}
+              <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded border border-blue-100">
+                <Thermometer className="h-3 w-3 text-blue-600" />
+                <span className="font-mono text-xs font-bold text-blue-700">
+                  {telemetry.temperature.toFixed(1)}°C
+                </span>
+              </div>
+
+              {/* Humidity */}
+              <div className="flex items-center gap-1 bg-cyan-50 px-2 py-1 rounded border border-cyan-100">
+                <Droplets className="h-3 w-3 text-cyan-600" />
+                <span className="font-mono text-xs font-bold text-cyan-700">
+                  {telemetry.humidity.toFixed(0)}%
+                </span>
+              </div>
+
+              {/* Wind */}
+              <div className="flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
+                <Wind 
+                  className="h-3 w-3 text-indigo-600 transition-transform duration-500" 
+                  style={{ transform: `rotate(${windDirectionMap[telemetry.windDirection] || 0}deg)` }}
+                />
+                <span className="font-mono text-xs font-bold text-indigo-700">
+                  {telemetry.windDirection} {telemetry.windSpeed.toFixed(0)}
+                </span>
+              </div>
+
+              {/* PM2.5 */}
+              <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded border border-green-100">
+                <Leaf className="h-3 w-3 text-green-600" />
+                <span className={`font-mono text-xs font-bold ${getPM25Status(telemetry.pm25)}`}>
+                  PM2.5: {telemetry.pm25.toFixed(0)}
+                </span>
+              </div>
+
+              {/* CO2 */}
+              <div className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                <Cloud className="h-3 w-3 text-gray-600" />
+                <span className={`font-mono text-xs font-bold ${getCO2Status(telemetry.co2)}`}>
+                  {telemetry.co2.toFixed(0)} ppm
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* User Menu & Language Toggle */}
           <div className="flex items-center space-x-3">
@@ -202,7 +276,7 @@ export default function PortalNavigation() {
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
               >
-                <User className="h-5 w-5" />
+                <User className={`h-5 w-5 ${isAdmin ? 'text-blue-600' : ''}`} />
                 <span className="hidden sm:inline">{user?.name || user?.email || 'User'}</span>
               </button>
               {isUserMenuOpen && (

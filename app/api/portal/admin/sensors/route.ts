@@ -3,6 +3,52 @@ import { sql } from '@/lib/sql'
 import { assertRole, requirePortalSession } from '@/lib/portal/session'
 import { writeAuditLog } from '@/lib/audit'
 
+function normalizeJson(value: any) {
+  if (value === null || typeof value === 'undefined') return null
+  if (typeof value === 'object') return value
+  if (typeof value === 'string') {
+    const t = value.trim()
+    if (!t) return null
+    try {
+      return JSON.parse(t)
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
+function shiftGeometry(geometry: any, dLng: number, dLat: number): any {
+  if (!geometry || typeof geometry !== 'object') return geometry
+  const t = geometry.type
+  const c = geometry.coordinates
+  if (!t || !c) return geometry
+
+  const shiftCoord = (coord: any) => {
+    if (!Array.isArray(coord) || coord.length < 2) return coord
+    const lng = coord[0]
+    const lat = coord[1]
+    if (typeof lng !== 'number' || typeof lat !== 'number') return coord
+    return [lng + dLng, lat + dLat, ...coord.slice(2)]
+  }
+
+  const deepMap = (x: any, depth: number): any => {
+    if (depth === 0) return shiftCoord(x)
+    if (!Array.isArray(x)) return x
+    return x.map((v) => deepMap(v, depth - 1))
+  }
+
+  // Point: [lng, lat]
+  if (t === 'Point') return { ...geometry, coordinates: shiftCoord(c) }
+  // LineString: [[lng,lat], ...]
+  if (t === 'LineString') return { ...geometry, coordinates: deepMap(c, 0) }
+  // Polygon: [[[lng,lat], ...]]
+  if (t === 'Polygon') return { ...geometry, coordinates: deepMap(c, 1) }
+  // MultiPolygon: [[[[lng,lat], ...]]]
+  if (t === 'MultiPolygon') return { ...geometry, coordinates: deepMap(c, 2) }
+  return geometry
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await requirePortalSession(request)
@@ -131,6 +177,10 @@ export async function POST(request: NextRequest) {
       if (updates.length > 500)
         return NextResponse.json({ success: false, error: 'TOO_MANY_UPDATES' }, { status: 400 })
 
+      const moveBays = Boolean(body?.moveBays)
+      const deltaLat = typeof body?.deltaLat === 'number' ? body.deltaLat : null
+      const deltaLng = typeof body?.deltaLng === 'number' ? body.deltaLng : null
+
       // Validate and de-dup by id (last write wins)
       const byId = new Map<string, { id: string; lat: number; lng: number }>()
       for (const u of updates) {
@@ -175,6 +225,55 @@ export async function POST(request: NextRequest) {
             after: { id: u.id, lat: u.lat, lng: u.lng },
           })
         }
+      }
+
+      // Optional: translate associated bay polygons/coords by the same delta.
+      // This is useful when you "move the whole demo lot" during calibration.
+      if (moveBays && typeof deltaLat === 'number' && typeof deltaLng === 'number') {
+        const sensorIds = clean.map((u) => u.id)
+        const rows = await sql/*sql*/`
+          SELECT s.id AS "sensorId", s."bayId" AS "bayId", b.lat AS "bayLat", b.lng AS "bayLng", b.geojson AS "bayGeojson"
+          FROM sensors s
+          JOIN bays b ON b.id = s."bayId"
+          WHERE s."tenantId" = ${session.tenantId}
+            AND s.id = ANY(${sensorIds})
+            AND s."bayId" IS NOT NULL
+        `
+        const bayById = new Map<string, any>()
+        for (const r of rows || []) {
+          if (!r?.bayId) continue
+          if (!bayById.has(r.bayId)) bayById.set(r.bayId, r)
+        }
+
+        const bayIds = Array.from(bayById.keys())
+        for (const bayId of bayIds) {
+          const r = bayById.get(bayId)
+          const before = { id: bayId, lat: r?.bayLat ?? null, lng: r?.bayLng ?? null }
+          const nextLat = typeof r?.bayLat === 'number' ? r.bayLat + deltaLat : null
+          const nextLng = typeof r?.bayLng === 'number' ? r.bayLng + deltaLng : null
+          const gj = normalizeJson(r?.bayGeojson)
+          const nextGj =
+            gj && gj.geometry ? { ...gj, geometry: shiftGeometry(gj.geometry, deltaLng, deltaLat) } : gj
+
+          await sql/*sql*/`
+            UPDATE bays
+            SET lat = ${nextLat},
+                lng = ${nextLng},
+                geojson = ${nextGj ? (sql.json(nextGj) as any) : null},
+                "updatedAt" = now()
+            WHERE "tenantId" = ${session.tenantId} AND id = ${bayId}
+          `
+        }
+
+        await writeAuditLog({
+          request,
+          session,
+          action: 'BAY_LOCATION_BULK_TRANSLATE',
+          entityType: 'Bay',
+          entityId: 'bulk',
+          before: { bayCount: bayIds.length, deltaLat, deltaLng },
+          after: { bayCount: bayIds.length, deltaLat, deltaLng },
+        })
       }
 
       return NextResponse.json({ success: true, updated })

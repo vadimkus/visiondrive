@@ -84,6 +84,44 @@ async function main() {
     `
   }
 
+  // Seed a dummy LoRaWAN gateway for the demo site so /portal/map can render it.
+  // Requested demo model: RAK7289CV2
+  const demoGatewaySerial = 'RAK7289CV2-DEMO-01'
+  const demoGatewayId = randomUUID()
+  await sql/*sql*/`
+    INSERT INTO gateways (id, "tenantId", "siteId", name, serial, model, firmware, status, backhaul, "lastHeartbeat", lat, lng, meta, "createdAt", "updatedAt")
+    VALUES (
+      ${demoGatewayId},
+      ${ensuredTenantId},
+      ${demoSiteId},
+      'RAK7289CV2 (Demo Gateway)',
+      ${demoGatewaySerial},
+      'RAK7289CV2',
+      'v2.x-demo',
+      'ACTIVE',
+      'ETHERNET',
+      now() - interval '2 minutes',
+      ${demoSiteCenter.lat + 0.00035},
+      ${demoSiteCenter.lng - 0.00025},
+      ${sql.json({ demo: true, vendor: 'RAK', notes: 'Seeded dummy gateway for portal demo' }) as any},
+      now(),
+      now()
+    )
+    ON CONFLICT (serial) DO UPDATE
+      SET "tenantId" = EXCLUDED."tenantId",
+          "siteId" = EXCLUDED."siteId",
+          name = EXCLUDED.name,
+          model = EXCLUDED.model,
+          firmware = EXCLUDED.firmware,
+          status = EXCLUDED.status,
+          backhaul = EXCLUDED.backhaul,
+          "lastHeartbeat" = EXCLUDED."lastHeartbeat",
+          lat = EXCLUDED.lat,
+          lng = EXCLUDED.lng,
+          meta = EXCLUDED.meta,
+          "updatedAt" = now()
+  `
+
   const zoneRows = await sql/*sql*/`
     SELECT id
     FROM zones
@@ -121,6 +159,145 @@ async function main() {
         "updatedAt" = now()
     WHERE id = ${demoZoneId}
   `
+
+  // Add multiple Dubai parking zones with realistic locations
+  const dubaiZones = [
+    {
+      name: 'Dubai Mall Parking Zone',
+      kind: 'PAID',
+      center: { lat: 25.1980, lng: 55.2794 },
+      tariff: { rateAedPerHour: 20, hours: '10:00-22:00', maxDailyAed: 100 }
+    },
+    {
+      name: 'Dubai Marina Walk Zone',
+      kind: 'PAID',
+      center: { lat: 25.0805, lng: 55.1383 },
+      tariff: { rateAedPerHour: 15, hours: '08:00-23:00', maxDailyAed: 80 }
+    },
+    {
+      name: 'Jumeirah Beach Residence',
+      kind: 'PAID',
+      center: { lat: 25.0747, lng: 55.1346 },
+      tariff: { rateAedPerHour: 12, hours: '09:00-21:00', maxDailyAed: 60 }
+    },
+    {
+      name: 'Business Bay Metro Zone',
+      kind: 'PAID',
+      center: { lat: 25.1875, lng: 55.2655 },
+      tariff: { rateAedPerHour: 8, hours: '07:00-20:00', maxDailyAed: 40 }
+    },
+    {
+      name: 'Downtown Dubai Zone',
+      kind: 'PAID',
+      center: { lat: 25.1972, lng: 55.2744 },
+      tariff: { rateAedPerHour: 18, hours: '08:00-midnight', maxDailyAed: 90 }
+    },
+    {
+      name: 'DIFC Financial District',
+      kind: 'PAID',
+      center: { lat: 25.2138, lng: 55.2817 },
+      tariff: { rateAedPerHour: 25, hours: '07:00-22:00', maxDailyAed: 120 }
+    },
+    {
+      name: 'City Walk Shopping Zone',
+      kind: 'PAID',
+      center: { lat: 25.2142, lng: 55.2604 },
+      tariff: { rateAedPerHour: 10, hours: '10:00-23:00', maxDailyAed: 50 }
+    },
+    {
+      name: 'Dubai Media City',
+      kind: 'PAID',
+      center: { lat: 25.0989, lng: 55.1643 },
+      tariff: { rateAedPerHour: 7, hours: '08:00-19:00', maxDailyAed: 35 }
+    },
+    {
+      name: 'Jumeirah Lakes Towers',
+      kind: 'PAID',
+      center: { lat: 25.0693, lng: 55.1439 },
+      tariff: { rateAedPerHour: 6, hours: '08:00-20:00', maxDailyAed: 30 }
+    },
+    {
+      name: 'Al Barsha Residential',
+      kind: 'PRIVATE',
+      center: { lat: 25.1118, lng: 55.1985 },
+      tariff: { rateAedPerHour: 3, hours: '00:00-24:00', maxDailyAed: 15 }
+    },
+    {
+      name: 'Dubai Internet City',
+      kind: 'PAID',
+      center: { lat: 25.0943, lng: 55.1620 },
+      tariff: { rateAedPerHour: 8, hours: '08:00-19:00', maxDailyAed: 40 }
+    },
+    {
+      name: 'The Palm Jumeirah',
+      kind: 'PAID',
+      center: { lat: 25.1124, lng: 55.1390 },
+      tariff: { rateAedPerHour: 20, hours: '10:00-midnight', maxDailyAed: 100 }
+    },
+    {
+      name: 'Dubai Design District',
+      kind: 'PAID',
+      center: { lat: 25.1949, lng: 55.2900 },
+      tariff: { rateAedPerHour: 10, hours: '09:00-21:00', maxDailyAed: 50 }
+    },
+    {
+      name: 'Dubai Festival City',
+      kind: 'FREE',
+      center: { lat: 25.2219, lng: 55.3548 },
+      tariff: null
+    },
+    {
+      name: 'Dubai Sports City',
+      kind: 'FREE',
+      center: { lat: 25.0395, lng: 55.2109 },
+      tariff: null
+    }
+  ]
+
+  for (const zone of dubaiZones) {
+    const zoneId = randomUUID()
+    const existingZone = await sql/*sql*/`
+      SELECT id FROM zones
+      WHERE "tenantId" = ${ensuredTenantId} AND name = ${zone.name}
+      LIMIT 1
+    `
+    
+    if (existingZone?.[0]?.id) continue
+
+    // Create zone polygon (rectangular area around the center)
+    const size = 0.005 // ~500m radius
+    const zoneGeojson = {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [zone.center.lng - size, zone.center.lat - size],
+            [zone.center.lng + size, zone.center.lat - size],
+            [zone.center.lng + size, zone.center.lat + size],
+            [zone.center.lng - size, zone.center.lat + size],
+            [zone.center.lng - size, zone.center.lat - size],
+          ],
+        ],
+      },
+      properties: { name: zone.name },
+    }
+
+    await sql/*sql*/`
+      INSERT INTO zones (id, "tenantId", "siteId", name, kind, geojson, tariff, "createdAt", "updatedAt")
+      VALUES (
+        ${zoneId},
+        ${ensuredTenantId},
+        ${demoSiteId},
+        ${zone.name},
+        ${zone.kind},
+        ${sql.json(zoneGeojson) as any},
+        ${zone.tariff ? (sql.json(zone.tariff) as any) : null},
+        now(),
+        now()
+      )
+    `
+  }
 
   // Create 40 demo bays (A01..A40) if missing
   const bayCount = 40
@@ -363,6 +540,99 @@ async function main() {
   }
 
   console.log('✅ Seeded demo site/zone/bays/sensors for portal')
+
+  // Seed demo WEATHER stations (multi-location) + events for Weather Dashboard
+  // (These are independent from bays; they are pinned to locations.)
+  const demoWeatherStations = [
+    { name: 'Weather Station — Dubai Marina', lat: demoSiteCenter.lat + 0.0022, lng: demoSiteCenter.lng + 0.0031, devEui: 'WTHR0001DEMO0001' },
+    { name: 'Weather Station — Downtown', lat: 25.1972, lng: 55.2744, devEui: 'WTHR0002DEMO0002' },
+    { name: 'Weather Station — JBR', lat: 25.0819, lng: 55.1376, devEui: 'WTHR0003DEMO0003' },
+  ]
+
+  for (const w of demoWeatherStations) {
+    const existing = await sql/*sql*/`
+      SELECT id FROM sensors
+      WHERE "tenantId" = ${ensuredTenantId} AND "devEui" = ${w.devEui}
+      LIMIT 1
+    `
+    const sensorId = existing?.[0]?.id || randomUUID()
+    await sql/*sql*/`
+      INSERT INTO sensors (id, "tenantId", "siteId", "devEui", type, model, status, "installDate", "lastSeen", "batteryPct", lat, lng, meta, "createdAt", "updatedAt")
+      VALUES (
+        ${sensorId},
+        ${ensuredTenantId},
+        ${demoSiteId},
+        ${w.devEui},
+        'WEATHER',
+        'VD-ENV-01',
+        'ACTIVE',
+        now() - interval '60 days',
+        now() - interval '2 minutes',
+        82,
+        ${w.lat},
+        ${w.lng},
+        ${sql.json({ name: w.name, demo: true }) as any},
+        now(),
+        now()
+      )
+      ON CONFLICT ("devEui") DO UPDATE
+        SET "siteId" = EXCLUDED."siteId",
+            type = EXCLUDED.type,
+            model = EXCLUDED.model,
+            status = EXCLUDED.status,
+            lat = EXCLUDED.lat,
+            lng = EXCLUDED.lng,
+            meta = EXCLUDED.meta,
+            "lastSeen" = EXCLUDED."lastSeen",
+            "batteryPct" = EXCLUDED."batteryPct",
+            "updatedAt" = now()
+    `
+
+    // Seed a small 24h timeline (~48 points) for charts.
+    await sql/*sql*/`
+      DELETE FROM sensor_events
+      WHERE "tenantId" = ${ensuredTenantId}
+        AND "sensorId" = ${sensorId}
+        AND time >= now() - interval '24 hours'
+    `
+    for (let i = 48; i >= 0; i--) {
+      const t = new Date(Date.now() - i * 30 * 60_000)
+      const baseTemp = 24 + (Math.sin(i / 6) * 3)
+      const humidity = 45 + (Math.cos(i / 8) * 12)
+      const wind = 3 + (Math.sin(i / 5) * 1.5)
+      const gust = wind + 1.5
+      const pm25 = 18 + (Math.max(0, Math.sin(i / 10)) * 25)
+      const aqi = Math.round(40 + (pm25 * 1.8))
+      const rain = i % 41 === 0
+      const decoded = {
+        temperatureC: Number(baseTemp.toFixed(1)),
+        humidityPct: Number(humidity.toFixed(1)),
+        windMps: Number(wind.toFixed(1)),
+        gustMps: Number(gust.toFixed(1)),
+        pm25: Number(pm25.toFixed(1)),
+        pm10: Number((pm25 * 1.6).toFixed(1)),
+        aqi,
+        rain,
+      }
+      await sql/*sql*/`
+        INSERT INTO sensor_events (id, time, "createdAt", "tenantId", "siteId", "sensorId", kind, decoded, "batteryPct", meta)
+        VALUES (
+          ${randomUUID()},
+          ${t},
+          now(),
+          ${ensuredTenantId},
+          ${demoSiteId},
+          ${sensorId},
+          'UPLINK',
+          ${sql.json(decoded) as any},
+          82,
+          ${sql.json({ demo: true }) as any}
+        )
+      `
+    }
+  }
+
+  console.log('✅ Seeded demo WEATHER stations + events')
 
   // Phase 11.4: generate initial Hardware Health + Alerts
   try {

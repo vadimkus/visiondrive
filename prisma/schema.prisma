@@ -556,9 +556,11 @@ enum ImageType {
 enum ReportKind {
   SENSOR_PERFORMANCE
   GATEWAY_HEALTH
+  WEATHER_DAILY_SUMMARY
 }
 
 enum ReportCadence {
+  DAILY
   WEEKLY
   MONTHLY
 }

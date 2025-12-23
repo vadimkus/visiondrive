@@ -1,0 +1,982 @@
+[
+  {
+    "name": "Dubai Mall Parking",
+    "kind": "PAID",
+    "lat": 25.198,
+    "lng": 55.2794,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.2789,
+              25.1975
+            ],
+            [
+              55.279900000000005,
+              25.1975
+            ],
+            [
+              55.279900000000005,
+              25.1985
+            ],
+            [
+              55.2789,
+              25.1985
+            ],
+            [
+              55.2789,
+              25.1975
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Dubai Mall Parking",
+        "source": "2GIS",
+        "address": "Downtown Dubai"
+      }
+    },
+    "capacity": null,
+    "address": "Downtown Dubai",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Mall of the Emirates Parking",
+    "kind": "PAID",
+    "lat": 25.118,
+    "lng": 55.2004,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.1999,
+              25.1175
+            ],
+            [
+              55.200900000000004,
+              25.1175
+            ],
+            [
+              55.200900000000004,
+              25.118499999999997
+            ],
+            [
+              55.1999,
+              25.118499999999997
+            ],
+            [
+              55.1999,
+              25.1175
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Mall of the Emirates Parking",
+        "source": "2GIS",
+        "address": "Al Barsha"
+      }
+    },
+    "capacity": null,
+    "address": "Al Barsha",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Dubai Marina Mall Parking",
+    "kind": "PAID",
+    "lat": 25.0783,
+    "lng": 55.1402,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.1397,
+              25.0778
+            ],
+            [
+              55.1407,
+              25.0778
+            ],
+            [
+              55.1407,
+              25.078799999999998
+            ],
+            [
+              55.1397,
+              25.078799999999998
+            ],
+            [
+              55.1397,
+              25.0778
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Dubai Marina Mall Parking",
+        "source": "2GIS",
+        "address": "Dubai Marina"
+      }
+    },
+    "capacity": null,
+    "address": "Dubai Marina",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Ibn Battuta Mall Parking",
+    "kind": "PAID",
+    "lat": 25.0441,
+    "lng": 55.1173,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.1168,
+              25.0436
+            ],
+            [
+              55.1178,
+              25.0436
+            ],
+            [
+              55.1178,
+              25.0446
+            ],
+            [
+              55.1168,
+              25.0446
+            ],
+            [
+              55.1168,
+              25.0436
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Ibn Battuta Mall Parking",
+        "source": "2GIS",
+        "address": "Jebel Ali"
+      }
+    },
+    "capacity": null,
+    "address": "Jebel Ali",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "City Centre Deira Parking",
+    "kind": "PAID",
+    "lat": 25.2525,
+    "lng": 55.333,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.332499999999996,
+              25.252000000000002
+            ],
+            [
+              55.3335,
+              25.252000000000002
+            ],
+            [
+              55.3335,
+              25.253
+            ],
+            [
+              55.332499999999996,
+              25.253
+            ],
+            [
+              55.332499999999996,
+              25.252000000000002
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "City Centre Deira Parking",
+        "source": "2GIS",
+        "address": "Deira"
+      }
+    },
+    "capacity": null,
+    "address": "Deira",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "BurJuman Mall Parking",
+    "kind": "PAID",
+    "lat": 25.2535,
+    "lng": 55.3033,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.3028,
+              25.253
+            ],
+            [
+              55.3038,
+              25.253
+            ],
+            [
+              55.3038,
+              25.253999999999998
+            ],
+            [
+              55.3028,
+              25.253999999999998
+            ],
+            [
+              55.3028,
+              25.253
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "BurJuman Mall Parking",
+        "source": "2GIS",
+        "address": "Bur Dubai"
+      }
+    },
+    "capacity": null,
+    "address": "Bur Dubai",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Mercato Shopping Mall Parking",
+    "kind": "PAID",
+    "lat": 25.2185,
+    "lng": 55.2586,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.2581,
+              25.218
+            ],
+            [
+              55.259100000000004,
+              25.218
+            ],
+            [
+              55.259100000000004,
+              25.218999999999998
+            ],
+            [
+              55.2581,
+              25.218999999999998
+            ],
+            [
+              55.2581,
+              25.218
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Mercato Shopping Mall Parking",
+        "source": "2GIS",
+        "address": "Jumeirah"
+      }
+    },
+    "capacity": null,
+    "address": "Jumeirah",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Dubai Festival City Mall Parking",
+    "kind": "PAID",
+    "lat": 25.2219,
+    "lng": 55.3548,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.354299999999995,
+              25.221400000000003
+            ],
+            [
+              55.3553,
+              25.221400000000003
+            ],
+            [
+              55.3553,
+              25.2224
+            ],
+            [
+              55.354299999999995,
+              25.2224
+            ],
+            [
+              55.354299999999995,
+              25.221400000000003
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Dubai Festival City Mall Parking",
+        "source": "2GIS",
+        "address": "Festival City"
+      }
+    },
+    "capacity": null,
+    "address": "Festival City",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Wafi Mall Parking",
+    "kind": "PAID",
+    "lat": 25.23,
+    "lng": 55.3188,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.3183,
+              25.2295
+            ],
+            [
+              55.319300000000005,
+              25.2295
+            ],
+            [
+              55.319300000000005,
+              25.2305
+            ],
+            [
+              55.3183,
+              25.2305
+            ],
+            [
+              55.3183,
+              25.2295
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Wafi Mall Parking",
+        "source": "2GIS",
+        "address": "Oud Metha"
+      }
+    },
+    "capacity": null,
+    "address": "Oud Metha",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "The Dubai Mall Metro Parking",
+    "kind": "PAID",
+    "lat": 25.1972,
+    "lng": 55.2744,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.2739,
+              25.1967
+            ],
+            [
+              55.2749,
+              25.1967
+            ],
+            [
+              55.2749,
+              25.197699999999998
+            ],
+            [
+              55.2739,
+              25.197699999999998
+            ],
+            [
+              55.2739,
+              25.1967
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "The Dubai Mall Metro Parking",
+        "source": "2GIS",
+        "address": "Downtown Dubai"
+      }
+    },
+    "capacity": null,
+    "address": "Downtown Dubai",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "DIFC Gate Village Parking",
+    "kind": "PAID",
+    "lat": 25.2138,
+    "lng": 55.2817,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.2812,
+              25.2133
+            ],
+            [
+              55.2822,
+              25.2133
+            ],
+            [
+              55.2822,
+              25.214299999999998
+            ],
+            [
+              55.2812,
+              25.214299999999998
+            ],
+            [
+              55.2812,
+              25.2133
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "DIFC Gate Village Parking",
+        "source": "2GIS",
+        "address": "DIFC"
+      }
+    },
+    "capacity": null,
+    "address": "DIFC",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "JBR Beach Parking",
+    "kind": "PAID",
+    "lat": 25.0747,
+    "lng": 55.1346,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.1341,
+              25.0742
+            ],
+            [
+              55.1351,
+              25.0742
+            ],
+            [
+              55.1351,
+              25.0752
+            ],
+            [
+              55.1341,
+              25.0752
+            ],
+            [
+              55.1341,
+              25.0742
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "JBR Beach Parking",
+        "source": "2GIS",
+        "address": "JBR"
+      }
+    },
+    "capacity": null,
+    "address": "JBR",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Kite Beach Parking",
+    "kind": "PAID",
+    "lat": 25.2017,
+    "lng": 55.2408,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.2403,
+              25.2012
+            ],
+            [
+              55.2413,
+              25.2012
+            ],
+            [
+              55.2413,
+              25.202199999999998
+            ],
+            [
+              55.2403,
+              25.202199999999998
+            ],
+            [
+              55.2403,
+              25.2012
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Kite Beach Parking",
+        "source": "2GIS",
+        "address": "Umm Suqeim"
+      }
+    },
+    "capacity": null,
+    "address": "Umm Suqeim",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "La Mer Beach Parking",
+    "kind": "PAID",
+    "lat": 25.232,
+    "lng": 55.2913,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.2908,
+              25.2315
+            ],
+            [
+              55.2918,
+              25.2315
+            ],
+            [
+              55.2918,
+              25.232499999999998
+            ],
+            [
+              55.2908,
+              25.232499999999998
+            ],
+            [
+              55.2908,
+              25.2315
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "La Mer Beach Parking",
+        "source": "2GIS",
+        "address": "Jumeirah"
+      }
+    },
+    "capacity": null,
+    "address": "Jumeirah",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Dubai Design District Parking",
+    "kind": "PAID",
+    "lat": 25.1949,
+    "lng": 55.29,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.2895,
+              25.1944
+            ],
+            [
+              55.2905,
+              25.1944
+            ],
+            [
+              55.2905,
+              25.1954
+            ],
+            [
+              55.2895,
+              25.1954
+            ],
+            [
+              55.2895,
+              25.1944
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Dubai Design District Parking",
+        "source": "2GIS",
+        "address": "d3"
+      }
+    },
+    "capacity": null,
+    "address": "d3",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "City Walk Parking",
+    "kind": "PAID",
+    "lat": 25.2142,
+    "lng": 55.2604,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.259899999999995,
+              25.213700000000003
+            ],
+            [
+              55.2609,
+              25.213700000000003
+            ],
+            [
+              55.2609,
+              25.2147
+            ],
+            [
+              55.259899999999995,
+              25.2147
+            ],
+            [
+              55.259899999999995,
+              25.213700000000003
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "City Walk Parking",
+        "source": "2GIS",
+        "address": "Al Wasl"
+      }
+    },
+    "capacity": null,
+    "address": "Al Wasl",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Box Park Parking",
+    "kind": "PAID",
+    "lat": 25.2156,
+    "lng": 55.2587,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.258199999999995,
+              25.2151
+            ],
+            [
+              55.2592,
+              25.2151
+            ],
+            [
+              55.2592,
+              25.216099999999997
+            ],
+            [
+              55.258199999999995,
+              25.216099999999997
+            ],
+            [
+              55.258199999999995,
+              25.2151
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Box Park Parking",
+        "source": "2GIS",
+        "address": "Al Wasl"
+      }
+    },
+    "capacity": null,
+    "address": "Al Wasl",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Dubai Internet City Metro Parking",
+    "kind": "PAID",
+    "lat": 25.0943,
+    "lng": 55.162,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.1615,
+              25.0938
+            ],
+            [
+              55.1625,
+              25.0938
+            ],
+            [
+              55.1625,
+              25.0948
+            ],
+            [
+              55.1615,
+              25.0948
+            ],
+            [
+              55.1615,
+              25.0938
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Dubai Internet City Metro Parking",
+        "source": "2GIS",
+        "address": "Internet City"
+      }
+    },
+    "capacity": null,
+    "address": "Internet City",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Dubai Media City Parking",
+    "kind": "PAID",
+    "lat": 25.0989,
+    "lng": 55.1643,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.163799999999995,
+              25.0984
+            ],
+            [
+              55.1648,
+              25.0984
+            ],
+            [
+              55.1648,
+              25.0994
+            ],
+            [
+              55.163799999999995,
+              25.0994
+            ],
+            [
+              55.163799999999995,
+              25.0984
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Dubai Media City Parking",
+        "source": "2GIS",
+        "address": "Media City"
+      }
+    },
+    "capacity": null,
+    "address": "Media City",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  },
+  {
+    "name": "Knowledge Park Parking",
+    "kind": "PAID",
+    "lat": 25.1016,
+    "lng": 55.1622,
+    "geojson": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              55.161699999999996,
+              25.101100000000002
+            ],
+            [
+              55.1627,
+              25.101100000000002
+            ],
+            [
+              55.1627,
+              25.1021
+            ],
+            [
+              55.161699999999996,
+              25.1021
+            ],
+            [
+              55.161699999999996,
+              25.101100000000002
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Knowledge Park Parking",
+        "source": "2GIS",
+        "address": "Knowledge Park"
+      }
+    },
+    "capacity": null,
+    "address": "Knowledge Park",
+    "tariff": {
+      "rateAedPerHour": 10,
+      "hours": "08:00-22:00",
+      "maxDailyAed": 50
+    },
+    "source": "2GIS"
+  }
+]
