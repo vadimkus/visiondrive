@@ -4,7 +4,7 @@ interface SectionProps {
   children: React.ReactNode
   className?: string
   id?: string
-  background?: 'white' | 'gray' | 'primary'
+  background?: 'white' | 'gray' | 'primary' | 'gradient'
 }
 
 export default function Section({ children, className, id, background = 'white' }: SectionProps) {
@@ -12,6 +12,7 @@ export default function Section({ children, className, id, background = 'white' 
     white: 'bg-white',
     gray: 'bg-gray-50',
     primary: 'bg-primary-50',
+    gradient: 'bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900',
   }
 
   return (

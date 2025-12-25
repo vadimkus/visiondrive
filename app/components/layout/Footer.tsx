@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Mail, Phone, MapPin, MessageCircle, Facebook, Instagram } from 'lucide-react'
+import { Mail, MapPin, MessageCircle } from 'lucide-react'
 import Logo from '../common/Logo'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { footerTranslations } from '../../translations/footer'
@@ -22,7 +22,6 @@ export default function Footer() {
       { name: t.companyLinks.about, href: '/about' },
       { name: t.companyLinks.vision, href: '/mission' },
       { name: t.companyLinks.careers, href: '/careers' },
-      { name: t.companyLinks.blog, href: '/blog' },
     ],
     legal: [
       { name: t.legalLinks.privacy, href: '/privacy' },
@@ -56,42 +55,6 @@ export default function Footer() {
                 </span>
               ))}
             </p>
-            <div className="flex space-x-4">
-              <a 
-                href="https://wa.me/971559152985" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-green-500 hover:text-green-600 transition-colors"
-                aria-label="WhatsApp"
-              >
-                <MessageCircle className="h-5 w-5" />
-              </a>
-              <a 
-                href="mailto:ask@visiondrive.ae" 
-                className="text-primary-600 hover:text-primary-700 transition-colors"
-                aria-label="Email"
-              >
-                <Mail className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://www.facebook.com/visiondrive" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[#1877F2] hover:text-[#0f5dcf] transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://www.instagram.com/visiondrive" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-pink-500 hover:text-pink-600 transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-            </div>
           </div>
 
           {/* Company */}
@@ -159,8 +122,8 @@ export default function Footer() {
                 </a>
               </li>
               <li className="flex items-start space-x-3">
-                <Phone className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <a href="tel:+971559152985" className="text-sm text-gray-700 hover:text-primary-600 transition-colors">
+                <MessageCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <a href="https://wa.me/971559152985" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-700 hover:text-primary-600 transition-colors">
                   +971 55 915 2985
                 </a>
               </li>

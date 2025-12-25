@@ -1,7 +1,10 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion as fmMotion } from 'framer-motion'
 import { Shield, Award, MapPin } from 'lucide-react'
+
+// React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
+const motion = fmMotion as any
 
 const badges = [
   {

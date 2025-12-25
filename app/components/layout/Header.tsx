@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { Menu, X, User, LogOut } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion as fmMotion, AnimatePresence } from 'framer-motion'
 import Logo from '../common/Logo'
 import LanguageSelector from '../common/LanguageSelector'
 import { useLanguage } from '../../contexts/LanguageContext'
+
+// React 19 + Framer Motion v10 typing edge-case: loosen typing for UI animations.
+const motion = fmMotion as any
 
 // Make sure Header is client component - already has 'use client'
 

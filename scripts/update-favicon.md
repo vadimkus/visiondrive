@@ -98,3 +98,4 @@ Target format:
 - Logo scaling: **85% of canvas** (up from ~40%)
 - Colors preserved: Dark navy blue (#1e3a5f) and silver accents
 
+

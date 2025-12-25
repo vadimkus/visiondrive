@@ -1,10 +1,13 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion as fmMotion } from 'framer-motion'
 import Button from '../common/Button'
 import { ArrowRight } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { homeTranslations } from '../../translations/home'
+
+// React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
+const motion = fmMotion as any
 
 export default function Hero() {
   const { language } = useLanguage()
@@ -34,7 +37,7 @@ export default function Hero() {
             )}
           </p>
           <div className="px-4 mb-1 sm:mb-2">
-            <Button href="/app/download" size="lg" className="group w-full sm:w-auto">
+            <Button href="/app" size="lg" className="group w-full sm:w-auto">
               {t.hero.cta}
               <ArrowRight className={`${language === 'ar' ? 'mr-2 rotate-180' : 'ml-2'} h-5 w-5 group-hover:translate-x-1 transition-transform`} />
             </Button>

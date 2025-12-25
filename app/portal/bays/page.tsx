@@ -1,10 +1,10 @@
 import { Suspense } from 'react'
-import WeatherPageClient from './WeatherPageClient'
+import BaysPageClient from './BaysPageClient'
 
-export default function WeatherPage() {
+export default function BaysPage() {
   return (
     <Suspense fallback={<div className="p-8 text-gray-600">Loading…</div>}>
-      <WeatherPageClient />
+      <BaysPageClient />
     </Suspense>
   )
 }

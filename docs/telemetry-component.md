@@ -112,3 +112,4 @@ Uses Tailwind CSS with custom animations:
 - Responsive font sizing for readability
 - Icons from lucide-react for consistency
 
+

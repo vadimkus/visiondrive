@@ -1,8 +1,11 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion as fmMotion } from 'framer-motion'
 import AnimatedCounter from './AnimatedCounter'
 import { TrendingDown, Clock, Zap, MapPin } from 'lucide-react'
+
+// React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
+const motion = fmMotion as any
 
 const stats = [
   {

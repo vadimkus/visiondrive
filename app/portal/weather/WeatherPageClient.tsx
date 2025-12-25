@@ -3,7 +3,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import mapboxgl from 'mapbox-gl'
-import { CloudSun, Download, Loader2, RefreshCw } from 'lucide-react'
+import { 
+  CloudSun, 
+  Download, 
+  Loader2, 
+  RefreshCw,
+  Thermometer,
+  Wind,
+  Droplets,
+  Eye,
+  Zap,
+  AlertTriangle,
+  CheckCircle2,
+  MapPin,
+  TrendingUp,
+  TrendingDown
+} from 'lucide-react'
 
 type Station = {
   id: string
@@ -45,10 +60,10 @@ function Sparkline({ points, valueKey }: { points: TrendsPoint[]; valueKey: keyo
   const vals = points
     .map((p) => (typeof p[valueKey] === 'number' ? (p[valueKey] as number) : null))
     .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
-  if (vals.length < 2) return <div className="h-10 text-xs text-gray-500">No data</div>
+  if (vals.length < 2) return <div className="h-12 text-xs text-gray-400 flex items-center">No data</div>
 
-  const w = 140
-  const h = 40
+  const w = 160
+  const h = 48
   const min = Math.min(...vals)
   const max = Math.max(...vals)
   const scaleY = (v: number) => {
@@ -60,10 +75,36 @@ function Sparkline({ points, valueKey }: { points: TrendsPoint[]; valueKey: keyo
     .map((v, i) => `${i === 0 ? 'M' : 'L'} ${Math.round(i * step)} ${Math.round(scaleY(v))}`)
     .join(' ')
 
+  // Calculate trend
+  const trend = vals[vals.length - 1] - vals[0]
+  const trendPercent = min !== 0 ? ((vals[vals.length - 1] - vals[0]) / Math.abs(vals[0])) * 100 : 0
+
   return (
-    <svg width={w} height={h} className="block">
-      <path d={d} fill="none" stroke="#2563eb" strokeWidth="2" />
-    </svg>
+    <div className="flex items-center gap-2">
+      <svg width={w} height={h} className="block">
+        {/* Grid lines */}
+        <line x1="0" y1={h/2} x2={w} y2={h/2} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4,4" />
+        {/* Gradient fill under line */}
+        <defs>
+          <linearGradient id={`gradient-${valueKey}`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+        <path d={`${d} L ${w} ${h} L 0 ${h} Z`} fill={`url(#gradient-${valueKey})`} />
+        {/* Line */}
+        <path d={d} fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Current value dot */}
+        <circle cx={w} cy={scaleY(vals[vals.length - 1])} r="4" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
+      </svg>
+      <div className="text-xs">
+        {trend > 0 ? (
+          <TrendingUp className="h-4 w-4 text-green-600" />
+        ) : trend < 0 ? (
+          <TrendingDown className="h-4 w-4 text-red-600" />
+        ) : null}
+      </div>
+    </div>
   )
 }
 
@@ -163,9 +204,11 @@ export default function WeatherPageClient() {
         source: 'weather-stations',
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': '#111827',
-          'circle-radius': ['step', ['get', 'point_count'], 18, 10, 24, 30, 30],
-          'circle-opacity': 0.75,
+          'circle-color': '#3b82f6',
+          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 26, 30, 32],
+          'circle-opacity': 0.85,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
         },
       })
       map.addLayer({
@@ -173,11 +216,11 @@ export default function WeatherPageClient() {
         type: 'symbol',
         source: 'weather-stations',
         filter: ['has', 'point_count'],
-        layout: { 'text-field': '{point_count_abbreviated}', 'text-size': 12 },
+        layout: { 'text-field': '{point_count_abbreviated}', 'text-size': 13, 'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'] },
         paint: { 'text-color': '#ffffff' },
       })
 
-      // Unclustered dots colored by selected metric (simple interpolation)
+      // Unclustered dots colored by selected metric
       const colorExpr =
         metric === 'temperatureC'
           ? ([
@@ -223,14 +266,14 @@ export default function WeatherPageClient() {
         source: 'weather-stations',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-radius': 6,
+          'circle-radius': 8,
           'circle-color': [
             'case',
             ['==', ['get', 'online'], 0],
             '#000000',
             colorExpr,
           ],
-          'circle-stroke-width': 2,
+          'circle-stroke-width': 3,
           'circle-stroke-color': '#ffffff',
           'circle-opacity': 0.9,
         },
@@ -243,15 +286,15 @@ export default function WeatherPageClient() {
         filter: ['!', ['has', 'point_count']],
         layout: {
           'text-field': ['get', 'name'],
-          'text-size': 11,
-          'text-offset': [0, 0.9],
+          'text-size': 12,
+          'text-offset': [0, 1],
           'text-anchor': 'top',
           'text-allow-overlap': false,
         },
         paint: {
           'text-color': '#111827',
           'text-halo-color': '#ffffff',
-          'text-halo-width': 2,
+          'text-halo-width': 2.5,
         },
       })
 
@@ -284,21 +327,35 @@ export default function WeatherPageClient() {
 
   if (!token) {
     return (
-      <div className="rounded-xl border-2 border-yellow-200 bg-yellow-50 p-6 shadow-lg">
-        <p className="text-sm text-yellow-900">
-          Set <code className="font-mono font-semibold">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> to use Weather Dashboard.
-        </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 p-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="rounded-2xl border-2 border-yellow-300 bg-yellow-50 p-8 shadow-xl">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="h-8 w-8 text-yellow-600 flex-shrink-0" />
+              <div>
+                <h3 className="text-lg font-bold text-yellow-900 mb-2">Configuration Required</h3>
+                <p className="text-sm text-yellow-800">
+                  Set <code className="font-mono font-semibold bg-yellow-100 px-2 py-1 rounded">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code> to use Weather Dashboard.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 p-4 sm:p-6 lg:p-8">
         <div className="max-w-[1920px] mx-auto flex items-center justify-center min-h-[600px]">
           <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-sky-600 mx-auto mb-4" />
-            <p className="text-gray-700 font-medium">Loading weather dashboard…</p>
+            <div className="relative">
+              <div className="absolute inset-0 blur-xl bg-blue-200 opacity-50 rounded-full"></div>
+              <Loader2 className="h-16 w-16 animate-spin text-blue-600 mx-auto mb-6 relative" />
+            </div>
+            <p className="text-xl text-gray-700 font-semibold">Loading weather dashboard…</p>
+            <p className="text-sm text-gray-500 mt-2">Fetching environmental data</p>
           </div>
         </div>
       </div>
@@ -306,205 +363,338 @@ export default function WeatherPageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-[1920px] mx-auto">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 inline-flex items-center gap-3">
-              <CloudSun className="h-9 w-9 text-sky-600" />
-              Weather Equipment
-            </h1>
-            <p className="text-base sm:text-lg text-gray-600">
-              Multi-location environmental monitoring · spot anomalies (storms, dust, poor air quality)
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={async () => {
-                setLoading(true)
-                try {
-                  const res = await fetch('/api/portal/weather/stations', { credentials: 'include' })
-                  const json = await res.json()
-                  if (json.success) {
-                    setItems(json.items || [])
-                    setKpis(json.kpis || null)
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <div className="inline-flex items-center gap-3 mb-3">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-lg">
+                  <CloudSun className="h-8 w-8 text-white" />
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                  Weather Equipment
+                </h1>
+              </div>
+              <p className="text-base text-gray-600 flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Multi-location environmental monitoring · Spot anomalies (storms, dust, poor air quality)
+              </p>
+            </div>
+            <div>
+              <button
+                onClick={async () => {
+                  setLoading(true)
+                  try {
+                    const res = await fetch('/api/portal/weather/stations', { credentials: 'include' })
+                    const json = await res.json()
+                    if (json.success) {
+                      setItems(json.items || [])
+                      setKpis(json.kpis || null)
+                    }
+                  } finally {
+                    setLoading(false)
                   }
-                } finally {
-                  setLoading(false)
-                }
-              }}
-              className="inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-gray-900 text-white hover:bg-black"
-            >
-              <RefreshCw className="h-5 w-5 mr-2" />
-              Refresh
-            </button>
+                }}
+                className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all"
+              >
+                <RefreshCw className="h-5 w-5 mr-2" />
+                Refresh Data
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
-            <div className="text-xs text-gray-500 font-semibold">Stations</div>
-            <div className="text-2xl font-bold text-gray-900">{kpis?.total ?? items.length}</div>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6 mb-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Stations</div>
+              <MapPin className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900">{kpis?.total ?? items.length}</div>
+            <div className="text-xs text-gray-500 mt-1">Active deployments</div>
           </div>
-          <div className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
-            <div className="text-xs text-gray-500 font-semibold">Online</div>
-            <div className="text-2xl font-bold text-green-700">{kpis?.online ?? 0}</div>
+          
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold text-green-700 uppercase tracking-wider">Online</div>
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+            </div>
+            <div className="text-3xl font-bold text-green-700">{kpis?.online ?? 0}</div>
+            <div className="text-xs text-green-600 mt-1">Transmitting data</div>
           </div>
-          <div className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
-            <div className="text-xs text-gray-500 font-semibold">Offline</div>
-            <div className="text-2xl font-bold text-gray-900">{kpis?.offline ?? 0}</div>
+          
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Offline</div>
+              <Zap className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900">{kpis?.offline ?? 0}</div>
+            <div className="text-xs text-gray-500 mt-1">Requires attention</div>
           </div>
-          <div className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
-            <div className="text-xs text-gray-500 font-semibold">Avg Temp</div>
-            <div className="text-2xl font-bold text-gray-900">{typeof kpis?.avgTempC === 'number' ? `${kpis.avgTempC}°C` : '—'}</div>
+          
+          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold text-orange-700 uppercase tracking-wider">Avg Temp</div>
+              <Thermometer className="h-5 w-5 text-orange-500" />
+            </div>
+            <div className="text-3xl font-bold text-orange-700">
+              {typeof kpis?.avgTempC === 'number' ? `${kpis.avgTempC}°C` : '—'}
+            </div>
+            <div className="text-xs text-orange-600 mt-1">Current average</div>
           </div>
-          <div className="bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
-            <div className="text-xs text-gray-500 font-semibold">Derived Alerts</div>
-            <div className="text-2xl font-bold text-orange-700">{kpis?.derivedAlerts ?? 0}</div>
+          
+          <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl p-6 shadow-lg border border-red-100 hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold text-red-700 uppercase tracking-wider">Alerts</div>
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            </div>
+            <div className="text-3xl font-bold text-red-700">{kpis?.derivedAlerts ?? 0}</div>
+            <div className="text-xs text-red-600 mt-1">Active warnings</div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Map */}
-          <div className="lg:col-span-3 bg-white rounded-xl shadow-lg border-2 border-gray-200 p-6 flex flex-col">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Live Map</h2>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-gray-600 font-medium">Color by:</span>
-                {(
-                  [
-                    ['temperatureC', 'Temp'],
-                    ['aqi', 'AQI'],
-                    ['pm25', 'PM2.5'],
-                    ['humidityPct', 'Humidity'],
-                    ['windMps', 'Wind'],
-                  ] as const
-                ).map(([k, label]) => (
-                  <button
-                    key={k}
-                    onClick={() => setMetric(k)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg border-2 ${
-                      metric === k ? 'bg-sky-600 border-sky-700 text-white' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Map - 2/3 width */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <MapPin className="h-6 w-6 text-blue-600" />
+                  Live Map
+                </h2>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-gray-600 font-medium">Color by:</span>
+                  {(
+                    [
+                      ['temperatureC', 'Temp', Thermometer],
+                      ['aqi', 'AQI', Eye],
+                      ['pm25', 'PM2.5', Wind],
+                      ['humidityPct', 'Humidity', Droplets],
+                      ['windMps', 'Wind', Wind],
+                    ] as const
+                  ).map(([k, label, Icon]) => (
+                    <button
+                      key={k}
+                      onClick={() => setMetric(k)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-all ${
+                        metric === k 
+                          ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg scale-105' 
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="h-[650px] lg:h-[900px] rounded-lg overflow-hidden border border-gray-200">
+            <div className="h-[700px] lg:h-[800px]">
               <div ref={mapElRef} className="w-full h-full" />
             </div>
           </div>
 
-          {/* Stations */}
-          <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-6 flex flex-col">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Stations</h2>
-            <div className="flex-1 overflow-auto -mx-6 border-t border-gray-100">
+          {/* Stations Sidebar - 1/3 width */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+              <h2 className="text-xl font-bold text-gray-900">Weather Stations</h2>
+              <p className="text-sm text-gray-600 mt-1">{items.length} total stations</p>
+            </div>
+            
+            <div className="flex-1 overflow-auto">
               {items.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setSelectedId(s.id)}
-                  className={`w-full text-left px-6 py-4 border-b border-gray-100 hover:bg-gray-50 ${
-                    selectedId === s.id ? 'bg-sky-50 border-l-4 border-l-sky-600' : ''
+                  className={`w-full text-left p-5 border-b border-gray-100 hover:bg-blue-50 transition-all ${
+                    selectedId === s.id ? 'bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-l-blue-600' : ''
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="font-semibold text-gray-900 truncate">{s.name}</div>
-                      <div className="text-xs text-gray-600 truncate">{s.siteName || '—'}</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {s.online ? (
-                          <span className="text-green-700 font-medium">Online</span>
-                        ) : (
-                          <span className="text-gray-900 font-medium">Offline</span>
-                        )}{' '}
-                        · {s.lastSeen ? new Date(s.lastSeen).toLocaleString() : '—'}
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-gray-900 truncate text-base">{s.name}</div>
+                      <div className="text-xs text-gray-500 truncate flex items-center gap-1 mt-1">
+                        <MapPin className="h-3 w-3" />
+                        {s.siteName || '—'}
                       </div>
                     </div>
-                    <div className="text-right text-xs text-gray-600">
-                      <div className="font-semibold text-gray-900">{typeof s.metrics.temperatureC === 'number' ? `${s.metrics.temperatureC}°C` : '—'}</div>
-                      <div>AQI: {typeof s.metrics.aqi === 'number' ? s.metrics.aqi : '—'}</div>
-                      <div>PM2.5: {typeof s.metrics.pm25 === 'number' ? s.metrics.pm25 : '—'}</div>
+                    <div className={`flex-shrink-0 px-2 py-1 rounded-lg text-xs font-semibold ${
+                      s.online ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {s.online ? '● Online' : '○ Offline'}
                     </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="bg-orange-50 rounded-lg p-2 text-center">
+                      <Thermometer className="h-4 w-4 text-orange-600 mx-auto mb-1" />
+                      <div className="font-bold text-orange-900">
+                        {typeof s.metrics.temperatureC === 'number' ? `${s.metrics.temperatureC}°C` : '—'}
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-2 text-center">
+                      <Eye className="h-4 w-4 text-blue-600 mx-auto mb-1" />
+                      <div className="font-bold text-blue-900">
+                        {typeof s.metrics.aqi === 'number' ? s.metrics.aqi : '—'}
+                      </div>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-2 text-center">
+                      <Wind className="h-4 w-4 text-purple-600 mx-auto mb-1" />
+                      <div className="font-bold text-purple-900">
+                        {typeof s.metrics.pm25 === 'number' ? s.metrics.pm25 : '—'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 mt-3">
+                    Last seen: {s.lastSeen ? new Date(s.lastSeen).toLocaleString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    }) : '—'}
                   </div>
                 </button>
               ))}
-              {!items.length && <div className="p-8 text-center text-gray-500">No weather stations yet.</div>}
+              {!items.length && (
+                <div className="p-12 text-center">
+                  <CloudSun className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">No weather stations yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Stations will appear here once deployed</p>
+                </div>
+              )}
             </div>
 
-            {/* Selected details */}
-            {selected ? (
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-sm font-semibold text-gray-900">Trends</div>
-                  <div className="flex items-center gap-2">
-                    {(['1h', '24h', '7d'] as const).map((r) => (
-                      <button
-                        key={r}
-                        onClick={() => setRange(r)}
-                        className={`px-2 py-1 text-xs font-medium rounded border ${
-                          range === r ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-200'
-                        }`}
+            {/* Selected Station Details */}
+            {selected && (
+              <div className="border-t border-gray-100 p-6 bg-gray-50">
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Trends Analysis</h3>
+                    <div className="flex items-center gap-2">
+                      {(['1h', '24h', '7d'] as const).map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => setRange(r)}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                            range === r 
+                              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md' 
+                              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          {r}
+                        </button>
+                      ))}
+                      <a
+                        href={`/api/portal/weather/stations/${encodeURIComponent(selected.id)}/export?range=${encodeURIComponent(range)}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-all"
                       >
-                        {r}
-                      </button>
-                    ))}
-                    <a
-                      href={`/api/portal/weather/stations/${encodeURIComponent(selected.id)}/export?range=${encodeURIComponent(range)}`}
-                      className="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-gray-200 text-gray-700 hover:bg-gray-50"
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      CSV
-                    </a>
+                        <Download className="h-3.5 w-3.5" />
+                        CSV
+                      </a>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="bg-white rounded-xl p-3 border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Thermometer className="h-4 w-4 text-orange-600" />
+                          <span className="text-xs font-semibold text-gray-700">Temperature</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{range}</span>
+                      </div>
+                      <Sparkline points={trends} valueKey="temperatureC" />
+                    </div>
+                    
+                    <div className="bg-white rounded-xl p-3 border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Eye className="h-4 w-4 text-blue-600" />
+                          <span className="text-xs font-semibold text-gray-700">Air Quality Index</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{range}</span>
+                      </div>
+                      <Sparkline points={trends} valueKey="aqi" />
+                    </div>
+                    
+                    <div className="bg-white rounded-xl p-3 border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Wind className="h-4 w-4 text-purple-600" />
+                          <span className="text-xs font-semibold text-gray-700">Wind Speed</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{range}</span>
+                      </div>
+                      <Sparkline points={trends} valueKey="windMps" />
+                    </div>
+                    
+                    <div className="bg-white rounded-xl p-3 border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Droplets className="h-4 w-4 text-cyan-600" />
+                          <span className="text-xs font-semibold text-gray-700">Humidity</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{range}</span>
+                      </div>
+                      <Sparkline points={trends} valueKey="humidityPct" />
+                    </div>
+                    
+                    <div className="bg-white rounded-xl p-3 border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Wind className="h-4 w-4 text-gray-600" />
+                          <span className="text-xs font-semibold text-gray-700">PM2.5</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{range}</span>
+                      </div>
+                      <Sparkline points={trends} valueKey="pm25" />
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-2">
-                  <div className="flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2">
-                    <div className="text-xs text-gray-600">Temp</div>
-                    <Sparkline points={trends} valueKey="temperatureC" />
-                  </div>
-                  <div className="flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2">
-                    <div className="text-xs text-gray-600">AQI</div>
-                    <Sparkline points={trends} valueKey="aqi" />
-                  </div>
-                  <div className="flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2">
-                    <div className="text-xs text-gray-600">Wind</div>
-                    <Sparkline points={trends} valueKey="windMps" />
-                  </div>
-                  <div className="flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2">
-                    <div className="text-xs text-gray-600">Humidity</div>
-                    <Sparkline points={trends} valueKey="humidityPct" />
-                  </div>
-                  <div className="flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2">
-                    <div className="text-xs text-gray-600">PM2.5</div>
-                    <Sparkline points={trends} valueKey="pm25" />
-                  </div>
-                </div>
+
                 {selected.derivedAlerts?.length ? (
                   <div className="mt-4">
-                    <div className="text-sm font-semibold text-gray-900 mb-2">Derived Alerts</div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Active Alerts</h3>
+                    </div>
                     <div className="space-y-2">
                       {selected.derivedAlerts.slice(0, 5).map((a, idx) => (
-                        <div key={idx} className="text-xs border border-gray-200 rounded-lg px-3 py-2">
-                          <span className="font-semibold">{a.severity}</span> · {a.message}
+                        <div 
+                          key={idx} 
+                          className={`text-xs rounded-xl p-3 border-l-4 ${
+                            a.severity === 'CRITICAL' 
+                              ? 'bg-red-50 border-l-red-600 text-red-900' 
+                              : a.severity === 'WARNING'
+                              ? 'bg-yellow-50 border-l-yellow-600 text-yellow-900'
+                              : 'bg-blue-50 border-l-blue-600 text-blue-900'
+                          }`}
+                        >
+                          <span className="font-bold">{a.severity}</span> · {a.message}
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : null}
 
-                <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
-                  Scheduled daily summary report (email) is wired via report subscriptions next (Phase 10.13.4). UI hookup will be added next.
+                <div className="mt-4 rounded-xl bg-blue-50 border border-blue-200 p-4">
+                  <div className="flex items-start gap-3">
+                    <Zap className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-xs text-blue-900">
+                      <p className="font-semibold mb-1">Coming Soon: Scheduled Reports</p>
+                      <p className="text-blue-700">Daily summary reports via email will be available in Phase 10.13.4.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </div>
     </div>
   )
 }
-
-

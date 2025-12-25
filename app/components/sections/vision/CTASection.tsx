@@ -1,7 +1,10 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion as fmMotion } from 'framer-motion'
 import { Calendar, Download, ArrowRight } from 'lucide-react'
+
+// React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
+const motion = fmMotion as any
 
 export default function CTASection() {
   return (
