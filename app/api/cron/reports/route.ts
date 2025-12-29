@@ -116,12 +116,12 @@ export async function GET(request: NextRequest) {
             "updatedAt" = now()
         WHERE id = ${s.id}
       `
-    } catch (e: any) {
+    } catch (e: unknown) {
       await sql/*sql*/`
         UPDATE report_deliveries
         SET status = 'FAILED',
             "finishedAt" = now(),
-            error = ${String(e?.message || e)}
+            error = ${String(e instanceof Error ? e.message : 'Unknown error')}
         WHERE id = ${deliveryId}
       `
     }

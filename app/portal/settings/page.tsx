@@ -203,8 +203,8 @@ export default function SettingsPage() {
 
   const importZone = async () => {
     setZoneImportStatus(null)
-    let geojson: any = null
-    let tariff: any = null
+    let geojson: Record<string, unknown> | null = null
+    let tariff: Record<string, unknown> | null = null
     try {
       geojson = zoneGeojsonText.trim() ? JSON.parse(zoneGeojsonText) : null
     } catch {

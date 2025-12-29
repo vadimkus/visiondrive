@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/sql'
 import { requirePortalSession } from '@/lib/portal/session'
 
-function normalizeJson(value: any) {
+interface ZoneRow {
+  id: string;
+  name: string | null;
+  kind: string | null;
+  siteName: string | null;
+  bayCount: number;
+  geojson: unknown;
+  tariff: unknown;
+}
+
+function normalizeJson(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value === 'undefined') return null
-  if (typeof value === 'object') return value
+  if (typeof value === 'object') return value as Record<string, unknown>
   if (typeof value === 'string') {
     const t = value.trim()
     if (!t) return null
@@ -40,7 +50,7 @@ export async function GET(request: NextRequest) {
       LIMIT 500
     `
 
-    const zones = (zoneRows || []).map((z: any) => ({
+    const zones = ((zoneRows || []) as unknown as ZoneRow[]).map((z) => ({
       id: z.id,
       name: z.name || 'Unnamed Zone',
       kind: z.kind || 'PAID',
@@ -54,8 +64,8 @@ export async function GET(request: NextRequest) {
       success: true,
       zones,
     })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }

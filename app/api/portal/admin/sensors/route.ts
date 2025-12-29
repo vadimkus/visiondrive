@@ -3,9 +3,31 @@ import { sql } from '@/lib/sql'
 import { assertRole, requirePortalSession } from '@/lib/portal/session'
 import { writeAuditLog } from '@/lib/audit'
 
-function normalizeJson(value: any) {
+interface SensorRow {
+  id: string;
+  devEui: string;
+  type: string | null;
+  status: string | null;
+  lat: number | null;
+  lng: number | null;
+  bayId: string | null;
+  bayCode: string | null;
+  bayLat: number | null;
+  bayLng: number | null;
+  zoneName: string | null;
+  siteName: string | null;
+}
+
+interface Geometry {
+  type: string;
+  coordinates: number[] | number[][] | number[][][] | number[][][][];
+}
+
+type Coordinate = number[];
+
+function normalizeJson(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value === 'undefined') return null
-  if (typeof value === 'object') return value
+  if (typeof value === 'object') return value as Record<string, unknown>
   if (typeof value === 'string') {
     const t = value.trim()
     if (!t) return null
@@ -18,13 +40,14 @@ function normalizeJson(value: any) {
   return null
 }
 
-function shiftGeometry(geometry: any, dLng: number, dLat: number): any {
+function shiftGeometry(geometry: unknown, dLng: number, dLat: number): unknown {
   if (!geometry || typeof geometry !== 'object') return geometry
-  const t = geometry.type
-  const c = geometry.coordinates
+  const geom = geometry as Geometry
+  const t = geom.type
+  const c = geom.coordinates
   if (!t || !c) return geometry
 
-  const shiftCoord = (coord: any) => {
+  const shiftCoord = (coord: Coordinate): Coordinate => {
     if (!Array.isArray(coord) || coord.length < 2) return coord
     const lng = coord[0]
     const lat = coord[1]
@@ -32,14 +55,14 @@ function shiftGeometry(geometry: any, dLng: number, dLat: number): any {
     return [lng + dLng, lat + dLat, ...coord.slice(2)]
   }
 
-  const deepMap = (x: any, depth: number): any => {
-    if (depth === 0) return shiftCoord(x)
+  const deepMap = (x: unknown, depth: number): unknown => {
+    if (depth === 0) return shiftCoord(x as Coordinate)
     if (!Array.isArray(x)) return x
     return x.map((v) => deepMap(v, depth - 1))
   }
 
   // Point: [lng, lat]
-  if (t === 'Point') return { ...geometry, coordinates: shiftCoord(c) }
+  if (t === 'Point') return { ...geometry, coordinates: shiftCoord(c as Coordinate) }
   // LineString: [[lng,lat], ...]
   if (t === 'LineString') return { ...geometry, coordinates: deepMap(c, 0) }
   // Polygon: [[[lng,lat], ...]]
@@ -86,7 +109,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      items: (rows || []).map((r: any) => ({
+      items: ((rows || []) as unknown as SensorRow[]).map((r) => ({
         id: r.id,
         devEui: r.devEui,
         type: r.type,
@@ -101,8 +124,8 @@ export async function GET(request: NextRequest) {
         siteName: r.siteName || null,
       })),
     })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }
@@ -259,7 +282,7 @@ export async function POST(request: NextRequest) {
             UPDATE bays
             SET lat = ${nextLat},
                 lng = ${nextLng},
-                geojson = ${nextGj ? (sql.json(nextGj) as any) : null},
+                geojson = ${nextGj ? sql.json(nextGj as unknown as Parameters<typeof sql.json>[0]) : null},
                 "updatedAt" = now()
             WHERE "tenantId" = ${session.tenantId} AND id = ${bayId}
           `
@@ -280,8 +303,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: false, error: 'INVALID_ACTION' }, { status: 400 })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }

@@ -2,6 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/sql'
 import { requirePortalSession } from '@/lib/portal/session'
 
+interface BayMapRow {
+  bayId: string;
+  bayCode: string | null;
+  lat: number | null;
+  lng: number | null;
+  bayGeojson: unknown;
+  sensorId: string | null;
+  devEui: string | null;
+  sensorLat: number | null;
+  sensorLng: number | null;
+  lastSeen: Date | string | null;
+  batteryPct: number | null;
+  eventTime: Date | string | null;
+  decoded: unknown;
+}
+
+interface GatewayRow {
+  id: string;
+  name: string;
+  status: string | null;
+  backhaul: string | null;
+  lastHeartbeat: Date | string | null;
+  lat: number | null;
+  lng: number | null;
+}
+
 function confidenceFromAgeMinutes(ageMin: number) {
   if (ageMin <= 2) return 0.98
   if (ageMin <= 5) return 0.9
@@ -11,9 +37,9 @@ function confidenceFromAgeMinutes(ageMin: number) {
   return 0.1
 }
 
-function normalizeJson(value: any) {
+function normalizeJson(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value === 'undefined') return null
-  if (typeof value === 'object') return value
+  if (typeof value === 'object') return value as Record<string, unknown>
   if (typeof value === 'string') {
     const t = value.trim()
     if (!t) return null
@@ -95,7 +121,7 @@ export async function GET(request: NextRequest) {
       LIMIT 2000
     `
 
-    const items = (rows || []).map((r: any) => {
+    const items = ((rows || []) as unknown as BayMapRow[]).map((r) => {
       // Prefer eventTime for freshness (TIMESTAMPTZ) over sensors.lastSeen (timestamp without tz)
       const eventTime = r.eventTime ? new Date(r.eventTime) : null
       const lastSeen = eventTime || (r.lastSeen ? new Date(r.lastSeen) : null)
@@ -104,7 +130,7 @@ export async function GET(request: NextRequest) {
       if (typeof r.batteryPct === 'number' && r.batteryPct <= 20) confidence = Math.max(0, confidence - 0.2)
 
       const decoded = normalizeJson(r.decoded)
-      const occupied = (decoded as any)?.occupied
+      const occupied = decoded?.occupied
       const state =
         !r.sensorId
           ? 'UNKNOWN' // no sensor installed for this bay yet
@@ -155,7 +181,7 @@ export async function GET(request: NextRequest) {
       LIMIT 2000
     `
 
-    const gateways = (gatewayRows || []).map((g: any) => {
+    const gateways = ((gatewayRows || []) as unknown as GatewayRow[]).map((g) => {
       const hb = g.lastHeartbeat ? new Date(g.lastHeartbeat) : null
       const ageMin = hb ? Math.floor((Date.now() - hb.getTime()) / 60000) : null
       const isOffline = typeof ageMin === 'number' ? ageMin > Math.max(offlineMinutes, 30) : true
@@ -190,8 +216,8 @@ export async function GET(request: NextRequest) {
       gateways,
       items,
     })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }

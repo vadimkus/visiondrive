@@ -4,9 +4,31 @@ import { sql } from '@/lib/sql'
 import { assertRole, requirePortalSession } from '@/lib/portal/session'
 import { writeAuditLog } from '@/lib/audit'
 
-function normalizeJson(value: any) {
+interface GeoJsonPolygon {
+  type: 'Feature';
+  geometry: {
+    type: 'Polygon';
+    coordinates: number[][][];
+  };
+  properties?: Record<string, unknown>;
+}
+
+interface BayRow {
+  id: string;
+  code: string | null;
+  lat: number | null;
+  lng: number | null;
+  geojson: unknown;
+  siteId: string | null;
+  zoneId: string | null;
+  siteName: string | null;
+  zoneName: string | null;
+  updatedAt: Date | string | null;
+}
+
+function normalizeJson(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value === 'undefined') return null
-  if (typeof value === 'object') return value
+  if (typeof value === 'object') return value as Record<string, unknown>
   if (typeof value === 'string') {
     const t = value.trim()
     if (!t) return null
@@ -19,11 +41,15 @@ function normalizeJson(value: any) {
   return null
 }
 
-function isPolygonGeojson(gj: any) {
-  return gj && typeof gj === 'object' && gj.geometry && gj.geometry.type === 'Polygon' && Array.isArray(gj.geometry.coordinates)
+function isPolygonGeojson(gj: unknown): gj is GeoJsonPolygon {
+  if (!gj || typeof gj !== 'object') return false
+  const obj = gj as Record<string, unknown>
+  if (!obj.geometry || typeof obj.geometry !== 'object') return false
+  const geom = obj.geometry as Record<string, unknown>
+  return geom.type === 'Polygon' && Array.isArray(geom.coordinates)
 }
 
-function centroidFromPolygonCoords(coords: any): { lat: number; lng: number } | null {
+function centroidFromPolygonCoords(coords: number[][][]): { lat: number; lng: number } | null {
   // coords: [ [ [lng,lat], ... ] ] (outer ring)
   const ring = Array.isArray(coords?.[0]) ? coords[0] : null
   if (!Array.isArray(ring) || ring.length < 4) return null
@@ -79,7 +105,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       zoneId,
-      items: (rows || []).map((r: any) => ({
+      items: ((rows || []) as unknown as BayRow[]).map((r) => ({
         id: r.id,
         code: r.code || null,
         lat: typeof r.lat === 'number' ? r.lat : null,
@@ -92,8 +118,8 @@ export async function GET(request: NextRequest) {
         updatedAt: r.updatedAt ? new Date(r.updatedAt).toISOString() : null,
       })),
     })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }
@@ -128,7 +154,7 @@ export async function POST(request: NextRequest) {
           ${code},
           ${c?.lat ?? null},
           ${c?.lng ?? null},
-          ${sql.json(gj) as any},
+          ${sql.json(gj as unknown as Parameters<typeof sql.json>[0])},
           now(),
           now()
         )
@@ -177,7 +203,7 @@ export async function POST(request: NextRequest) {
         SET
           code = COALESCE(${code}, code),
           "zoneId" = COALESCE(${zoneId}, "zoneId"),
-          geojson = CASE WHEN ${typeof gj === 'undefined'} THEN geojson ELSE ${sql.json(gj ?? null) as any} END,
+          geojson = CASE WHEN ${typeof gj === 'undefined'} THEN geojson ELSE ${sql.json((gj ?? null) as unknown as Parameters<typeof sql.json>[0])} END,
           lat = CASE WHEN ${typeof gj === 'undefined'} THEN lat ELSE ${lat} END,
           lng = CASE WHEN ${typeof gj === 'undefined'} THEN lng ELSE ${lng} END,
           "updatedAt" = now()
@@ -229,8 +255,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: false, error: 'UNKNOWN_ACTION' }, { status: 400 })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }

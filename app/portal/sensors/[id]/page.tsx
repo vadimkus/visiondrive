@@ -5,6 +5,63 @@ import { useParams, useRouter } from 'next/navigation'
 import Section from '../../../components/common/Section'
 import { ArrowLeft, Loader2, ShieldAlert } from 'lucide-react'
 
+interface SensorEvent {
+  time: string;
+  kind: string;
+  decoded: Record<string, unknown>;
+}
+
+interface SensorAlert {
+  id: string;
+  severity: string;
+  type: string;
+  slaDueAt: string | null;
+}
+
+interface SensorNote {
+  id: string;
+  createdAt: string;
+  authorEmail: string | null;
+  note: string;
+}
+
+interface SensorHealth {
+  rssi?: number | null;
+  snr?: number | null;
+  spreadingFactor?: number | null;
+  daysInUse?: number | null;
+  score?: number | null;
+  batteryDrainPerDay7d?: number | null;
+  uplinkCount7d?: number | null;
+  stateFlipCount7d?: number | null;
+  staleEventRatio7d?: number | null;
+  avgRssi24h?: number | null;
+  avgSnr24h?: number | null;
+  signalSamples24h?: number | null;
+  [key: string]: number | null | undefined;
+}
+
+interface SensorData {
+  success: boolean;
+  sensor: {
+    id: string;
+    devEui: string;
+    type?: string | null;
+    status?: string | null;
+    bayCode: string | null;
+    siteName: string | null;
+    zoneName: string | null;
+    lastSeen: string | null;
+    batteryPct: number | null;
+    confidence: number | null;
+    occupied: boolean | null;
+    health?: SensorHealth | null;
+  } | null;
+  events: SensorEvent[];
+  notes: SensorNote[];
+  alerts: SensorAlert[];
+}
+
 function fmtDue(iso: string | null) {
   if (!iso) return '—'
   const ms = new Date(iso).getTime() - Date.now()
@@ -23,7 +80,7 @@ export default function SensorDetailPage() {
   const id = params?.id
 
   const [loading, setLoading] = useState(true)
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<SensorData | null>(null)
   const [note, setNote] = useState('')
   const [noteSaving, setNoteSaving] = useState(false)
 
@@ -150,7 +207,7 @@ export default function SensorDetailPage() {
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
               {alerts.length === 0 && <span className="text-sm text-gray-500">No active alerts</span>}
-              {alerts.map((a: any) => (
+              {alerts.map((a: SensorAlert) => (
                 <span key={a.id} className="px-3 py-1 rounded-full border border-gray-200 bg-white text-xs text-gray-800">
                   <span className="font-semibold">{a.severity}</span> · {a.type} · due {fmtDue(a.slaDueAt)}
                 </span>
@@ -172,7 +229,7 @@ export default function SensorDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(data?.events || []).slice(0, 50).map((e: any) => (
+                  {(data?.events || []).slice(0, 50).map((e: SensorEvent) => (
                     <tr key={`event-${e.time}-${e.kind}`} className="border-t border-gray-100 align-top">
                       <td className="px-3 py-2 whitespace-nowrap text-gray-600">{new Date(e.time).toLocaleString()}</td>
                       <td className="px-3 py-2 text-gray-700">{e.kind}</td>
@@ -214,7 +271,7 @@ export default function SensorDetailPage() {
             </button>
 
             <div className="mt-4 space-y-3">
-              {(data?.notes || []).map((n: any) => (
+              {(data?.notes || []).map((n: SensorNote) => (
                 <div key={n.id} className="border border-gray-200 rounded-lg p-3">
                   <div className="text-xs text-gray-500 mb-1">
                     {new Date(n.createdAt).toLocaleString()} · {n.authorEmail || 'system'}

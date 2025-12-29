@@ -55,8 +55,8 @@ export async function PATCH(
       success: true,
       tenant: { id: t.id, name: t.name, slug: t.slug, status: t.status, updatedAt: new Date(t.updatedAt).toISOString() },
     })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }

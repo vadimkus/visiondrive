@@ -77,8 +77,8 @@ export async function POST(
       user: { id: ensuredUserId, email: userRows?.[0]?.email, name: userRows?.[0]?.name || null },
       generatedPassword: passwordInput ? null : password,
     })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }

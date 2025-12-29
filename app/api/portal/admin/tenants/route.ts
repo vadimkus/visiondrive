@@ -71,8 +71,8 @@ export async function GET(request: NextRequest) {
         lastEventTime: r.lastEventTime ? new Date(r.lastEventTime).toISOString() : null,
       })),
     })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }
@@ -122,8 +122,8 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, tenant: { id: createdId, name, slug, status: 'ACTIVE' } })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : msg === 'FORBIDDEN' ? 403 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }

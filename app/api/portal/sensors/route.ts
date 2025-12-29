@@ -127,8 +127,8 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, items })
-  } catch (e: any) {
-    const msg = e?.message || 'Internal server error'
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Internal server error'
     const status = msg === 'UNAUTHORIZED' ? 401 : msg === 'NO_TENANT' ? 400 : 500
     return NextResponse.json({ success: false, error: msg }, { status })
   }
