@@ -38,18 +38,24 @@ interface TrendItem {
   online: number
   offline: number
   total: number
+  count: number
 }
 
-interface Dashboard {
-  totalSensors: number
-  onlineSensors: number
-  offlineSensors: number
+interface KPIs {
   totalBays: number
   freeBays: number
   occupiedBays: number
-  occupancyPct: number
+  offlineBays: number
+  offlineSensors: number
+  openAlerts: number
+  criticalAlerts: number
+  lowBatterySensors: number
+  deadLetters24h: number
+}
+
+interface Dashboard {
+  kpis: KPIs
   trend: TrendItem[]
-  alerts: number
   lastUpdated?: string
 }
 
@@ -57,6 +63,7 @@ interface ZoneItem {
   id: string
   name: string
   bayCount: number
+  address?: string
 }
 
 export default function PortalPageClient() {
@@ -155,7 +162,18 @@ export default function PortalPageClient() {
     )
   }
 
-  const kpis = dashboard?.kpis || {}
+  const defaultKpis: KPIs = {
+    totalBays: 0,
+    freeBays: 0,
+    occupiedBays: 0,
+    offlineBays: 0,
+    offlineSensors: 0,
+    openAlerts: 0,
+    criticalAlerts: 0,
+    lowBatterySensors: 0,
+    deadLetters24h: 0,
+  }
+  const kpis = dashboard?.kpis || defaultKpis
   const zoneLabel = zones.find((z) => String(z.id) === String(zoneId))?.name || (zoneId === 'all' ? 'All Zones' : 'Selected Zone')
   const occupancyRate = kpis.totalBays > 0 ? ((kpis.occupiedBays / kpis.totalBays) * 100).toFixed(1) : '0'
 
@@ -181,9 +199,9 @@ export default function PortalPageClient() {
               }}
               className="px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
             >
-              {(zones.length ? zones : [{ id: 'all', name: 'All Zones' }]).map((z) => (
+              {(zones.length ? zones : [{ id: 'all', name: 'All Zones', bayCount: 0 }]).map((z) => (
                 <option key={z.id} value={z.id}>
-                  {z.name} {typeof z.bayCount === 'number' ? `(${z.bayCount} bays)` : ''}
+                  {z.name} {z.bayCount > 0 ? `(${z.bayCount} bays)` : ''}
                 </option>
               ))}
             </select>

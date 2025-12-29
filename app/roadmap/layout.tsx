@@ -1,11 +1,17 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Vision - Real-Time Parking Intelligence for UAE Municipalities & Investors | Vision Drive',
-  description: 'RTA pilot-ready smart parking solution with TRA-certified sensors. Already in discussions with Parkin and major mall operators. Limited pilot slots for Q1 2026.',
+  title: 'Roadmap - VisionDrive Implementation Plan',
+  description: 'VisionDrive development roadmap and implementation timeline. Key milestones from government approvals to production deployment in UAE.',
+  keywords: 'VisionDrive roadmap, development timeline, implementation plan, smart parking rollout, UAE pilot',
+  openGraph: {
+    title: 'VisionDrive Roadmap',
+    description: 'Our journey from pilot to production deployment across the UAE.',
+    type: 'website',
+  },
 }
 
-export default function VisionLayout({
+export default function RoadmapLayout({
   children,
 }: {
   children: React.ReactNode

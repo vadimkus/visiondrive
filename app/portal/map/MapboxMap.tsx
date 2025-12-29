@@ -139,73 +139,71 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
     return { lat, lng }
   }, [items, meta?.centerLat, meta?.centerLng])
 
-  const sensorPoints = useMemo(() => {
-    return asFeatureCollection(
-      items
-        .map((b) => {
-          if (!b.sensorId) return null
-          const lat = typeof b.sensorLat === 'number' ? b.sensorLat : b.lat
-          const lng = typeof b.sensorLng === 'number' ? b.sensorLng : b.lng
-          if (typeof lat !== 'number' || typeof lng !== 'number') return null
-          return {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [lng, lat] },
-            properties: {
-              sensorId: b.sensorId,
-              devEui: b.devEui || '',
-              state: b.state,
-              color: colorForState(b.state),
-              label: labelFromBayCode(b.bayCode),
-            },
-          }
-        })
-        .filter(Boolean)
-    )
+  const sensorPoints = useMemo((): GeoJSONFeatureCollection => {
+    const features = items
+      .map((b): GeoJSONFeature | null => {
+        if (!b.sensorId) return null
+        const lat = typeof b.sensorLat === 'number' ? b.sensorLat : b.lat
+        const lng = typeof b.sensorLng === 'number' ? b.sensorLng : b.lng
+        if (typeof lat !== 'number' || typeof lng !== 'number') return null
+        return {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+          properties: {
+            sensorId: b.sensorId,
+            devEui: b.devEui || '',
+            state: b.state,
+            color: colorForState(b.state),
+            label: labelFromBayCode(b.bayCode),
+          },
+        }
+      })
+      .filter((f): f is GeoJSONFeature => f !== null)
+    return asFeatureCollection(features)
   }, [items])
 
-  const gatewayPoints = useMemo(() => {
-    return asFeatureCollection(
-      (gateways || [])
-        .map((g) => {
-          if (typeof g.lat !== 'number' || typeof g.lng !== 'number') return null
-          return {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [g.lng, g.lat] },
-            properties: {
-              id: g.id,
-              name: g.name,
-              label: 'G',
-              status: g.status || '',
-              backhaul: g.backhaul || '',
-              lastHeartbeat: g.lastHeartbeat || '',
-              ageMinutes: typeof g.ageMinutes === 'number' ? g.ageMinutes : null,
-              state: g.state || '',
-            },
-          }
-        })
-        .filter(Boolean)
-    )
+  const gatewayPoints = useMemo((): GeoJSONFeatureCollection => {
+    const features = (gateways || [])
+      .map((g): GeoJSONFeature | null => {
+        if (typeof g.lat !== 'number' || typeof g.lng !== 'number') return null
+        return {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [g.lng, g.lat] },
+          properties: {
+            id: g.id,
+            name: g.name,
+            label: 'G',
+            status: g.status || '',
+            backhaul: g.backhaul || '',
+            lastHeartbeat: g.lastHeartbeat || '',
+            ageMinutes: typeof g.ageMinutes === 'number' ? g.ageMinutes : null,
+            state: g.state || '',
+          },
+        }
+      })
+      .filter((f): f is GeoJSONFeature => f !== null)
+    return asFeatureCollection(features)
   }, [gateways])
 
-  const zonesGeojson = useMemo(() => {
+  const zonesGeojson = useMemo((): GeoJSONFeatureCollection => {
     if (!zones || !zones.length) return asFeatureCollection([])
-    return asFeatureCollection(
-      zones
-        .filter((z) => z.geojson && z.geojson.geometry)
-        .map((z) => ({
-          ...z.geojson,
-          properties: {
-            ...z.geojson.properties,
-            zoneId: z.id,
-            name: z.name,
-            kind: z.kind,
-            bayCount: z.bayCount,
-            address: z.geojson.properties?.address || z.address || '',
-            source: z.geojson.properties?.source || 'VisionDrive',
-            tariff: z.tariff ? JSON.stringify(z.tariff) : null,
-          },
-        }))
-    )
+    const features = zones
+      .filter((z) => z.geojson && z.geojson.geometry)
+      .map((z): GeoJSONFeature => ({
+        type: 'Feature',
+        geometry: z.geojson.geometry,
+        properties: {
+          ...z.geojson.properties,
+          zoneId: z.id,
+          name: z.name,
+          kind: z.kind,
+          bayCount: z.bayCount,
+          address: z.geojson.properties?.address || z.address || '',
+          source: z.geojson.properties?.source || 'VisionDrive',
+          tariff: z.tariff ? JSON.stringify(z.tariff) : null,
+        },
+      }))
+    return asFeatureCollection(features)
   }, [zones])
 
   // Build / update map
@@ -484,9 +482,9 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
           const clusterId = features[0]?.properties?.cluster_id
           const src = map.getSource('sensors') as mapboxgl.GeoJSONSource
           if (src && 'getClusterExpansionZoom' in src) {
-            src.getClusterExpansionZoom(clusterId as number, (err: Error | null, zoom: number | null) => {
-              if (err || zoom === null) return
-              const geom = features[0].geometry as { coordinates: [number, number] }
+            src.getClusterExpansionZoom(clusterId as number, (err, zoom) => {
+              if (err || zoom === undefined || zoom === null) return
+              const geom = features[0].geometry as unknown as { coordinates: [number, number] }
               map.easeTo({ center: geom.coordinates, zoom })
             })
           }
@@ -497,9 +495,9 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
           const clusterId = features[0]?.properties?.cluster_id
           const src = map.getSource('gateways') as mapboxgl.GeoJSONSource
           if (src && 'getClusterExpansionZoom' in src) {
-            src.getClusterExpansionZoom(clusterId as number, (err: Error | null, zoom: number | null) => {
-              if (err || zoom === null) return
-              const geom = features[0].geometry as { coordinates: [number, number] }
+            src.getClusterExpansionZoom(clusterId as number, (err, zoom) => {
+              if (err || zoom === undefined || zoom === null) return
+              const geom = features[0].geometry as unknown as { coordinates: [number, number] }
               map.easeTo({ center: geom.coordinates, zoom })
             })
           }
@@ -510,7 +508,7 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
         map.on('click', 'gateway-unclustered', (e) => {
           const f = e.features?.[0]
           if (!f) return
-          const geom = f.geometry as { coordinates: [number, number] }
+          const geom = f.geometry as unknown as { coordinates: [number, number] }
           const coords = geom.coordinates || [center.lng, center.lat]
           const p = f.properties || {}
           const name = String(p.name || 'Gateway')
@@ -613,11 +611,11 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
 
     const updateSources = () => {
       const sensors = map.getSource('sensors') as mapboxgl.GeoJSONSource | undefined
-      if (sensors) sensors.setData(sensorPoints)
+      if (sensors) sensors.setData(sensorPoints as GeoJSON.FeatureCollection)
       const gws = map.getSource('gateways') as mapboxgl.GeoJSONSource | undefined
-      if (gws) gws.setData(gatewayPoints)
+      if (gws) gws.setData(gatewayPoints as GeoJSON.FeatureCollection)
       const zns = map.getSource('zones') as mapboxgl.GeoJSONSource | undefined
-      if (zns) zns.setData(zonesGeojson)
+      if (zns) zns.setData(zonesGeojson as GeoJSON.FeatureCollection)
     }
 
     if (map.isStyleLoaded()) updateSources()
