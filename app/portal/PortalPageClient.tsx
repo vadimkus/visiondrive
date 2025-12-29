@@ -199,7 +199,8 @@ export default function PortalPageClient() {
               }}
               className="px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
             >
-              {(zones.length ? zones : [{ id: 'all', name: 'All Zones', bayCount: 0 }]).map((z) => (
+              <option value="all">All Zones</option>
+              {zones.map((z) => (
                 <option key={z.id} value={z.id}>
                   {z.name} {z.bayCount > 0 ? `(${z.bayCount} bays)` : ''}
                 </option>

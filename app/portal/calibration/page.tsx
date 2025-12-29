@@ -23,7 +23,8 @@ import {
   Maximize2,
   X,
   ChevronRight,
-  Car
+  Car,
+  ExternalLink
 } from 'lucide-react'
 
 type SensorRow = {
@@ -1183,12 +1184,25 @@ export default function CalibrationPage() {
             <button
               onClick={() => setTraffic((v) => !v)}
               className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors border-2 ${
-                traffic ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                traffic ? 'bg-amber-500 border-amber-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
               title="Toggle real-time traffic data for Dubai"
             >
               <Car className="h-5 w-5 mr-2" />
               Traffic
+            </button>
+            <button
+              onClick={() => {
+                const map = mapRef.current
+                const c = map ? map.getCenter() : { lat: center.lat, lng: center.lng }
+                const z = map ? Math.round(map.getZoom()) : 15
+                window.open(`https://www.google.com/maps/@${c.lat},${c.lng},${z}z/data=!5m1!1e1`, '_blank')
+              }}
+              className="inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg border-2 transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+              title="Open Google Maps with live traffic"
+            >
+              <ExternalLink className="h-5 w-5 mr-2" />
+              G.Maps
             </button>
             <button
               onClick={() => setShowZones((v) => !v)}

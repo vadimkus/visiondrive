@@ -298,7 +298,8 @@ export default function AlertsPageClient() {
                   onChange={(e) => setParam('zoneId', e.target.value)} 
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
-                  {(zones.length ? zones : [{ id: 'all', name: 'All Zones' }]).map((z) => (
+                  <option value="all">All Zones</option>
+                  {zones.map((z) => (
                     <option key={z.id} value={z.id}>
                       {z.name}
                     </option>

@@ -102,7 +102,8 @@ export default function SensorReportsClient() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Zone</label>
               <select value={zoneId} onChange={(e) => setParam('zoneId', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                {(zones.length ? zones : [{ id: 'all', name: 'All Zones' }]).map((z) => (
+                <option value="all">All Zones</option>
+                {zones.map((z) => (
                   <option key={z.id} value={z.id}>
                     {z.name} {typeof z.bayCount === 'number' ? `(${z.bayCount})` : ''}
                   </option>

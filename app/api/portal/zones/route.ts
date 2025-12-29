@@ -44,7 +44,6 @@ export async function GET(request: NextRequest) {
       LEFT JOIN sites s ON s.id = z."siteId"
       LEFT JOIN bays b ON b."zoneId" = z.id
       WHERE z."tenantId" = ${session.tenantId}
-        AND z.geojson IS NOT NULL
       GROUP BY z.id, z.name, z.kind, z.geojson, z.tariff, s.name
       ORDER BY z.name ASC
       LIMIT 500

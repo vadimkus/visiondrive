@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import mapboxgl from 'mapbox-gl'
-import { Grid3x3, Home, Loader2, Move3d, PlusSquare, RefreshCw, Save, Satellite, Trash2, Undo2 } from 'lucide-react'
+import { Grid3x3, Home, Loader2, Move3d, PlusSquare, RefreshCw, Save, Satellite, Trash2, Undo2, Car, ExternalLink } from 'lucide-react'
 
 // GeoJSON Types
 type GeoJSONPolygonGeometry = {
@@ -162,6 +162,8 @@ export default function BaysPageClient() {
   const [drawMode, setDrawMode] = useState(false)
   const [satellite, setSatellite] = useState(true)
   const satelliteRef = useRef(satellite)
+  const [traffic, setTraffic] = useState(false)
+  const trafficRef = useRef(traffic)
   const ensureLayersRef = useRef<null | ((opts?: { force?: boolean }) => void)>(null)
   const styleSwitchSeqRef = useRef(0)
   const [draftGeojson, setDraftGeojson] = useState<GeoJSONFeature | null>(null)
@@ -180,6 +182,10 @@ export default function BaysPageClient() {
   useEffect(() => {
     satelliteRef.current = satellite
   }, [satellite])
+
+  useEffect(() => {
+    trafficRef.current = traffic
+  }, [traffic])
 
   const pushInteraction = useCallback((msg: string) => {
     setInteractionStatus(msg)
@@ -920,6 +926,47 @@ export default function BaysPageClient() {
           )
         }
 
+        // Traffic layer
+        try {
+          if (!map.getSource('mapbox-traffic')) {
+            map.addSource('mapbox-traffic', {
+              type: 'vector',
+              url: 'mapbox://mapbox.mapbox-traffic-v1',
+            } as any)
+          }
+          
+          if (!map.getLayer('traffic-flow')) {
+            map.addLayer({
+              id: 'traffic-flow',
+              type: 'line',
+              source: 'mapbox-traffic',
+              'source-layer': 'traffic',
+              layout: {
+                'line-cap': 'round',
+                'line-join': 'round',
+                'visibility': trafficRef.current ? 'visible' : 'none',
+              },
+              paint: {
+                'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1, 15, 3, 18, 6],
+                'line-color': [
+                  'case',
+                  ['==', 'low', ['get', 'congestion']],
+                  '#16a34a',
+                  ['==', 'moderate', ['get', 'congestion']],
+                  '#f59e0b',
+                  ['==', 'heavy', ['get', 'congestion']],
+                  '#dc2626',
+                  ['==', 'severe', ['get', 'congestion']],
+                  '#7f1d1d',
+                  '#3b82f6',
+                ],
+              },
+            } as any, 'bays-fill')
+          }
+        } catch {
+          // traffic layer optional
+        }
+
         // Ready breadcrumb should not overwrite interaction/debug messages.
         const n = Array.isArray(baysData?.features) ? baysData.features.length : 0
         setReadyStatus(`Map layers ready ✓ bays=${n}`)
@@ -1000,6 +1047,19 @@ export default function BaysPageClient() {
       setInteractionStatus(`Style change error: ${String((err as any)?.message || err)}`)
     }
   }, [satellite])
+
+  // Toggle traffic visibility
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.isStyleLoaded()) return
+    try {
+      if (map.getLayer('traffic-flow')) {
+        map.setLayoutProperty('traffic-flow', 'visibility', traffic ? 'visible' : 'none')
+      }
+    } catch {
+      // ignore
+    }
+  }, [traffic])
 
   useEffect(() => {
     const map = mapRef.current
@@ -1368,6 +1428,29 @@ export default function BaysPageClient() {
             >
               <Satellite className="h-5 w-5 mr-2" />
               Satellite
+            </button>
+            <button
+              onClick={() => setTraffic((v) => !v)}
+              className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg border-2 transition-colors ${
+                traffic ? 'bg-amber-500 border-amber-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+              title="Toggle live traffic layer"
+            >
+              <Car className="h-5 w-5 mr-2" />
+              Traffic
+            </button>
+            <button
+              onClick={() => {
+                const map = mapRef.current
+                const center = map ? map.getCenter() : { lat: 25.1016, lng: 55.1622 }
+                const zoom = map ? Math.round(map.getZoom()) : 15
+                window.open(`https://www.google.com/maps/@${center.lat},${center.lng},${zoom}z/data=!5m1!1e1`, '_blank')
+              }}
+              className="inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg border-2 transition-colors bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+              title="Open Google Maps with live traffic"
+            >
+              <ExternalLink className="h-5 w-5 mr-2" />
+              G.Maps
             </button>
             <button
               onClick={() => setEditMode((v) => !v)}
