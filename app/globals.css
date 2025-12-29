@@ -38,14 +38,8 @@
     font-family: 'Tajawal', 'Georama', system-ui, sans-serif;
   }
 
-  /* Ensure touch targets are at least 44x44px on mobile */
+  /* Better tap highlight on mobile */
   @media (max-width: 768px) {
-    a, button {
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    /* Better tap highlight on mobile */
     a, button {
       -webkit-tap-highlight-color: rgba(37, 99, 235, 0.1);
     }
