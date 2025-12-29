@@ -110,22 +110,25 @@ const faqs = [
 
 export default function ContactPage() {
   return (
-    <main className="pt-24 bg-white text-gray-900">
+    <main className="pt-[60px] sm:pt-[72px] bg-white text-gray-900">
       {/* Hero Section */}
-      <Section className="py-12 md:py-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase mb-4">Get In Touch</p>
-              <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-6">
-                Let&apos;s Build <br />
-                <span className="text-primary-600">Smart Parking</span> Together
+      <Section className="py-10 sm:py-16 md:py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
+            <div className="text-center md:text-left">
+              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-4 sm:mb-6">
+                <span className="text-xs sm:text-sm font-semibold text-primary-700">Get In Touch</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 sm:mb-6">
+                Let&apos;s Build
+                <span className="text-primary-600 block sm:inline"> Smart Parking</span> Together
               </h1>
-              <p className="text-lg text-gray-600 leading-relaxed mb-8">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8">
                 Whether you&apos;re a government entity, municipality, property manager, or technology partner—we&apos;re ready to discuss how NB-IoT parking sensors can transform your infrastructure.
               </p>
               
-              <div className="flex flex-wrap gap-4 mb-8">
+              {/* Features - hidden on mobile, shown as compact list */}
+              <div className="hidden sm:flex flex-wrap gap-4 mb-8">
                 {features.map((feature) => (
                   <div key={feature.text} className="flex items-center gap-2 text-sm text-gray-600">
                     <feature.icon className="h-4 w-4 text-primary-600" />
@@ -134,10 +137,11 @@ export default function ContactPage() {
                 ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              {/* CTA Buttons - Stack on mobile */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 md:mb-0">
                 <a
                   href="mailto:tech@visiondrive.ae"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                  className="inline-flex items-center justify-center px-6 py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.98] transition-all shadow-lg shadow-primary-600/25"
                 >
                   <Send className="h-5 w-5 mr-2" />
                   Send Email
@@ -146,7 +150,7 @@ export default function ContactPage() {
                   href="https://wa.me/971559152985"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                  className="inline-flex items-center justify-center px-6 py-3.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 active:scale-[0.98] transition-all"
                 >
                   <MessageCircle className="h-5 w-5 mr-2" />
                   WhatsApp
@@ -155,24 +159,24 @@ export default function ContactPage() {
             </div>
 
             {/* Contact Cards */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {contactMethods.map((contact) => (
                 <a
                   key={contact.label}
                   href={contact.href}
                   target={contact.href.startsWith('http') ? '_blank' : undefined}
                   rel={contact.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className={`flex items-center gap-4 p-5 bg-white rounded-xl border ${contact.border} hover:shadow-lg transition-all duration-200 group`}
+                  className={`flex items-center gap-4 p-4 sm:p-5 bg-white rounded-2xl border ${contact.border} hover:shadow-lg active:scale-[0.99] transition-all duration-200 group`}
                 >
-                  <div className={`w-14 h-14 ${contact.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                    <contact.icon className={`h-7 w-7 ${contact.color}`} />
+                  <div className={`w-12 h-12 sm:w-14 sm:h-14 ${contact.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                    <contact.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${contact.color}`} />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">{contact.label}</div>
-                    <div className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">{contact.value}</div>
-                    <div className="text-sm text-gray-500">{contact.description}</div>
+                    <div className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors truncate">{contact.value}</div>
+                    <div className="text-xs sm:text-sm text-gray-500 truncate">{contact.description}</div>
                   </div>
-                  <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
                 </a>
               ))}
 
@@ -181,17 +185,17 @@ export default function ContactPage() {
                 href="https://maps.app.goo.gl/TB79xTZArqX6wJZo6"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-4 p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-200 group"
+                className="flex items-center gap-4 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 hover:shadow-lg active:scale-[0.99] transition-all duration-200 group"
               >
-                <div className="w-14 h-14 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <MapPin className="h-7 w-7 text-red-600" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <MapPin className="h-6 w-6 sm:h-7 sm:w-7 text-red-600" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Office</div>
                   <div className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">VisionDrive HQ</div>
-                  <div className="text-sm text-gray-500">Compass Coworking Centre, RAK, UAE</div>
+                  <div className="text-xs sm:text-sm text-gray-500">Compass Coworking, RAK, UAE</div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
               </a>
             </div>
           </div>

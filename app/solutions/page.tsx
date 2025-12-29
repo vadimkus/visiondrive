@@ -155,16 +155,18 @@ const technicalFeatures = [
 
 export default function SolutionsPage() {
   return (
-    <main className="pt-24 bg-white text-gray-900">
+    <main className="pt-[60px] sm:pt-[72px] bg-white text-gray-900">
       {/* Hero Section */}
-      <Section className="py-12 md:py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase mb-4">Our Solutions</p>
-          <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-6">
-            NB-IoT Infrastructure for <br className="hidden sm:block" />
-            <span className="text-primary-600">Smart Parking</span>
+      <Section className="py-10 sm:py-16 md:py-20">
+        <div className="max-w-4xl mx-auto text-center px-4">
+          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-4 sm:mb-6">
+            <span className="text-xs sm:text-sm font-semibold text-primary-700">Our Solutions</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 sm:mb-6">
+            NB-IoT Infrastructure for
+            <span className="text-primary-600 block sm:inline"> Smart Parking</span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
             We deploy enterprise-grade parking sensors that provide bay-level ground truth occupancy data 
             with full UAE data residency compliance for government and smart city projects.
           </p>
@@ -172,19 +174,19 @@ export default function SolutionsPage() {
       </Section>
 
       {/* Stats Section */}
-      <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-3 gap-4 sm:gap-6">
+      <Section background="gray" className="py-8 sm:py-12 md:py-16">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white rounded-xl p-4 sm:p-6 border border-gray-100 text-center"
+                className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 text-center shadow-sm"
               >
                 <div className="text-2xl sm:text-3xl font-bold text-primary-600 mb-1">
                   {stat.number}
                 </div>
-                <div className="text-sm font-medium text-gray-900">{stat.label}</div>
-                <div className="text-xs text-gray-500">{stat.sublabel}</div>
+                <div className="text-sm sm:text-base font-medium text-gray-900">{stat.label}</div>
+                <div className="text-xs sm:text-sm text-gray-500">{stat.sublabel}</div>
               </div>
             ))}
           </div>
@@ -192,26 +194,26 @@ export default function SolutionsPage() {
       </Section>
 
       {/* Solutions Grid */}
-      <Section className="py-12 md:py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">What We Offer</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+      <Section className="py-10 sm:py-12 md:py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">What We Offer</h2>
+            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
               Comprehensive smart parking solutions built on cutting-edge NB-IoT technology
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
             {solutions.map((solution) => {
               const CardContent = (
                 <>
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${solution.bg} mb-4`}>
-                    <solution.icon className={`h-6 w-6 ${solution.color}`} />
+                  <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl ${solution.bg} mb-4`}>
+                    <solution.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${solution.color}`} />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{solution.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{solution.description}</p>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">{solution.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{solution.description}</p>
                   {'link' in solution && (
-                    <div className="mt-4 flex items-center text-primary-600 font-medium">
+                    <div className="mt-4 flex items-center text-primary-600 font-medium text-sm sm:text-base">
                       Learn more <ArrowRight className="h-4 w-4 ml-1" />
                     </div>
                   )}
@@ -223,7 +225,7 @@ export default function SolutionsPage() {
                   <Link
                     key={solution.title}
                     href={solution.link}
-                    className="bg-white rounded-xl p-6 border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200 block"
+                    className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200 hover:border-primary-300 hover:shadow-lg active:scale-[0.99] transition-all duration-200 block"
                   >
                     {CardContent}
                   </Link>
@@ -233,7 +235,7 @@ export default function SolutionsPage() {
               return (
                 <div
                   key={solution.title}
-                  className="bg-white rounded-xl p-6 border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200"
+                  className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200 hover:border-primary-300 hover:shadow-lg transition-all duration-200"
                 >
                   {CardContent}
                 </div>

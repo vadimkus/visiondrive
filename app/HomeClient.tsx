@@ -30,86 +30,98 @@ export default function HomeClient() {
   const { language } = useLanguage()
 
   return (
-    <main className="h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 text-gray-900 overflow-hidden">
-      <div className="h-full flex flex-col pt-20 pb-4 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 text-gray-900">
+      <div className="flex flex-col pt-[60px] sm:pt-[72px] px-4 sm:px-6 lg:px-8 pb-8">
         
-        {/* Main Content - Centered */}
-        <div className="flex-1 flex flex-col justify-center max-w-6xl mx-auto w-full">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col justify-center max-w-6xl mx-auto w-full py-8 sm:py-12 lg:py-16">
           
           {/* Hero */}
-          <div className="text-center mb-6 lg:mb-8">
-            <p className="text-xs sm:text-sm font-semibold tracking-wider text-primary-600 uppercase mb-2 lg:mb-3">
-              NB-IoT Smart Parking • UAE
-            </p>
+          <div className="text-center mb-8 sm:mb-10">
+            {/* Badge */}
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-4 sm:mb-6">
+              <span className="text-xs sm:text-sm font-semibold text-primary-700">
+                🇦🇪 NB-IoT Smart Parking • UAE
+              </span>
+            </div>
+            
+            {/* Heading */}
             <h1 
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 lg:mb-4"
+              className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-[1.1] mb-4 sm:mb-5"
               dir={language === 'ar' ? 'rtl' : 'ltr'}
             >
-              Bay-Level Parking{' '}
-              <span className="text-primary-600">Intelligence</span>
+              Bay-Level Parking
+              <br className="sm:hidden" />
+              <span className="text-primary-600"> Intelligence</span>
             </h1>
-            <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto mb-4 lg:mb-6 leading-relaxed">
+            
+            {/* Description */}
+            <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto mb-6 sm:mb-8 leading-relaxed px-2">
               Real-time parking occupancy for municipalities and smart cities. 
               Know exactly which bays are free, instantly.
             </p>
             
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-3 justify-center mb-6 lg:mb-8">
+            {/* CTA Buttons - Stack on mobile */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-sm sm:max-w-none mx-auto mb-8 sm:mb-10">
               <a
                 href="/contact"
-                className="inline-flex items-center px-5 py-2.5 sm:px-6 sm:py-3 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors group"
+                className="inline-flex items-center justify-center px-6 py-3.5 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.98] transition-all shadow-lg shadow-primary-600/25 group"
               >
                 Request Demo
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </a>
               <a
                 href="/solutions"
-                className="inline-flex items-center px-5 py-2.5 sm:px-6 sm:py-3 bg-white text-gray-900 text-sm font-semibold rounded-lg border border-gray-300 hover:border-primary-300 hover:text-primary-600 transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3.5 bg-white text-gray-900 text-base font-semibold rounded-xl border-2 border-gray-200 hover:border-primary-300 hover:text-primary-600 active:scale-[0.98] transition-all"
               >
                 View Solutions
               </a>
             </div>
           </div>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-4 max-w-2xl mx-auto w-full mb-6 lg:mb-8">
+          {/* Stats Row - 2x2 on mobile, 4 columns on tablet+ */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto w-full mb-8 sm:mb-10">
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white/80 backdrop-blur rounded-xl p-3 sm:p-4 border border-gray-100 text-center shadow-sm"
+                className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 text-center shadow-sm hover:shadow-md transition-shadow"
               >
-                <stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mx-auto mb-1" />
-                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-50 mb-2 sm:mb-3">
+                  <stat.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+                </div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                   {stat.number}
                 </div>
-                <div className="text-[10px] sm:text-xs text-gray-500">{stat.label}</div>
+                <div className="text-xs sm:text-sm text-gray-500 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
 
-          {/* Quick Links */}
-          <div className="flex justify-center gap-3 sm:gap-4 mb-6 lg:mb-8">
+          {/* Quick Links - Full width cards on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-xl sm:max-w-2xl mx-auto w-full mb-8 sm:mb-10">
             {quickLinks.map((link) => (
               <a
                 key={link.title}
                 href={link.href}
-                className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all text-sm font-medium text-gray-700 hover:text-primary-600"
+                className="flex items-center justify-center gap-3 px-5 py-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md active:scale-[0.98] transition-all text-base font-medium text-gray-700 hover:text-primary-600"
               >
-                <link.icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{link.title}</span>
+                <link.icon className="h-5 w-5" />
+                <span>{link.title}</span>
               </a>
             ))}
           </div>
 
           {/* Partners */}
           <div className="text-center">
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Trusted by UAE Authorities</p>
-            <div className="flex flex-wrap justify-center gap-4 sm:gap-6 items-center opacity-60 hover:opacity-80 transition-opacity">
-              <Image src="/images/gov/icons/rta.jpg" alt="RTA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
-              <Image src="/images/gov/icons/parkin.jpg" alt="Parkin" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
-              <Image src="/images/gov/icons/itc.jpg" alt="ITC Abu Dhabi" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
-              <Image src="/images/gov/icons/srta.jpg" alt="SRTA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
-              <Image src="/images/gov/icons/tdra.jpg" alt="TDRA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
+            <p className="text-xs sm:text-sm text-gray-500 uppercase tracking-wider font-medium mb-4">
+              Trusted by UAE Authorities
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-5 items-center">
+              <Image src="/images/gov/icons/rta.jpg" alt="RTA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+              <Image src="/images/gov/icons/parkin.jpg" alt="Parkin" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+              <Image src="/images/gov/icons/itc.jpg" alt="ITC Abu Dhabi" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+              <Image src="/images/gov/icons/srta.jpg" alt="SRTA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+              <Image src="/images/gov/icons/tdra.jpg" alt="TDRA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
             </div>
           </div>
         </div>
