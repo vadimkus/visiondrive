@@ -775,8 +775,8 @@ function CollapsibleNote({ section, isOpen, onToggle }: { section: NoteSection; 
                 </div>
               )
             })()}
-            {section.content.map((line, idx) => (
-              <p key={idx} className={line === '' ? 'h-2' : line.startsWith('•') ? 'ml-2 sm:ml-4' : ''}>
+            {section.content.map((line, lineIdx) => (
+              <p key={`${section.id}-line-${lineIdx}`} className={line === '' ? 'h-2' : line.startsWith('•') ? 'ml-2 sm:ml-4' : ''}>
                 {line}
               </p>
             ))}

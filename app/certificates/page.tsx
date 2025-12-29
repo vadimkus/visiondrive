@@ -120,9 +120,9 @@ export default function CertificatesPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-5">
-            {certificates.map((cert, index) => (
+            {certificates.map((cert) => (
               <div
-                key={index}
+                key={`cert-${cert.title}`}
                 className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-primary-300 transition-colors"
               >
                 <div className="flex items-start gap-4">
@@ -158,9 +158,9 @@ export default function CertificatesPage() {
           </div>
 
           <div className="grid sm:grid-cols-3 gap-5">
-            {upcomingCertifications.map((cert, index) => (
+            {upcomingCertifications.map((cert) => (
               <div
-                key={index}
+                key={`upcoming-${cert.title}`}
                 className="bg-white rounded-xl p-5 border border-gray-200 text-center"
               >
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">

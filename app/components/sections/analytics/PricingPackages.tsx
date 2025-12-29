@@ -13,8 +13,8 @@ export default function PricingPackages() {
   return (
     <Section id="pricing">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
-        {t.pricing.packages.map((pkg, index) => (
-          <div key={index} className="text-center">
+        {t.pricing.packages.map((pkg) => (
+          <div key={`pkg-${pkg.name.slice(0, 15)}`} className="text-center">
             <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1" dir={language === 'ar' ? 'rtl' : 'ltr'}>{pkg.name}</h3>
             <div className="text-sm sm:text-base text-primary-600 font-semibold mb-2">{pkg.price}</div>
             <div className="text-xs sm:text-sm text-gray-600 space-y-1" dir={language === 'ar' ? 'rtl' : 'ltr'}>

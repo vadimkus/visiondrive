@@ -172,8 +172,8 @@ export default function SensorDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(data?.events || []).slice(0, 50).map((e: any, idx: number) => (
-                    <tr key={idx} className="border-t border-gray-100 align-top">
+                  {(data?.events || []).slice(0, 50).map((e: any) => (
+                    <tr key={`event-${e.time}-${e.kind}`} className="border-t border-gray-100 align-top">
                       <td className="px-3 py-2 whitespace-nowrap text-gray-600">{new Date(e.time).toLocaleString()}</td>
                       <td className="px-3 py-2 text-gray-700">{e.kind}</td>
                       <td className="px-3 py-2">

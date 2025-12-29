@@ -75,9 +75,8 @@ export default function BentoGrid() {
           {features.map((feature, index) => {
             const Icon = feature.icon
             return (
-              <div className={`${feature.span} bg-obsidian-50 border border-obsidian-100 rounded-2xl p-8 hover:border-gold-500 transition-all duration-300 group cursor-pointer`}>
+              <div key={`feature-${feature.title.slice(0, 15)}`} className={`${feature.span} bg-obsidian-50 border border-obsidian-100 rounded-2xl p-8 hover:border-gold-500 transition-all duration-300 group cursor-pointer`}>
                 <motion.div
-                  key={index}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}

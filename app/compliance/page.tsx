@@ -233,8 +233,8 @@ export default function CompliancePage() {
                   </div>
                 </div>
                 <ul className="space-y-2 ml-16">
-                  {area.details.map((detail, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
+                  {area.details.map((detail) => (
+                    <li key={`detail-${detail.slice(0, 25)}`} className="flex items-center gap-2 text-sm text-gray-700">
                       <CheckCircle2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
                       {detail}
                     </li>
@@ -257,9 +257,9 @@ export default function CompliancePage() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-6">
-            {securityFeatures.map((feature, index) => (
+            {securityFeatures.map((feature) => (
               <div
-                key={index}
+                key={`security-${feature.title}`}
                 className="bg-white rounded-xl p-6 border border-gray-200"
               >
                 <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center mb-4">
@@ -293,8 +293,8 @@ export default function CompliancePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {dataRetention.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
+                {dataRetention.map((item) => (
+                  <tr key={`retention-${item.type}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900">{item.type}</td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -321,9 +321,9 @@ export default function CompliancePage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {certifications.map((cert, index) => (
+            {certifications.map((cert) => (
               <div
-                key={index}
+                key={`cert-${cert.name}`}
                 className="bg-white rounded-xl p-6 border border-gray-200 text-center"
               >
                 <cert.icon className="h-8 w-8 text-primary-600 mx-auto mb-3" />

@@ -185,9 +185,9 @@ export default function MunicipalitiesPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {impactMetrics.map((metric, index) => (
+            {impactMetrics.map((metric) => (
               <div
-                key={index}
+                key={`metric-${metric.label}`}
                 className="bg-white rounded-xl p-6 border border-gray-200 text-center"
               >
                 <div className="text-4xl font-bold text-primary-600 mb-2">{metric.value}</div>
@@ -245,9 +245,9 @@ export default function MunicipalitiesPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {capabilities.map((capability, index) => (
+            {capabilities.map((capability) => (
               <div
-                key={index}
+                key={`cap-${capability.title}`}
                 className="bg-white rounded-xl p-6 border border-gray-200"
               >
                 <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center mb-4">
@@ -272,9 +272,9 @@ export default function MunicipalitiesPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {deploymentTypes.map((type, index) => (
+            {deploymentTypes.map((type) => (
               <div
-                key={index}
+                key={`deploy-${type.title}`}
                 className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200"
               >
                 <div className="flex items-center justify-between mb-4">

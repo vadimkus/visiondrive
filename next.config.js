@@ -5,7 +5,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'localhost',
+        hostname: 'visiondrive.ae',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.visiondrive.ae',
       },
     ],
     formats: ['image/avif', 'image/webp'],

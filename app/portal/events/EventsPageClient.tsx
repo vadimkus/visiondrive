@@ -138,8 +138,8 @@ export default function EventsPageClient() {
                   </td>
                 </tr>
               )}
-              {items.map((e, idx) => (
-                <tr key={idx} className="border-t border-gray-100">
+              {items.map((e) => (
+                <tr key={`event-${e.time}-${e.devEui}-${e.kind}`} className="border-t border-gray-100">
                   <td className="px-4 py-3 whitespace-nowrap text-gray-600">{new Date(e.time).toLocaleString()}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{e.devEui}</td>
                   <td className="px-4 py-3 text-gray-700">{e.kind}</td>

@@ -318,13 +318,13 @@ export default function Roadmap2Page() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {milestones.map((milestone, index) => (
+            {milestones.map((milestone, milestoneIdx) => (
               <motion.div
-                key={index}
+                key={`milestone-${milestone.date}-${milestone.title}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
+                transition={{ duration: 0.4, delay: milestoneIdx * 0.1 }}
                 className={`bg-white rounded-xl p-6 border-2 ${
                   milestone.status === 'in-progress' 
                     ? 'border-green-300 bg-green-50' 
@@ -367,18 +367,18 @@ export default function Roadmap2Page() {
           </div>
 
           <div className="space-y-8">
-            {phases.map((phase, index) => {
+            {phases.map((phase, phaseIdx) => {
               const Icon = phase.icon
               const isCurrent = phase.status === 'in-progress'
               const isCompleted = phase.status === 'completed'
 
               return (
                 <motion.div
-                  key={index}
+                  key={`phase-${phase.phase}`}
                   initial={{ opacity: 0, x: -30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  transition={{ duration: 0.5, delay: phaseIdx * 0.1 }}
                   className="relative"
                 >
                   <div className="flex flex-col md:flex-row gap-6">
@@ -429,14 +429,14 @@ export default function Roadmap2Page() {
                         </p>
 
                         <div className="grid md:grid-cols-3 gap-4">
-                          {phase.milestones.map((milestone, mIndex) => (
-                            <div key={mIndex} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          {phase.milestones.map((milestone) => (
+                            <div key={`pm-${milestone.title}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                               <h4 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wide">
                                 {milestone.title}
                               </h4>
                               <ul className="space-y-2">
-                                {milestone.items.map((item, iIndex) => (
-                                  <li key={iIndex} className="flex items-start gap-2 text-gray-700 text-sm">
+                                {milestone.items.map((item) => (
+                                  <li key={`pm-item-${item.slice(0, 20)}`} className="flex items-start gap-2 text-gray-700 text-sm">
                                     <CheckCircle2 className="h-4 w-4 text-primary-600 flex-shrink-0 mt-0.5" />
                                     <span>{item}</span>
                                   </li>
@@ -475,15 +475,15 @@ export default function Roadmap2Page() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            {techStack.map((tech, index) => {
+            {techStack.map((tech, techIdx) => {
               const Icon = tech.icon
               return (
                 <motion.div
-                  key={index}
+                  key={`tech-${tech.category}`}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  transition={{ duration: 0.5, delay: techIdx * 0.1 }}
                   className="bg-white rounded-xl p-6 border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-300"
                 >
                   <div className="flex items-center gap-4 mb-5">
@@ -495,8 +495,8 @@ export default function Roadmap2Page() {
                     </h3>
                   </div>
                   <ul className="space-y-2.5">
-                    {tech.items.map((item, iIndex) => (
-                      <li key={iIndex} className="flex items-start gap-2 text-gray-700 text-sm">
+                    {tech.items.map((item) => (
+                      <li key={`tech-item-${item.slice(0, 20)}`} className="flex items-start gap-2 text-gray-700 text-sm">
                         <CheckCircle2 className="h-4 w-4 text-primary-600 flex-shrink-0 mt-0.5" />
                         <span>{item}</span>
                       </li>

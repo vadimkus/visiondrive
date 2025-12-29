@@ -200,9 +200,9 @@ export default function CommunitiesPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-6">
-            {features.map((feature, index) => (
+            {features.map((feature) => (
               <div
-                key={index}
+                key={`feature-${feature.title}`}
                 className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl border border-gray-200"
               >
                 <div className="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
@@ -229,16 +229,16 @@ export default function CommunitiesPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {useCases.map((useCase, index) => (
+            {useCases.map((useCase) => (
               <div
-                key={index}
+                key={`usecase-${useCase.title}`}
                 className="bg-white rounded-xl p-6 border border-gray-200"
               >
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">{useCase.title}</h3>
                 <p className="text-sm text-gray-600 mb-4">{useCase.description}</p>
                 <ul className="space-y-2">
-                  {useCase.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="flex items-center gap-2 text-sm text-gray-700">
+                  {useCase.features.map((feature) => (
+                    <li key={`uc-feat-${feature.slice(0, 20)}`} className="flex items-center gap-2 text-sm text-gray-700">
                       <CheckCircle2 className="h-4 w-4 text-primary-600 flex-shrink-0" />
                       {feature}
                     </li>

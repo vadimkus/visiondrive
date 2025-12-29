@@ -22,10 +22,10 @@ export default function MunicipalitiesSection() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 max-w-3xl mx-auto">
-        {t.municipal.items.map((feature, index) => {
-          const Icon = icons[index]
+        {t.municipal.items.map((feature, featureIdx) => {
+          const Icon = icons[featureIdx]
           return (
-            <div key={index} className="text-center">
+            <div key={`muni-${feature.title.slice(0, 15)}`} className="text-center">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4 mx-auto">
                 <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
               </div>

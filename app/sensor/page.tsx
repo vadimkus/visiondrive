@@ -149,19 +149,19 @@ export default function SensorPage() {
               
               {/* Thumbnail Navigation */}
               <div className="flex gap-2 mt-4 justify-center">
-                {sensorImages.map((img, index) => (
+                {sensorImages.map((img, imgIdx) => (
                   <button
-                    key={index}
-                    onClick={() => setCurrentImage(index)}
+                    key={`sensor-thumb-${img.src}`}
+                    onClick={() => setCurrentImage(imgIdx)}
                     className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                      currentImage === index 
+                      currentImage === imgIdx 
                         ? 'border-primary-600 ring-2 ring-primary-200' 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <Image
                       src={img.src}
-                      alt={`Thumbnail ${index + 1}`}
+                      alt={`Thumbnail ${imgIdx + 1}`}
                       width={64}
                       height={64}
                       className="object-cover w-full h-full"

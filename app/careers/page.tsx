@@ -188,8 +188,8 @@ function JobCard({ job }: { job: typeof vacancies[0] }) {
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">What You&apos;ll Do</h4>
             <ul className="space-y-2">
-              {job.responsibilities.map((item, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
+              {job.responsibilities.map((item) => (
+                <li key={`resp-${item.slice(0, 30)}`} className="flex items-start gap-2 text-sm text-gray-600">
                   <CheckCircle2 className="h-4 w-4 text-primary-600 flex-shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </li>
@@ -201,8 +201,8 @@ function JobCard({ job }: { job: typeof vacancies[0] }) {
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">What We&apos;re Looking For</h4>
             <ul className="space-y-2">
-              {job.requirements.map((item, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
+              {job.requirements.map((item) => (
+                <li key={`req-${item.slice(0, 30)}`} className="flex items-start gap-2 text-sm text-gray-600">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </li>
@@ -214,8 +214,8 @@ function JobCard({ job }: { job: typeof vacancies[0] }) {
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Nice to Have</h4>
             <ul className="space-y-2">
-              {job.niceToHave.map((item, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm text-gray-500">
+              {job.niceToHave.map((item) => (
+                <li key={`nice-${item.slice(0, 30)}`} className="flex items-start gap-2 text-sm text-gray-500">
                   <Sparkles className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </li>

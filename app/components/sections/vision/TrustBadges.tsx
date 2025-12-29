@@ -36,7 +36,7 @@ export default function TrustBadges() {
             const Icon = badge.icon
             return (
               <div
-                key={index}
+                key={`badge-${badge.title.slice(0, 15)}`}
                 className="flex items-center gap-4"
               >
                 <motion.div

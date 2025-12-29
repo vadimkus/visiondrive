@@ -104,9 +104,9 @@ export default function VisionPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-            {alignmentPoints.map((point, index) => (
+            {alignmentPoints.map((point) => (
               <div
-                key={index}
+                key={`align-${point.title.slice(0, 15)}`}
                 className="bg-gray-50 rounded-xl p-4 sm:p-6 border border-gray-200 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-start space-x-3 sm:space-x-4">
@@ -140,11 +140,11 @@ export default function VisionPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-            {technologies.map((tech, index) => {
+            {technologies.map((tech) => {
               const Icon = tech.icon
               return (
                 <div
-                  key={index}
+                  key={`tech-${tech.title.slice(0, 15)}`}
                   className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 hover:shadow-lg transition-shadow"
                 >
                   {tech.image && (
@@ -170,9 +170,9 @@ export default function VisionPage() {
                   <p className="text-sm sm:text-base text-gray-600 mb-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>{tech.description}</p>
                   {tech.specs && (
                     <div className="flex flex-wrap gap-2" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                      {tech.specs.map((spec, specIndex) => (
+                      {tech.specs.map((spec) => (
                         <span
-                          key={specIndex}
+                          key={`spec-${spec.slice(0, 15)}`}
                           className="px-2 sm:px-3 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700"
                         >
                           {spec}
@@ -200,11 +200,11 @@ export default function VisionPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {stats.map((stat, index) => {
+            {stats.map((stat) => {
               const Icon = stat.icon
               return (
                 <div
-                  key={index}
+                  key={`stat-${stat.label.slice(0, 15)}`}
                   className="bg-gradient-to-br from-primary-50 to-white rounded-xl p-4 sm:p-6 border border-primary-100 text-center hover:shadow-lg transition-shadow"
                 >
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
@@ -235,9 +235,9 @@ export default function VisionPage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
-            {accuracyMetrics.map((metric, index) => (
+            {accuracyMetrics.map((metric) => (
               <div
-                key={index}
+                key={`metric-${metric.metric.slice(0, 15)}`}
                 className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 text-center hover:shadow-lg transition-shadow"
               >
                 <div className="text-2xl sm:text-3xl font-bold text-primary-600 mb-2">{metric.value}</div>
@@ -266,11 +266,11 @@ export default function VisionPage() {
             <div className="absolute left-4 sm:left-8 top-0 bottom-0 w-0.5 bg-gray-300 hidden sm:block" />
 
             <div className="space-y-8 sm:space-y-12">
-              {roadmap.map((phase, index) => {
+              {roadmap.map((phase) => {
                 const isCurrent = phase.status === 'current'
                 return (
                   <div
-                    key={index}
+                    key={`roadmap-${phase.title.slice(0, 15)}`}
                     className="relative flex flex-col sm:flex-row items-start gap-4 sm:gap-8"
                   >
                     {/* Timeline dot */}
@@ -333,18 +333,18 @@ export default function VisionPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {t.benefits.items.map((benefit, index) => {
+            {t.benefits.items.map((benefit, benefitIdx) => {
               const icons = [TrendingUp, Globe, Zap, Shield]
-              const Icon = icons[index]
+              const Icon = icons[benefitIdx]
               const benefitConfigs = [
                 { bg: 'from-blue-50', border: 'border-blue-100', icon: 'text-blue-600' },
                 { bg: 'from-green-50', border: 'border-green-100', icon: 'text-green-600' },
                 { bg: 'from-purple-50', border: 'border-purple-100', icon: 'text-purple-600' },
                 { bg: 'from-orange-50', border: 'border-orange-100', icon: 'text-orange-600' },
               ]
-              const config = benefitConfigs[index]
+              const config = benefitConfigs[benefitIdx]
               return (
-                <div key={index} className={`bg-gradient-to-br ${config.bg} to-white rounded-xl p-4 sm:p-6 border ${config.border}`}>
+                <div key={`benefit-${benefit.title.slice(0, 15)}`} className={`bg-gradient-to-br ${config.bg} to-white rounded-xl p-4 sm:p-6 border ${config.border}`}>
                   <Icon className={`h-6 w-6 sm:h-8 sm:w-8 ${config.icon} mb-3 sm:mb-4`} />
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2" dir={language === 'ar' ? 'rtl' : 'ltr'}>{benefit.title}</h3>
                   <p className="text-xs sm:text-sm text-gray-600" dir={language === 'ar' ? 'rtl' : 'ltr'}>

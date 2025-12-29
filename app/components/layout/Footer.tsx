@@ -48,10 +48,10 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-sm text-gray-600 mb-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              {t.description.split('\n').map((line, index) => (
-                <span key={index}>
+              {t.description.split('\n').map((line, lineIdx) => (
+                <span key={`desc-${lineIdx}-${line.slice(0, 10)}`}>
                   {line}
-                  {index < t.description.split('\n').length - 1 && <br />}
+                  {lineIdx < t.description.split('\n').length - 1 && <br />}
                 </span>
               ))}
             </p>
@@ -163,7 +163,7 @@ export default function Footer() {
           </div>
           <div className="border-t border-gray-200 pt-6">
             <p className="text-xs sm:text-sm text-gray-500 text-center" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              © 2026 VisionDrive Technologies FZ-LLC. {t.copyright}
+              © {new Date().getFullYear()} VisionDrive Technologies FZ-LLC. {t.copyright}
             </p>
           </div>
         </div>

@@ -67,7 +67,7 @@ export default function StatsSection() {
             const Icon = stat.icon
             return (
               <div
-                key={index}
+                key={`stat-${stat.label.slice(0, 15)}`}
                 className="bg-obsidian-50 border border-obsidian-100 rounded-2xl p-6 hover:border-gold-500 transition-all duration-300 group"
               >
                 <motion.div

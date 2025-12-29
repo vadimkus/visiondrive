@@ -62,7 +62,7 @@ export default function TechnologyCards() {
             const Icon = tech.icon
             return (
               <div
-                key={index}
+                key={`tech-${tech.title.slice(0, 15)}`}
                 className="bg-obsidian-50 border border-obsidian-100 rounded-2xl p-8 hover:border-gold-500 transition-all duration-300 group"
               >
                 <motion.div

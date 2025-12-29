@@ -116,9 +116,9 @@ export default function RoadmapPage() {
           
           {/* Quick Timeline */}
           <div className="flex flex-wrap justify-center gap-4 mb-8">
-            {milestones.map((m, i) => (
+            {milestones.map((m) => (
               <div 
-                key={i}
+                key={`milestone-${m.date}-${m.title}`}
                 className={`px-4 py-2 rounded-full text-sm font-medium ${
                   m.status === 'active' 
                     ? 'bg-green-100 text-green-700 border-2 border-green-300' 
@@ -161,13 +161,13 @@ export default function RoadmapPage() {
           </div>
 
           <div className="space-y-4">
-            {phases.map((phase, index) => {
+            {phases.map((phase) => {
               const Icon = phase.icon
               const isActive = phase.status === 'in-progress'
               
               return (
                 <div
-                  key={index}
+                  key={`phase-${phase.phase}`}
                   className={`flex items-center gap-4 p-6 rounded-xl border-2 transition-all ${
                     isActive 
                       ? 'bg-white border-primary-300 shadow-md' 
@@ -225,9 +225,9 @@ export default function RoadmapPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {highlights.map((item, index) => (
+            {highlights.map((item) => (
               <div
-                key={index}
+                key={`highlight-${item.title}`}
                 className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center"
               >
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary-50 mb-4">

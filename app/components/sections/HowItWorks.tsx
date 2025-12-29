@@ -19,10 +19,10 @@ export default function HowItWorks() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 max-w-3xl mx-auto">
-        {t.howItWorks.steps.map((step, index) => {
-          const Icon = icons[index]
+        {t.howItWorks.steps.map((step, stepIdx) => {
+          const Icon = icons[stepIdx]
           return (
-            <div key={index} className="text-center">
+            <div key={`howit-${step.title.slice(0, 15)}`} className="text-center">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-600 rounded-full flex items-center justify-center text-white mx-auto mb-3 sm:mb-4">
                 <Icon className="h-6 w-6 sm:h-8 sm:w-8" />
               </div>

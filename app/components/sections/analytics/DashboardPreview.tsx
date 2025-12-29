@@ -14,12 +14,12 @@ export default function DashboardPreview() {
   return (
     <Section id="dashboard" background="gray">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
-        {t.dashboard.items.map((item, index) => {
-          const Icon = icons[index]
+        {t.dashboard.items.map((item, itemIdx) => {
+          const Icon = icons[itemIdx]
           return (
-            <div key={index} className="text-center">
+            <div key={`dash-${item.label.slice(0, 15)}`} className="text-center">
               <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 mx-auto mb-2" />
-              <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{values[index]}</div>
+              <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{values[itemIdx]}</div>
               <div className="text-xs font-semibold text-gray-900 mb-0.5" dir={language === 'ar' ? 'rtl' : 'ltr'}>{item.label}</div>
               <div className="text-xs text-gray-500" dir={language === 'ar' ? 'rtl' : 'ltr'}>{item.description}</div>
             </div>

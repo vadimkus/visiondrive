@@ -20,8 +20,8 @@ export default function UserTestimonials() {
   return (
     <Section id="testimonials" background="gray">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 max-w-3xl mx-auto px-2">
-        {testimonials.map((testimonial, index) => (
-          <div key={index} className="text-center">
+        {testimonials.map((testimonial) => (
+          <div key={`test-${(testimonial.author || 'anon').slice(0, 15)}`} className="text-center">
             {testimonial.quote && (
               <p className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 italic" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                 "{testimonial.quote}"

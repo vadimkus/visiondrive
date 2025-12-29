@@ -13,10 +13,10 @@ export default function DataProducts() {
   return (
     <Section id="data-products" background="gray">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-3xl mx-auto">
-        {t.products.items.map((product, index) => {
-          const Icon = icons[index]
+        {t.products.items.map((product, productIdx) => {
+          const Icon = icons[productIdx]
           return (
-            <div key={index} className="text-center">
+            <div key={`product-${product.title.slice(0, 15)}`} className="text-center">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
               </div>

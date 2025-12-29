@@ -11,8 +11,8 @@ export default function FeaturedClients() {
   return (
     <Section id="clients" background="gray">
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-3xl mx-auto px-2">
-        {t.clients.items.map((client, index) => (
-          <div key={index} className="text-center">
+        {t.clients.items.map((client) => (
+          <div key={`client-${client.slice(0, 15)}`} className="text-center">
             <p className="text-sm sm:text-base text-gray-600" dir={language === 'ar' ? 'rtl' : 'ltr'}>{client}</p>
           </div>
         ))}

@@ -84,7 +84,7 @@ export default function RoadmapTimeline() {
 
               return (
                 <div
-                  key={index}
+                  key={`phase-${phase.quarter}-${phase.title.slice(0, 15)}`}
                   className="relative flex items-start gap-8"
                 >
                   <motion.div

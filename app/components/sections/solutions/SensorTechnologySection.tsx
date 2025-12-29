@@ -30,8 +30,8 @@ export default function SensorTechnologySection() {
                   {t.sensor.featuresTitle}
                 </h3>
                 <ul className="space-y-2 sm:space-y-3" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                  {t.sensor.features.map((feature, index) => (
-                    <li key={index} className={`flex items-start text-sm sm:text-base text-gray-700 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
+                  {t.sensor.features.map((feature) => (
+                    <li key={`sensor-feat-${feature.slice(0, 15)}`} className={`flex items-start text-sm sm:text-base text-gray-700 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
                       <span className={`text-primary-600 ${language === 'ar' ? 'ml-2 sm:ml-3' : 'mr-2 sm:mr-3'} flex-shrink-0`}>•</span>
                       <span>{feature}</span>
                     </li>
