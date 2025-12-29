@@ -7,6 +7,35 @@ import { ArrowLeft, Loader2, Navigation, MapPin } from 'lucide-react'
 import MapboxMap from './MapboxMap'
 import { appleMapsDirectionsUrl, googleMapsDirectionsUrl } from '@/lib/navigation-links'
 
+// GeoJSON Types
+type GeoJSONFeature = {
+  type: 'Feature'
+  geometry: { type: string; coordinates: number[] | number[][] | number[][][] }
+  properties: Record<string, unknown>
+}
+
+type GatewayItem = {
+  id: string
+  name: string
+  status?: string | null
+  backhaul?: string | null
+  lastHeartbeat?: string | null
+  ageMinutes?: number | null
+  state?: 'ONLINE' | 'OFFLINE'
+  lat: number | null
+  lng: number | null
+}
+
+type ZoneItem = {
+  id: string
+  name: string
+  kind?: string
+  bayCount?: number
+  address?: string
+  tariff?: Record<string, unknown>
+  geojson: GeoJSONFeature
+}
+
 type MapItem = {
   bayId: string
   bayCode: string | null
@@ -22,7 +51,7 @@ type MapItem = {
   lng?: number | null
   sensorLat?: number | null
   sensorLng?: number | null
-  geojson?: any | null
+  geojson?: GeoJSONFeature | null
 }
 
 type MapMeta = {
@@ -32,7 +61,7 @@ type MapMeta = {
   siteId?: string | null
   centerLat?: number | null
   centerLng?: number | null
-  zoneGeojson?: any | null
+  zoneGeojson?: GeoJSONFeature | null
   bayCount: number
 }
 
@@ -42,11 +71,11 @@ export default function PortalMapPageClient() {
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<MapItem[]>([])
   const [meta, setMeta] = useState<MapMeta | null>(null)
-  const [gateways, setGateways] = useState<any[]>([])
+  const [gateways, setGateways] = useState<GatewayItem[]>([])
   const zoneId = searchParams.get('zoneId') || 'all'
   const [selectedBayId, setSelectedBayId] = useState<string | null>(null)
   const [filters, setFilters] = useState({ OCCUPIED: false, OFFLINE: false, UNKNOWN: false })
-  const [zones, setZones] = useState<any[]>([])
+  const [zones, setZones] = useState<ZoneItem[]>([])
   const [showZones, setShowZones] = useState(false)
 
   const summary = useMemo(() => {

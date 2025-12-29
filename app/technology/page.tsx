@@ -1,44 +1,45 @@
+import Image from 'next/image'
 import Section from '../components/common/Section'
 import Button from '../components/common/Button'
 
 const stack = [
   {
-    title: 'Edge + Sensors',
-    body: 'LoRaWAN devices, ANPR, BLE access, and mobile SDKs feeding live occupancy and status.',
+    title: 'NB-IoT Parking Sensors',
+    body: 'Bay-level occupancy sensors with MQTT uplink, Bluetooth commissioning, and HEX payload decoding for ground truth data.',
   },
   {
-    title: 'Real-time Data Fabric',
-    body: 'Stream processing with health checks, deduplication, and SLA-backed uptime.',
+    title: 'MQTT Ingestion (UAE)',
+    body: 'Always-on subscriber service in AWS me-central-1 with sub-30s latency, dead-letter handling, and dedup/idempotency.',
   },
   {
-    title: 'Control & APIs',
-    body: 'Unified APIs for availability, reservations, payments, and enforcement events.',
+    title: 'Operator Portal & APIs',
+    body: 'Fleet health monitoring, sensor-to-bay binding, alerts lifecycle, and unified REST APIs for government integration.',
   },
   {
-    title: 'Insights',
-    body: 'Dashboards and exports for demand, compliance, and curb performance.',
+    title: 'Data Residency & Compliance',
+    body: 'UAE-only database, logs, and backups aligned with TDRA/DESC ISR requirements for RTA and government projects.',
   },
 ]
 
 const assurances = [
-  'Reliability: monitored devices, alerting, and graceful degradation when inputs fail.',
-  'Security: encrypted in transit and at rest; role-based access with audit trails.',
-  'Interoperability: standards-first (LoRaWAN, REST/JSON), webhooks, and SDKs.',
-  'Scalability: multi-tenant architecture tested across dense urban deployments.',
+  'Reliability: 99%+ uplink reliability with reconnect handling, backpressure, and graceful degradation.',
+  'Security: TLS/auth for MQTT, encrypted at rest, role-based access with full audit trails.',
+  'Compliance: UAE data residency (AWS me-central-1), TDRA IoT policy, DESC ISR alignment for government.',
+  'Scalability: Multi-tenant architecture tested for 1,000+ sensor deployments across urban environments.',
 ]
 
 const environmentalSensors = [
   {
-    title: 'Air quality',
-    body: 'PM2.5/PM10, NO₂, and VOC sensors distributed across sites for live pollution maps and alerts.',
+    title: 'Commissioning Workflow',
+    body: 'Bluetooth AT commands for radar enable, park type config, and on-site calibration with installer SOP and validation.',
   },
   {
-    title: 'Weather & rain',
-    body: 'Temperature, humidity, wind, and rainfall sensors for microclimate coverage and operational planning.',
+    title: 'Fleet Health Monitoring',
+    body: 'Real-time alerts for battery drain, water coverage, radar validity, offline sensors, and flapping detection.',
   },
   {
-    title: 'Soil & agriculture',
-    body: 'Soil moisture and environmental probes for farmers and green assets, streaming over LoRaWAN.',
+    title: 'Pilot & Scale Framework',
+    body: 'Validated acceptance criteria: ≥99% events <30s (street), ≥95% <60s (underground), with coverage mapping.',
   },
 ]
 
@@ -49,14 +50,14 @@ export default function TechnologyPage() {
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase">Technology</p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
-            The platform behind effortless parking
+            NB-IoT sensor infrastructure for ground truth parking data
           </h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
-            A connected stack that blends sensors, data fabric, and APIs so cities, operators, and drivers see the same live picture—and act on it instantly.
+            NB-IoT parking sensors with MQTT ingestion, UAE data residency, and enterprise-grade reliability for municipalities and smart cities.
           </p>
           <div className="flex items-center justify-center gap-3">
-            <Button href="/contact" size="md">Talk to our team</Button>
-            <Button href="/app/download" variant="secondary" size="md">See it live</Button>
+          <Button href="/contact" size="md">Talk to our team</Button>
+          <Button href="/budget" variant="secondary" size="md">View Budget</Button>
           </div>
         </div>
       </Section>
@@ -77,9 +78,9 @@ export default function TechnologyPage() {
 
       <Section className="py-8 sm:py-12 md:py-14">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Environmental sensing</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Operations & Deployment</h2>
           <p className="text-base text-gray-600 mb-5 max-w-3xl">
-            Beyond parking, our sensor fabric adds truthful, real-time visibility into air quality, weather, and soil conditions across locations.
+            From sensor commissioning to fleet operations, our platform provides end-to-end visibility and control for IoT parking deployments.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {environmentalSensors.map((item) => (
@@ -103,6 +104,23 @@ export default function TechnologyPage() {
               </li>
             ))}
           </ul>
+        </div>
+      </Section>
+
+      {/* Partners Section */}
+      <Section background="white" className="py-8 sm:py-12 md:py-14">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Trusted by UAE Authorities</h2>
+          <p className="text-gray-600 mb-8">
+            Enterprise-grade technology for government and municipal deployments
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 items-center opacity-70">
+            <Image src="/images/gov/icons/rta.jpg" alt="RTA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+            <Image src="/images/gov/icons/parkin.jpg" alt="Parkin" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+            <Image src="/images/gov/icons/itc.jpg" alt="ITC Abu Dhabi" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+            <Image src="/images/gov/icons/srta.jpg" alt="SRTA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+            <Image src="/images/gov/icons/tdra.jpg" alt="TDRA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+          </div>
         </div>
       </Section>
 

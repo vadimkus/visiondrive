@@ -5,6 +5,23 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import mapboxgl from 'mapbox-gl'
 import { Grid3x3, Home, Loader2, Move3d, PlusSquare, RefreshCw, Save, Satellite, Trash2, Undo2 } from 'lucide-react'
 
+// GeoJSON Types
+type GeoJSONPolygonGeometry = {
+  type: 'Polygon'
+  coordinates: number[][][]
+}
+
+type GeoJSONFeature = {
+  type: 'Feature'
+  geometry: GeoJSONPolygonGeometry
+  properties: Record<string, unknown>
+}
+
+type GeoJSONFeatureCollection = {
+  type: 'FeatureCollection'
+  features: GeoJSONFeature[]
+}
+
 type ZoneItem = { id: string; name: string; bayCount: number }
 
 type BayItem = {
@@ -12,7 +29,7 @@ type BayItem = {
   code: string | null
   lat: number | null
   lng: number | null
-  geojson: any | null
+  geojson: GeoJSONFeature | null
   siteId: string | null
   zoneId: string | null
   siteName: string | null
@@ -31,7 +48,7 @@ function nextCode(existing: BayItem[]) {
   return `A${String(n).padStart(2, '0')}`
 }
 
-function rectPolygonFromBounds(a: mapboxgl.LngLatLike, b: mapboxgl.LngLatLike) {
+function rectPolygonFromBounds(a: mapboxgl.LngLatLike, b: mapboxgl.LngLatLike): GeoJSONFeature {
   const p1 = mapboxgl.LngLat.convert(a)
   const p2 = mapboxgl.LngLat.convert(b)
   const minLng = Math.min(p1.lng, p2.lng)
@@ -56,7 +73,7 @@ function rectPolygonFromBounds(a: mapboxgl.LngLatLike, b: mapboxgl.LngLatLike) {
   }
 }
 
-function rectPolygonAroundCenterMeters(center: mapboxgl.LngLat, widthM: number, heightM: number) {
+function rectPolygonAroundCenterMeters(center: mapboxgl.LngLat, widthM: number, heightM: number): GeoJSONFeature {
   // Rough meters→degrees conversion (fine for small bay rectangles).
   const dLat = (heightM / 2) / 111_320
   const dLng = (widthM / 2) / (111_320 * Math.max(0.2, Math.cos((center.lat * Math.PI) / 180)))
@@ -74,12 +91,12 @@ function dist(a: { x: number; y: number }, b: { x: number; y: number }) {
   return Math.sqrt(dx * dx + dy * dy)
 }
 
-function rectFromPolygonPx(map: mapboxgl.Map, geojson: any): RectPx | null {
+function rectFromPolygonPx(map: mapboxgl.Map, geojson: GeoJSONFeature | null): RectPx | null {
   const ring = geojson?.geometry?.coordinates?.[0]
   if (!Array.isArray(ring) || ring.length < 4) return null
   const pts = ring
     .slice(0, 4)
-    .map((c: any) => (Array.isArray(c) && c.length >= 2 ? map.project({ lng: c[0], lat: c[1] }) : null))
+    .map((c: number[]) => (Array.isArray(c) && c.length >= 2 ? map.project({ lng: c[0], lat: c[1] }) : null))
     .filter(Boolean) as mapboxgl.Point[]
   if (pts.length < 4) return null
   const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length
@@ -108,7 +125,7 @@ function cornersFromRectPx(r: RectPx) {
   }))
 }
 
-function featureFromRect(map: mapboxgl.Map, r: RectPx, props?: any) {
+function featureFromRect(map: mapboxgl.Map, r: RectPx, props?: Record<string, unknown>): GeoJSONFeature {
   const corners = cornersFromRectPx(r)
   const coords = corners.map((p) => {
     const ll = map.unproject([p.x, p.y])
@@ -147,13 +164,13 @@ export default function BaysPageClient() {
   const satelliteRef = useRef(satellite)
   const ensureLayersRef = useRef<null | ((opts?: { force?: boolean }) => void)>(null)
   const styleSwitchSeqRef = useRef(0)
-  const [draftGeojson, setDraftGeojson] = useState<any | null>(null)
+  const [draftGeojson, setDraftGeojson] = useState<GeoJSONFeature | null>(null)
   const [draftCode, setDraftCode] = useState<string>('')
   const [draftZoneId, setDraftZoneId] = useState<string>('all')
   // Keep the page focused on rectangle drawing; editing handles can be enabled explicitly if needed.
   const [editMode, setEditMode] = useState(false)
   const [snap, setSnap] = useState(true)
-  const [editGeojson, setEditGeojson] = useState<any | null>(null)
+  const [editGeojson, setEditGeojson] = useState<GeoJSONFeature | null>(null)
   const [editCode, setEditCode] = useState<string>('')
   const [editZoneId, setEditZoneId] = useState<string>('all')
   const [saving, setSaving] = useState(false)
@@ -171,10 +188,10 @@ export default function BaysPageClient() {
   // --- Undo stack (geometry + selection) ---
   type UndoSnapshot = {
     selectedId: string | null
-    editGeojson: any | null
+    editGeojson: GeoJSONFeature | null
     editCode: string
     editZoneId: string
-    draftGeojson: any | null
+    draftGeojson: GeoJSONFeature | null
     draftCode: string
     draftZoneId: string
     drawMode: boolean
@@ -287,30 +304,30 @@ export default function BaysPageClient() {
   )
 
   const onMapPointerDown = useCallback(
-    (e: any) => {
+    (e: React.PointerEvent<HTMLDivElement>) => {
       const map = mapRef.current
       if (!map) return
       const clientX = e.clientX
       const clientY = e.clientY
-      if (typeof e.pointerId === 'number') {
-        try {
-          e.currentTarget.setPointerCapture(e.pointerId)
-        } catch {
-          // ignore
-        }
-        gestureRef.current.pointerId = e.pointerId
-      }
+      const pointerId = typeof e.pointerId === 'number' ? e.pointerId : null
 
       const startPt = mapPointFromClient(clientX, clientY)
       if (!startPt) return
 
       // DRAW mode: click-drag anywhere to create a rectangle
       if (drawModeRef.current) {
+        if (pointerId !== null) {
+          try {
+            e.currentTarget.setPointerCapture(pointerId)
+          } catch {
+            // ignore
+          }
+        }
         pushUndo('draw start')
         const ll = lngLatFromClient(clientX, clientY)
         if (!ll) return
         gestureRef.current = {
-          pointerId: gestureRef.current.pointerId,
+          pointerId,
           mode: 'draw',
           dragging: true,
           startPt,
@@ -331,12 +348,19 @@ export default function BaysPageClient() {
           pushInteraction('No draft hit (tap the green draft rectangle).')
           return
         }
+        if (pointerId !== null) {
+          try {
+            e.currentTarget.setPointerCapture(pointerId)
+          } catch {
+            // ignore
+          }
+        }
         pushUndo('drag draft start')
         const gj = draftGeojsonRef.current
         const base = gj?.geometry ? rectFromPolygonPx(map, gj) : null
         if (!base) return
         gestureRef.current = {
-          pointerId: gestureRef.current.pointerId,
+          pointerId,
           mode: 'drag',
           dragging: false,
           startPt,
@@ -349,12 +373,20 @@ export default function BaysPageClient() {
       // Existing bays: hit-test bays-hit and select
       const hit = pickFeatureAtClient(clientX, clientY, ['bays-hit'])
       if (!hit?.properties?.id || !hit?.geometry) {
-        pushInteraction('No bay hit.')
+        // Let Mapbox handle normal map interactions (pan/zoom) when the user clicks empty map.
+        // Do not pointer-capture in this case, otherwise Mapbox won't receive gesture events.
         return
+      }
+      if (pointerId !== null) {
+        try {
+          e.currentTarget.setPointerCapture(pointerId)
+        } catch {
+          // ignore
+        }
       }
       const id = String(hit.properties.id)
       if (selectedIdRef.current !== id) pushUndo('select bay')
-      const geom = { type: 'Feature', geometry: hit.geometry, properties: {} }
+      const geom: GeoJSONFeature = { type: 'Feature', geometry: hit.geometry as GeoJSONPolygonGeometry, properties: {} }
       setSelectedId(id)
       setEditGeojson(geom)
       editGeojsonRef.current = geom
@@ -365,7 +397,7 @@ export default function BaysPageClient() {
       if (!base) return
       pushUndo('drag bay start')
       gestureRef.current = {
-        pointerId: gestureRef.current.pointerId,
+        pointerId,
         mode: 'drag',
         dragging: false,
         startPt,
@@ -377,7 +409,7 @@ export default function BaysPageClient() {
   )
 
   const onMapPointerMove = useCallback(
-    (e: any) => {
+    (e: React.PointerEvent<HTMLDivElement>) => {
       const map = mapRef.current
       if (!map) return
       const g = gestureRef.current
@@ -414,7 +446,7 @@ export default function BaysPageClient() {
   )
 
   const onMapPointerUp = useCallback(
-    (e: any) => {
+    (e: React.PointerEvent<HTMLDivElement>) => {
       const map = mapRef.current
       if (!map) return
       const g = gestureRef.current
@@ -461,9 +493,9 @@ export default function BaysPageClient() {
   const zoneIdRef = useRef('all')
   const itemsRef = useRef<BayItem[]>([])
   const selectedIdRef = useRef<string | null>(null)
-  const editGeojsonRef = useRef<any | null>(null)
+  const editGeojsonRef = useRef<GeoJSONFeature | null>(null)
   const hasDraftRef = useRef(false)
-  const draftGeojsonRef = useRef<any | null>(null)
+  const draftGeojsonRef = useRef<GeoJSONFeature | null>(null)
 
   useEffect(() => {
     drawModeRef.current = drawMode
@@ -485,9 +517,9 @@ export default function BaysPageClient() {
     draftGeojsonRef.current = draftGeojson
   }, [hasDraft, draftGeojson])
 
-  const baysFc = useMemo(() => {
+  const baysFc = useMemo((): GeoJSONFeatureCollection => {
     const features = items
-      .map((b) => {
+      .map((b): GeoJSONFeature | null => {
         const gj = b.geojson?.geometry ? b.geojson : null
         if (!gj?.geometry) return null
         return {
@@ -500,31 +532,31 @@ export default function BaysPageClient() {
           },
         }
       })
-      .filter(Boolean) as any[]
+      .filter((f): f is GeoJSONFeature => f !== null)
     return { type: 'FeatureCollection', features }
   }, [items, selectedId])
 
-  const baysFcRef = useRef<any>(null)
+  const baysFcRef = useRef<GeoJSONFeatureCollection | null>(null)
   useEffect(() => {
     baysFcRef.current = baysFc
   }, [baysFc])
 
-  const editFc = useMemo(() => {
+  const editFc = useMemo((): GeoJSONFeatureCollection => {
     if (!editGeojson?.geometry) return { type: 'FeatureCollection', features: [] }
     return { type: 'FeatureCollection', features: [{ ...editGeojson, properties: { code: editCode || selected?.code || '' } }] }
   }, [editGeojson, editCode, selected?.code])
 
-  const editFcRef = useRef<any>(null)
+  const editFcRef = useRef<GeoJSONFeatureCollection | null>(null)
   useEffect(() => {
     editFcRef.current = editFc
   }, [editFc])
 
-  const draftFc = useMemo(() => {
+  const draftFc = useMemo((): GeoJSONFeatureCollection => {
     if (!draftGeojson?.geometry) return { type: 'FeatureCollection', features: [] }
     return { type: 'FeatureCollection', features: [{ ...draftGeojson, properties: { code: draftCode || 'NEW' } }] }
   }, [draftGeojson, draftCode])
 
-  const draftFcRef = useRef<any>(null)
+  const draftFcRef = useRef<GeoJSONFeatureCollection | null>(null)
   useEffect(() => {
     draftFcRef.current = draftFc
   }, [draftFc])
@@ -653,12 +685,24 @@ export default function BaysPageClient() {
         center: [55.1622, 25.1016],
         zoom: 17.5,
       })
-    } catch (e: any) {
-      setInteractionStatus(`Map init failed: ${String(e?.message || e || 'unknown error')}`)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e)
+      setInteractionStatus(`Map init failed: ${message || 'unknown error'}`)
       return
     }
     mapRef.current = map
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
+    // Ensure standard map interactions are enabled (our pointer-capture only kicks in for bay draw/drag).
+    try {
+      map.scrollZoom.enable()
+      map.doubleClickZoom.enable()
+      map.touchZoomRotate.enable()
+      map.boxZoom.enable()
+      map.keyboard.enable()
+      map.dragPan.enable()
+    } catch {
+      // ignore
+    }
 
     // Keep Mapbox DOM pointer-interactive.
     try {
@@ -733,7 +777,7 @@ export default function BaysPageClient() {
         // Imported styles require custom layers to use a slot; classic styles may reject unknown keys.
         const styleAny = map.getStyle() as any
         const hasImports = Boolean(styleAny?.imports?.length)
-        const LAYER_SLOT: any = hasImports ? { slot: 'top' } : {}
+        const LAYER_SLOT: { slot?: string } = hasImports ? { slot: 'top' } : {}
 
         // Make bays clearly visible on both light (streets) and dark (satellite) base maps.
         const isSatellite = satelliteRef.current
@@ -880,9 +924,10 @@ export default function BaysPageClient() {
         const n = Array.isArray(baysData?.features) ? baysData.features.length : 0
         setReadyStatus(`Map layers ready ✓ bays=${n}`)
 
-      } catch (e: any) {
+      } catch (e: unknown) {
         // Surface to user once; avoid noisy logs.
-        setInteractionStatus(`Map overlay init failed: ${String(e?.message || e || 'unknown')}`)
+        const message = e instanceof Error ? e.message : String(e)
+        setInteractionStatus(`Map overlay init failed: ${message || 'unknown'}`)
       }
     }
 
@@ -894,7 +939,7 @@ export default function BaysPageClient() {
     map.once('load', () => ensureLayers({ force: true }))
     ensureLayersRef.current = ensureLayers
 
-    const onMapError = (e: any) => {
+    const onMapError = (e: mapboxgl.MapboxEvent & { error?: { message?: string; status?: number; url?: string } }) => {
       try {
         const msg = String(e?.error?.message || e?.error || 'unknown error')
         const status = typeof e?.error?.status === 'number' ? ` status=${e.error.status}` : ''

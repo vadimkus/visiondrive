@@ -1,246 +1,120 @@
 'use client'
 
-import { motion as fmMotion } from 'framer-motion'
-import Section from './components/common/Section'
-import { ArrowRight, MapPin, Smartphone, Zap, CheckCircle2, Building2, Users, TrendingUp } from 'lucide-react'
+import Image from 'next/image'
+import { 
+  ArrowRight, 
+  Radio, 
+  Zap, 
+  Shield, 
+  Clock,
+  Building2,
+  Users,
+  MapPin
+} from 'lucide-react'
 import { useLanguage } from './contexts/LanguageContext'
-import { homeTranslations } from './translations/home'
-
-// React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
-const motion = fmMotion as any
-
-const features = [
-  {
-    icon: MapPin,
-    title: 'Real-Time Availability',
-    description: 'See live parking occupancy with sensor-accurate data across the UAE',
-  },
-  {
-    icon: Zap,
-    title: 'Smart Navigation',
-    description: 'Get guided to the nearest available spot with intelligent routing',
-  },
-  {
-    icon: Smartphone,
-    title: 'Unified Payments',
-    description: 'Pay seamlessly across Dubai, Abu Dhabi, and Sharjah from one app',
-  },
-]
 
 const stats = [
-  { number: '200K+', label: 'Parking Spaces' },
-  { number: '5+', label: 'Emirates Covered' },
-  { number: 'Q1 2026', label: 'Launch Date' },
+  { number: '1,000+', label: 'Sensors', icon: Radio },
+  { number: '<30s', label: 'Latency', icon: Clock },
+  { number: '99%+', label: 'Accuracy', icon: Zap },
+  { number: '5+ yr', label: 'Battery', icon: Shield },
 ]
 
-const useCases = [
-  {
-    icon: Users,
-    title: 'For Drivers',
-    description: 'Never waste time searching for parking. Get real-time availability and smart navigation.',
-  },
-  {
-    icon: Building2,
-    title: 'For Properties',
-    description: 'Optimize parking operations with IoT sensors and analytics for buildings and municipalities.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'For Cities',
-    description: 'Reduce congestion and emissions while supporting smart city transformation goals.',
-  },
+const quickLinks = [
+  { icon: Building2, title: 'Municipalities', href: '/municipalities' },
+  { icon: Users, title: 'Communities', href: '/communities' },
+  { icon: MapPin, title: 'Solutions', href: '/solutions' },
 ]
 
 export default function HomePage() {
   const { language } = useLanguage()
-  const t = homeTranslations[language]
 
   return (
-    <main className="bg-white">
-      {/* Hero Section */}
-      <section className="relative flex items-center justify-center min-h-[calc(100vh-160px)] py-12">
-        <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              {t.hero.title}{' '}
-              <span className="text-gold-500">{t.hero.titleHighlight}</span>
+    <main className="h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 text-gray-900 overflow-hidden">
+      <div className="h-full flex flex-col pt-20 pb-4 px-4 sm:px-6 lg:px-8">
+        
+        {/* Main Content - Centered */}
+        <div className="flex-1 flex flex-col justify-center max-w-6xl mx-auto w-full">
+          
+          {/* Hero */}
+          <div className="text-center mb-6 lg:mb-8">
+            <p className="text-xs sm:text-sm font-semibold tracking-wider text-primary-600 uppercase mb-2 lg:mb-3">
+              NB-IoT Smart Parking • UAE
+            </p>
+            <h1 
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 lg:mb-4"
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
+            >
+              Bay-Level Parking{' '}
+              <span className="text-primary-600">Intelligence</span>
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              Smart parking solutions powered by IoT sensors. Find, navigate, and pay for parking across the UAE—all in one app.
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto mb-4 lg:mb-6 leading-relaxed">
+              Real-time parking occupancy for municipalities and smart cities. 
+              Know exactly which bays are free, instantly.
             </p>
             
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <div className="flex flex-wrap gap-3 justify-center mb-6 lg:mb-8">
               <a
-                href="/app"
-                className="inline-flex items-center justify-center px-8 py-4 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-all duration-300 shadow-lg hover:shadow-xl group"
+                href="/contact"
+                className="inline-flex items-center px-5 py-2.5 sm:px-6 sm:py-3 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors group"
               >
-                {t.hero.cta}
-                <ArrowRight className={`${language === 'ar' ? 'mr-2 rotate-180' : 'ml-2'} h-5 w-5 group-hover:translate-x-1 transition-transform`} />
+                Request Demo
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </a>
               <a
                 href="/solutions"
-                className="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-900 font-semibold rounded-xl hover:bg-gray-50 border-2 border-gray-900 transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center px-5 py-2.5 sm:px-6 sm:py-3 bg-white text-gray-900 text-sm font-semibold rounded-lg border border-gray-300 hover:border-primary-300 hover:text-primary-600 transition-colors"
               >
-                Learn More
+                View Solutions
               </a>
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto">
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
-                  className="bg-gray-50 rounded-2xl p-4 sm:p-6 border border-gray-200"
-                >
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-1">
-                    {stat.number}
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600">{stat.label}</div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <Section background="gray">
-        <div className="max-w-7xl mx-auto py-12">
-          <div className="text-center mb-12">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Why Choose VisionDrive?
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                The most accurate parking information in the UAE, powered by IoT sensors
-              </p>
-            </motion.div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature, index) => {
-              const Icon = feature.icon
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="w-14 h-14 bg-gold-100 rounded-xl flex items-center justify-center mb-6">
-                    <Icon className="h-7 w-7 text-gold-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </motion.div>
-              )
-            })}
-          </div>
-        </div>
-      </Section>
-
-      {/* Use Cases Section */}
-      <Section background="white">
-        <div className="max-w-7xl mx-auto py-12">
-          <div className="text-center mb-12">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Solutions for Everyone
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                From individual drivers to smart city initiatives
-              </p>
-            </motion.div>
+          {/* Stats Row */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-4 max-w-2xl mx-auto w-full mb-6 lg:mb-8">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="bg-white/80 backdrop-blur rounded-xl p-3 sm:p-4 border border-gray-100 text-center shadow-sm"
+              >
+                <stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mx-auto mb-1" />
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                  {stat.number}
+                </div>
+                <div className="text-[10px] sm:text-xs text-gray-500">{stat.label}</div>
+              </div>
+            ))}
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {useCases.map((useCase, index) => {
-              const Icon = useCase.icon
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="bg-gray-50 rounded-2xl p-8 border border-gray-200"
-                >
-                  <div className="w-14 h-14 bg-blue-500 rounded-xl flex items-center justify-center mb-6 shadow-lg">
-                    <Icon className="h-7 w-7 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
-                    {useCase.title}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    {useCase.description}
-                  </p>
-                </motion.div>
-              )
-            })}
-          </div>
-        </div>
-      </Section>
-
-      {/* CTA Section */}
-      <Section background="gray">
-        <div className="max-w-4xl mx-auto text-center py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-gold-500 to-gold-600 rounded-3xl p-12 shadow-2xl text-white"
-          >
-            <Smartphone className="h-16 w-16 mx-auto mb-6" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Transform Your Parking Experience?
-            </h2>
-            <p className="text-xl text-gold-50 mb-8 leading-relaxed max-w-2xl mx-auto">
-              Join the waitlist for ParkSense and be among the first to experience 
-              smart parking in the UAE.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Quick Links */}
+          <div className="flex justify-center gap-3 sm:gap-4 mb-6 lg:mb-8">
+            {quickLinks.map((link) => (
               <a
-                href="/app"
-                className="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
+                key={link.title}
+                href={link.href}
+                className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all text-sm font-medium text-gray-700 hover:text-primary-600"
               >
-                Explore ParkSense
+                <link.icon className="h-4 w-4" />
+                <span className="hidden sm:inline">{link.title}</span>
               </a>
-              <a
-                href="/contact"
-                className="inline-flex items-center justify-center px-8 py-4 bg-gold-700 text-white font-semibold rounded-xl hover:bg-gold-800 border-2 border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                Partner With Us
-              </a>
+            ))}
+          </div>
+
+          {/* Partners */}
+          <div className="text-center">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Trusted by UAE Authorities</p>
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-6 items-center opacity-60 hover:opacity-80 transition-opacity">
+              <Image src="/images/gov/icons/rta.jpg" alt="RTA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
+              <Image src="/images/gov/icons/parkin.jpg" alt="Parkin" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
+              <Image src="/images/gov/icons/itc.jpg" alt="ITC Abu Dhabi" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
+              <Image src="/images/gov/icons/srta.jpg" alt="SRTA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
+              <Image src="/images/gov/icons/tdra.jpg" alt="TDRA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />
             </div>
-          </motion.div>
+          </div>
         </div>
-      </Section>
+
+      </div>
     </main>
   )
 }
-

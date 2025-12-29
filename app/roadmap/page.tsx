@@ -1,353 +1,292 @@
 'use client'
 
-import { motion as fmMotion } from 'framer-motion'
-import { Calendar, CheckCircle2, Clock, Target, Rocket, TrendingUp, Zap, Shield, Users, Database, Smartphone, Cloud } from 'lucide-react'
+import Image from 'next/image'
 import Section from '../components/common/Section'
-
-// React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
-const motion = fmMotion as any
+import { 
+  Calendar, 
+  CheckCircle2, 
+  Clock, 
+  Rocket, 
+  Shield, 
+  Smartphone, 
+  Cloud,
+  Server,
+  FileCheck,
+  MapPin,
+  Settings,
+  Building2,
+  ArrowRight
+} from 'lucide-react'
 
 const phases = [
   {
     phase: 'Phase 1',
-    period: 'Months 1-2',
-    title: 'The "Connected Asphalt" MVP',
+    title: 'Government Approvals',
+    period: 'Q4 2024',
     status: 'in-progress',
-    description: 'Deploy test site with core sensor infrastructure and basic mobile app functionality.',
-    icon: Rocket,
-    color: 'from-blue-500 to-blue-600',
-    milestones: [
-      {
-        title: 'Hardware Deployment',
-        items: ['Initial gateway and sensor deployment', 'Surface-mounted parking sensors', 'Environmental monitoring station'],
-      },
-      {
-        title: 'Backend Infrastructure',
-        items: ['Network server integration', 'Event streaming architecture', 'Time-series data storage'],
-      },
-      {
-        title: 'App Alpha Release',
-        items: ['Live occupancy map visualization', 'Manual vehicle location feature', 'Basic real-time data display'],
-      },
-    ],
+    description: 'RTA NOC and pilot program approval',
+    icon: FileCheck,
+    color: 'bg-red-500',
   },
   {
     phase: 'Phase 2',
-    period: 'Months 3-4',
-    title: 'The "Dubai Driver" Update',
-    status: 'planned',
-    description: 'Unified payments and intelligent routing features tailored for UAE conditions.',
-    icon: Target,
-    color: 'from-emerald-500 to-emerald-600',
-    milestones: [
-      {
-        title: 'Unified Payments',
-        items: ['Dubai parking authority integration', 'Abu Dhabi parking system support', 'Sharjah parking integration'],
-      },
-      {
-        title: 'Smart Features',
-        items: ['Climate-aware routing preferences', 'Automatic location detection', 'Temperature-optimized routing'],
-      },
-      {
-        title: 'Beta Launch',
-        items: ['Public beta distribution', 'In-vehicle system integration', 'User feedback collection'],
-      },
-    ],
+    title: 'Infrastructure Setup',
+    period: 'Q4 2024',
+    status: 'in-progress',
+    description: 'AWS UAE cloud deployment',
+    icon: Cloud,
+    color: 'bg-blue-500',
   },
   {
     phase: 'Phase 3',
-    period: 'Months 5-6',
-    title: 'Monetization & Intelligence',
-    status: 'planned',
-    description: 'Revenue streams activated with environmental intelligence layer.',
-    icon: TrendingUp,
-    color: 'from-amber-500 to-amber-600',
-    milestones: [
-      {
-        title: 'Weather Intelligence',
-        items: ['Real-time environmental heatmaps', 'Air quality monitoring overlays', 'Weather alert notifications'],
-      },
-      {
-        title: 'Subscriptions',
-        items: ['Payment gateway integration', 'Premium tier features (29 AED/month)', 'Free tier with basic features'],
-      },
-      {
-        title: 'Merchant Integration',
-        items: ['Digital validation for retail partners', 'Push notification system', 'Parking validation workflows'],
-      },
-    ],
+    title: 'Pilot Deployment',
+    period: 'Q1 2025',
+    status: 'upcoming',
+    description: '10-100 sensors in selected zones',
+    icon: MapPin,
+    color: 'bg-amber-500',
   },
   {
     phase: 'Phase 4',
-    period: 'Month 7+',
-    title: 'Skyscrapers & Ecosystem',
+    title: 'Production Rollout',
+    period: 'Q2 2025',
     status: 'future',
-    description: 'Vertical scaling for towers and third-party service integrations.',
-    icon: Zap,
-    color: 'from-purple-500 to-purple-600',
-    milestones: [
-      {
-        title: 'Tower Features',
-        items: ['Security monitoring for private spaces', 'Peer-to-peer space sharing', 'Digital guest access passes'],
-      },
-      {
-        title: 'Service Integration',
-        items: ['Fuel delivery service API', 'On-demand car care services', 'Weather-aware service scheduling'],
-      },
-      {
-        title: 'Expansion',
-        items: ['Multi-emirate coverage', 'EV charging station integration', 'Enterprise B2B partnerships'],
-      },
-    ],
+    description: 'Scale to 2,000-5,000 sensors',
+    icon: Rocket,
+    color: 'bg-emerald-500',
+  },
+  {
+    phase: 'Phase 5',
+    title: 'ParkSense App',
+    period: 'Q1 2026',
+    status: 'future',
+    description: 'Consumer mobile app launch',
+    icon: Smartphone,
+    color: 'bg-purple-500',
   },
 ]
 
-const techStack = [
+const milestones = [
+  { date: 'Now', title: 'Sensor Testing', status: 'active' },
+  { date: 'Q1 2025', title: 'RTA Pilot Launch', status: 'upcoming' },
+  { date: 'Q2 2025', title: 'Production Scale', status: 'future' },
+  { date: 'Q1 2026', title: 'App Launch', status: 'future' },
+]
+
+const highlights = [
   {
-    category: 'Mobile App',
-    icon: Smartphone,
-    color: 'bg-blue-500',
-    items: ['Cross-platform mobile framework', 'File-based navigation routing', 'High-performance graphics engine', 'Advanced mapping SDK', 'In-vehicle integration (CarPlay/Android Auto)'],
-  },
-  {
-    category: 'Backend',
-    icon: Cloud,
-    color: 'bg-emerald-500',
-    items: ['Serverless web framework', 'TypeScript microservices', 'Enterprise LoRaWAN network server', 'Managed event streaming platform', 'Time-series database with vector support'],
-  },
-  {
-    category: 'Hardware',
-    icon: Database,
-    color: 'bg-amber-500',
-    items: ['LoRaWAN parking occupancy sensors', 'Multi-parameter weather stations', 'RS485 to LoRa bridge devices', 'Wireless repeaters for vertical coverage'],
-  },
-  {
-    category: 'Security',
     icon: Shield,
-    color: 'bg-purple-500',
-    items: ['Multi-tenant data isolation', 'Role-based access control (RBAC)', 'End-to-end encryption', 'Audit logging for all actions', 'GDPR compliance ready'],
+    title: 'UAE Compliant',
+    description: 'Full TDRA and DESC ISR data residency compliance',
+  },
+  {
+    icon: Cloud,
+    title: 'AWS UAE Region',
+    description: 'All data hosted in me-central-1',
+  },
+  {
+    icon: Server,
+    title: 'Enterprise Grade',
+    description: '99%+ uplink reliability target',
+  },
+  {
+    icon: Settings,
+    title: 'Real-Time Data',
+    description: 'Sub-30 second event latency',
   },
 ]
 
 export default function RoadmapPage() {
   return (
-    <div className="pt-20 pb-12 bg-white">
+    <main className="pt-24 bg-white text-gray-900">
       {/* Hero Section */}
-      <Section background="white">
-        <div className="max-w-7xl mx-auto text-center py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Product Roadmap
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-700 mb-4 max-w-4xl mx-auto font-medium">
-              From MVP to Full UAE Smart Parking Ecosystem
-            </p>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              A phased delivery approach combining IoT sensors, real-time intelligence, and lifestyle services
-            </p>
-            
-            {/* Decorative elements */}
-            <div className="mt-12 flex justify-center items-center gap-3">
-              <div className="h-1 w-16 bg-gradient-to-r from-transparent to-gold-500 rounded-full"></div>
-              <div className="h-2 w-2 bg-gold-500 rounded-full"></div>
-              <div className="h-1 w-32 bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 rounded-full"></div>
-              <div className="h-2 w-2 bg-gold-500 rounded-full"></div>
-              <div className="h-1 w-16 bg-gradient-to-l from-transparent to-gold-500 rounded-full"></div>
-            </div>
-          </motion.div>
+      <Section className="py-12 md:py-20">
+        <div className="max-w-5xl mx-auto text-center">
+          <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase mb-4">
+            Product Roadmap
+          </p>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
+            Our Journey to{' '}
+            <span className="text-primary-600">Smart Parking</span>
+          </h1>
+          <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto mb-8">
+            From pilot to production—deploying NB-IoT parking sensors across the UAE 
+            with full government compliance and enterprise reliability.
+          </p>
+          
+          {/* Quick Timeline */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            {milestones.map((m, i) => (
+              <div 
+                key={i}
+                className={`px-4 py-2 rounded-full text-sm font-medium ${
+                  m.status === 'active' 
+                    ? 'bg-green-100 text-green-700 border-2 border-green-300' 
+                    : m.status === 'upcoming'
+                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                    : 'bg-gray-100 text-gray-600 border border-gray-200'
+                }`}
+              >
+                {m.date}: {m.title}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/contact"
+              className="inline-flex items-center justify-center px-8 py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors group"
+            >
+              Join the Pilot
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </a>
+            <a
+              href="/roadmap2"
+              className="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-900 font-semibold rounded-lg border border-gray-300 hover:border-primary-300 hover:text-primary-600 transition-colors"
+            >
+              View Technical Details
+            </a>
+          </div>
         </div>
       </Section>
 
-      {/* Timeline Section */}
-      <Section background="gray">
-        <div className="max-w-7xl mx-auto pt-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Development Phases
-            </h2>
-            <p className="text-xl text-gray-600">
-              7+ month journey to transform urban mobility in the UAE
+      {/* Phases Overview */}
+      <Section background="gray" className="py-12 md:py-16">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Deployment Phases</h2>
+            <p className="text-lg text-gray-600">
+              A phased approach to smart parking across the UAE
             </p>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-4">
             {phases.map((phase, index) => {
               const Icon = phase.icon
-              const isCurrent = phase.status === 'in-progress'
-              const isCompleted = phase.status === 'completed'
-
+              const isActive = phase.status === 'in-progress'
+              
               return (
-                <motion.div
+                <div
                   key={index}
-                  initial={{ opacity: 0, x: -50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="relative"
+                  className={`flex items-center gap-4 p-6 rounded-xl border-2 transition-all ${
+                    isActive 
+                      ? 'bg-white border-primary-300 shadow-md' 
+                      : 'bg-white border-gray-200 hover:border-gray-300'
+                  }`}
                 >
-                  {/* Timeline connector */}
-                  {index < phases.length - 1 && (
-                    <div className="absolute left-8 top-24 bottom-0 w-0.5 bg-gradient-to-b from-gray-300 to-transparent hidden md:block" />
-                  )}
-
-                  <div className="flex flex-col md:flex-row gap-6">
-                    {/* Icon */}
-                    <div className="flex-shrink-0 mt-2">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${phase.color} shadow-lg flex items-center justify-center`}>
-                        <Icon className="h-8 w-8 text-white" />
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 hover:border-gray-300 hover:shadow-xl transition-all duration-300">
-                        <div className="flex flex-wrap items-center gap-3 mb-4">
-                          <span className="px-4 py-1.5 bg-gray-900 text-white rounded-full text-sm font-semibold">
-                            {phase.phase}
-                          </span>
-                          <span className="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
-                            {phase.period}
-                          </span>
-                          {isCurrent && (
-                            <span className="px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-semibold flex items-center gap-1.5">
-                              <Clock className="h-4 w-4" />
-                              In Progress
-                            </span>
-                          )}
-                          {isCompleted && (
-                            <span className="px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold flex items-center gap-1.5">
-                              <CheckCircle2 className="h-4 w-4" />
-                              Completed
-                            </span>
-                          )}
-                        </div>
-
-                        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-                          {phase.title}
-                        </h3>
-                        <p className="text-gray-700 mb-8 text-lg leading-relaxed">
-                          {phase.description}
-                        </p>
-
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {phase.milestones.map((milestone, mIndex) => (
-                            <div key={mIndex} className="bg-gray-50 rounded-xl p-5 border border-gray-200">
-                              <h4 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wide">
-                                {milestone.title}
-                              </h4>
-                              <ul className="space-y-2.5">
-                                {milestone.items.map((item, iIndex) => (
-                                  <li key={iIndex} className="flex items-start gap-2 text-gray-800 text-sm leading-relaxed">
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                  <div className={`flex-shrink-0 w-12 h-12 ${phase.color} rounded-lg flex items-center justify-center`}>
+                    <Icon className="h-6 w-6 text-white" />
                   </div>
-                </motion.div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-sm font-semibold text-gray-500">{phase.phase}</span>
+                      <span className="text-sm text-gray-400">•</span>
+                      <span className="text-sm text-gray-500">{phase.period}</span>
+                      {isActive && (
+                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          In Progress
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">{phase.title}</h3>
+                    <p className="text-sm text-gray-600">{phase.description}</p>
+                  </div>
+                  <div className="flex-shrink-0 hidden sm:block">
+                    {isActive ? (
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <Clock className="h-4 w-4 text-green-600" />
+                      </div>
+                    ) : phase.status === 'upcoming' ? (
+                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                        <Calendar className="h-4 w-4 text-blue-500" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <CheckCircle2 className="h-4 w-4 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                </div>
               )
             })}
           </div>
         </div>
       </Section>
 
-      {/* Tech Stack Section */}
-      <Section background="gray">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                Technology Stack
-              </h2>
-              <p className="text-xl text-gray-600">
-                "Bleeding Edge" 2025 architecture for enterprise-grade performance
-              </p>
-            </motion.div>
+      {/* Key Highlights */}
+      <Section className="py-12 md:py-16">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Built for UAE</h2>
+            <p className="text-lg text-gray-600">
+              Enterprise-grade infrastructure with local compliance
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {techStack.map((tech, index) => {
-              const Icon = tech.icon
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className={`w-14 h-14 ${tech.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                      <Icon className="h-7 w-7 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900">
-                      {tech.category}
-                    </h3>
-                  </div>
-                  <ul className="space-y-3">
-                    {tech.items.map((item, iIndex) => (
-                      <li key={iIndex} className="flex items-start gap-3 text-gray-800 text-sm leading-relaxed">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              )
-            })}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {highlights.map((item, index) => (
+              <div
+                key={index}
+                className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center"
+              >
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary-50 mb-4">
+                  <item.icon className="h-6 w-6 text-primary-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-600">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* Partners Section */}
+      <Section background="gray" className="py-12 md:py-16">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Working with UAE Authorities</h2>
+          <p className="text-gray-600 mb-8">
+            Government partnerships for pilot approval and deployment
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 items-center opacity-70">
+            <Image src="/images/gov/icons/rta.jpg" alt="RTA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+            <Image src="/images/gov/icons/parkin.jpg" alt="Parkin" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+            <Image src="/images/gov/icons/itc.jpg" alt="ITC Abu Dhabi" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+            <Image src="/images/gov/icons/srta.jpg" alt="SRTA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
+            <Image src="/images/gov/icons/tdra.jpg" alt="TDRA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
           </div>
         </div>
       </Section>
 
       {/* CTA Section */}
-      <Section background="white">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <Users className="h-16 w-16 text-gold-500 mx-auto mb-6" />
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Join Us on This Journey
+      <Section className="py-12 md:py-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-8 md:p-12 text-white text-center">
+            <Building2 className="h-12 w-12 mx-auto mb-6 text-primary-200" />
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+              Ready to Partner?
             </h2>
-            <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-              Be part of the future of smart parking in the UAE. From pilot to full deployment,
-              we're building the infrastructure for tomorrow's urban mobility.
+            <p className="text-lg text-primary-100 mb-8 max-w-2xl mx-auto">
+              Join municipalities and enterprises deploying NB-IoT smart parking 
+              infrastructure across the UAE.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="/contact"
-                className="inline-flex items-center justify-center px-8 py-4 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white text-primary-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
               >
-                Become a Partner
+                Contact Us
               </a>
               <a
-                href="/contact"
-                className="inline-flex items-center justify-center px-8 py-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 border-2 border-gray-900 hover:border-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl"
+                href="/solutions"
+                className="inline-flex items-center justify-center px-6 py-3 bg-primary-500 text-white font-medium rounded-lg border border-primary-400 hover:bg-primary-400 transition-colors"
               >
-                Add Business to the Map
+                View Solutions
               </a>
             </div>
-          </motion.div>
+          </div>
         </div>
       </Section>
-    </div>
+    </main>
   )
 }

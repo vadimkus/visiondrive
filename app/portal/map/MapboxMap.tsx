@@ -3,12 +3,39 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 
+// GeoJSON Types
+type GeoJSONGeometry = {
+  type: string
+  coordinates: number[] | number[][] | number[][][]
+}
+
+type GeoJSONFeature = {
+  type: 'Feature'
+  geometry: GeoJSONGeometry
+  properties: Record<string, unknown>
+}
+
+type GeoJSONFeatureCollection = {
+  type: 'FeatureCollection'
+  features: GeoJSONFeature[]
+}
+
+type ZoneData = {
+  id: string
+  name: string
+  kind?: string
+  bayCount?: number
+  address?: string
+  tariff?: Record<string, unknown>
+  geojson: GeoJSONFeature & { properties: { address?: string; source?: string } }
+}
+
 type MapItem = {
   bayId: string
   bayCode: string | null
   lat: number | null
   lng: number | null
-  geojson: any | null
+  geojson: GeoJSONFeature | null
   sensorId: string | null
   devEui: string | null
   sensorLat?: number | null
@@ -27,7 +54,7 @@ type MapMeta = {
   address: string | null
   centerLat: number | null
   centerLng: number | null
-  zoneGeojson: any | null
+  zoneGeojson: GeoJSONFeature | null
   bayCount: number
 }
 
@@ -47,12 +74,12 @@ type Props = {
   meta: MapMeta | null
   items: MapItem[]
   gateways?: GatewayItem[]
-  zones?: any[]
+  zones?: ZoneData[]
   showZones?: boolean
   initialLayers?: { sensors?: boolean; gateways?: boolean; traffic?: boolean }
 }
 
-function asFeatureCollection(features: any[]) {
+function asFeatureCollection(features: GeoJSONFeature[]): GeoJSONFeatureCollection {
   return { type: 'FeatureCollection', features }
 }
 
@@ -455,38 +482,44 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
         map.on('click', 'sensor-clusters', (e) => {
           const features = map.queryRenderedFeatures(e.point, { layers: ['sensor-clusters'] })
           const clusterId = features[0]?.properties?.cluster_id
-          const src = map.getSource('sensors') as any
-          src.getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
-            if (err) return
-            const c = (features[0].geometry as any).coordinates
-            map.easeTo({ center: c, zoom })
-          })
+          const src = map.getSource('sensors') as mapboxgl.GeoJSONSource
+          if (src && 'getClusterExpansionZoom' in src) {
+            src.getClusterExpansionZoom(clusterId as number, (err: Error | null, zoom: number | null) => {
+              if (err || zoom === null) return
+              const geom = features[0].geometry as { coordinates: [number, number] }
+              map.easeTo({ center: geom.coordinates, zoom })
+            })
+          }
         })
 
         map.on('click', 'gateway-clusters', (e) => {
           const features = map.queryRenderedFeatures(e.point, { layers: ['gateway-clusters'] })
           const clusterId = features[0]?.properties?.cluster_id
-          const src = map.getSource('gateways') as any
-          src.getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
-            if (err) return
-            const c = (features[0].geometry as any).coordinates
-            map.easeTo({ center: c, zoom })
-          })
+          const src = map.getSource('gateways') as mapboxgl.GeoJSONSource
+          if (src && 'getClusterExpansionZoom' in src) {
+            src.getClusterExpansionZoom(clusterId as number, (err: Error | null, zoom: number | null) => {
+              if (err || zoom === null) return
+              const geom = features[0].geometry as { coordinates: [number, number] }
+              map.easeTo({ center: geom.coordinates, zoom })
+            })
+          }
         })
 
         map.on('mouseenter', 'gateway-unclustered', () => (map.getCanvas().style.cursor = 'pointer'))
         map.on('mouseleave', 'gateway-unclustered', () => (map.getCanvas().style.cursor = ''))
         map.on('click', 'gateway-unclustered', (e) => {
-          const f = e.features?.[0] as any
+          const f = e.features?.[0]
           if (!f) return
-          const coords = (f.geometry.coordinates as [number, number]) || [center.lng, center.lat]
+          const geom = f.geometry as { coordinates: [number, number] }
+          const coords = geom.coordinates || [center.lng, center.lat]
           const p = f.properties || {}
-          const name = p.name || 'Gateway'
-          const state = p.state || '—'
-          const backhaul = p.backhaul || '—'
-          const last = p.lastHeartbeat ? new Date(p.lastHeartbeat).toLocaleString() : '—'
+          const name = String(p.name || 'Gateway')
+          const state = String(p.state || '—')
+          const backhaul = String(p.backhaul || '—')
+          const lastHeartbeat = p.lastHeartbeat ? String(p.lastHeartbeat) : null
+          const last = lastHeartbeat ? new Date(lastHeartbeat).toLocaleString() : '—'
           gatewayPopup
-            .setLngLat(coords as any)
+            .setLngLat(coords)
             .setHTML(
               `<div style="font-family: system-ui; font-size: 14px; line-height: 1.6;">` +
                 `<div style="font-weight: 700; font-size: 16px; margin-bottom: 6px;">${name}</div>` +
@@ -502,35 +535,36 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
         map.on('mouseenter', 'zone-fills', () => (map.getCanvas().style.cursor = 'pointer'))
         map.on('mouseleave', 'zone-fills', () => (map.getCanvas().style.cursor = ''))
         map.on('click', 'zone-fills', (e) => {
-          const f = e.features?.[0] as any
+          const f = e.features?.[0]
           if (!f) return
           
           // Get center of the zone polygon
           const bounds = new mapboxgl.LngLatBounds()
           if (f.geometry.type === 'Polygon') {
-            const coords = f.geometry.coordinates[0]
-            coords.forEach((coord: [number, number]) => bounds.extend(coord))
+            const geom = f.geometry as { coordinates: number[][][] }
+            const coords = geom.coordinates[0]
+            coords.forEach((coord) => bounds.extend(coord as [number, number]))
           }
-          const center = bounds.getCenter()
+          const zoneCenter = bounds.getCenter()
           
           const p = f.properties || {}
-          const name = p.name || 'Parking Zone'
-          const kind = p.kind || 'PAID'
-          const address = p.address || '—'
-          const source = p.source || 'VisionDrive'
+          const name = String(p.name || 'Parking Zone')
+          const kind = String(p.kind || 'PAID')
+          const address = String(p.address || '—')
+          const source = String(p.source || 'VisionDrive')
           
           // Parse tariff if available
           let tariffHTML = ''
-          if (p.tariff) {
+          if (p.tariff && typeof p.tariff === 'string') {
             try {
-              const tariff = JSON.parse(p.tariff)
+              const tariff = JSON.parse(p.tariff) as { rateAedPerHour?: number; hours?: string; maxDailyAed?: number }
               tariffHTML = `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">` +
                 `<div style="font-weight: 600; margin-bottom: 4px;">💰 Tariff</div>` +
                 `<div style="margin-bottom: 2px;">Rate: ${tariff.rateAedPerHour} AED/hour</div>` +
                 `<div style="margin-bottom: 2px;">Hours: ${tariff.hours}</div>` +
                 `<div>Max Daily: ${tariff.maxDailyAed} AED</div>` +
                 `</div>`
-            } catch (e) {
+            } catch {
               // Ignore parse errors
             }
           }
@@ -540,7 +574,7 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
           const kindEmoji = kind === 'FREE' ? '🆓' : kind === 'PAID' ? '💳' : '🔒'
           
           zonePopup
-            .setLngLat(center)
+            .setLngLat(zoneCenter)
             .setHTML(
               `<div style="font-family: system-ui; font-size: 14px; line-height: 1.6;">` +
                 `<div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">${name}</div>` +
@@ -578,12 +612,12 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
     if (!map) return
 
     const updateSources = () => {
-      const sensors = map.getSource('sensors') as any
-      if (sensors) sensors.setData(sensorPoints as any)
-      const gws = map.getSource('gateways') as any
-      if (gws) gws.setData(gatewayPoints as any)
-      const zns = map.getSource('zones') as any
-      if (zns) zns.setData(zonesGeojson as any)
+      const sensors = map.getSource('sensors') as mapboxgl.GeoJSONSource | undefined
+      if (sensors) sensors.setData(sensorPoints)
+      const gws = map.getSource('gateways') as mapboxgl.GeoJSONSource | undefined
+      if (gws) gws.setData(gatewayPoints)
+      const zns = map.getSource('zones') as mapboxgl.GeoJSONSource | undefined
+      if (zns) zns.setData(zonesGeojson)
     }
 
     if (map.isStyleLoaded()) updateSources()

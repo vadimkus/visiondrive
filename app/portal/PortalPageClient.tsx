@@ -33,13 +33,39 @@ interface User {
   tenantId?: string | null
 }
 
+interface TrendItem {
+  bucket: string
+  online: number
+  offline: number
+  total: number
+}
+
+interface Dashboard {
+  totalSensors: number
+  onlineSensors: number
+  offlineSensors: number
+  totalBays: number
+  freeBays: number
+  occupiedBays: number
+  occupancyPct: number
+  trend: TrendItem[]
+  alerts: number
+  lastUpdated?: string
+}
+
+interface ZoneItem {
+  id: string
+  name: string
+  bayCount: number
+}
+
 export default function PortalPageClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [dashboard, setDashboard] = useState<any>(null)
-  const [zones, setZones] = useState<any[]>([])
+  const [dashboard, setDashboard] = useState<Dashboard | null>(null)
+  const [zones, setZones] = useState<ZoneItem[]>([])
   const [zoneId, setZoneId] = useState<string>('all')
 
   useEffect(() => {
@@ -265,7 +291,7 @@ export default function PortalPageClient() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {dashboard.trend.slice(-10).map((t: any) => (
+                  {dashboard.trend.slice(-10).map((t: TrendItem) => (
                     <div key={t.bucket} className="flex items-center gap-4">
                       <div className="w-32 text-sm text-gray-600 font-medium">
                         {new Date(t.bucket).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -407,14 +433,7 @@ export default function PortalPageClient() {
                 <p className="text-sm text-gray-600">Performance analytics and insights</p>
               </button>
               
-              <button 
-                onClick={() => router.push('/portal/reports/network')} 
-                className="p-5 border-2 border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 text-left transition-all group"
-              >
-                <Network className="h-8 w-8 text-gray-700 mb-3 group-hover:scale-110 transition-transform" />
-                <p className="font-bold text-gray-900 mb-1">Network</p>
-                <p className="text-sm text-gray-600">Gateway and connectivity overview</p>
-              </button>
+              {/* Network/Gateway/Weather views removed (NB-IoT migration cleanup) */}
             </div>
           </div>
         </div>

@@ -1,14 +1,13 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { 
+import {
   LayoutDashboard,
   ShieldAlert,
   MapPin, 
   Activity, 
   Users, 
   BarChart3,
-  Network,
   FileText,
   Building2,
   DollarSign,
@@ -18,10 +17,10 @@ import {
   Gauge,
   Settings,
   ScrollText,
-  CloudSun,
   Grid3x3
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { LucideIcon } from 'lucide-react'
 
 interface User {
   id: string
@@ -29,6 +28,16 @@ interface User {
   name: string | null
   role: string
   tenantId?: string | null
+}
+
+interface NavItem {
+  icon: LucideIcon
+  label: string
+  path: string
+  color: string
+  bgColor: string
+  adminOnly?: boolean
+  masterOnly?: boolean
 }
 
 export default function PortalSidebar() {
@@ -114,7 +123,6 @@ export default function PortalSidebar() {
   // Your requested grouping (Special blocks + Reports)
   const reportsItems = [
     { icon: BarChart3, label: 'Sensor Reports', path: '/portal/reports/sensors', color: 'text-teal-700', bgColor: 'bg-teal-50' },
-    { icon: Network, label: 'Gateway Reports', path: '/portal/reports/gateways', color: 'text-slate-700', bgColor: 'bg-slate-50' },
   ]
 
   const sensorsItems = [
@@ -125,11 +133,6 @@ export default function PortalSidebar() {
 
   const financeItems = [
     { icon: DollarSign, label: 'Finance', path: '/portal/admin/finance', color: 'text-green-700', bgColor: 'bg-green-50', masterOnly: true },
-  ]
-
-  const networkItems = [
-    { icon: Network, label: 'Network', path: '/portal/reports/network', color: 'text-gray-700', bgColor: 'bg-gray-50' },
-    { icon: CloudSun, label: 'Weather', path: '/portal/weather', color: 'text-sky-700', bgColor: 'bg-sky-50' },
   ]
 
   const adminItems = [
@@ -145,7 +148,7 @@ export default function PortalSidebar() {
     return pathname === path
   }
 
-  const NavButton = (item: any) => {
+  const NavButton = (item: NavItem) => {
     const Icon = item.icon
     const isActive = checkActive(item.path)
     return (
@@ -267,10 +270,6 @@ export default function PortalSidebar() {
             .filter((i) => (i.adminOnly ? isAdmin : true))
             .map(NavButton)}
         </div>
-
-        {/* Network */}
-        <SectionTitle label="Network" />
-        <div className="space-y-1 px-2">{networkItems.map(NavButton)}</div>
 
         {/* Admin */}
         {isAdmin ? (

@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "prisma generate && next build",
+    "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",
+    "build": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && prisma generate && next build",
     "start": "next start -p 3000",
     "lint": "next lint",
     "type-check": "tsc --noEmit",

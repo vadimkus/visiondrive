@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 interface LogoProps {
   className?: string
@@ -13,6 +14,7 @@ const STATIC_LOGO_PATH = '/images/logo/logo.jpg'
 export default function Logo({ className = 'h-[42px] w-[42px]', priority = false }: LogoProps) {
   const [imageSrc, setImageSrc] = useState<string>(STATIC_LOGO_PATH)
   const [imageError, setImageError] = useState(false)
+  const [useNextImage, setUseNextImage] = useState(true)
 
   const handleError = async () => {
     // If static logo fails, try fetching from database as fallback
@@ -28,6 +30,8 @@ export default function Logo({ className = 'h-[42px] w-[42px]', priority = false
           if (data.success && data.image?.data) {
             setImageSrc(data.image.data)
             setImageError(false)
+            // Data URLs need unoptimized next/image or fallback to img
+            setUseNextImage(false)
             return
           }
         }
@@ -48,13 +52,24 @@ export default function Logo({ className = 'h-[42px] w-[42px]', priority = false
 
   return (
     <div className={`relative ${className}`}>
-      <img
-        src={imageSrc}
-        alt="Vision Drive Logo"
-        className="w-full h-full object-contain"
-        loading={priority ? 'eager' : 'lazy'}
-        onError={handleError}
-      />
+      {useNextImage ? (
+        <Image
+          src={imageSrc}
+          alt="Vision Drive Logo"
+          fill
+          className="object-contain"
+          priority={priority}
+          onError={handleError}
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageSrc}
+          alt="Vision Drive Logo"
+          className="w-full h-full object-contain"
+          onError={handleError}
+        />
+      )}
     </div>
   )
 }

@@ -117,8 +117,8 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start space-x-3">
                 <Mail className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                <a href="mailto:ask@visiondrive.ae" className="text-sm text-gray-700 hover:text-primary-600 transition-colors break-all">
-                  ask@visiondrive.ae
+                <a href="mailto:tech@visiondrive.ae" className="text-sm text-gray-700 hover:text-primary-600 transition-colors break-all">
+                  tech@visiondrive.ae
                 </a>
               </li>
               <li className="flex items-start space-x-3">

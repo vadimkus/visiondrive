@@ -127,12 +127,12 @@ export default function Header() {
           <div className={`hidden lg:flex lg:items-center flex-shrink-0 ${language === 'ar' ? 'space-x-4' : ''}`}>
             {/* Contact Info */}
             <div className={`flex flex-col text-right ${language === 'ar' ? 'mr-4' : 'mr-2'}`}>
-              <span className="text-xs font-medium text-gray-700">LoRaWAN Provider in the UAE</span>
+              <span className="text-xs font-medium text-gray-700">NB IoT Solutions in the UAE</span>
               <a href="https://wa.me/971559152985" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-600 hover:text-primary-600 transition-colors">
                 +971 55 915 29 85 📱
               </a>
-              <a href="mailto:ask@visiondrive.ae" className="text-xs text-gray-600 hover:text-primary-600 transition-colors">
-                ask@visiondrive.ae
+              <a href="mailto:tech@visiondrive.ae" className="text-xs text-gray-600 hover:text-primary-600 transition-colors">
+                tech@visiondrive.ae
               </a>
             </div>
             <div className={language === 'ar' ? 'mr-4' : 'mr-2'}>

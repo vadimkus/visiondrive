@@ -51,7 +51,7 @@ const sections = [
   },
   {
     title: '12. Contact',
-    body: 'For privacy questions or requests, contact ask@visiondrive.ae or call +971 55 915 2985. Address: VisionDrive, Compass Coworking Centre, RAK, UAE.',
+    body: 'For privacy questions or requests, contact tech@visiondrive.ae or call +971 55 915 2985. For legal matters and terms of service, contact legal@visiondrive.ae. Address: VisionDrive, Compass Coworking Centre, RAK, UAE.',
   },
 ]
 
@@ -111,8 +111,17 @@ export default function PrivacyPage() {
       </Section>
 
       <Section className="py-8 sm:py-12 md:py-14">
-        <div className="max-w-4xl mx-auto text-sm text-gray-600 leading-relaxed space-y-2">
+        <div className="max-w-4xl mx-auto text-sm text-gray-600 leading-relaxed space-y-4">
           <p>We may update this notice to reflect changes in law or our practices. Material changes will be highlighted on this page.</p>
+          <div className="pt-4 border-t border-gray-200">
+            <p className="font-medium text-gray-900 mb-2">Questions about this policy?</p>
+            <p>
+              Contact our legal team at{' '}
+              <a href="mailto:legal@visiondrive.ae" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                legal@visiondrive.ae
+              </a>
+            </p>
+          </div>
         </div>
       </Section>
     </main>
