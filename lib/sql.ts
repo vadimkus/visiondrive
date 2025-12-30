@@ -19,10 +19,23 @@ const needsSsl =
   /tsdb\.cloud\.timescale\.com/i.test(connectionString) ||
   /timescale/i.test(connectionString)
 
+const isProduction = process.env.NODE_ENV === 'production'
+
+// SSL Configuration:
+// - Production: Validate certificates for security (rejectUnauthorized: true)
+// - Development: Allow self-signed certs for local testing (rejectUnauthorized: false)
+// Set DISABLE_SSL_VALIDATION=true only if you have a specific reason (e.g., corporate proxy)
+const disableSslValidation = process.env.DISABLE_SSL_VALIDATION === 'true'
+
 export const sql = postgres(connectionString, {
-  max: 5,
+  max: isProduction ? 10 : 5,  // Higher pool size for production
   connect_timeout: 10,
-  ...(needsSsl ? { ssl: { rejectUnauthorized: false } } : {}),
+  idle_timeout: 20,
+  ...(needsSsl ? { 
+    ssl: { 
+      rejectUnauthorized: isProduction && !disableSslValidation 
+    } 
+  } : {}),
 })
 
 

@@ -2,7 +2,12 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { sql } from './sql'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+// JWT Secret - MUST be set in production
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('CRITICAL: JWT_SECRET environment variable must be set in production')
+}
+const jwtSecret = JWT_SECRET || 'dev-only-secret-do-not-use-in-production'
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10)
@@ -13,12 +18,12 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export function generateToken(userId: string, email: string, role: string, tenantId?: string | null): string {
-  return jwt.sign({ userId, email, role, tenantId: tenantId || null }, JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign({ userId, email, role, tenantId: tenantId || null }, jwtSecret, { expiresIn: '7d' })
 }
 
 export function verifyToken(token: string): { userId: string; email: string; role: string; tenantId?: string | null } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string; email: string; role: string; tenantId?: string | null }
+    return jwt.verify(token, jwtSecret) as { userId: string; email: string; role: string; tenantId?: string | null }
   } catch {
     return null
   }
