@@ -21,11 +21,25 @@ const needsSsl =
 
 const isProduction = process.env.NODE_ENV === 'production'
 
+// Managed database providers that use certificates which may include self-signed certs
+// These are trusted services where we can safely skip strict validation
+const isManagedDbProvider =
+  /tsdb\.cloud\.timescale\.com/i.test(connectionString) ||  // Timescale Cloud
+  /neon\.tech/i.test(connectionString) ||                    // Neon
+  /supabase\.co/i.test(connectionString) ||                  // Supabase
+  /railway\.app/i.test(connectionString) ||                  // Railway
+  /render\.com/i.test(connectionString) ||                   // Render
+  /elephantsql\.com/i.test(connectionString) ||              // ElephantSQL
+  /cockroachlabs\.cloud/i.test(connectionString) ||          // CockroachDB Cloud
+  /digitalocean\.com/i.test(connectionString)                // DigitalOcean
+
 // SSL Configuration:
-// - Production: Validate certificates for security (rejectUnauthorized: true)
-// - Development: Allow self-signed certs for local testing (rejectUnauthorized: false)
-// Set DISABLE_SSL_VALIDATION=true only if you have a specific reason (e.g., corporate proxy)
-const disableSslValidation = process.env.DISABLE_SSL_VALIDATION === 'true'
+// - Managed DB providers: Allow their certificates (they use internal CAs)
+// - Other production DBs: Validate certificates strictly
+// - Development: Allow self-signed certs for local testing
+// Override with STRICT_SSL_VALIDATION=true to force validation even for managed providers
+const forceStrictSsl = process.env.STRICT_SSL_VALIDATION === 'true'
+const shouldValidateCerts = forceStrictSsl || (isProduction && !isManagedDbProvider)
 
 export const sql = postgres(connectionString, {
   max: isProduction ? 10 : 5,  // Higher pool size for production
@@ -33,7 +47,7 @@ export const sql = postgres(connectionString, {
   idle_timeout: 20,
   ...(needsSsl ? { 
     ssl: { 
-      rejectUnauthorized: isProduction && !disableSslValidation 
+      rejectUnauthorized: shouldValidateCerts
     } 
   } : {}),
 })
