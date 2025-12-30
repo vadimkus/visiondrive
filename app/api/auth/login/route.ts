@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser } from '@/lib/auth'
+import { checkRateLimit, getClientIp, loginRateLimiter } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting - prevent brute force attacks
+    const clientIp = getClientIp(request)
+    const rateLimit = await checkRateLimit(clientIp, loginRateLimiter)
+
+    if (!rateLimit.allowed) {
+      const retryAfter = Math.ceil(rateLimit.resetAt - Date.now() / 1000)
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Too many login attempts. Please try again later.',
+          retryAfter,
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(retryAfter),
+            'X-RateLimit-Limit': String(loginRateLimiter.maxRequests),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rateLimit.resetAt),
+          },
+        }
+      )
+    }
+
     const { email, password } = await request.json()
 
     if (!email || !password) {
@@ -15,9 +40,21 @@ export async function POST(request: NextRequest) {
     const result = await authenticateUser(email, password)
 
     if (!result) {
+      // Include rate limit info in failed login response
       return NextResponse.json(
-        { success: false, error: 'Invalid email or password' },
-        { status: 401 }
+        { 
+          success: false, 
+          error: 'Invalid email or password',
+          attemptsRemaining: rateLimit.remaining,
+        },
+        { 
+          status: 401,
+          headers: {
+            'X-RateLimit-Limit': String(loginRateLimiter.maxRequests),
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(rateLimit.resetAt),
+          },
+        }
       )
     }
 

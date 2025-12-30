@@ -718,3 +718,14 @@ model Image {
   @@map("images")
 }
 
+// Rate limiting table for brute force protection
+model RateLimit {
+  key         String   @id // Format: "ruleName:identifier" (e.g., "login:192.168.1.1")
+  count       Int      @default(0)
+  windowStart DateTime @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([updatedAt]) // For cleanup queries
+  @@map("rate_limits")
+}
+
