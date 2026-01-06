@@ -18,28 +18,24 @@ const certificates = [
     title: 'TDRA Type Approval',
     description: 'Telecommunications and Digital Government Regulatory Authority approval for NB-IoT device operation in the UAE.',
     status: 'Active',
-    validUntil: '2026',
   },
   {
     icon: Shield,
     title: 'DESC ISR Compliance',
     description: 'Dubai Electronic Security Center Information Security Regulation compliance certification.',
     status: 'Active',
-    validUntil: '2026',
   },
   {
     icon: Building2,
     title: 'Trade License',
     description: 'UAE commercial trade license for technology solutions and IoT services.',
     status: 'Active',
-    validUntil: '2025',
   },
   {
     icon: Lock,
     title: 'Data Protection Compliance',
     description: 'Compliance with UAE Federal Decree-Law No. 45 of 2021 on Personal Data Protection.',
     status: 'Active',
-    validUntil: 'Ongoing',
   },
 ]
 
@@ -139,7 +135,7 @@ export default function CertificatesPage() {
                     <p className="text-sm text-gray-600 mb-3">{cert.description}</p>
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <Clock className="h-3 w-3" />
-                      <span>Valid until {cert.validUntil}</span>
+                      <span>Valid</span>
                     </div>
                   </div>
                 </div>
