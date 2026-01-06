@@ -5,6 +5,7 @@ import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import { LanguageProvider } from './contexts/LanguageContext'
 import ConditionalLayout from './components/layout/ConditionalLayout'
+import { Analytics } from '@vercel/analytics/react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -55,6 +56,7 @@ export default function RootLayout({
             {children}
           </ConditionalLayout>
         </LanguageProvider>
+        <Analytics />
       </body>
     </html>
   )
