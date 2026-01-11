@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { 
   ShieldCheck, 
   ShieldAlert, 
@@ -12,7 +12,8 @@ import {
   Clock,
   Thermometer,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Loader2
 } from 'lucide-react'
 import { 
   EQUIPMENT_CONFIGS, 
@@ -51,6 +52,8 @@ export default function CompliancePage() {
   const [sensorCompliance, setSensorCompliance] = useState<SensorCompliance[]>([])
   const [overallRate, setOverallRate] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [isExporting, setIsExporting] = useState(false)
+  const reportRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadComplianceData()
@@ -100,6 +103,98 @@ export default function CompliancePage() {
     return 'bg-red-50 border-red-200'
   }
 
+  const exportToPDF = async () => {
+    setIsExporting(true)
+    
+    try {
+      // Dynamically import html2canvas and jspdf
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
+      
+      if (!reportRef.current) return
+
+      // Create a clone for PDF rendering with white background
+      const element = reportRef.current
+      
+      // Configure html2canvas options
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: 1200,
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+      
+      // Calculate PDF dimensions (A4)
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      })
+
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = canvas.width
+      const imgHeight = canvas.height
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
+      const imgX = (pdfWidth - imgWidth * ratio) / 2
+      const imgY = 10
+
+      // Add header
+      pdf.setFontSize(10)
+      pdf.setTextColor(100)
+      pdf.text('VisionDrive Smart Kitchen - Compliance Report', 14, 8)
+      pdf.text(new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }), pdfWidth - 14, 8, { align: 'right' })
+
+      // Calculate if we need multiple pages
+      const scaledHeight = imgHeight * ratio
+      let heightLeft = scaledHeight
+      let position = imgY
+
+      // Add the image, potentially across multiple pages
+      while (heightLeft > 0) {
+        pdf.addImage(imgData, 'PNG', imgX, position, imgWidth * ratio, imgHeight * ratio)
+        heightLeft -= pdfHeight - 20
+        if (heightLeft > 0) {
+          pdf.addPage()
+          position = -pdfHeight + 30
+        }
+      }
+
+      // Add footer on last page
+      const pageCount = pdf.internal.pages.length - 1
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i)
+        pdf.setFontSize(8)
+        pdf.setTextColor(150)
+        pdf.text(
+          `Reference: DM-HSD-GU46-KFPA2 | Dubai Municipality Food Safety Guidelines`,
+          14,
+          pdfHeight - 10
+        )
+        pdf.text(`Page ${i} of ${pageCount}`, pdfWidth - 14, pdfHeight - 10, { align: 'right' })
+      }
+
+      // Generate filename with date
+      const fileName = `compliance-report-${new Date().toISOString().split('T')[0]}.pdf`
+      pdf.save(fileName)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      // Fallback to print dialog
+      window.print()
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="p-8 max-w-6xl mx-auto">
       {/* Header */}
@@ -124,13 +219,28 @@ export default function CompliancePage() {
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#1d1d1f] text-white text-sm font-medium rounded-full hover:bg-[#2d2d2f] transition-all">
-            <Download className="h-4 w-4" />
-            Export PDF
+          <button 
+            onClick={exportToPDF}
+            disabled={isExporting || isLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-[#1d1d1f] text-white text-sm font-medium rounded-full hover:bg-[#2d2d2f] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Export PDF
+              </>
+            )}
           </button>
         </div>
       </div>
 
+      {/* PDF Export Content */}
+      <div ref={reportRef} className="bg-white">
       {/* DM Reference Banner */}
       <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
         <div className="flex items-center gap-3">
@@ -325,6 +435,28 @@ export default function CompliancePage() {
           </div>
         </div>
       </div>
+      </div>{/* End PDF Export Content */}
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #compliance-report, #compliance-report * {
+            visibility: visible;
+          }
+          #compliance-report {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

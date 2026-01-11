@@ -12,7 +12,12 @@ async function exploreSchema() {
     process.exit(1);
   }
 
-  const client = new Client({ connectionString });
+  const client = new Client({ 
+    connectionString,
+    ssl: {
+      rejectUnauthorized: false  // Accept self-signed certs
+    }
+  });
   
   try {
     console.log('Connecting to TimescaleDB...');

@@ -10,7 +10,8 @@
     "migrate": "tsx migrate-timescale.ts full"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.400.0",
+    "@aws-sdk/client-dynamodb": "^3.966.0",
+    "@aws-sdk/lib-dynamodb": "^3.966.0",
     "@aws-sdk/util-dynamodb": "^3.400.0",
     "pg": "^8.16.3",
     "tsx": "^4.7.1"
