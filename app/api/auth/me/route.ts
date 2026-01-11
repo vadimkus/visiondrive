@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { sql } from '@/lib/sql'
+import jwt from 'jsonwebtoken'
+
+// Kitchen JWT secret (same as AWS Lambda)
+const KITCHEN_JWT_SECRET = process.env.KITCHEN_JWT_SECRET || 'smartkitchen-uae-secret-2026'
 
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('authToken')?.value || 
                   request.headers.get('authorization')?.replace('Bearer ', '')
+    const portal = request.cookies.get('portal')?.value
 
     if (!token) {
       return NextResponse.json(
@@ -14,6 +19,38 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Handle Kitchen portal authentication (AWS-based)
+    if (portal === 'kitchen') {
+      try {
+        const decoded = jwt.verify(token, KITCHEN_JWT_SECRET) as {
+          userId: string
+          email: string
+          role: string
+          kitchenId?: string
+        }
+
+        return NextResponse.json({
+          success: true,
+          user: {
+            id: decoded.userId,
+            email: decoded.email,
+            name: decoded.email.split('@')[0], // Use email prefix as name
+            role: decoded.role || 'CUSTOMER_ADMIN',
+            status: 'ACTIVE',
+            tenantId: decoded.kitchenId || null,
+            portal: 'kitchen',
+          },
+        })
+      } catch (err) {
+        console.error('Kitchen token verification failed:', err)
+        return NextResponse.json(
+          { success: false, error: 'Invalid kitchen token' },
+          { status: 401 }
+        )
+      }
+    }
+
+    // Handle Parking portal authentication (Timescale-based)
     const decoded = verifyToken(token)
     if (!decoded) {
       return NextResponse.json(
@@ -64,6 +101,7 @@ export async function GET(request: NextRequest) {
         role: effectiveRole,
         status: user.status,
         tenantId: activeTenantId || user.defaultTenantId || null,
+        portal: 'parking',
       },
     })
   } catch (error) {
