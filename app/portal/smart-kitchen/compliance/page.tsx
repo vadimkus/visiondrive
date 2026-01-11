@@ -1,19 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   ShieldCheck, 
   ShieldAlert, 
   FileText, 
   Download, 
-  Calendar,
   AlertTriangle,
-  CheckCircle,
-  Clock,
-  Thermometer,
-  TrendingUp,
-  TrendingDown,
-  Loader2
+  CheckCircle
 } from 'lucide-react'
 import { 
   EQUIPMENT_CONFIGS, 
@@ -53,7 +47,6 @@ export default function CompliancePage() {
   const [overallRate, setOverallRate] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
-  const reportRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadComplianceData()
@@ -103,126 +96,15 @@ export default function CompliancePage() {
     return 'bg-red-50 border-red-200'
   }
 
-  const exportToPDF = async () => {
+  const exportToPDF = () => {
     setIsExporting(true)
     
-    try {
-      // Dynamically import html2canvas and jspdf
-      const html2canvas = (await import('html2canvas')).default
-      const { jsPDF } = await import('jspdf')
-      
-      if (!reportRef.current) return
-
-      const element = reportRef.current
-      
-      // Configure html2canvas options for better quality
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-      })
-
-      const imgData = canvas.toDataURL('image/png')
-      
-      // A4 dimensions in mm
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      })
-
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      
-      // Margins
-      const marginTop = 15
-      const marginBottom = 15
-      const marginLeft = 10
-      const marginRight = 10
-      
-      // Usable area
-      const usableWidth = pageWidth - marginLeft - marginRight
-      const usableHeight = pageHeight - marginTop - marginBottom
-      
-      // Scale image to fit width
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      const ratio = usableWidth / imgWidth
-      const scaledImgHeight = imgHeight * ratio
-      
-      // Calculate number of pages needed
-      const totalPages = Math.ceil(scaledImgHeight / usableHeight)
-      
-      // Add header/footer function
-      const addHeaderFooter = (pageNum: number, totalPagesCount: number) => {
-        // Header
-        pdf.setFontSize(9)
-        pdf.setTextColor(80)
-        pdf.text('VisionDrive Smart Kitchen - Compliance Report', marginLeft, 10)
-        pdf.text(new Date().toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric'
-        }), pageWidth - marginRight, 10, { align: 'right' })
-        
-        // Footer
-        pdf.setFontSize(7)
-        pdf.setTextColor(120)
-        pdf.text(
-          'Reference: DM-HSD-GU46-KFPA2 | Dubai Municipality Food Safety Guidelines',
-          marginLeft,
-          pageHeight - 8
-        )
-        pdf.text(`Page ${pageNum} of ${totalPagesCount}`, pageWidth - marginRight, pageHeight - 8, { align: 'right' })
-      }
-      
-      // Generate pages
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) {
-          pdf.addPage()
-        }
-        
-        // Calculate the portion of image to show on this page
-        const sourceY = page * (usableHeight / ratio)
-        const sourceHeight = Math.min(usableHeight / ratio, imgHeight - sourceY)
-        const destHeight = sourceHeight * ratio
-        
-        // Create a temporary canvas for this page's portion
-        const tempCanvas = document.createElement('canvas')
-        tempCanvas.width = imgWidth
-        tempCanvas.height = sourceHeight
-        const ctx = tempCanvas.getContext('2d')
-        
-        if (ctx) {
-          // Draw the portion of the original canvas
-          ctx.drawImage(
-            canvas,
-            0, sourceY,           // Source x, y
-            imgWidth, sourceHeight, // Source width, height
-            0, 0,                 // Dest x, y
-            imgWidth, sourceHeight  // Dest width, height
-          )
-          
-          const pageImgData = tempCanvas.toDataURL('image/png')
-          pdf.addImage(pageImgData, 'PNG', marginLeft, marginTop, usableWidth, destHeight)
-        }
-        
-        addHeaderFooter(page + 1, totalPages)
-      }
-
-      // Generate filename with date
-      const fileName = `compliance-report-${new Date().toISOString().split('T')[0]}.pdf`
-      pdf.save(fileName)
-    } catch (error) {
-      console.error('Error generating PDF:', error)
-      // Fallback to print dialog
+    // Use browser's native print which handles pagination correctly
+    // User can select "Save as PDF" in the print dialog
+    setTimeout(() => {
       window.print()
-    } finally {
       setIsExporting(false)
-    }
+    }, 100)
   }
 
   return (
@@ -249,28 +131,19 @@ export default function CompliancePage() {
               </button>
             ))}
           </div>
-          <button 
+                <button 
             onClick={exportToPDF}
             disabled={isExporting || isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1d1d1f] text-white text-sm font-medium rounded-full hover:bg-[#2d2d2f] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-[#1d1d1f] text-white text-sm font-medium rounded-full hover:bg-[#2d2d2f] transition-all disabled:opacity-50 disabled:cursor-not-allowed print:hidden"
           >
-            {isExporting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                Export PDF
-              </>
-            )}
+            <Download className="h-4 w-4" />
+            Print / Save PDF
           </button>
         </div>
       </div>
 
-      {/* PDF Export Content */}
-      <div ref={reportRef} className="bg-white">
+      {/* Print Content */}
+      <div className="bg-white print:bg-white">
       {/* DM Reference Banner */}
       <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
         <div className="flex items-center gap-3">
@@ -467,6 +340,89 @@ export default function CompliancePage() {
       </div>
       </div>
       {/* End PDF Export Content */}
+      
+      {/* Print Styles */}
+      <style>{`
+        @media print {
+          /* Hide everything except the report */
+          body > * {
+            visibility: hidden;
+          }
+          
+          /* Hide sidebar, header, and navigation */
+          nav, header, aside, [role="complementary"], [role="navigation"] {
+            display: none !important;
+          }
+          
+          /* Show only the main content area */
+          main, main * {
+            visibility: visible;
+          }
+          
+          /* Position the report at top left */
+          main {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px !important;
+            margin: 0 !important;
+          }
+          
+          /* Remove backgrounds for printing */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          /* Page settings */
+          @page {
+            size: A4;
+            margin: 15mm;
+          }
+          
+          /* Add print header */
+          main::before {
+            content: "VisionDrive Smart Kitchen - Compliance Report";
+            display: block;
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ccc;
+          }
+          
+          /* Add print footer */
+          main::after {
+            content: "Reference: DM-HSD-GU46-KFPA2 | Dubai Municipality Food Safety Guidelines";
+            display: block;
+            font-size: 8pt;
+            color: #666;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ccc;
+          }
+          
+          /* Ensure tables don't break across pages awkwardly */
+          table {
+            page-break-inside: avoid;
+          }
+          
+          tr {
+            page-break-inside: avoid;
+          }
+          
+          /* Keep sections together */
+          .rounded-2xl {
+            page-break-inside: avoid;
+          }
+          
+          /* Hide the Export PDF button when printing */
+          button {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
