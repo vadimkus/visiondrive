@@ -43,3 +43,6 @@ next-env.d.ts
 # Old directories (to be removed)
 /frontend/
 /backend/
+*.csv
+Keys.md
+cdk.out/

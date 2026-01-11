@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser } from '@/lib/auth'
 import { checkRateLimit, getClientIp, loginRateLimiter } from '@/lib/rate-limit'
 
+// AWS Smart Kitchen API URL (UAE Region)
+const KITCHEN_API_URL = process.env.SMART_KITCHEN_API_URL || 'https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod'
+
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting - prevent brute force attacks
@@ -28,7 +31,49 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, password } = await request.json()
+    const { email, password, portal } = await request.json()
+
+    // Handle Kitchen portal login via AWS API (UAE data residency)
+    if (portal === 'kitchen') {
+      const awsResponse = await fetch(`${KITCHEN_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const awsData = await awsResponse.json()
+
+      if (!awsResponse.ok || !awsData.success) {
+        return NextResponse.json(
+          { success: false, error: awsData.error || 'Invalid credentials' },
+          { status: 401 }
+        )
+      }
+
+      const response = NextResponse.json({
+        success: true,
+        user: awsData.user,
+        token: awsData.token,
+        portal: 'kitchen',
+      })
+
+      // Set HTTP-only cookie
+      response.cookies.set('authToken', awsData.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      })
+
+      response.cookies.set('portal', 'kitchen', {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+      })
+
+      return response
+    }
 
     if (!email || !password) {
       return NextResponse.json(

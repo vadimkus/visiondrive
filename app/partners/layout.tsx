@@ -19,3 +19,5 @@ export default function PartnersLayout({
   return children
 }
 
+
+

@@ -1,0 +1,13 @@
+{
+  "name": "smartkitchen-test-scripts",
+  "version": "1.0.0",
+  "description": "Test scripts for VisionDrive Smart Kitchen",
+  "scripts": {
+    "simulate": "tsx simulate-sensor.ts",
+    "simulate:multi": "tsx simulate-multi-sensor.ts",
+    "simulate:api": "tsx simulate-sensor.ts --output api --api http://localhost:3000/api/portal/smart-kitchen/ingest"
+  },
+  "dependencies": {
+    "tsx": "^4.7.1"
+  }
+}

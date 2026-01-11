@@ -1,0 +1,15 @@
+{
+  "name": "smartkitchen-api",
+  "version": "1.0.0",
+  "description": "API Handler Lambda for VisionDrive Smart Kitchen",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.400.0",
+    "@aws-sdk/util-dynamodb": "^3.400.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0"
+  }
+}
