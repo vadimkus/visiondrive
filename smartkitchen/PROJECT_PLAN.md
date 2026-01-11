@@ -70,8 +70,8 @@
   - Engine: PostgreSQL 16.6
 - [x] Configure VPC and security groups
 - [x] Set up database credentials in AWS Secrets Manager
-- [ ] Run Prisma migrations to create tables - **NEXT STEP**
-- [ ] Verify connection from Lambda
+- [x] Run Prisma migrations to create tables (25 tables created)
+- [ ] Verify connection from Lambda (using DynamoDB for auth instead)
 
 **Time-Series Database:** ✅ (Using DynamoDB - Timestream not available in UAE)
 - [x] Deploy DynamoDB table for sensor readings (`VisionDrive-SensorReadings`)
@@ -83,6 +83,7 @@
 
 ### 1.3 Deploy Compute & API Infrastructure ✅
 - [x] Deploy Lambda functions
+  - `smartkitchen-api` (with auth endpoints)
   - `smartkitchen-data-ingestion`
   - `smartkitchen-alerts`
   - `smartkitchen-analytics`
@@ -91,19 +92,19 @@
   - URL: `https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/`
 - [x] Verify all resources in AWS Console
 
-### 1.4 Test Infrastructure (Partial)
-- [ ] Verify RDS PostgreSQL accessible from Lambda
-- [ ] Test user creation/authentication via API
+### 1.4 Test Infrastructure ✅
 - [x] DynamoDB tables accessible
 - [x] IoT endpoint reachable
-- [ ] Test API Gateway endpoints with curl
+- [x] Test API Gateway endpoints with curl
+- [x] Auth endpoints working (login/register)
+- [x] Created test kitchen and sensor via API
 
-### 1.5 Migrate Existing VisionDrive Data (Not Started)
-- [ ] Export users from current Vercel Postgres
-- [ ] Import users to AWS RDS PostgreSQL
-- [ ] Update VisionDrive app to use AWS API for auth
-- [ ] Test login flow end-to-end
-- [ ] Decommission Vercel Postgres (after validation)
+### 1.5 VisionDrive Integration ✅ COMPLETED
+- [x] Update VisionDrive login page with Kitchen/Parking selector
+- [x] Route Kitchen auth to AWS API (UAE data residency)
+- [x] Create kitchen admin user (`admin@kitchen.ae`)
+- [x] Test login flow end-to-end
+- [x] Push code to GitHub, deployed to Vercel
 
 ---
 
@@ -165,18 +166,19 @@
 
 ---
 
-## Phase 4: Customer Authentication & Access (Week 4)
+## Phase 4: Customer Authentication & Access ✅ COMPLETED (Jan 11, 2026)
 
-### 4.1 VisionDrive Portal Integration
+### 4.1 VisionDrive Portal Integration ✅
 Kitchen businesses access their data via: **https://www.visiondrive.ae/login**
 
-All user data stored in **AWS RDS PostgreSQL (UAE)** for data residency compliance.
+All user data stored in **AWS DynamoDB (UAE)** for data residency compliance.
 
-- [ ] Configure VisionDrive app to use AWS RDS for auth
-- [ ] Add "KITCHEN_OWNER", "KITCHEN_MANAGER", "KITCHEN_STAFF" roles to UserRole enum
-- [ ] Create customer onboarding flow (invite via email)
-- [ ] Implement password reset for kitchen users
-- [ ] Set up JWT session management (tokens issued from UAE)
+- [x] Configure VisionDrive login to route Kitchen auth to AWS API
+- [x] Add Kitchen/Parking portal selector to login page
+- [x] Create admin user (`admin@kitchen.ae` / `Kitchen@2026`)
+- [x] JWT tokens issued from AWS Lambda in UAE
+- [ ] Create customer onboarding flow (invite via email) - FUTURE
+- [ ] Implement password reset for kitchen users - FUTURE
 
 ### 4.2 Multi-Tenant Data Access
 Each kitchen business sees ONLY their own data:
@@ -219,28 +221,29 @@ Temperature Data ─────────────────────
 
 ---
 
-## Phase 5: Dashboard Development (Week 5)
+## Phase 5: Dashboard Development ✅ COMPLETED (Jan 11, 2026)
 
-### 5.1 Frontend Setup
-- [ ] Create `/smart-kitchen` route in VisionDrive app
-- [ ] Protect route with authentication (redirect to /login if not logged in)
-- [ ] Install AWS SDK packages
-- [ ] Configure environment variables in Vercel
-- [ ] Set up API client service with auth headers
+### 5.1 Frontend Setup ✅
+- [x] Create `/portal/smart-kitchen` route in VisionDrive app
+- [x] Protect route with authentication
+- [x] Create AWS client library (`lib/smart-kitchen/aws-client.ts`)
+- [x] Configure API calls to AWS Gateway
+- [x] Push to GitHub, deployed to Vercel
 
-### 5.2 Customer Dashboard (Desktop & Mobile Responsive)
+### 5.2 Customer Dashboard ✅
 
 **Access Points:**
-- 🖥️ Desktop: https://www.visiondrive.ae/smart-kitchen
-- 📱 Mobile: Same URL (responsive) or VisionDrive App
+- 🖥️ Desktop: https://www.visiondrive.ae/portal/smart-kitchen
+- 📱 Mobile: Same URL (responsive)
 
-**Dashboard Components:**
-- [ ] Kitchen overview card (shows all customer's kitchens)
-- [ ] Sensor status widget (real-time status per sensor)
-- [ ] Real-time temperature display (live updates)
-- [ ] Temperature history chart (hourly/daily/weekly)
-- [ ] Alert notification panel (active + history)
-- [ ] Device management table (for customer owners)
+**Dashboard Components Built:**
+- [x] Kitchen overview cards
+- [x] Sensor status grid
+- [x] Real-time temperature display
+- [x] Temperature history chart (TemperatureChart.tsx)
+- [x] Alert notification panel (AlertsPanel.tsx)
+- [x] Kitchen detail page (/kitchens/[id])
+- [x] Sensor detail page (/sensors/[id])
 
 ### 5.3 Mobile App Integration (Future)
 - [ ] Add Smart Kitchen tab to VisionDrive mobile app
@@ -423,10 +426,47 @@ smartkitchen/
 
 ## ✅ Next Steps
 
-1. **Today**: Review project plan, confirm AWS account access
-2. **Tomorrow**: Start Phase 1.1 (AWS Account Configuration)
-3. **This Week**: Complete Phase 1 (Infrastructure)
+### Immediate (Jan 12, 2026)
+1. **Get du SIM card** for Dragino sensor
+2. **Configure sensor** with du APN and AWS IoT endpoint
+3. **Test first transmission** - verify data in DynamoDB
+
+### This Week
+4. **Link admin to kitchen** - set kitchenId for admin user
+5. **Create additional users** - test multi-user access
+6. **Test live site** - login at visiondrive.ae with Kitchen portal
+
+### Coming Weeks
+7. **Phase 2**: Sensor deployment at customer kitchens
+8. **Phase 6**: Testing and validation
+9. **Phase 7**: Customer onboarding
+10. **Phase 8**: Go live with first customer
 
 ---
 
-*Last Updated: January 11, 2026 - Phase 1 Infrastructure Complete*
+## 🔑 Quick Reference
+
+### Login Credentials
+```
+URL:      https://www.visiondrive.ae/login
+Portal:   Kitchen 🍳
+Email:    admin@kitchen.ae
+Password: Kitchen@2026
+```
+
+### AWS API
+```
+Base URL: https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/
+
+POST /auth/login      - Login
+POST /auth/register   - Create user (needs adminKey)
+GET  /kitchens        - List kitchens
+POST /kitchens        - Create kitchen
+GET  /sensors         - List sensors
+POST /sensors         - Register sensor
+GET  /alerts          - List alerts
+```
+
+---
+
+*Last Updated: January 12, 2026 - Phases 1, 4, 5 Complete*

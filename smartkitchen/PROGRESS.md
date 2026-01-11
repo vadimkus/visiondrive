@@ -1,222 +1,303 @@
 # Smart Kitchen - Implementation Progress
 
-## 🚀 Current Status: Phase 1 Complete
+## 🚀 Current Status: Phase 5 Complete - Login Integration Done!
 
-**Last Updated:** January 11, 2026
+**Last Updated:** January 12, 2026 at 12:00 AM UAE
 
 ---
 
-## ✅ Phase 1: AWS Infrastructure (COMPLETED)
+## ✅ COMPLETED PHASES
 
-### 1.1 AWS Account Setup ✅
-- **Account ID:** `307436091440`
-- **IAM User:** `visiondrive-admin` (CLI access with AdministratorAccess)
-- **Region:** `me-central-1` (Abu Dhabi, UAE) - Enabled
-- **AWS CLI:** Configured and working
-- **AWS CDK:** v2.1100.3 - Bootstrapped in UAE region
+### Phase 1: AWS Infrastructure ✅ (Jan 11, 2026)
 
-### 1.2 Deployed Stacks ✅
+| Stack | Status | Details |
+|-------|--------|---------|
+| SmartKitchen-VPC | ✅ Deployed | VPC with public/private/isolated subnets |
+| SmartKitchen-RDS | ✅ Deployed | PostgreSQL 16.6, db.t3.micro |
+| SmartKitchen-Database | ✅ Deployed | 3 DynamoDB tables |
+| SmartKitchen-Lambda | ✅ Deployed | 4 Lambda functions |
+| SmartKitchen-IoT | ✅ Deployed | IoT Core ready for sensors |
+| SmartKitchen-API | ✅ Deployed | REST API with auth endpoints |
 
-| Stack | Status | Deployment Time |
-|-------|--------|-----------------|
-| SmartKitchen-VPC | ✅ Deployed | ~3 min |
-| SmartKitchen-RDS | ✅ Deployed | ~8 min |
-| SmartKitchen-Database | ✅ Deployed | ~1 min |
-| SmartKitchen-Lambda | ✅ Deployed | ~2 min |
-| SmartKitchen-IoT | ✅ Deployed | ~1 min |
-| SmartKitchen-API | ✅ Deployed | ~2 min |
+### Phase 4: Customer Authentication ✅ (Jan 11, 2026)
 
-### 1.3 Deployed Resources
+- ✅ Prisma migrations run on RDS (25 tables created)
+- ✅ Auth endpoints added to AWS API (`/auth/login`, `/auth/register`)
+- ✅ Kitchen admin user created in DynamoDB
+- ✅ JWT token generation working
+- ✅ VisionDrive login page integrated
 
-#### VPC (SmartKitchen-VPC)
+### Phase 5: Dashboard & Login Integration ✅ (Jan 11, 2026)
+
+- ✅ Login page updated with Kitchen/Parking portal selector
+- ✅ Kitchen auth routes through AWS API (UAE data residency)
+- ✅ Dashboard components built at `/portal/smart-kitchen`
+- ✅ AWS Client library connected to API Gateway
+- ✅ Code pushed to GitHub and deployed to Vercel
+
+---
+
+## 🔑 LOGIN CREDENTIALS
+
+### Kitchen Portal
+| Field | Value |
+|-------|-------|
+| **URL** | https://www.visiondrive.ae/login |
+| **Portal** | Select "Kitchen" 🍳 |
+| **Email** | `admin@kitchen.ae` |
+| **Password** | `Kitchen@2026` |
+| **Redirects to** | `/portal/smart-kitchen` |
+
+### How Login Works
+```
+User visits visiondrive.ae/login
+        ↓
+Selects "Kitchen" portal
+        ↓
+Enters credentials → POST /api/auth/login
+        ↓
+Frontend calls AWS API (UAE)
+https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/auth/login
+        ↓
+Returns JWT token → Cookie set → Redirect to /portal/smart-kitchen
+```
+
+---
+
+## 🏗️ DEPLOYED RESOURCES
+
+### AWS Account
+```
+Account ID:  307436091440
+Region:      me-central-1 (Abu Dhabi, UAE) 🇦🇪
+IAM User:    visiondrive-admin
+```
+
+### VPC (SmartKitchen-VPC)
 ```
 VPC ID:                vpc-0d33e8d103fa8d554
 Lambda Security Group: sg-0760a731c858f39fb
 RDS Security Group:    sg-050da8f91a6e0e6d6
 Subnets:              Public, Private, Isolated (2 AZs)
+NAT Gateway:          1 (for Lambda outbound)
 ```
 
-#### RDS PostgreSQL (SmartKitchen-RDS)
+### RDS PostgreSQL (SmartKitchen-RDS)
 ```
 Endpoint:  smartkitchen-postgres.ctoi8gckc521.me-central-1.rds.amazonaws.com
 Port:      5432
 Database:  visiondrive_smartkitchen
 Engine:    PostgreSQL 16.6
 Instance:  db.t3.micro
+Tables:    25 (users, tenants, sensors, alerts, etc.)
 Secret:    arn:aws:secretsmanager:me-central-1:307436091440:secret:smartkitchen/rds/credentials-uki9wZ
 ```
 
-#### DynamoDB Tables (SmartKitchen-Database)
+### DynamoDB Tables (SmartKitchen-Database)
 ```
-VisionDrive-SensorReadings  - Time-series sensor data
-VisionDrive-Devices         - Device/Kitchen configurations
-VisionDrive-Alerts          - Alert records
-```
-
-#### Lambda Functions (SmartKitchen-Lambda)
-```
-smartkitchen-data-ingestion - Process incoming sensor data
-smartkitchen-alerts         - Handle temperature alerts
-smartkitchen-analytics      - Generate reports
+VisionDrive-SensorReadings  - Time-series temperature data
+VisionDrive-Devices         - Kitchens, sensors, AND users (for auth)
+VisionDrive-Alerts          - Alert history
 ```
 
-#### IoT Core (SmartKitchen-IoT)
+### Lambda Functions (SmartKitchen-Lambda)
+```
+smartkitchen-api            - REST API with auth
+smartkitchen-data-ingestion - Process sensor data
+smartkitchen-alerts         - Temperature alert handler
+smartkitchen-analytics      - Daily reports
+```
+
+### IoT Core (SmartKitchen-IoT)
 ```
 Thing Type:  TemperatureSensor
 Policy:      VisionDrive-SensorPolicy
 Rules:       DataIngestionRule, AlertsRule
+Status:      Ready for Dragino sensors
 ```
 
-#### API Gateway (SmartKitchen-API)
+### API Gateway (SmartKitchen-API)
 ```
 URL:     https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/
 API ID:  w7gfk5cka2
 Stage:   prod
+
+Endpoints:
+  POST /auth/login      - Kitchen user login
+  POST /auth/register   - Create user (admin key required)
+  GET  /kitchens        - List kitchens
+  POST /kitchens        - Create kitchen
+  GET  /sensors         - List sensors
+  POST /sensors         - Register sensor
+  GET  /alerts          - List alerts
 ```
 
 ---
 
-## 📝 Lessons Learned
+## 📁 CODE STRUCTURE
 
-### 1. Timestream Not Available in UAE
-**Issue:** Amazon Timestream is not available in me-central-1 (UAE region).
-
-**Solution:** Using DynamoDB for time-series data instead:
-- `VisionDrive-SensorReadings` table with:
-  - PK: `SENSOR#<sensorId>`
-  - SK: `READING#<timestamp>`
-  - GSI for kitchen and tenant queries
-  - TTL for automatic data expiration
-
-### 2. PostgreSQL Version Compatibility
-**Issue:** PostgreSQL 15.4 not available in UAE region.
-
-**Solution:** Using PostgreSQL 16.6 which is available.
-
-### 3. Free Tier Limitations
-**Issue:** 7-day backup retention exceeds free tier limits.
-
-**Solution:** Reduced to 1-day backup retention. Can increase later.
-
-### 4. Performance Insights
-**Issue:** Performance Insights requires payment.
-
-**Solution:** Disabled for now. Can enable when needed.
-
----
-
-## ✅ Phase 4: Customer Authentication (COMPLETED)
-
-**Completed:** January 11, 2026
-
-- ✅ Run Prisma migrations on RDS (25 tables created)
-- ✅ Database schema includes: users, tenants, sensors, alerts, etc.
-- [ ] Integrate with VisionDrive login (next step)
-- [ ] Set up multi-tenant access
-
-### Database Tables Created
 ```
-users, tenants, tenant_memberships, sites, zones, bays,
-sensors, sensor_events, gateways, alerts, alert_events,
-audit_logs, ingest_files, ingest_events, ingest_dead_letters,
-replay_jobs, tenant_settings, maintenance_notes, rate_limits,
-images, report_subscriptions, report_deliveries, expenses,
-billing_events, billing_subscriptions
+VisionDrive/
+├── app/
+│   ├── login/page.tsx                    # Updated with Kitchen/Parking selector
+│   ├── api/auth/login/route.ts           # Routes Kitchen auth to AWS
+│   ├── portal/smart-kitchen/             # Kitchen dashboard
+│   │   ├── page.tsx                      # Main dashboard
+│   │   ├── components/
+│   │   │   ├── AlertsPanel.tsx
+│   │   │   ├── KitchenCard.tsx
+│   │   │   ├── SensorGrid.tsx
+│   │   │   └── TemperatureChart.tsx
+│   │   ├── kitchens/[id]/page.tsx
+│   │   └── sensors/[id]/page.tsx
+│   └── api/portal/smart-kitchen/         # API routes (use AWS client)
+│
+├── lib/smart-kitchen/
+│   └── aws-client.ts                     # AWS API client with fallback to mock
+│
+└── smartkitchen/                         # AWS infrastructure
+    ├── README.md
+    ├── PROGRESS.md                       # This file
+    ├── PROJECT_PLAN.md
+    ├── docs/
+    │   ├── ARCHITECTURE.md
+    │   ├── DATA_RESIDENCY.md
+    │   └── ...
+    └── infrastructure/
+        ├── cdk/                          # AWS CDK stacks
+        │   ├── lib/
+        │   │   ├── vpc-stack.ts
+        │   │   ├── rds-stack.ts
+        │   │   ├── database-stack.ts
+        │   │   ├── lambda-stack.ts
+        │   │   ├── iot-stack.ts
+        │   │   └── api-stack.ts
+        │   └── bin/app.ts
+        └── lambda/
+            ├── api/index.js              # REST API with auth
+            ├── data-ingestion/
+            ├── alerts/
+            └── analytics/
 ```
 
 ---
 
-## ✅ Phase 5: Dashboard Development (IN PROGRESS)
+## 🔜 NEXT STEPS
 
-**Started:** January 11, 2026
+### Tomorrow (Jan 12) - Sensor Setup
+1. [ ] Get du SIM card for Dragino sensor
+2. [ ] Configure Dragino PS-NB-GE with du APN
+3. [ ] Register sensor as AWS IoT Thing
+4. [ ] Test first temperature transmission
+5. [ ] Verify data appears in DynamoDB
 
-- ✅ Dashboard components built at `/portal/smart-kitchen`
-- ✅ AWS Client library created (`lib/smart-kitchen/aws-client.ts`)
-- ✅ Connected frontend to AWS API Gateway
-- ✅ API tested and working (create/list kitchens/sensors)
-- [ ] Implement real-time updates
-- [ ] Style refinements
+### This Week
+- [ ] Link admin user to specific kitchen
+- [ ] Create more kitchen users
+- [ ] Test full end-to-end flow on live site
+- [ ] Style improvements to dashboard
 
-### API Test Results
-```json
-// Created test kitchen and sensor via API:
-Kitchen ID: kitchen-1768160431785 (Main Kitchen, Dubai Marina)
-Sensor ID:  sensor-1768160436439 (Walk-in Fridge, PT100 probe)
-```
-
----
-
-## 🔜 Next Phases
-
-### Phase 2: Sensor Configuration (Pending - Need SIM Card)
-- [ ] Configure Dragino PS-NB-GE sensors
-- [ ] Set up du NB-IoT APN
-- [ ] Register sensors as AWS IoT Things
-- [ ] Test first data transmission
-
-### Phase 3: Multi-Sensor Deployment (Not Started)
-- [ ] Deploy sensors to customer kitchens
-- [ ] Configure per-sensor alert thresholds
-
-### Phase 6-8: Testing, Onboarding, Go Live (Not Started)
+### Future
+- [ ] Onboard first real kitchen customer
+- [ ] Mobile push notifications
+- [ ] SMS alerts via SNS
 
 ---
 
-## 🔧 Quick Commands
+## 🔧 QUICK COMMANDS
 
-### Check Stack Status
+### Check AWS Stack Status
 ```bash
-aws cloudformation describe-stacks --region me-central-1 --query 'Stacks[?contains(StackName, `SmartKitchen`)].{Name:StackName,Status:StackStatus}' --output table
+aws cloudformation describe-stacks --region me-central-1 \
+  --query 'Stacks[?contains(StackName, `SmartKitchen`)].{Name:StackName,Status:StackStatus}' \
+  --output table
 ```
 
 ### Get RDS Credentials
 ```bash
-aws secretsmanager get-secret-value --secret-id smartkitchen/rds/credentials --region me-central-1 --query 'SecretString' --output text | jq
+aws secretsmanager get-secret-value \
+  --secret-id smartkitchen/rds/credentials \
+  --region me-central-1 \
+  --query 'SecretString' --output text | jq
 ```
 
-### Test API
+### Test Kitchen Login API
+```bash
+curl -X POST https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@kitchen.ae","password":"Kitchen@2026"}'
+```
+
+### List Kitchens
 ```bash
 curl https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/kitchens
 ```
 
-### Deploy All Stacks
+### Create New Kitchen User (requires admin key)
+```bash
+curl -X POST https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "manager@kitchen.ae",
+    "password": "Manager@2026",
+    "name": "Kitchen Manager",
+    "role": "CUSTOMER_OPS",
+    "adminKey": "VisionDrive2026!"
+  }'
+```
+
+### Deploy CDK Changes
 ```bash
 cd /Users/vadimkus/VisionDrive/smartkitchen/infrastructure/cdk
 cdk deploy --all --require-approval never
 ```
 
-### Destroy All Stacks (CAUTION!)
+### Git Push
 ```bash
-cd /Users/vadimkus/VisionDrive/smartkitchen/infrastructure/cdk
-cdk destroy --all
+cd /Users/vadimkus/VisionDrive
+git add -A && git commit -m "Update Smart Kitchen" && git push origin main
 ```
 
 ---
 
-## 💰 Estimated Monthly Costs
+## 📝 LESSONS LEARNED
 
-| Service | Estimated Cost |
-|---------|----------------|
+| Issue | Solution |
+|-------|----------|
+| Timestream not available in UAE | Using DynamoDB for time-series data |
+| PostgreSQL 15.4 not available | Using PostgreSQL 16.6 |
+| RDS in private subnet - can't connect from local | Used EC2 bastion via SSM for migrations |
+| Prisma 7 breaking changes | Downgraded to Prisma 5 for migrations |
+| Free tier backup limits | Reduced to 1-day retention |
+
+---
+
+## 💰 ESTIMATED MONTHLY COSTS
+
+| Service | Cost |
+|---------|------|
 | RDS PostgreSQL (db.t3.micro) | ~$15-20 |
 | DynamoDB (on-demand) | ~$1-5 |
 | Lambda | Free tier |
 | API Gateway | ~$1-3 |
 | IoT Core | ~$1-5 |
-| VPC (NAT Gateway) | ~$30-40 |
+| VPC NAT Gateway | ~$30-40 |
 | **Total** | **~$50-75/month** |
 
-Note: NAT Gateway is the largest cost. Can be optimized later.
+---
+
+## 🇦🇪 UAE DATA RESIDENCY
+
+**All Smart Kitchen data is stored exclusively in AWS me-central-1 (Abu Dhabi)**
+
+| Data Type | Storage | Location |
+|-----------|---------|----------|
+| User accounts | DynamoDB | 🇦🇪 UAE |
+| Kitchens/Sensors | DynamoDB | 🇦🇪 UAE |
+| Temperature readings | DynamoDB | 🇦🇪 UAE |
+| Alerts | DynamoDB | 🇦🇪 UAE |
+| Auth tokens | JWT (client-side) | N/A |
 
 ---
 
-## 📞 Support Contacts
-
-| Service | Contact |
-|---------|---------|
-| AWS Support | AWS Console |
-| du IoT Support | TBD |
-| Dragino Support | support@dragino.cc |
-
----
-
-*Progress last updated: January 11, 2026 at 11:45 PM UAE*
+*Progress last updated: January 12, 2026 at 12:00 AM UAE*
