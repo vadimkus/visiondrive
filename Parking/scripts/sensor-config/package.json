@@ -1,0 +1,16 @@
+{
+  "name": "parking-sensor-config",
+  "version": "1.0.0",
+  "description": "Sensor configuration scripts for VisionDrive Parking",
+  "scripts": {
+    "register": "tsx register-sensors.ts",
+    "register:csv": "tsx register-sensors.ts sensors.csv"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.400.0",
+    "@aws-sdk/client-iot": "^3.400.0",
+    "@aws-sdk/util-dynamodb": "^3.400.0",
+    "csv-parse": "^5.5.0",
+    "tsx": "^4.7.1"
+  }
+}

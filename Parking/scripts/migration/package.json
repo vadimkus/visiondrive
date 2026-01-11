@@ -1,0 +1,21 @@
+{
+  "name": "parking-migration",
+  "version": "1.0.0",
+  "description": "TimescaleDB to AWS migration scripts for VisionDrive Parking",
+  "scripts": {
+    "export": "tsx migrate-timescale.ts export",
+    "transform": "tsx migrate-timescale.ts transform",
+    "load": "tsx migrate-timescale.ts load",
+    "verify": "tsx migrate-timescale.ts verify",
+    "migrate": "tsx migrate-timescale.ts full"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.400.0",
+    "@aws-sdk/util-dynamodb": "^3.400.0",
+    "pg": "^8.11.0",
+    "tsx": "^4.7.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.0"
+  }
+}

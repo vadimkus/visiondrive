@@ -40,6 +40,10 @@
     ".next",
     "dist",
     "build",
-    "smartkitchen"
+    "smartkitchen",
+    "smartkitchen/**/*",
+    "Parking",
+    "Parking/**/*",
+    "**/cdk/**/*"
   ]
 }
