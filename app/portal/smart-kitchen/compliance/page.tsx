@@ -435,28 +435,8 @@ export default function CompliancePage() {
           </div>
         </div>
       </div>
-      </div>{/* End PDF Export Content */}
-
-      {/* Print Styles */}
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #compliance-report, #compliance-report * {
-            visibility: visible;
-          }
-          #compliance-report {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
+      </div>
+      {/* End PDF Export Content */}
     </div>
   )
 }
