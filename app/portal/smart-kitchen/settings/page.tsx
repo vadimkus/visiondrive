@@ -1,17 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, Thermometer, Mail, Phone, Shield, Database, ChevronRight, Check, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Bell, Thermometer, Mail, Phone, Shield, Database, ChevronRight, Check, ToggleLeft, ToggleRight, FileText, AlertTriangle } from 'lucide-react'
+import { EQUIPMENT_CONFIGS, DANGER_ZONE, COOKING_TEMPS, formatThresholdRange, type EquipmentType } from '../lib/compliance'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
-    highTempThreshold: 8,
-    lowTempThreshold: 0,
     alertEmail: true,
     alertSms: true,
     alertPush: true,
     readingInterval: 5,
     retentionDays: 90,
+    alertOnWarning: true,
+    alertOnCritical: true,
+    alertOnDangerZone: true,
   })
 
   const [saved, setSaved] = useState(false)
@@ -21,52 +23,89 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  const equipmentTypes: EquipmentType[] = [
+    'refrigerator', 'freezer', 'walk_in_cooler', 'walk_in_freezer',
+    'display_fridge', 'prep_fridge', 'hot_holding', 'blast_chiller'
+  ]
+
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Settings</h1>
-        <p className="text-sm text-gray-500 mt-1">Configure alerts and monitoring preferences</p>
+        <p className="text-sm text-gray-500 mt-1">Configure alerts and compliance monitoring</p>
       </div>
 
       {/* Settings Sections */}
       <div className="space-y-6">
-        {/* Temperature Thresholds */}
+        {/* Dubai Municipality Requirements */}
         <SettingsSection
-          icon={Thermometer}
-          title="Temperature Thresholds"
-          description="Set alert thresholds for refrigeration"
+          icon={FileText}
+          title="Dubai Municipality Requirements"
+          description="Official temperature thresholds from DM Food Safety Code"
+          iconBg="bg-blue-100"
+          iconColor="text-blue-600"
         >
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                High Temperature Alert
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={settings.highTempThreshold}
-                  onChange={(e) => setSettings({ ...settings, highTempThreshold: Number(e.target.value) })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">°C</span>
+          <div className="bg-blue-50 rounded-xl p-4 mb-4 border border-blue-100">
+            <div className="flex items-start gap-3">
+              <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-blue-900">Compliance Reference</p>
+                <p className="text-xs text-blue-700 mt-1">
+                  Document: DM-HSD-GU46-KFPA2 (Technical Guidelines for Occupational Health & Safety in Kitchens)
+                </p>
+                <p className="text-xs text-blue-600 mt-0.5">Version 3 • Issued: 09/05/2024</p>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Alert when temperature exceeds this value</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Low Temperature Alert
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={settings.lowTempThreshold}
-                  onChange={(e) => setSettings({ ...settings, lowTempThreshold: Number(e.target.value) })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">°C</span>
+          </div>
+
+          <div className="space-y-3">
+            {equipmentTypes.map(type => {
+              const config = EQUIPMENT_CONFIGS[type]
+              return (
+                <div key={type} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{config.icon}</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{config.name}</p>
+                      <p className="text-xs text-gray-500">{config.nameAr}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900">{formatThresholdRange(type)}</p>
+                    <p className="text-xs text-gray-500">{config.dmReference}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Danger Zone Warning */}
+          <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-200">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-red-900">Danger Zone Alert</p>
+                <p className="text-xs text-red-700 mt-1">
+                  Temperature between {DANGER_ZONE.min}°C and {DANGER_ZONE.max}°C is unsafe. 
+                  Food must be consumed within 2 hours or discarded.
+                </p>
+                <p className="text-xs text-red-600 mt-1">{DANGER_ZONE.dmReference}</p>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Alert when temperature drops below this value</p>
+            </div>
+          </div>
+
+          {/* Cooking Requirements */}
+          <div className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-200">
+            <div className="flex items-start gap-3">
+              <span className="text-xl">🍳</span>
+              <div>
+                <p className="text-sm font-medium text-orange-900">Cooking Temperature</p>
+                <p className="text-xs text-orange-700 mt-1">
+                  All foods must reach a minimum core temperature of {COOKING_TEMPS.general}°C to eliminate harmful bacteria.
+                </p>
+                <p className="text-xs text-orange-600 mt-1">{COOKING_TEMPS.dmReference}</p>
+              </div>
             </div>
           </div>
         </SettingsSection>
@@ -75,7 +114,7 @@ export default function SettingsPage() {
         <SettingsSection
           icon={Bell}
           title="Alert Notifications"
-          description="Choose how you want to receive alerts"
+          description="Choose how you want to receive compliance alerts"
         >
           <div className="space-y-4">
             <ToggleRow
@@ -99,6 +138,45 @@ export default function SettingsPage() {
               enabled={settings.alertPush}
               onToggle={() => setSettings({ ...settings, alertPush: !settings.alertPush })}
             />
+          </div>
+          
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-sm font-medium text-gray-700 mb-4">Alert Triggers</p>
+            <div className="space-y-3">
+              <ToggleRow
+                icon={AlertTriangle}
+                title="Warning Alerts"
+                description="Alert when temperature approaches threshold"
+                enabled={settings.alertOnWarning}
+                onToggle={() => setSettings({ ...settings, alertOnWarning: !settings.alertOnWarning })}
+              />
+              <ToggleRow
+                icon={AlertTriangle}
+                title="Critical Alerts"
+                description="Alert when temperature exceeds threshold"
+                enabled={settings.alertOnCritical}
+                onToggle={() => setSettings({ ...settings, alertOnCritical: !settings.alertOnCritical })}
+              />
+              <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-red-900">Danger Zone Alerts</p>
+                      <p className="text-xs text-red-600">Immediate alert for food safety violations</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-red-600 font-medium">Always On</span>
+                    <div className="w-7 h-7 rounded-lg bg-red-200 flex items-center justify-center">
+                      <Check className="h-4 w-4 text-red-700" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </SettingsSection>
 
@@ -124,6 +202,7 @@ export default function SettingsPage() {
                 <option value={15}>Every 15 minutes</option>
                 <option value={30}>Every 30 minutes</option>
               </select>
+              <p className="text-xs text-gray-500 mt-1">Recommended: 5 minutes for compliance monitoring</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -140,6 +219,7 @@ export default function SettingsPage() {
                 <option value={180}>180 days</option>
                 <option value={365}>1 year</option>
               </select>
+              <p className="text-xs text-gray-500 mt-1">DM recommends minimum 90 days for audit purposes</p>
             </div>
           </div>
         </SettingsSection>
@@ -200,17 +280,21 @@ function SettingsSection({
   title,
   description,
   children,
+  iconBg = 'bg-gray-100',
+  iconColor = 'text-gray-600',
 }: {
   icon: React.ElementType
   title: string
   description: string
   children: React.ReactNode
+  iconBg?: string
+  iconColor?: string
 }) {
   return (
     <div className="bg-white rounded-2xl p-6 border border-gray-100">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
-          <Icon className="h-5 w-5 text-gray-600" />
+        <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center`}>
+          <Icon className={`h-5 w-5 ${iconColor}`} />
         </div>
         <div>
           <h2 className="font-semibold text-gray-900">{title}</h2>
