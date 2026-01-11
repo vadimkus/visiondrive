@@ -1,270 +1,202 @@
 # VisionDrive Parking System
 
-## Smart Parking IoT Platform - AWS UAE
-
-Real-time parking bay monitoring using SWI PSL01B NB-IoT sensors with data stored in AWS UAE region (me-central-1).
+Smart parking management system using NB-IoT sensors with AWS cloud infrastructure in the UAE region.
 
 ---
 
-## 🎯 Project Overview
+## 🚀 Quick Links
 
-| Attribute | Value |
-|-----------|-------|
-| **Project Name** | VisionDrive Parking |
-| **Sensors** | SWI PSL01B NB-IoT Parking Sensor |
-| **Network** | du NB-IoT (UAE) |
-| **Cloud** | AWS me-central-1 (Abu Dhabi) |
-| **Frontend** | Next.js on Vercel |
-| **Data Residency** | UAE 🇦🇪 |
-| **Migration From** | TimescaleDB → AWS |
+| Resource | URL |
+|----------|-----|
+| **Dashboard** | `/portal/parking` |
+| **API Endpoint** | `https://o2s68toqw0.execute-api.me-central-1.amazonaws.com/prod` |
+| **IoT Endpoint** | `a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com` |
+| **AWS Region** | `me-central-1` (UAE) |
 
 ---
 
-## 🔧 Sensor: SWI PSL01B
+## 📊 System Overview
 
-### Key Specifications
-
-| Parameter | Value |
-|-----------|-------|
-| **Detection** | Geomagnetic + 24GHz Microwave Radar (Dual-mode) |
-| **Accuracy** | 99% |
-| **Dimensions** | 178×142×42mm |
-| **Weight** | 0.85kg |
-| **Waterproof** | IP68 |
-| **Operating Temp** | -30°C to +80°C |
-| **Battery** | 3.6V 27Ah (5+ years life) |
-| **Communication** | NB-IoT (B1/B3/B5/B8) |
-| **Compression Resistance** | 15 tons |
-
-### Detection Modes
-
-1. **Geomagnetic Mode**: Captures magnetic field changes from metallic objects
-2. **Microwave Radar Mode**: 24GHz radar for vehicle contour detection
-3. **Auto-Switch**: Switches to geomagnetic underwater (flood conditions)
-
-### Data Payload (Expected)
-
-```json
-{
-  "deviceId": "PSL01B-001",
-  "status": "occupied" | "vacant",
-  "batteryLevel": 95,
-  "signalStrength": -75,
-  "timestamp": "2026-01-12T10:30:00Z",
-  "detectionMode": "dual" | "geomagnetic" | "radar"
-}
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           VISIONDRIVE PARKING                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌─────────┐                                            ┌─────────────┐    │
+│   │ PSL01B  │──── NB-IoT (du) ────▶ AWS IoT Core ──────▶│   Lambda    │    │
+│   │ Sensors │                       (UAE Region)         │  Processor  │    │
+│   └─────────┘                                            └──────┬──────┘    │
+│                                                                  │          │
+│                                                                  ▼          │
+│                                                          ┌──────────────┐   │
+│   ┌─────────────┐                                        │   DynamoDB   │   │
+│   │   Next.js   │◀──── API Gateway ◀────────────────────│   (NoSQL)    │   │
+│   │  Dashboard  │      (REST API)                        └──────────────┘   │
+│   └─────────────┘                                                           │
+│        │                                                                    │
+│        ▼                                                                    │
+│   ┌─────────┐                                                               │
+│   │ Vercel  │                                                               │
+│   └─────────┘                                                               │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📁 Project Structure
+## 📈 Current Stats
+
+| Metric | Value |
+|--------|-------|
+| Zones | 36 |
+| Bays | 40 |
+| Sensors | 46 |
+| Events | 192+ |
+| Database Records | 356 |
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [docs/OVERVIEW.md](docs/OVERVIEW.md) | System overview and features |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical architecture |
+| [docs/AWS_SETUP.md](docs/AWS_SETUP.md) | AWS services configuration |
+| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | Complete API documentation |
+| [docs/SENSOR_GUIDE.md](docs/SENSOR_GUIDE.md) | PSL01B sensor configuration |
+| [docs/DASHBOARD_GUIDE.md](docs/DASHBOARD_GUIDE.md) | Portal user guide |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Deployment instructions |
+| [docs/MIGRATION.md](docs/MIGRATION.md) | TimescaleDB migration guide |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common issues and solutions |
+| [docs/SECURITY.md](docs/SECURITY.md) | Security best practices |
+
+---
+
+## 🛠️ Project Structure
 
 ```
 Parking/
-├── README.md                    # This file
-├── ARCHITECTURE.md              # System architecture
-├── MIGRATION_PLAN.md            # TimescaleDB migration guide
-├── docs/
-│   ├── SENSOR_SETUP.md          # PSL01B configuration
-│   ├── AWS_INFRASTRUCTURE.md    # AWS setup guide
-│   └── API_REFERENCE.md         # API documentation
-├── infrastructure/
-│   ├── cdk/                     # AWS CDK code
-│   └── lambda/                  # Lambda functions
-├── scripts/
-│   ├── migration/               # TimescaleDB to AWS migration
-│   └── sensor-config/           # Sensor configuration tools
-└── api/                         # API route handlers
+├── ARCHITECTURE.md           # System architecture
+├── MIGRATION_PLAN.md         # Migration planning
+├── README.md                 # This file
+│
+├── docs/                     # Documentation
+│   ├── README.md
+│   ├── OVERVIEW.md
+│   ├── AWS_SETUP.md
+│   ├── API_REFERENCE.md
+│   ├── SENSOR_GUIDE.md
+│   ├── DASHBOARD_GUIDE.md
+│   ├── DEPLOYMENT.md
+│   ├── MIGRATION.md
+│   ├── TROUBLESHOOTING.md
+│   └── SECURITY.md
+│
+├── infrastructure/           # AWS infrastructure
+│   ├── cdk/                  # CDK definitions
+│   │   ├── bin/
+│   │   ├── lib/
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   └── lambda/               # Lambda functions
+│       ├── event-processor/
+│       │   ├── index.js
+│       │   └── package.json
+│       └── api-handler/
+│           ├── index.js
+│           └── package.json
+│
+└── scripts/                  # Utility scripts
+    ├── deploy/
+    │   └── deploy-all.sh     # Full deployment
+    ├── migration/
+    │   ├── run-migration.js  # TimescaleDB migration
+    │   └── explore-schema.js
+    └── sensor-config/
+        ├── register-sensors.ts
+        └── sensors.example.csv
 ```
 
 ---
 
-## 🏗️ AWS Architecture
+## 🔧 Quick Commands
 
+### Test API
+```bash
+curl https://o2s68toqw0.execute-api.me-central-1.amazonaws.com/prod/zones | jq
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    VISIONDRIVE PARKING - AWS UAE                            │
-│                         (me-central-1)                                      │
-└─────────────────────────────────────────────────────────────────────────────┘
 
-                              SENSOR LAYER
-┌─────────────────────────────────────────────────────────────────────────────┐
-│   PSL01B-001     PSL01B-002     PSL01B-003     PSL01B-N                     │
-│   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐                    │
-│   │ Bay #1  │   │ Bay #2  │   │ Bay #3  │   │ Bay #N  │                    │
-│   │ 🅿️ ━━━  │   │ 🅿️ ━━━  │   │ 🅿️ ━━━  │   │ 🅿️ ━━━  │                    │
-│   └────┬────┘   └────┬────┘   └────┬────┘   └────┬────┘                    │
-│        │             │             │             │                          │
-│        └─────────────┴─────────────┴─────────────┘                          │
-│                            │                                                 │
-│                   du NB-IoT Network                                         │
-└────────────────────────────┼────────────────────────────────────────────────┘
-                             │
-                             ▼
-                    AWS IOT CORE (me-central-1)
-┌────────────────────────────┼────────────────────────────────────────────────┐
-│                            │                                                 │
-│    ┌───────────────────────┴───────────────────────┐                        │
-│    │              AWS IoT Core                      │                        │
-│    │  • MQTT Broker                                │                        │
-│    │  • Device Registry                            │                        │
-│    │  • Rules Engine                               │                        │
-│    │  • Device Shadows                             │                        │
-│    └───────────────────────┬───────────────────────┘                        │
-│                            │                                                 │
-│         ┌──────────────────┼──────────────────┐                             │
-│         │                  │                  │                             │
-│         ▼                  ▼                  ▼                             │
-│    ┌─────────┐       ┌─────────┐       ┌─────────┐                          │
-│    │ Lambda  │       │ Lambda  │       │ Lambda  │                          │
-│    │ Ingest  │       │ Events  │       │ Analytics│                         │
-│    └────┬────┘       └────┬────┘       └────┬────┘                          │
-│         │                  │                  │                             │
-│         ▼                  ▼                  ▼                             │
-│    ┌──────────────────────────────────────────────┐                         │
-│    │            Amazon DynamoDB                    │                         │
-│    │  ┌────────────────┐  ┌────────────────────┐  │                         │
-│    │  │ ParkingBays    │  │ ParkingEvents      │  │                         │
-│    │  │ (Current State)│  │ (Historical Data)  │  │                         │
-│    │  └────────────────┘  └────────────────────┘  │                         │
-│    │  ┌────────────────┐  ┌────────────────────┐  │                         │
-│    │  │ ParkingZones   │  │ Sensors            │  │                         │
-│    │  │ (Areas/Lots)   │  │ (Device Registry)  │  │                         │
-│    │  └────────────────┘  └────────────────────┘  │                         │
-│    └───────────────────────┬──────────────────────┘                         │
-│                            │                                                 │
-│                            ▼                                                 │
-│    ┌───────────────────────────────────────────────┐                        │
-│    │              API Gateway                       │                        │
-│    │  /bays, /zones, /events, /analytics           │                        │
-│    └───────────────────────┬───────────────────────┘                        │
-│                            │                                                 │
-└────────────────────────────┼────────────────────────────────────────────────┘
-                             │
-                             ▼
-                    VERCEL (Frontend)
-┌────────────────────────────┼────────────────────────────────────────────────┐
-│                            │                                                 │
-│    ┌───────────────────────┴───────────────────────┐                        │
-│    │           VisionDrive Portal                   │                        │
-│    │  ┌─────────┐ ┌─────────┐ ┌─────────┐         │                        │
-│    │  │   Map   │ │  Bays   │ │ Reports │         │                        │
-│    │  └─────────┘ └─────────┘ └─────────┘         │                        │
-│    └───────────────────────────────────────────────┘                        │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
+### Check DynamoDB
+```bash
+aws dynamodb scan --table-name VisionDrive-Parking --select COUNT \
+  --profile visiondrive-parking --region me-central-1
+```
+
+### View Lambda Logs
+```bash
+aws logs tail /aws/lambda/VisionDrive-Parking-ApiHandler --follow \
+  --profile visiondrive-parking --region me-central-1
+```
+
+### Deploy Updates
+```bash
+cd scripts/deploy && ./deploy-all.sh
 ```
 
 ---
 
-## 🗄️ Database Design (DynamoDB)
+## 🔌 API Endpoints
 
-### Why DynamoDB instead of Timestream?
-
-| Consideration | DynamoDB | Timestream |
-|--------------|----------|------------|
-| **Use Case** | Event-driven state changes | Continuous time-series |
-| **Parking Data** | Discrete events (arrive/leave) | ❌ Overkill |
-| **Query Patterns** | Current state + event history | Time aggregations |
-| **Cost** | Lower for event data | Higher for sparse events |
-| **Simplicity** | Single service | Needs both |
-
-**Decision**: DynamoDB for parking (events are discrete state changes, not continuous readings)
-
-### Tables
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ Table: VisionDrive-ParkingBays (Current State)                  │
-├─────────────────────────────────────────────────────────────────┤
-│ PK: ZONE#{zoneId}                                               │
-│ SK: BAY#{bayNumber}                                             │
-│                                                                 │
-│ Attributes:                                                     │
-│   - sensorId: string                                            │
-│   - status: "occupied" | "vacant"                               │
-│   - lastChange: timestamp                                       │
-│   - occupiedSince: timestamp (if occupied)                      │
-│   - vehicleDuration: number (minutes)                           │
-│   - batteryLevel: number                                        │
-│   - signalStrength: number                                      │
-│   - location: { lat, lng }                                      │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│ Table: VisionDrive-ParkingEvents (Historical)                   │
-├─────────────────────────────────────────────────────────────────┤
-│ PK: BAY#{zoneId}#{bayNumber}                                    │
-│ SK: EVENT#{timestamp}                                           │
-│                                                                 │
-│ Attributes:                                                     │
-│   - eventType: "ARRIVE" | "LEAVE"                               │
-│   - duration: number (minutes, for LEAVE)                       │
-│   - detectionMode: string                                       │
-│   - timestamp: ISO8601                                          │
-│                                                                 │
-│ GSI1: For time-range queries                                    │
-│   PK: ZONE#{zoneId}                                             │
-│   SK: EVENT#{timestamp}                                         │
-│                                                                 │
-│ TTL: 90 days (auto-archive to S3)                               │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│ Table: VisionDrive-ParkingZones                                 │
-├─────────────────────────────────────────────────────────────────┤
-│ PK: ZONE#{zoneId}                                               │
-│ SK: METADATA                                                    │
-│                                                                 │
-│ Attributes:                                                     │
-│   - name: string                                                │
-│   - address: string                                             │
-│   - totalBays: number                                           │
-│   - occupiedBays: number (denormalized for performance)         │
-│   - coordinates: { lat, lng }                                   │
-│   - pricePerHour: number                                        │
-│   - operatingHours: { open, close }                             │
-│   - tenantId: string                                            │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/zones` | List all zones |
+| GET | `/zones/{id}` | Get zone details |
+| GET | `/zones/{id}/bays` | List bays in zone |
+| GET | `/zones/{id}/events` | Get zone events |
+| GET | `/sensors` | List all sensors |
+| POST | `/sensors` | Register sensor |
+| GET | `/events` | Query events |
+| GET | `/analytics/occupancy` | Occupancy stats |
 
 ---
 
-## 🔄 Migration Plan (TimescaleDB → AWS)
+## 🌐 Dashboard Pages
 
-### Phase 1: Export Historical Data
-- Export parking events from TimescaleDB
-- Transform to DynamoDB format
-- Load into VisionDrive-ParkingEvents
-
-### Phase 2: Setup AWS Infrastructure
-- Deploy IoT Core, DynamoDB, Lambda
-- Configure API Gateway
-- Update VisionDrive frontend
-
-### Phase 3: Sensor Reconfiguration
-- Update PSL01B sensors to send to AWS IoT
-- Verify data flow
-- Monitor for issues
-
-### Phase 4: Cutover
-- Switch frontend to AWS API
-- Decommission TimescaleDB
-- Archive old data to S3
+| Page | Path | Description |
+|------|------|-------------|
+| Dashboard | `/portal/parking` | Overview & stats |
+| Live Map | `/portal/parking/map` | Zone visualization |
+| Zones | `/portal/parking/zones` | Zone management |
+| Zone Detail | `/portal/parking/zones/[id]` | Bay grid & events |
+| Sensors | `/portal/parking/sensors` | Sensor health |
+| Events | `/portal/parking/events` | Activity log |
+| Analytics | `/portal/parking/analytics` | Usage statistics |
+| Alerts | `/portal/parking/alerts` | Alert management |
+| Settings | `/portal/parking/settings` | Configuration |
 
 ---
 
-## 🚀 Getting Started
+## 🔐 Security
 
-1. Review `ARCHITECTURE.md` for detailed design
-2. Follow `MIGRATION_PLAN.md` for data migration
-3. Deploy infrastructure with CDK
-4. Configure sensors with `scripts/sensor-config/`
+- All data in UAE region (me-central-1)
+- TLS encryption in transit
+- IAM-based access control
+- Credentials should be rotated regularly
+
+See [docs/SECURITY.md](docs/SECURITY.md) for full security guide.
 
 ---
 
 ## 📞 Support
 
-- SWI IoT (Sensors): jimmy@swiott.com
-- du IoT (Network): Business IoT support
-- AWS (Cloud): AWS Support
+- **Technical Issues**: See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- **API Issues**: Check CloudWatch logs
+- **Sensor Issues**: See [docs/SENSOR_GUIDE.md](docs/SENSOR_GUIDE.md)
+
+---
+
+## 📜 License
+
+Proprietary - VisionDrive
