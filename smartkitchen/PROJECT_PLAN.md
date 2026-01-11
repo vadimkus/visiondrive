@@ -4,7 +4,7 @@
 
 ---
 
-## 🇦🇪 UAE Data Residency Compliance
+## 🇦🇪 UAE Data Residency & Compliance
 
 **Requirement:** All customer data must be stored exclusively in the UAE.
 
@@ -47,6 +47,42 @@
 │  • All API calls route to AWS UAE                                  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🏛️ Dubai Municipality Food Safety Compliance
+
+**Reference Document:** DM-HSD-GU46-KFPA2  
+**Title:** Technical Guidelines for Occupational Health & Safety in Kitchens  
+**Version:** 3 (Latest)  
+**Issued:** May 9, 2024  
+**Download:** [Dubai Municipality Official PDF](https://www.dm.gov.ae/wp-content/uploads/2024/07/DM-HSD-GU46-KFPA2_Technical-Guidelines-for-Occupational-Health-and-Safety_Kitchen-Food-Areas_V3.pdf)
+
+### Temperature Requirements (Implemented in Portal)
+
+| Equipment Type | Temperature | DM Reference | Icon |
+|---------------|-------------|--------------|------|
+| Refrigerator | 0°C to 5°C | Cold storage | 🧊 |
+| Freezer | ≤ -18°C | Frozen foods | ❄️ |
+| Walk-in Cooler | 0°C to 5°C | Cold storage | 🚪 |
+| Walk-in Freezer | ≤ -18°C | Frozen foods | 🏔️ |
+| Display Fridge | 0°C to 5°C | Cold storage | 🛒 |
+| Prep Area Fridge | 0°C to 5°C | Cold storage | 🔪 |
+| Hot Holding | ≥ 60°C | Bain-marie | 🔥 |
+| Blast Chiller | -10°C to 3°C | Rapid cooling | 💨 |
+| **Danger Zone** | **5°C - 60°C** | **Food unsafe (2hr max)** | ⚠️ |
+| Cooking | ≥ 75°C core | Safe cooking | 🍳 |
+
+### Compliance Features in Portal
+
+- ✅ Real-time compliance status per sensor
+- ✅ Equipment type categorization with Arabic translations
+- ✅ Danger Zone alerts (immediate food safety violations)
+- ✅ Compliance rate dashboard (percentage tracking)
+- ✅ Daily compliance trend charts
+- ✅ Sensor compliance details with violation counts
+- ✅ PDF export for compliance reports
+- ✅ DM document reference in Settings page
 
 ---
 
@@ -221,7 +257,7 @@ Temperature Data ─────────────────────
 
 ---
 
-## Phase 5: Dashboard Development ✅ COMPLETED (Jan 11, 2026)
+## Phase 5: Dashboard Development ✅ COMPLETED (Jan 12, 2026)
 
 ### 5.1 Frontend Setup ✅
 - [x] Create `/portal/smart-kitchen` route in VisionDrive app
@@ -237,21 +273,64 @@ Temperature Data ─────────────────────
 - 📱 Mobile: Same URL (responsive)
 
 **Dashboard Components Built:**
-- [x] Kitchen overview cards
-- [x] Sensor status grid
-- [x] Real-time temperature display
+- [x] Kitchen overview cards with compliance rates
+- [x] Sensor status grid with equipment types
+- [x] Real-time temperature display with DM thresholds
 - [x] Temperature history chart (TemperatureChart.tsx)
 - [x] Alert notification panel (AlertsPanel.tsx)
 - [x] Kitchen detail page (/kitchens/[id])
 - [x] Sensor detail page (/sensors/[id])
 
-### 5.3 Mobile App Integration (Future)
+### 5.3 Kitchen Portal Redesign ✅ (Jan 12, 2026)
+
+**New Apple-like Design:**
+- [x] Dark sidebar with Smart Kitchen branding
+- [x] Real-time clock widget
+- [x] Kitchen-only navigation (removed parking items)
+- [x] Weather info in header
+- [x] Professional stat cards
+
+**Pages Created:**
+- [x] Overview - DM compliance dashboard
+- [x] Kitchens - List with search and filters
+- [x] Sensors - Grid with equipment types and compliance
+- [x] Alerts - Acknowledge workflow with severity badges
+- [x] Reports - Analytics and downloadable reports
+- [x] Settings - DM requirements reference
+- [x] Compliance - Full compliance report page
+
+### 5.4 Dubai Municipality Compliance ✅ (Jan 12, 2026)
+
+**Compliance Library (`lib/compliance.ts`):**
+- [x] Equipment type definitions (8 types)
+- [x] Arabic translations for all equipment
+- [x] `checkCompliance()` function for real-time status
+- [x] Color-coded status (Compliant/Warning/Critical/Danger Zone)
+- [x] DM document references
+
+**Dashboard Features:**
+- [x] Compliance Rate card (percentage of sensors in compliance)
+- [x] Danger Zone counter with "Immediate action needed!" warning
+- [x] Temperature Zones section (Refrigeration, Freezer, Hot Holding, Danger Zone)
+- [x] Kitchen cards show compliance percentage badges
+- [x] Sensor cards show equipment icons and required thresholds
+
+**Compliance Report Page (`/portal/smart-kitchen/compliance`):**
+- [x] Overall compliance rate with visual indicator
+- [x] Total violations count
+- [x] Danger zone events count
+- [x] Daily compliance trend chart (7-day/30-day/90-day)
+- [x] Sensor compliance details table
+- [x] Export PDF button (placeholder)
+- [x] DM document reference banner
+
+### 5.5 Mobile App Integration (Future)
 - [ ] Add Smart Kitchen tab to VisionDrive mobile app
 - [ ] Push notifications for temperature alerts
 - [ ] Offline alert history caching
 - [ ] Biometric login support
 
-### 5.4 Alert System
+### 5.6 Alert System
 - [ ] Configure SNS topic subscriptions per customer
 - [ ] Set up email notifications (to kitchen managers)
 - [ ] SMS alerts for critical temperatures
@@ -279,14 +358,21 @@ Temperature Data ─────────────────────
 - [ ] Test on desktop browsers (Chrome, Safari, Firefox)
 - [ ] Test on mobile devices (iOS Safari, Android Chrome)
 
-### 6.3 Edge Case Testing
+### 6.3 DM Compliance Testing
+- [ ] Verify temperature thresholds match DM requirements
+- [ ] Test Danger Zone alerts (5°C - 60°C)
+- [ ] Validate compliance rate calculations
+- [ ] Test equipment type categorization
+- [ ] Verify Arabic translations display correctly
+
+### 6.4 Edge Case Testing
 - [ ] Test sensor offline handling
 - [ ] Test network disconnection recovery
 - [ ] Test battery low alerts
 - [ ] Test extreme temperature handling
 - [ ] Test concurrent user sessions
 
-### 6.4 Performance Testing
+### 6.5 Performance Testing
 - [ ] Measure API response times
 - [ ] Check dashboard load time (target < 3s)
 - [ ] Verify Timestream query performance
@@ -313,12 +399,14 @@ Temperature Data ─────────────────────
 ### 7.2 Customer Training
 - [ ] Dashboard walkthrough (30 min video call)
 - [ ] Alert management training
+- [ ] DM compliance features explanation
 - [ ] Show how to add additional users
 - [ ] Provide quick reference guide (PDF)
 
 ### 7.3 Sensor Installation
 - [ ] Coordinate installation date with customer
 - [ ] Install sensors at customer locations
+- [ ] Configure equipment types for each sensor
 - [ ] Verify data appearing in customer dashboard
 - [ ] Configure customer-specific alert thresholds
 - [ ] Confirm customer can access via login
@@ -332,6 +420,7 @@ Temperature Data ─────────────────────
 - [ ] All customer accounts created and tested
 - [ ] Alert recipients configured per customer
 - [ ] Dashboard accessible via https://www.visiondrive.ae/login
+- [ ] DM compliance features verified
 - [ ] Backup procedures documented
 - [ ] Monitoring dashboards set up
 
@@ -359,6 +448,8 @@ Temperature Data ─────────────────────
 | Alert response time | < 5 minutes | SNS metrics |
 | Dashboard load time | < 3 seconds | Vercel analytics |
 | Battery life | > 6 months | DynamoDB tracking |
+| **DM Compliance Rate** | > 95% | Dashboard |
+| **Danger Zone Events** | 0 per day | Dashboard |
 
 ---
 
@@ -374,6 +465,7 @@ Temperature Data ─────────────────────
 | **Data residency breach** | All data in me-central-1, no cross-region replication |
 | **RDS downtime** | Multi-AZ deployment, automated backups |
 | **Database connection limits** | RDS Proxy for Lambda connection pooling |
+| **DM compliance violation** | Real-time monitoring, immediate alerts |
 
 ---
 
@@ -384,6 +476,7 @@ Temperature Data ─────────────────────
 | du IoT Support | TBD | For network issues |
 | Dragino Support | support@dragino.cc | Hardware issues |
 | AWS Support | AWS Console | Infrastructure issues |
+| Dubai Municipality | dm.gov.ae | Food safety regulations |
 
 ---
 
@@ -393,6 +486,7 @@ Temperature Data ─────────────────────
 smartkitchen/
 ├── README.md                           # Project overview
 ├── PROJECT_PLAN.md                     # This file
+├── PROGRESS.md                         # Implementation progress
 ├── docs/
 │   ├── ARCHITECTURE.md                 # System architecture
 │   ├── SETUP_GUIDE.md                  # Step-by-step setup
@@ -404,15 +498,15 @@ smartkitchen/
     │   ├── bin/app.ts                  # CDK app entry
     │   └── lib/
     │       ├── vpc-stack.ts            # VPC for RDS connectivity
-    │       ├── rds-stack.ts            # PostgreSQL (users/auth) 🆕
-    │       ├── database-stack.ts       # Timestream + DynamoDB
+    │       ├── rds-stack.ts            # PostgreSQL (users/auth)
+    │       ├── database-stack.ts       # DynamoDB tables
     │       ├── lambda-stack.ts         # Lambda functions
     │       ├── iot-stack.ts            # IoT Core
     │       └── api-stack.ts            # API Gateway
     ├── prisma/
-    │   └── schema.prisma               # RDS PostgreSQL schema 🆕
+    │   └── schema.prisma               # RDS PostgreSQL schema
     └── lambda/
-        ├── auth/                       # Authentication handlers 🆕
+        ├── auth/                       # Authentication handlers
         │   ├── login.ts
         │   ├── register.ts
         │   └── refresh-token.ts
@@ -420,6 +514,20 @@ smartkitchen/
         ├── alerts/                     # Handle alerts
         ├── analytics/                  # Generate reports
         └── api/                        # REST API handler
+
+app/portal/smart-kitchen/              # Frontend components
+├── page.tsx                           # Overview dashboard
+├── layout.tsx                         # Kitchen portal layout
+├── lib/compliance.ts                  # DM compliance library
+├── components/
+│   ├── KitchenSidebar.tsx             # Dark sidebar
+│   └── KitchenHeader.tsx              # Weather header
+├── kitchens/page.tsx                  # Kitchens list
+├── sensors/page.tsx                   # Sensors list
+├── alerts/page.tsx                    # Alerts with acknowledge
+├── reports/page.tsx                   # Analytics reports
+├── settings/page.tsx                  # DM requirements
+└── compliance/page.tsx                # Compliance report
 ```
 
 ---
@@ -467,6 +575,15 @@ POST /sensors         - Register sensor
 GET  /alerts          - List alerts
 ```
 
+### DM Compliance Thresholds
+```
+Refrigeration:  0°C to 5°C
+Freezer:        ≤ -18°C
+Hot Holding:    ≥ 60°C
+Danger Zone:    5°C - 60°C (UNSAFE)
+Cooking:        ≥ 75°C core
+```
+
 ---
 
-*Last Updated: January 12, 2026 - Phases 1, 4, 5 Complete*
+*Last Updated: January 12, 2026 - Phases 1, 4, 5 Complete + DM Compliance*

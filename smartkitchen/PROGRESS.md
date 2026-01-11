@@ -1,8 +1,8 @@
 # Smart Kitchen - Implementation Progress
 
-## 🚀 Current Status: Phase 5 Complete - Login Integration Done!
+## 🚀 Current Status: Phase 5 Complete + DM Compliance Implemented!
 
-**Last Updated:** January 12, 2026 at 12:00 AM UAE
+**Last Updated:** January 12, 2026 at 2:30 PM UAE
 
 ---
 
@@ -27,13 +27,29 @@
 - ✅ JWT token generation working
 - ✅ VisionDrive login page integrated
 
-### Phase 5: Dashboard & Login Integration ✅ (Jan 11, 2026)
+### Phase 5: Dashboard & Portal ✅ (Jan 12, 2026)
 
 - ✅ Login page updated with Kitchen/Parking portal selector
 - ✅ Kitchen auth routes through AWS API (UAE data residency)
-- ✅ Dashboard components built at `/portal/smart-kitchen`
+- ✅ **New Apple-like portal design** with dark sidebar
+- ✅ Kitchen-only navigation (removed parking items)
 - ✅ AWS Client library connected to API Gateway
 - ✅ Code pushed to GitHub and deployed to Vercel
+
+### Dubai Municipality Compliance ✅ (Jan 12, 2026)
+
+**Reference Document:** DM-HSD-GU46-KFPA2 (Version 3, May 9, 2024)
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Compliance Library | ✅ | `lib/compliance.ts` with 8 equipment types |
+| Temperature Thresholds | ✅ | DM-compliant ranges for all equipment |
+| Arabic Translations | ✅ | Equipment names in Arabic |
+| Danger Zone Alerts | ✅ | 5°C - 60°C flagged as DANGER |
+| Compliance Rate | ✅ | % of sensors in compliance |
+| Trend Charts | ✅ | Daily compliance tracking |
+| Settings Page | ✅ | DM requirements reference |
+| Compliance Report | ✅ | Full report at `/compliance` |
 
 ---
 
@@ -61,6 +77,36 @@ https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/auth/login
         ↓
 Returns JWT token → Cookie set → Redirect to /portal/smart-kitchen
 ```
+
+---
+
+## 🏛️ DUBAI MUNICIPALITY COMPLIANCE
+
+### Temperature Requirements (Implemented)
+
+| Equipment | Arabic | Required | Icon |
+|-----------|--------|----------|------|
+| Walk-in Fridge | غرفة تبريد | 0°C to 5°C | 🚪 |
+| Main Freezer | فريزر | ≤ -18°C | ❄️ |
+| Prep Area Fridge | ثلاجة التحضير | 0°C to 5°C | 🔪 |
+| Main Cooler | ثلاجة | 0°C to 5°C | 🧊 |
+| Display Fridge | ثلاجة عرض | 0°C to 5°C | 🛒 |
+| Hot Bain-Marie | حفظ ساخن | ≥ 60°C | 🔥 |
+| Blast Chiller | مبرد سريع | -10°C to 3°C | 💨 |
+| **Danger Zone** | **منطقة الخطر** | **5°C - 60°C** | ⚠️ |
+| Cooking Temp | درجة حرارة الطهي | ≥ 75°C core | 🍳 |
+
+### Portal Pages
+
+| Page | URL | Features |
+|------|-----|----------|
+| Overview | `/portal/smart-kitchen` | Compliance rate, danger zones, stats |
+| Kitchens | `/portal/smart-kitchen/kitchens` | Kitchen list with compliance % |
+| Sensors | `/portal/smart-kitchen/sensors` | Equipment types, thresholds, status |
+| Alerts | `/portal/smart-kitchen/alerts` | Acknowledge workflow, severity |
+| Reports | `/portal/smart-kitchen/reports` | Analytics, export options |
+| Settings | `/portal/smart-kitchen/settings` | DM requirements, notifications |
+| **Compliance** | `/portal/smart-kitchen/compliance` | Full compliance report |
 
 ---
 
@@ -139,21 +185,31 @@ Endpoints:
 ```
 VisionDrive/
 ├── app/
-│   ├── login/page.tsx                    # Updated with Kitchen/Parking selector
+│   ├── login/page.tsx                    # Kitchen/Parking selector
 │   ├── api/auth/login/route.ts           # Routes Kitchen auth to AWS
-│   ├── portal/smart-kitchen/             # Kitchen dashboard
-│   │   ├── page.tsx                      # Main dashboard
-│   │   ├── components/
-│   │   │   ├── AlertsPanel.tsx
-│   │   │   ├── KitchenCard.tsx
-│   │   │   ├── SensorGrid.tsx
-│   │   │   └── TemperatureChart.tsx
-│   │   ├── kitchens/[id]/page.tsx
-│   │   └── sensors/[id]/page.tsx
-│   └── api/portal/smart-kitchen/         # API routes (use AWS client)
+│   ├── api/auth/me/route.ts              # Dual JWT verification
+│   ├── portal/
+│   │   ├── layout.tsx                    # Conditional sidebar
+│   │   └── smart-kitchen/
+│   │       ├── page.tsx                  # Overview + DM compliance
+│   │       ├── layout.tsx                # Kitchen portal layout
+│   │       ├── lib/
+│   │       │   └── compliance.ts         # DM compliance library
+│   │       ├── components/
+│   │       │   ├── KitchenSidebar.tsx    # Dark Apple-like sidebar
+│   │       │   ├── KitchenHeader.tsx     # Weather header
+│   │       │   ├── AlertsPanel.tsx
+│   │       │   ├── SensorGrid.tsx
+│   │       │   └── TemperatureChart.tsx
+│   │       ├── kitchens/page.tsx         # Kitchen list
+│   │       ├── sensors/page.tsx          # Sensor grid
+│   │       ├── alerts/page.tsx           # Alerts with workflow
+│   │       ├── reports/page.tsx          # Analytics
+│   │       ├── settings/page.tsx         # DM requirements
+│   │       └── compliance/page.tsx       # Compliance report
 │
 ├── lib/smart-kitchen/
-│   └── aws-client.ts                     # AWS API client with fallback to mock
+│   └── aws-client.ts                     # AWS API client
 │
 └── smartkitchen/                         # AWS infrastructure
     ├── README.md
@@ -165,26 +221,15 @@ VisionDrive/
     │   └── ...
     └── infrastructure/
         ├── cdk/                          # AWS CDK stacks
-        │   ├── lib/
-        │   │   ├── vpc-stack.ts
-        │   │   ├── rds-stack.ts
-        │   │   ├── database-stack.ts
-        │   │   ├── lambda-stack.ts
-        │   │   ├── iot-stack.ts
-        │   │   └── api-stack.ts
-        │   └── bin/app.ts
         └── lambda/
-            ├── api/index.js              # REST API with auth
-            ├── data-ingestion/
-            ├── alerts/
-            └── analytics/
+            └── api/index.js              # REST API with auth
 ```
 
 ---
 
 ## 🔜 NEXT STEPS
 
-### Tomorrow (Jan 12) - Sensor Setup
+### Tomorrow (Jan 13) - Sensor Setup
 1. [ ] Get du SIM card for Dragino sensor
 2. [ ] Configure Dragino PS-NB-GE with du APN
 3. [ ] Register sensor as AWS IoT Thing
@@ -195,12 +240,13 @@ VisionDrive/
 - [ ] Link admin user to specific kitchen
 - [ ] Create more kitchen users
 - [ ] Test full end-to-end flow on live site
-- [ ] Style improvements to dashboard
+- [ ] Configure real equipment types for sensors
 
 ### Future
 - [ ] Onboard first real kitchen customer
 - [ ] Mobile push notifications
 - [ ] SMS alerts via SNS
+- [ ] PDF export for compliance reports
 
 ---
 
@@ -269,6 +315,8 @@ git add -A && git commit -m "Update Smart Kitchen" && git push origin main
 | RDS in private subnet - can't connect from local | Used EC2 bastion via SSM for migrations |
 | Prisma 7 breaking changes | Downgraded to Prisma 5 for migrations |
 | Free tier backup limits | Reduced to 1-day retention |
+| JWT secret mismatch (parking vs kitchen) | Dual JWT verification in `/api/auth/me` |
+| Overlapping sidebars | Conditional render in `portal/layout.tsx` |
 
 ---
 
@@ -300,4 +348,21 @@ git add -A && git commit -m "Update Smart Kitchen" && git push origin main
 
 ---
 
-*Progress last updated: January 12, 2026 at 12:00 AM UAE*
+## 🏛️ DM COMPLIANCE QUICK REFERENCE
+
+```
+Document:    DM-HSD-GU46-KFPA2 (Version 3)
+Issued:      May 9, 2024
+Source:      Dubai Municipality
+
+TEMPERATURE THRESHOLDS:
+- Refrigeration:  0°C to 5°C
+- Freezer:        ≤ -18°C  
+- Hot Holding:    ≥ 60°C
+- DANGER ZONE:    5°C - 60°C (Max 2 hours)
+- Cooking:        ≥ 75°C core temperature
+```
+
+---
+
+*Progress last updated: January 12, 2026 at 2:30 PM UAE*

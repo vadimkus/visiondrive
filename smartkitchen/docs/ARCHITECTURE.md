@@ -12,11 +12,90 @@
 
 | Data Type | Storage | Location | Compliance |
 |-----------|---------|----------|------------|
-| Users & Authentication | RDS PostgreSQL 16.6 | me-central-1 | ✅ UAE |
+| Users & Authentication | DynamoDB | me-central-1 | ✅ UAE |
 | Sensor Readings | DynamoDB (VisionDrive-SensorReadings) | me-central-1 | ✅ UAE |
 | Device Configs | DynamoDB (VisionDrive-Devices) | me-central-1 | ✅ UAE |
 | Alerts & Events | DynamoDB (VisionDrive-Alerts) | me-central-1 | ✅ UAE |
 | Frontend Assets | Vercel CDN | Global | ✅ No PII |
+
+---
+
+## 🏛️ Dubai Municipality Food Safety Compliance
+
+**Reference Document:** DM-HSD-GU46-KFPA2 (Version 3, May 9, 2024)
+
+### Implemented Temperature Thresholds
+
+| Equipment Type | Arabic | Required Temp | Status |
+|---------------|--------|---------------|--------|
+| Walk-in Fridge | غرفة تبريد | 0°C to 5°C | ✅ Monitoring |
+| Main Freezer | فريزر | ≤ -18°C | ✅ Monitoring |
+| Prep Area Fridge | ثلاجة التحضير | 0°C to 5°C | ✅ Monitoring |
+| Main Cooler | ثلاجة | 0°C to 5°C | ✅ Monitoring |
+| Display Fridge | ثلاجة عرض | 0°C to 5°C | ✅ Monitoring |
+| Hot Bain-Marie | حفظ ساخن | ≥ 60°C | ✅ Monitoring |
+| Blast Chiller | مبرد سريع | -10°C to 3°C | ✅ Monitoring |
+| **Danger Zone** | **منطقة الخطر** | **5°C - 60°C** | ⚠️ **Alert** |
+| Cooking Temp | درجة حرارة الطهي | ≥ 75°C core | ✅ Monitoring |
+
+### Compliance Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     DM COMPLIANCE PROCESSING FLOW                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+   Sensor Reading                    Frontend                   User
+   ─────────────                    ─────────                  ─────
+        │                               │                         │
+        ▼                               │                         │
+   ┌──────────────┐                     │                         │
+   │ Temperature  │                     │                         │
+   │   25.5°C     │                     │                         │
+   └──────┬───────┘                     │                         │
+          │                             │                         │
+          ▼                             │                         │
+   ┌──────────────────────────────────────────────────────────────┐
+   │                  COMPLIANCE LIBRARY                          │
+   │                  (lib/compliance.ts)                         │
+   ├──────────────────────────────────────────────────────────────┤
+   │                                                              │
+   │  checkCompliance(25.5, 'walk-in-fridge')                     │
+   │       ↓                                                      │
+   │  1. Load equipment threshold (0°C to 5°C)                    │
+   │  2. Check if temp in range → NO                              │
+   │  3. Check danger zone (5°C - 60°C) → YES ⚠️                  │
+   │  4. Return { status: 'danger', message: 'DANGER ZONE' }      │
+   │                                                              │
+   └────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │                     DASHBOARD UI                             │
+   ├──────────────────────────────────────────────────────────────┤
+   │                                                              │
+   │  ┌─────────────────────────────────────────────────────┐    │
+   │  │  🚪 Walk-in Fridge        ⚠️ DANGER                 │    │
+   │  │  ────────────────────────────────────────────────   │    │
+   │  │  Current: 25.5°C          Required: 0°C to 5°C     │    │
+   │  │  [❌ Non-Compliant]        منطقة الخطر             │    │
+   │  └─────────────────────────────────────────────────────┘    │
+   │                                                              │
+   │  Compliance Rate: 75% ███████░░░                            │
+   │  Danger Zone Events: 3 ⚠️                                    │
+   │                                                              │
+   └──────────────────────────────────────────────────────────────┘
+
+                     COMPLIANCE STATUS TYPES
+   ┌──────────────────────────────────────────────────────────────┐
+   │                                                              │
+   │  ✅ COMPLIANT   │ Temperature within DM requirements         │
+   │  ⚠️ WARNING     │ Temperature slightly out of range          │
+   │  ❌ CRITICAL    │ Temperature significantly out of range     │
+   │  🔴 DANGER      │ Temperature in danger zone (5°C - 60°C)    │
+   │                                                              │
+   └──────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -66,22 +145,19 @@
 │  │   Lambda    │         │   Lambda    │         │   Lambda    │         │
 │  │  Ingestion  │         │   Alerts    │         │    Auth     │         │
 │  │             │         │             │         │             │         │
-│  │ • Parse mA  │         │ • Check     │         │ • Login     │         │
+│  │ • Parse mA  │         │ • Check DM  │         │ • Login     │         │
 │  │ • Convert°C │         │   thresholds│         │ • JWT issue │         │
 │  │ • Validate  │         │ • Send SNS  │         │ • Verify    │         │
 │  └──────┬──────┘         └──────┬──────┘         └──────┬──────┘         │
 │         │                       │                       │                 │
 │         ▼                       ▼                       ▼                 │
 │  ┌─────────────┐         ┌─────────────┐         ┌─────────────┐         │
-│  │ Timestream  │         │  DynamoDB   │         │     RDS     │         │
-│  │             │         │             │         │  PostgreSQL │         │
-│  │ Time-series │         │ • Alerts    │         │ ─────────── │         │
-│  │ temperature │         │ • Devices   │         │ • Users     │         │
-│  │ data        │         │ • Kitchens  │         │ • Tenants   │         │
-│  └──────┬──────┘         └─────────────┘         │ • Sessions  │         │
-│         │                                        │ • Roles     │         │
-│         │                                        │ • Audit     │         │
-│         │                                        └──────┬──────┘         │
+│  │  DynamoDB   │         │  DynamoDB   │         │  DynamoDB   │         │
+│  │             │         │             │         │             │         │
+│  │ Time-series │         │ • Alerts    │         │ • Users     │         │
+│  │ temperature │         │ • Devices   │         │ • Auth      │         │
+│  │ data        │         │ • Kitchens  │         │ • Sessions  │         │
+│  └──────┬──────┘         └─────────────┘         └──────┬──────┘         │
 │         │                                               │                 │
 │         └──────────────────┬────────────────────────────┘                │
 │                            │                                              │
@@ -111,6 +187,9 @@
 │                   │                 │                                    │
 │                   │ All API calls   │                                    │
 │                   │ go to AWS UAE   │                                    │
+│                   │                 │                                    │
+│                   │ DM Compliance   │◄── Compliance checks              │
+│                   │ lib/compliance  │    run in frontend                │
 │                   └─────────────────┘                                    │
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -136,6 +215,7 @@ Kitchen businesses access their data via the VisionDrive portal:
 │      │  https://www.visiondrive.ae  │                                   │
 │      │          /login              │                                   │
 │      │  ────────────────────────────│                                   │
+│      │  Portal: [Kitchen 🍳]        │◄── Portal selector                │
 │      │  Username: chef@restaurant.ae│                                   │
 │      │  Password: ••••••••          │                                   │
 │      │  [Login]                     │                                   │
@@ -143,7 +223,7 @@ Kitchen businesses access their data via the VisionDrive portal:
 │                     │                                                    │
 │                     ▼ Authenticate                                       │
 │      ┌──────────────────────────────┐                                   │
-│      │   VisionDrive Auth System    │                                   │
+│      │   AWS API Gateway (UAE)      │                                   │
 │      │  ────────────────────────────│                                   │
 │      │  • Validate credentials      │                                   │
 │      │  • Check user role           │                                   │
@@ -153,16 +233,20 @@ Kitchen businesses access their data via the VisionDrive portal:
 │                     │                                                    │
 │                     ▼ Redirect to Dashboard                              │
 │      ┌──────────────────────────────┐                                   │
-│      │  /smart-kitchen              │                                   │
+│      │  /portal/smart-kitchen       │                                   │
 │      │  ────────────────────────────│                                   │
+│      │  📊 DM Compliance Dashboard  │                                   │
+│      │  ┌─────────────────────────┐ │                                   │
+│      │  │ Compliance Rate: 92%   │ │                                   │
+│      │  │ Danger Zones: 0        │ │                                   │
+│      │  └─────────────────────────┘ │                                   │
+│      │                              │                                   │
 │      │  🏠 My Kitchens              │                                   │
 │      │  ┌─────────┐ ┌─────────┐     │                                   │
 │      │  │Kitchen 1│ │Kitchen 2│     │◄── Only shows kitchens            │
-│      │  │  🌡️ 4°C  │ │  🌡️ 3°C  │     │    owned by this customer        │
+│      │  │✅ 95%   │ │✅ 88%   │     │    owned by this customer        │
 │      │  └─────────┘ └─────────┘     │                                   │
 │      │                              │                                   │
-│      │  🚨 Active Alerts: 0         │                                   │
-│      │  📊 View Analytics           │                                   │
 │      └──────────────────────────────┘                                   │
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -212,19 +296,43 @@ Sensor → du NB-IoT → AWS IoT Core
 Step 3: IoT Rules Processing
 ────────────────────────────
 AWS IoT Rules Engine triggers:
-├── Rule 1: ALL data → Lambda (Ingestion) → Timestream
-├── Rule 2: temp > threshold → Lambda (Alerts) → SNS
+├── Rule 1: ALL data → Lambda (Ingestion) → DynamoDB
+├── Rule 2: temp in danger zone → Lambda (Alerts) → SNS
 └── Rule 3: Daily → Lambda (Analytics) → S3
 
 Step 4: Storage
 ───────────────
-Timestream stores time-series data:
-├── Dimensions: deviceId, kitchenId, location
-├── Measures: temperature, humidity, battery
-└── Retention: 7 days hot, 1 year cold
+DynamoDB stores time-series data:
+├── Partition Key: sensorId + date
+├── Sort Key: timestamp
+├── Attributes: temperature, humidity, battery
+└── TTL: 90 days (configurable)
 ```
 
-### 2.2 Cloud → Sensor (Downlink)
+### 2.2 Compliance Processing
+
+```
+Step 1: Frontend receives sensor data
+─────────────────────────────────────
+API returns: { temperature: 8.5, equipmentType: 'walk-in-fridge' }
+
+Step 2: Compliance check (lib/compliance.ts)
+────────────────────────────────────────────
+checkCompliance(8.5, 'walk-in-fridge')
+├── Load threshold: { min: 0, max: 5, type: 'range' }
+├── Check: 8.5 > 5 → OUT OF RANGE
+├── Check danger zone: 5 < 8.5 < 60 → DANGER ZONE ⚠️
+└── Return: { status: 'danger', message: 'DANGER ZONE' }
+
+Step 3: UI Update
+─────────────────
+├── Sensor card shows: 🔴 DANGER badge
+├── Dashboard counter: Danger Zones +1
+├── Compliance rate: Recalculated
+└── Alert may be triggered
+```
+
+### 2.3 Cloud → Sensor (Downlink)
 
 ```
 Dashboard → API Gateway → Lambda → IoT Core → Sensor
@@ -240,112 +348,7 @@ Commands:
 
 ## 3. Database Schema
 
-### 3.0 Amazon RDS PostgreSQL (Users & Authentication)
-
-**Location:** AWS me-central-1 (UAE) 🇦🇪
-**Purpose:** User accounts, authentication, multi-tenant access control
-
-```sql
--- Database: visiondrive_smartkitchen
--- Uses same schema as main VisionDrive app (Prisma)
-
--- Users table
-CREATE TABLE users (
-  id              VARCHAR(25) PRIMARY KEY,
-  email           VARCHAR(255) UNIQUE NOT NULL,
-  password_hash   VARCHAR(255) NOT NULL,
-  name            VARCHAR(255),
-  role            user_role DEFAULT 'USER',
-  status          user_status DEFAULT 'ACTIVE',
-  default_tenant_id VARCHAR(25),
-  created_at      TIMESTAMPTZ DEFAULT NOW(),
-  updated_at      TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tenants table (Kitchen businesses)
-CREATE TABLE tenants (
-  id              VARCHAR(25) PRIMARY KEY,
-  name            VARCHAR(255) NOT NULL,
-  slug            VARCHAR(255) UNIQUE NOT NULL,
-  status          tenant_status DEFAULT 'ACTIVE',
-  tenant_type     VARCHAR(50) DEFAULT 'SMART_KITCHEN',  -- NEW
-  created_at      TIMESTAMPTZ DEFAULT NOW(),
-  updated_at      TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tenant memberships (user ↔ tenant with role)
-CREATE TABLE tenant_memberships (
-  id              VARCHAR(25) PRIMARY KEY,
-  tenant_id       VARCHAR(25) REFERENCES tenants(id),
-  user_id         VARCHAR(25) REFERENCES users(id),
-  role            user_role NOT NULL,
-  status          membership_status DEFAULT 'ACTIVE',
-  created_at      TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(tenant_id, user_id)
-);
-
--- Smart Kitchen specific roles
-CREATE TYPE kitchen_role AS ENUM (
-  'KITCHEN_OWNER',    -- Full access, manage users
-  'KITCHEN_MANAGER',  -- View + acknowledge alerts
-  'KITCHEN_STAFF'     -- View only
-);
-
--- Audit log (all data access logged in UAE)
-CREATE TABLE audit_logs (
-  id              VARCHAR(25) PRIMARY KEY,
-  tenant_id       VARCHAR(25),
-  actor_user_id   VARCHAR(25),
-  action          VARCHAR(100) NOT NULL,
-  entity_type     VARCHAR(100),
-  entity_id       VARCHAR(255),
-  ip              VARCHAR(45),
-  user_agent      TEXT,
-  created_at      TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Example: Get all users for a kitchen tenant
-SELECT u.id, u.email, u.name, tm.role
-FROM users u
-JOIN tenant_memberships tm ON tm.user_id = u.id
-WHERE tm.tenant_id = 'tenant-kitchen-001'
-  AND tm.status = 'ACTIVE';
-```
-
----
-
-### 3.1 Amazon Timestream
-
-```sql
--- Database: visiondrive_smartkitchen
--- Table: sensor_readings
-
--- Schema:
--- ├── Dimensions (indexed metadata)
--- │   ├── device_id: STRING
--- │   ├── kitchen_id: STRING
--- │   └── location: STRING
--- │
--- └── Measures (time-series values)
---     ├── temperature: DOUBLE (°C)
---     ├── raw_ma: DOUBLE (mA from sensor)
---     ├── battery_voltage: DOUBLE (V)
---     └── signal_strength: BIGINT (dBm)
-
--- Example Query: Last 24h readings for kitchen
-SELECT 
-    device_id,
-    kitchen_id,
-    time,
-    measure_value::double AS temperature
-FROM "visiondrive_smartkitchen"."sensor_readings"
-WHERE kitchen_id = 'kitchen-001'
-  AND measure_name = 'temperature'
-  AND time > ago(24h)
-ORDER BY time DESC
-```
-
-### 3.2 Amazon DynamoDB
+### 3.1 Amazon DynamoDB Tables
 
 ```
 Table: VisionDrive-Devices
@@ -353,29 +356,31 @@ Table: VisionDrive-Devices
 Partition Key: PK (String)
 Sort Key: SK (String)
 
-CUSTOMER RECORDS (for multi-tenant access):
+USER RECORDS (for authentication):
 ┌─────────────────────────────────────────────────────────────┐
-│ PK: CUSTOMER#cust-001                                       │
+│ PK: USER#admin@kitchen.ae                                   │
 │ SK: METADATA                                                │
 │ ─────────────────────────────────────────────────────────── │
-│ name: "Al Barsha Restaurant Group"                          │
-│ contactEmail: "manager@albarsha.ae"                         │
-│ contactPhone: "+971-50-xxx-xxxx"                            │
-│ plan: "premium"                                             │
-│ maxKitchens: 10                                             │
-│ createdAt: "2026-01-01"                                     │
-│ status: "active"                                            │
+│ email: "admin@kitchen.ae"                                   │
+│ passwordHash: "$2b$10$..."                                  │
+│ name: "Kitchen Admin"                                       │
+│ role: "ADMIN"                                               │
+│ createdAt: "2026-01-11"                                     │
+│ lastLogin: "2026-01-12T14:00:00Z"                          │
 └─────────────────────────────────────────────────────────────┘
 
+KITCHEN RECORDS:
 ┌─────────────────────────────────────────────────────────────┐
-│ PK: CUSTOMER#cust-001                                       │
-│ SK: USER#user-001                                           │
+│ PK: KITCHEN#kitchen-001                                     │
+│ SK: METADATA                                                │
 │ ─────────────────────────────────────────────────────────── │
-│ email: "chef@albarsha.ae"                                   │
-│ name: "Ahmed Hassan"                                        │
-│ role: "owner"           ◄── owner | manager | staff         │
+│ customerId: "cust-001"                                      │
+│ name: "Main Kitchen"                                        │
+│ address: "Dubai Marina, Building A"                         │
+│ manager: "John Smith"                                       │
+│ sensorCount: 5                                              │
+│ complianceRate: 92.5  ◄── Cached compliance %               │
 │ createdAt: "2026-01-01"                                     │
-│ lastLogin: "2026-01-11T10:00:00Z"                          │
 └─────────────────────────────────────────────────────────────┘
 
 DEVICE RECORDS:
@@ -384,44 +389,51 @@ DEVICE RECORDS:
 │ SK: METADATA                                                │
 │ ─────────────────────────────────────────────────────────── │
 │ kitchenId: "kitchen-001"                                    │
-│ customerId: "cust-001"   ◄── Links sensor to customer       │
+│ customerId: "cust-001"                                      │
 │ location: "Walk-in Fridge"                                  │
-│ installDate: "2026-01-11"                                   │
+│ equipmentType: "walk-in-fridge" ◄── DM equipment type       │
 │ probeModel: "PT100"                                         │
-│ alertThresholds: { min: 0, max: 8 }                         │
-│ transmissionInterval: 300                                   │
+│ alertThresholds: { min: 0, max: 5 }                         │
 │ status: "active"                                            │
-│ lastSeen: "2026-01-11T10:30:00Z"                           │
+│ lastReading: { temp: 4.2, time: "2026-01-12T14:30:00Z" }   │
 └─────────────────────────────────────────────────────────────┘
 
-KITCHEN RECORDS:
+
+Table: VisionDrive-SensorReadings
+─────────────────────────────────
+Partition Key: PK (String) - sensorId#YYYY-MM-DD
+Sort Key: SK (String) - timestamp
+
 ┌─────────────────────────────────────────────────────────────┐
-│ PK: KITCHEN#kitchen-001                                     │
-│ SK: METADATA                                                │
+│ PK: sensor-001#2026-01-12                                   │
+│ SK: 2026-01-12T14:30:00Z                                    │
 │ ─────────────────────────────────────────────────────────── │
-│ customerId: "cust-001"   ◄── Links kitchen to customer      │
-│ name: "Main Kitchen"                                        │
-│ address: "Dubai Marina, Building A"                         │
-│ manager: "John Smith"                                       │
-│ phone: "+971-50-xxx-xxxx"                                   │
-│ sensorCount: 5                                              │
-│ createdAt: "2026-01-01"                                     │
+│ sensorId: "sensor-001"                                      │
+│ kitchenId: "kitchen-001"                                    │
+│ temperature: 4.2                                            │
+│ humidity: 65.0                                              │
+│ battery: 3.52                                               │
+│ signal: -85                                                 │
+│ complianceStatus: "compliant" ◄── Pre-calculated            │
+│ TTL: 1736956200 (expires in 90 days)                        │
 └─────────────────────────────────────────────────────────────┘
+
 
 Table: VisionDrive-Alerts
 ─────────────────────────
 Partition Key: PK (String)
 Sort Key: SK (String)
 
-Records:
 ┌─────────────────────────────────────────────────────────────┐
 │ PK: KITCHEN#kitchen-001                                     │
-│ SK: ALERT#2026-01-11T10:30:00Z                             │
+│ SK: ALERT#2026-01-12T10:30:00Z                             │
 │ ─────────────────────────────────────────────────────────── │
 │ deviceId: "sensor-001"                                      │
-│ alertType: "HIGH_TEMP"                                      │
+│ alertType: "DANGER_ZONE"  ◄── DM compliance alert           │
+│ severity: "danger"                                          │
 │ temperature: 12.5                                           │
-│ threshold: 8.0                                              │
+│ threshold: { min: 0, max: 5 }                               │
+│ message: "Temperature in danger zone (5°C - 60°C)"          │
 │ acknowledged: false                                         │
 │ acknowledgedBy: null                                        │
 │ resolvedAt: null                                            │
@@ -435,69 +447,39 @@ Records:
 ### 4.1 REST Endpoints
 
 ```
-Base URL: https://api.visiondrive.ae/smartkitchen/v1
+Base URL: https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/
 
 ⚠️ All endpoints require authentication via JWT token
    Header: Authorization: Bearer <token>
-   Token obtained via https://www.visiondrive.ae/login
+   Token obtained via /auth/login
 
-AUTHENTICATION (handled by main VisionDrive app)
-────────────────────────────────────────────────
-POST   /auth/login                  Login (returns JWT + customerId)
-POST   /auth/logout                 Logout (invalidate session)
-POST   /auth/refresh                Refresh JWT token
-POST   /auth/forgot-password        Request password reset
-POST   /auth/reset-password         Reset password with token
-
-CUSTOMERS (Admin only)
-──────────────────────
-GET    /customers                   List all customers
-GET    /customers/{id}              Get customer details
-POST   /customers                   Create new customer
-PUT    /customers/{id}              Update customer
-DELETE /customers/{id}              Deactivate customer
-
-USERS (within customer scope)
-─────────────────────────────
-GET    /customers/{id}/users        List users for customer
-POST   /customers/{id}/users        Invite new user
-PUT    /users/{id}                  Update user
-DELETE /users/{id}                  Remove user access
+AUTHENTICATION
+──────────────
+POST   /auth/login                  Login (returns JWT)
+POST   /auth/register               Register (requires adminKey)
 
 KITCHENS (filtered by customer)
 ───────────────────────────────
-GET    /kitchens                    List kitchens (for logged-in customer)
+GET    /kitchens                    List kitchens
 GET    /kitchens/{id}               Get kitchen details
-POST   /kitchens                    Create new kitchen (admin)
-PUT    /kitchens/{id}               Update kitchen
-DELETE /kitchens/{id}               Delete kitchen (admin)
+POST   /kitchens                    Create new kitchen
 
 SENSORS
 ───────
-GET    /kitchens/{id}/sensors       List sensors in kitchen
+GET    /sensors                     List all sensors
 GET    /sensors/{id}                Get sensor details
 POST   /sensors                     Register new sensor
 PUT    /sensors/{id}                Update sensor config
-DELETE /sensors/{id}                Remove sensor
 
 READINGS
 ────────
 GET    /sensors/{id}/readings       Get temperature history
 GET    /sensors/{id}/current        Get latest reading
-GET    /kitchens/{id}/readings      Get all readings for kitchen
 
 ALERTS
 ──────
-GET    /alerts                      List all active alerts
-GET    /alerts/{id}                 Get alert details
+GET    /alerts                      List all alerts
 PUT    /alerts/{id}/acknowledge     Acknowledge alert
-GET    /kitchens/{id}/alerts        Get alerts for kitchen
-
-ANALYTICS
-─────────
-GET    /analytics/daily             Daily summary report
-GET    /analytics/weekly            Weekly trend report
-GET    /analytics/kitchen/{id}      Kitchen-specific analytics
 ```
 
 ### 4.2 Example Responses
@@ -505,15 +487,19 @@ GET    /analytics/kitchen/{id}      Kitchen-specific analytics
 ```json
 // GET /sensors/sensor-001/current
 {
-  "deviceId": "sensor-001",
+  "sensorId": "sensor-001",
   "kitchenId": "kitchen-001",
   "location": "Walk-in Fridge",
+  "equipmentType": "walk-in-fridge",
   "temperature": 4.2,
-  "unit": "celsius",
-  "batteryVoltage": 3.52,
-  "signalStrength": -85,
-  "timestamp": "2026-01-11T10:30:00Z",
-  "status": "normal"
+  "humidity": 65.0,
+  "battery": 3.52,
+  "timestamp": "2026-01-12T14:30:00Z",
+  "compliance": {
+    "status": "compliant",
+    "message": "Compliant: 0°C to 5°C",
+    "dmReference": "DM Food Code: Cold storage 0°C to 5°C"
+  }
 }
 
 // GET /alerts
@@ -523,10 +509,11 @@ GET    /analytics/kitchen/{id}      Kitchen-specific analytics
       "id": "alert-001",
       "deviceId": "sensor-003",
       "kitchenId": "kitchen-002",
-      "type": "HIGH_TEMP",
-      "temperature": 12.5,
-      "threshold": 8.0,
-      "createdAt": "2026-01-11T10:25:00Z",
+      "type": "DANGER_ZONE",
+      "severity": "danger",
+      "temperature": 25.5,
+      "message": "DANGER ZONE: Food unsafe. Temperature in 5-60°C range",
+      "createdAt": "2026-01-12T10:25:00Z",
       "acknowledged": false
     }
   ],
@@ -556,69 +543,152 @@ GET    /analytics/kitchen/{id}      Kitchen-specific analytics
 │  └── Device provisioning via AWS IoT                       │
 │                                                             │
 │  API SECURITY                                               │
-│  ├── API Gateway with API keys                             │
+│  ├── API Gateway with rate limiting                        │
 │  ├── JWT tokens for user authentication                    │
-│  └── IAM roles for service-to-service                      │
+│  ├── Dual JWT verification (Kitchen vs Parking)            │
+│  └── CORS enabled for visiondrive.ae                       │
 │                                                             │
 │  DATA SECURITY                                              │
 │  ├── Encryption at rest (AWS managed keys)                 │
 │  ├── Data residency in UAE (me-central-1)                  │
-│  └── VPC endpoints for internal traffic                    │
+│  └── No PII stored outside UAE                             │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 5.2 User Authentication (Customer Portal)
+### 5.2 User Authentication Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              USER AUTHENTICATION FLOW                        │
+│              DUAL-PORTAL AUTHENTICATION FLOW                │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  LOGIN PORTAL: https://www.visiondrive.ae/login             │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │                                                     │   │
-│  │  1. User enters credentials                         │   │
+│  │  1. User selects portal                             │   │
+│  │     └── Kitchen 🍳 or Parking 🅿️                    │   │
+│  │                                                     │   │
+│  │  2. User enters credentials                         │   │
 │  │     └── Email + Password                            │   │
 │  │                                                     │   │
-│  │  2. VisionDrive Auth validates                      │   │
-│  │     ├── Check password hash (bcrypt)                │   │
-│  │     ├── Verify account status                       │   │
-│  │     └── Get customerId + role from DB               │   │
+│  │  3. Frontend routes to appropriate backend          │   │
+│  │     ├── Kitchen → AWS API (UAE)                     │   │
+│  │     └── Parking → Vercel API (TimescaleDB)          │   │
 │  │                                                     │   │
-│  │  3. Issue JWT token                                 │   │
-│  │     ├── Payload: { userId, customerId, role, exp }  │   │
-│  │     ├── Signed with secret key                      │   │
-│  │     └── Expires: 24 hours                           │   │
+│  │  4. JWT token issued                                │   │
+│  │     ├── Kitchen JWT → SMART_KITCHEN_JWT_SECRET      │   │
+│  │     └── Parking JWT → JWT_SECRET                    │   │
 │  │                                                     │   │
-│  │  4. Redirect to /smart-kitchen                      │   │
-│  │     └── Token stored in httpOnly cookie             │   │
+│  │  5. Portal cookie set                               │   │
+│  │     └── portal=kitchen or portal=parking            │   │
+│  │                                                     │   │
+│  │  6. Redirect to dashboard                           │   │
+│  │     ├── Kitchen → /portal/smart-kitchen             │   │
+│  │     └── Parking → /portal                           │   │
 │  │                                                     │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
-│  ROLE-BASED ACCESS CONTROL                                  │
-│  ─────────────────────────                                  │
-│  │ Role    │ View  │ Acknowledge │ Settings │ Users │      │
-│  │─────────│───────│─────────────│──────────│───────│      │
-│  │ staff   │  ✅   │     ❌      │    ❌    │  ❌   │      │
-│  │ manager │  ✅   │     ✅      │    ❌    │  ❌   │      │
-│  │ owner   │  ✅   │     ✅      │    ✅    │  ✅   │      │
-│  │ admin   │  ✅   │     ✅      │    ✅    │  ✅   │      │
-│                                                             │
-│  MULTI-TENANT ISOLATION                                     │
-│  ──────────────────────                                     │
-│  Every API request:                                         │
-│  1. Extract customerId from JWT                             │
-│  2. Filter queries: WHERE customerId = {jwt.customerId}     │
-│  3. Block access to other customers' data                   │
+│  SESSION VERIFICATION (/api/auth/me)                        │
+│  ─────────────────────────────────────                      │
+│  1. Read portal cookie                                      │
+│  2. If portal=kitchen → verify with SMART_KITCHEN_JWT_SECRET│
+│  3. If portal=parking → verify with JWT_SECRET              │
+│  4. Return user data                                        │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 6. Scalability
+## 6. Frontend Architecture
+
+### 6.1 Portal Structure
+
+```
+app/portal/smart-kitchen/
+├── page.tsx                # Overview dashboard
+│                           # - Compliance rate
+│                           # - Danger zone counter
+│                           # - Kitchen cards
+│                           # - Temperature zones
+│
+├── layout.tsx              # Kitchen portal layout
+│                           # - Dark sidebar
+│                           # - Weather header
+│
+├── lib/
+│   └── compliance.ts       # DM compliance library
+│                           # - Equipment types
+│                           # - Arabic translations
+│                           # - checkCompliance()
+│
+├── components/
+│   ├── KitchenSidebar.tsx  # Apple-like dark sidebar
+│   │                       # - Real-time clock
+│   │                       # - Kitchen-only navigation
+│   │                       # - Alert badge
+│   │
+│   ├── KitchenHeader.tsx   # Weather header
+│   ├── AlertsPanel.tsx     # Alert notifications
+│   ├── SensorGrid.tsx      # Sensor cards
+│   └── TemperatureChart.tsx # Temp history chart
+│
+├── kitchens/page.tsx       # Kitchen list
+├── sensors/page.tsx        # Sensor grid with equipment types
+├── alerts/page.tsx         # Alert management
+├── reports/page.tsx        # Analytics
+├── settings/page.tsx       # DM requirements reference
+└── compliance/page.tsx     # Full compliance report
+```
+
+### 6.2 Compliance Library
+
+```typescript
+// lib/compliance.ts
+
+export const DM_COMPLIANCE_GUIDELINES = {
+  'walk-in-fridge': {
+    id: 'walk-in-fridge',
+    name: 'Walk-in Fridge',
+    arabicName: 'غرفة تبريد',
+    emoji: '🚪',
+    compliance: { min: 0, max: 5, type: 'range' }
+  },
+  'main-freezer': {
+    id: 'main-freezer',
+    name: 'Main Freezer',
+    arabicName: 'فريزر',
+    emoji: '❄️',
+    compliance: { max: -18, type: 'max' }
+  },
+  'hot-bain-marie': {
+    id: 'hot-bain-marie',
+    name: 'Hot Bain-Marie',
+    arabicName: 'حفظ ساخن',
+    emoji: '🔥',
+    compliance: { min: 60, type: 'min' }
+  },
+  'danger-zone': {
+    id: 'danger-zone',
+    name: 'Danger Zone',
+    arabicName: 'منطقة الخطر',
+    emoji: '⚠️',
+    compliance: { min: 5, max: 60, type: 'range' }
+  }
+  // ... more equipment types
+}
+
+export function checkCompliance(temp, equipmentType) {
+  // Returns: { status, message, emoji }
+  // status: 'compliant' | 'warning' | 'critical' | 'danger'
+}
+```
+
+---
+
+## 7. Scalability
 
 | Component | Current | Scalable To |
 |-----------|---------|-------------|
@@ -628,3 +698,17 @@ GET    /analytics/kitchen/{id}      Kitchen-specific analytics
 | Concurrent API requests | 10 | 10,000+ |
 
 All AWS services used are fully managed and auto-scale.
+
+---
+
+## 8. Compliance Summary
+
+| Requirement | Status | Implementation |
+|-------------|--------|----------------|
+| UAE Data Residency | ✅ | All data in me-central-1 |
+| DM Temperature Thresholds | ✅ | lib/compliance.ts |
+| Danger Zone Alerts | ✅ | Real-time monitoring |
+| Equipment Categorization | ✅ | 8 equipment types |
+| Arabic Support | ✅ | All equipment names |
+| Compliance Reporting | ✅ | /compliance page |
+| Audit Trail | ✅ | DynamoDB logging |
