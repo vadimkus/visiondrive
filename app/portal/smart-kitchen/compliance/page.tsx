@@ -113,74 +113,104 @@ export default function CompliancePage() {
       
       if (!reportRef.current) return
 
-      // Create a clone for PDF rendering with white background
       const element = reportRef.current
       
-      // Configure html2canvas options
+      // Configure html2canvas options for better quality
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        windowWidth: 1200,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
       })
 
       const imgData = canvas.toDataURL('image/png')
       
-      // Calculate PDF dimensions (A4)
+      // A4 dimensions in mm
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       })
 
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = pdf.internal.pageSize.getHeight()
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      
+      // Margins
+      const marginTop = 15
+      const marginBottom = 15
+      const marginLeft = 10
+      const marginRight = 10
+      
+      // Usable area
+      const usableWidth = pageWidth - marginLeft - marginRight
+      const usableHeight = pageHeight - marginTop - marginBottom
+      
+      // Scale image to fit width
       const imgWidth = canvas.width
       const imgHeight = canvas.height
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-      const imgX = (pdfWidth - imgWidth * ratio) / 2
-      const imgY = 10
-
-      // Add header
-      pdf.setFontSize(10)
-      pdf.setTextColor(100)
-      pdf.text('VisionDrive Smart Kitchen - Compliance Report', 14, 8)
-      pdf.text(new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }), pdfWidth - 14, 8, { align: 'right' })
-
-      // Calculate if we need multiple pages
-      const scaledHeight = imgHeight * ratio
-      let heightLeft = scaledHeight
-      let position = imgY
-
-      // Add the image, potentially across multiple pages
-      while (heightLeft > 0) {
-        pdf.addImage(imgData, 'PNG', imgX, position, imgWidth * ratio, imgHeight * ratio)
-        heightLeft -= pdfHeight - 20
-        if (heightLeft > 0) {
-          pdf.addPage()
-          position = -pdfHeight + 30
-        }
-      }
-
-      // Add footer on last page
-      const pageCount = pdf.internal.pages.length - 1
-      for (let i = 1; i <= pageCount; i++) {
-        pdf.setPage(i)
-        pdf.setFontSize(8)
-        pdf.setTextColor(150)
+      const ratio = usableWidth / imgWidth
+      const scaledImgHeight = imgHeight * ratio
+      
+      // Calculate number of pages needed
+      const totalPages = Math.ceil(scaledImgHeight / usableHeight)
+      
+      // Add header/footer function
+      const addHeaderFooter = (pageNum: number, totalPagesCount: number) => {
+        // Header
+        pdf.setFontSize(9)
+        pdf.setTextColor(80)
+        pdf.text('VisionDrive Smart Kitchen - Compliance Report', marginLeft, 10)
+        pdf.text(new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric'
+        }), pageWidth - marginRight, 10, { align: 'right' })
+        
+        // Footer
+        pdf.setFontSize(7)
+        pdf.setTextColor(120)
         pdf.text(
-          `Reference: DM-HSD-GU46-KFPA2 | Dubai Municipality Food Safety Guidelines`,
-          14,
-          pdfHeight - 10
+          'Reference: DM-HSD-GU46-KFPA2 | Dubai Municipality Food Safety Guidelines',
+          marginLeft,
+          pageHeight - 8
         )
-        pdf.text(`Page ${i} of ${pageCount}`, pdfWidth - 14, pdfHeight - 10, { align: 'right' })
+        pdf.text(`Page ${pageNum} of ${totalPagesCount}`, pageWidth - marginRight, pageHeight - 8, { align: 'right' })
+      }
+      
+      // Generate pages
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage()
+        }
+        
+        // Calculate the portion of image to show on this page
+        const sourceY = page * (usableHeight / ratio)
+        const sourceHeight = Math.min(usableHeight / ratio, imgHeight - sourceY)
+        const destHeight = sourceHeight * ratio
+        
+        // Create a temporary canvas for this page's portion
+        const tempCanvas = document.createElement('canvas')
+        tempCanvas.width = imgWidth
+        tempCanvas.height = sourceHeight
+        const ctx = tempCanvas.getContext('2d')
+        
+        if (ctx) {
+          // Draw the portion of the original canvas
+          ctx.drawImage(
+            canvas,
+            0, sourceY,           // Source x, y
+            imgWidth, sourceHeight, // Source width, height
+            0, 0,                 // Dest x, y
+            imgWidth, sourceHeight  // Dest width, height
+          )
+          
+          const pageImgData = tempCanvas.toDataURL('image/png')
+          pdf.addImage(pageImgData, 'PNG', marginLeft, marginTop, usableWidth, destHeight)
+        }
+        
+        addHeaderFooter(page + 1, totalPages)
       }
 
       // Generate filename with date
