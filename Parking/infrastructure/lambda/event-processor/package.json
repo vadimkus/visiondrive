@@ -1,0 +1,11 @@
+{
+  "name": "parking-event-processor",
+  "version": "1.0.0",
+  "description": "Event processor Lambda for VisionDrive Parking",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.400.0",
+    "@aws-sdk/client-sns": "^3.400.0",
+    "@aws-sdk/util-dynamodb": "^3.400.0"
+  }
+}

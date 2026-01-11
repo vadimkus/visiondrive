@@ -5,18 +5,13 @@ import {
   Thermometer, 
   AlertTriangle, 
   CheckCircle, 
-  Battery, 
-  Signal, 
-  RefreshCw,
+  Activity,
   TrendingUp,
   TrendingDown,
-  Minus,
-  ChefHat
+  ChevronRight,
+  Clock
 } from 'lucide-react'
-import KitchenCard from './components/KitchenCard'
-import AlertsPanel from './components/AlertsPanel'
-import TemperatureChart from './components/TemperatureChart'
-import SensorGrid from './components/SensorGrid'
+import Link from 'next/link'
 
 interface Kitchen {
   id: string
@@ -26,18 +21,7 @@ interface Kitchen {
   activeAlerts: number
   avgTemperature: number
   status: 'normal' | 'warning' | 'critical'
-}
-
-interface Alert {
-  id: string
-  deviceId: string
-  kitchenId: string
-  kitchenName: string
-  type: 'HIGH_TEMP' | 'LOW_TEMP' | 'BATTERY_LOW' | 'OFFLINE'
-  temperature?: number
-  threshold?: number
-  createdAt: string
-  acknowledged: boolean
+  lastReading: string
 }
 
 interface Stats {
@@ -49,7 +33,6 @@ interface Stats {
 
 export default function SmartKitchenDashboard() {
   const [kitchens, setKitchens] = useState<Kitchen[]>([])
-  const [alerts, setAlerts] = useState<Alert[]>([])
   const [stats, setStats] = useState<Stats>({
     totalSensors: 0,
     onlineSensors: 0,
@@ -57,233 +40,282 @@ export default function SmartKitchenDashboard() {
     avgTemperature: 0
   })
   const [isLoading, setIsLoading] = useState(true)
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
 
-  // Mock data for demonstration - replace with actual API calls
   useEffect(() => {
     loadDashboardData()
-    // Refresh every 30 seconds
     const interval = setInterval(loadDashboardData, 30000)
     return () => clearInterval(interval)
   }, [])
 
   const loadDashboardData = async () => {
     setIsLoading(true)
-    try {
-      // TODO: Replace with actual API calls
-      // const [kitchensRes, alertsRes, statsRes] = await Promise.all([
-      //   fetch('/api/portal/smart-kitchen/kitchens'),
-      //   fetch('/api/portal/smart-kitchen/alerts?active=true'),
-      //   fetch('/api/portal/smart-kitchen/stats')
-      // ])
+    // Mock data - replace with API calls
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    setKitchens([
+      { id: 'kitchen-001', name: 'Main Kitchen', location: 'Dubai Marina', sensorCount: 5, activeAlerts: 0, avgTemperature: 4.2, status: 'normal', lastReading: '2 min ago' },
+      { id: 'kitchen-002', name: 'Cloud Kitchen A', location: 'Business Bay', sensorCount: 3, activeAlerts: 1, avgTemperature: 6.8, status: 'warning', lastReading: '1 min ago' },
+      { id: 'kitchen-003', name: 'Restaurant Kitchen', location: 'JLT', sensorCount: 4, activeAlerts: 0, avgTemperature: 3.5, status: 'normal', lastReading: '3 min ago' },
+    ])
 
-      // Mock data for now
-      setKitchens([
-        { id: 'kitchen-001', name: 'Main Kitchen', location: 'Dubai Marina', sensorCount: 5, activeAlerts: 0, avgTemperature: 4.2, status: 'normal' },
-        { id: 'kitchen-002', name: 'Cloud Kitchen A', location: 'Business Bay', sensorCount: 3, activeAlerts: 1, avgTemperature: 6.8, status: 'warning' },
-        { id: 'kitchen-003', name: 'Restaurant Kitchen', location: 'JLT', sensorCount: 4, activeAlerts: 0, avgTemperature: 3.5, status: 'normal' },
-      ])
+    setStats({
+      totalSensors: 12,
+      onlineSensors: 11,
+      activeAlerts: 1,
+      avgTemperature: 4.5
+    })
 
-      setAlerts([
-        { 
-          id: 'alert-001', 
-          deviceId: 'sensor-005', 
-          kitchenId: 'kitchen-002', 
-          kitchenName: 'Cloud Kitchen A',
-          type: 'HIGH_TEMP', 
-          temperature: 9.2, 
-          threshold: 8,
-          createdAt: new Date(Date.now() - 15 * 60000).toISOString(),
-          acknowledged: false
-        },
-      ])
-
-      setStats({
-        totalSensors: 12,
-        onlineSensors: 11,
-        activeAlerts: 1,
-        avgTemperature: 4.5
-      })
-
-      setLastUpdated(new Date())
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleAcknowledgeAlert = async (alertId: string) => {
-    // TODO: Call API to acknowledge alert
-    setAlerts(prev => prev.map(a => 
-      a.id === alertId ? { ...a, acknowledged: true } : a
-    ))
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'normal': return 'text-emerald-600'
-      case 'warning': return 'text-amber-600'
-      case 'critical': return 'text-red-600'
-      default: return 'text-gray-600'
-    }
-  }
-
-  const getStatusBg = (status: string) => {
-    switch (status) {
-      case 'normal': return 'bg-emerald-50'
-      case 'warning': return 'bg-amber-50'
-      case 'critical': return 'bg-red-50'
-      default: return 'bg-gray-50'
-    }
+    setIsLoading(false)
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <ChefHat className="h-7 w-7 text-orange-500" />
-            Smart Kitchen Monitoring
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Real-time temperature monitoring for all kitchen locations
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </span>
-          <button
-            onClick={loadDashboardData}
-            disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-        </div>
+    <div className="p-8 max-w-7xl mx-auto">
+      {/* Page Title */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Overview</h1>
+        <p className="text-sm text-gray-500 mt-1">Real-time temperature monitoring across all locations</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
-          title="Total Sensors"
+          label="Total Sensors"
           value={stats.totalSensors}
           icon={Thermometer}
           color="blue"
         />
         <StatCard
-          title="Online"
+          label="Online"
           value={`${stats.onlineSensors}/${stats.totalSensors}`}
-          subtitle={`${Math.round((stats.onlineSensors / stats.totalSensors) * 100)}% uptime`}
-          icon={Signal}
+          subtitle={`${Math.round((stats.onlineSensors / Math.max(stats.totalSensors, 1)) * 100)}% uptime`}
+          icon={Activity}
           color="green"
         />
         <StatCard
-          title="Active Alerts"
+          label="Active Alerts"
           value={stats.activeAlerts}
           icon={stats.activeAlerts > 0 ? AlertTriangle : CheckCircle}
           color={stats.activeAlerts > 0 ? 'red' : 'green'}
         />
         <StatCard
-          title="Avg Temperature"
+          label="Avg Temperature"
           value={`${stats.avgTemperature.toFixed(1)}°C`}
           icon={Thermometer}
-          color="cyan"
-          trend={stats.avgTemperature > 5 ? 'up' : stats.avgTemperature < 3 ? 'down' : 'stable'}
+          color="orange"
+          trend={stats.avgTemperature > 5 ? 'up' : 'down'}
         />
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Kitchens List */}
-        <div className="lg:col-span-2 space-y-4">
+      {/* Kitchens Grid */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Kitchen Locations</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {kitchens.map(kitchen => (
-              <KitchenCard key={kitchen.id} kitchen={kitchen} />
-            ))}
+          <Link 
+            href="/portal/smart-kitchen/kitchens"
+            className="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1 transition-colors"
+          >
+            View all <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {kitchens.map(kitchen => (
+            <KitchenCard key={kitchen.id} kitchen={kitchen} />
+          ))}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Recent Alerts */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900">Recent Alerts</h3>
+            <Link 
+              href="/portal/smart-kitchen/alerts"
+              className="text-xs text-gray-500 hover:text-gray-900"
+            >
+              View all
+            </Link>
+          </div>
+          
+          {stats.activeAlerts > 0 ? (
+            <div className="space-y-3">
+              <AlertItem 
+                type="HIGH_TEMP"
+                message="Temperature 9.2°C exceeds threshold 8°C"
+                kitchen="Cloud Kitchen A"
+                sensor="sensor-005"
+                time="15 min ago"
+              />
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <CheckCircle className="h-12 w-12 text-emerald-400 mx-auto mb-3" />
+              <p className="text-sm text-gray-500">All temperatures normal</p>
+            </div>
+          )}
+        </div>
+
+        {/* System Status */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-gray-900 mb-4">System Status</h3>
+          
+          <div className="space-y-4">
+            <StatusRow label="AWS IoT Core" status="operational" />
+            <StatusRow label="Data Pipeline" status="operational" />
+            <StatusRow label="Alert System" status="operational" />
+            <StatusRow label="API Gateway" status="operational" />
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-xs text-gray-400 flex items-center gap-1">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              All systems operational • UAE Region
+            </p>
           </div>
         </div>
-
-        {/* Alerts Panel */}
-        <div>
-          <AlertsPanel 
-            alerts={alerts} 
-            onAcknowledge={handleAcknowledgeAlert}
-          />
-        </div>
-      </div>
-
-      {/* Temperature Chart */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Temperature Trends (24h)</h2>
-        <TemperatureChart />
-      </div>
-
-      {/* Sensor Grid */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">All Sensors</h2>
-        <SensorGrid />
       </div>
     </div>
   )
 }
 
-// Stat Card Component
 function StatCard({ 
-  title, 
+  label, 
   value, 
-  subtitle, 
+  subtitle,
   icon: Icon, 
   color,
   trend 
 }: { 
-  title: string
+  label: string
   value: string | number
   subtitle?: string
   icon: React.ElementType
-  color: 'blue' | 'green' | 'red' | 'cyan' | 'orange'
-  trend?: 'up' | 'down' | 'stable'
+  color: 'blue' | 'green' | 'red' | 'orange'
+  trend?: 'up' | 'down'
 }) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-200',
-    green: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    red: 'bg-red-50 text-red-600 border-red-200',
-    cyan: 'bg-cyan-50 text-cyan-600 border-cyan-200',
-    orange: 'bg-orange-50 text-orange-600 border-orange-200',
+  const colors = {
+    blue: 'from-blue-500 to-blue-600',
+    green: 'from-emerald-500 to-emerald-600',
+    red: 'from-red-500 to-red-600',
+    orange: 'from-orange-500 to-orange-600',
   }
-
-  const iconColorClasses = {
-    blue: 'text-blue-500',
-    green: 'text-emerald-500',
-    red: 'text-red-500',
-    cyan: 'text-cyan-500',
-    orange: 'text-orange-500',
-  }
-
-  const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus
 
   return (
-    <div className={`rounded-xl border p-4 ${colorClasses[color]}`}>
-      <div className="flex items-center justify-between">
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium opacity-80">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
-          {subtitle && <p className="text-xs opacity-70 mt-1">{subtitle}</p>}
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+          <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
+          {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
         </div>
-        <div className="flex flex-col items-center gap-1">
-          <Icon className={`h-8 w-8 ${iconColorClasses[color]}`} />
-          {trend && (
-            <TrendIcon className={`h-4 w-4 ${
-              trend === 'up' ? 'text-red-500' : 
-              trend === 'down' ? 'text-blue-500' : 
-              'text-gray-400'
-            }`} />
-          )}
+        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center shadow-lg`}>
+          <Icon className="h-5 w-5 text-white" />
         </div>
+      </div>
+      {trend && (
+        <div className={`flex items-center gap-1 mt-3 text-xs ${trend === 'up' ? 'text-red-500' : 'text-emerald-500'}`}>
+          {trend === 'up' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+          <span>{trend === 'up' ? 'Above' : 'Below'} target</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function KitchenCard({ kitchen }: { kitchen: Kitchen }) {
+  const statusColors = {
+    normal: 'bg-emerald-500',
+    warning: 'bg-amber-500',
+    critical: 'bg-red-500',
+  }
+
+  return (
+    <Link href={`/portal/smart-kitchen/kitchens/${kitchen.id}`}>
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
+              {kitchen.name}
+            </h3>
+            <p className="text-xs text-gray-500 mt-0.5">{kitchen.location}</p>
+          </div>
+          <div className={`w-2.5 h-2.5 rounded-full ${statusColors[kitchen.status]}`} />
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-2xl font-semibold text-gray-900">
+              {kitchen.avgTemperature.toFixed(1)}°
+            </p>
+            <p className="text-xs text-gray-500">Avg Temp</p>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold text-gray-900">{kitchen.sensorCount}</p>
+            <p className="text-xs text-gray-500">Sensors</p>
+          </div>
+          <div>
+            <p className={`text-2xl font-semibold ${kitchen.activeAlerts > 0 ? 'text-red-500' : 'text-gray-900'}`}>
+              {kitchen.activeAlerts}
+            </p>
+            <p className="text-xs text-gray-500">Alerts</p>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+          <span className="text-xs text-gray-400 flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {kitchen.lastReading}
+          </span>
+          <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-orange-500 transition-colors" />
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+function AlertItem({ 
+  type, 
+  message, 
+  kitchen, 
+  sensor, 
+  time 
+}: { 
+  type: string
+  message: string
+  kitchen: string
+  sensor: string
+  time: string 
+}) {
+  return (
+    <div className="flex items-start gap-3 p-3 bg-red-50 rounded-xl">
+      <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+        <AlertTriangle className="h-4 w-4 text-red-600" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-red-900">{message}</p>
+        <p className="text-xs text-red-600 mt-0.5">
+          {kitchen} • {sensor} • {time}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function StatusRow({ label, status }: { label: string; status: 'operational' | 'degraded' | 'down' }) {
+  const statusConfig = {
+    operational: { color: 'bg-emerald-500', text: 'Operational' },
+    degraded: { color: 'bg-amber-500', text: 'Degraded' },
+    down: { color: 'bg-red-500', text: 'Down' },
+  }
+
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-gray-600">{label}</span>
+      <div className="flex items-center gap-2">
+        <span className={`w-2 h-2 rounded-full ${statusConfig[status].color}`} />
+        <span className="text-xs text-gray-500">{statusConfig[status].text}</span>
       </div>
     </div>
   )
