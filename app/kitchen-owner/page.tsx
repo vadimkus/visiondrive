@@ -164,128 +164,129 @@ export default function OwnerDashboard() {
   }
 
   return (
-    <div className={`p-6 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
-      {/* Overall Status Hero */}
-      <div className={`rounded-2xl p-6 mb-6 ${
-        overallStatus === 'good' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' :
-        overallStatus === 'warning' ? 'bg-gradient-to-br from-amber-500 to-orange-500' :
-        'bg-gradient-to-br from-red-500 to-red-600'
-      } text-white shadow-lg`}>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              {overallStatus === 'good' ? (
-                <CheckCircle className="h-8 w-8" />
-              ) : (
-                <AlertTriangle className="h-8 w-8" />
-              )}
-              <div>
-                <h2 className="text-2xl font-bold">
-                  {overallStatus === 'good' ? 'All Clear' : 
-                   overallStatus === 'warning' ? 'Attention Needed' : 
-                   'Immediate Action Required'}
-                </h2>
-                <p className="text-white/80">
-                  {overallStatus === 'good' 
-                    ? 'All temperatures are within safe ranges' 
-                    : `${warningCount + criticalCount} sensor${warningCount + criticalCount > 1 ? 's' : ''} need${warningCount + criticalCount === 1 ? 's' : ''} attention`}
-                </p>
-              </div>
+    <div className={`p-4 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+      {/* Overall Status Hero - Compact */}
+      <div className={`rounded-xl p-4 mb-4 ${
+        overallStatus === 'good' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
+        overallStatus === 'warning' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+        'bg-gradient-to-r from-red-500 to-red-600'
+      } text-white shadow-md`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {overallStatus === 'good' ? (
+              <CheckCircle className="h-6 w-6" />
+            ) : (
+              <AlertTriangle className="h-6 w-6" />
+            )}
+            <div>
+              <h2 className="text-lg font-semibold">
+                {overallStatus === 'good' ? 'All Clear' : 
+                 overallStatus === 'warning' ? 'Attention Needed' : 
+                 'Action Required'}
+              </h2>
+              <p className="text-white/80 text-sm">
+                {overallStatus === 'good' 
+                  ? 'All temperatures within safe ranges' 
+                  : `${warningCount + criticalCount} sensor${warningCount + criticalCount > 1 ? 's' : ''} need${warningCount + criticalCount === 1 ? 's' : ''} attention`}
+              </p>
             </div>
             
-            <div className="flex items-center gap-6 mt-4">
+            <div className="flex items-center gap-4 ml-6 pl-6 border-l border-white/20">
               <div className="text-center">
-                <p className="text-3xl font-bold">{complianceRate}%</p>
-                <p className="text-sm text-white/70">Compliance</p>
+                <p className="text-2xl font-bold">{complianceRate}%</p>
+                <p className="text-xs text-white/70">Compliance</p>
               </div>
-              <div className="w-px h-10 bg-white/20" />
               <div className="text-center">
-                <p className="text-3xl font-bold">{onlineCount}/{SENSORS.length}</p>
-                <p className="text-sm text-white/70">Online</p>
+                <p className="text-2xl font-bold">{onlineCount}/{SENSORS.length}</p>
+                <p className="text-xs text-white/70">Online</p>
               </div>
-              <div className="w-px h-10 bg-white/20" />
               <div className="text-center">
-                <p className="text-3xl font-bold">{RECENT_ALERTS.filter(a => !a.acknowledged).length}</p>
-                <p className="text-sm text-white/70">Alerts</p>
+                <p className="text-2xl font-bold">{RECENT_ALERTS.filter(a => !a.acknowledged).length}</p>
+                <p className="text-xs text-white/70">Alerts</p>
               </div>
             </div>
           </div>
           
-          <div className="text-right">
-            <p className="text-white/60 text-sm">Last updated</p>
-            <p className="text-xl font-light tabular-nums">
+          <div className="text-right text-sm">
+            <p className="text-lg font-medium tabular-nums">
               {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </p>
-            <p className="text-white/60 text-sm mt-0.5">
-              {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+            <p className="text-white/70 text-xs">
+              {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      {/* Quick Actions - Compact */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
         <button 
           onClick={() => router.push('/kitchen-owner/reports')}
-          className={`rounded-xl p-4 text-left hover:shadow-md transition-all group ${
+          className={`rounded-lg p-3 text-left hover:shadow-sm transition-all group flex items-center gap-3 ${
             isDark ? 'bg-[#2d2d2f] border border-gray-700 hover:border-gray-600' : 'bg-white border border-gray-100'
           }`}
         >
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors ${
-            isDark ? 'bg-blue-900/30 group-hover:bg-blue-900/50' : 'bg-blue-50 group-hover:bg-blue-100'
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+            isDark ? 'bg-blue-900/30' : 'bg-blue-50'
           }`}>
-            <FileText className={`h-5 w-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+            <FileText className={`h-4 w-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
           </div>
-          <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Download Report</h3>
-          <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Get compliance PDF</p>
+          <div>
+            <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Download Report</h3>
+            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>PDF</p>
+          </div>
         </button>
         
-        <button className={`rounded-xl p-4 text-left hover:shadow-md transition-all group ${
+        <button className={`rounded-lg p-3 text-left hover:shadow-sm transition-all group flex items-center gap-3 ${
           isDark ? 'bg-[#2d2d2f] border border-gray-700 hover:border-gray-600' : 'bg-white border border-gray-100'
         }`}>
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors ${
-            isDark ? 'bg-purple-900/30 group-hover:bg-purple-900/50' : 'bg-purple-50 group-hover:bg-purple-100'
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+            isDark ? 'bg-purple-900/30' : 'bg-purple-50'
           }`}>
-            <TrendingUp className={`h-5 w-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+            <TrendingUp className={`h-4 w-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
           </div>
-          <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>View History</h3>
-          <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Temperature trends</p>
+          <div>
+            <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>View History</h3>
+            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Trends</p>
+          </div>
         </button>
         
         <button 
           onClick={() => router.push('/kitchen-owner/compliance')}
-          className={`rounded-xl p-4 text-left hover:shadow-md transition-all group ${
+          className={`rounded-lg p-3 text-left hover:shadow-sm transition-all group flex items-center gap-3 ${
             isDark ? 'bg-[#2d2d2f] border border-gray-700 hover:border-gray-600' : 'bg-white border border-gray-100'
           }`}
         >
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors ${
-            isDark ? 'bg-emerald-900/30 group-hover:bg-emerald-900/50' : 'bg-emerald-50 group-hover:bg-emerald-100'
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+            isDark ? 'bg-emerald-900/30' : 'bg-emerald-50'
           }`}>
-            <Shield className={`h-5 w-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+            <Shield className={`h-4 w-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
           </div>
-          <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>DM Guidelines</h3>
-          <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Food safety rules</p>
+          <div>
+            <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>DM Guidelines</h3>
+            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Safety</p>
+          </div>
         </button>
       </div>
 
-      {/* Sensors Grid */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Your Sensors</h2>
+      {/* Sensors Grid - Compact */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Your Sensors</h2>
           <button 
             onClick={() => setShowAllSensors(!showAllSensors)}
-            className="text-sm text-orange-500 hover:text-orange-400 font-medium flex items-center gap-1"
+            className="text-xs text-orange-500 hover:text-orange-400 font-medium flex items-center gap-0.5"
           >
-            {showAllSensors ? 'Show Less' : 'View All'}
-            <ChevronRight className={`h-4 w-4 transition-transform ${showAllSensors ? 'rotate-90' : ''}`} />
+            {showAllSensors ? 'Less' : 'All'}
+            <ChevronRight className={`h-3 w-3 transition-transform ${showAllSensors ? 'rotate-90' : ''}`} />
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(showAllSensors ? SENSORS : SENSORS.slice(0, 3)).map(sensor => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+          {(showAllSensors ? SENSORS : SENSORS.slice(0, 5)).map(sensor => (
             <div 
               key={sensor.id}
-              className={`rounded-xl p-4 border transition-all hover:shadow-md ${
+              className={`rounded-lg p-3 border transition-all hover:shadow-sm ${
                 isDark 
                   ? `bg-[#2d2d2f] ${
                       sensor.status === 'warning' ? 'border-amber-700' :
@@ -299,65 +300,38 @@ export default function OwnerDashboard() {
                     }`
               }`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{sensor.icon}</span>
-                  <div>
-                    <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{sensor.name}</h3>
-                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Updated {sensor.lastUpdate}</p>
-                  </div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg">{sensor.icon}</span>
+                  <span className={`font-medium text-xs ${isDark ? 'text-white' : 'text-gray-900'}`}>{sensor.name}</span>
                 </div>
-                <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                  isDark 
-                    ? sensor.online ? 'bg-emerald-900/30 text-emerald-400' : 'bg-gray-700 text-gray-400'
-                    : getStatusBg(sensor.status) + ' ' + getStatusColor(sensor.status)
-                }`}>
-                  {sensor.online ? (
-                    <>
-                      <Wifi className="h-3 w-3" />
-                      Online
-                    </>
-                  ) : (
-                    <>
-                      <WifiOff className="h-3 w-3" />
-                      Offline
-                    </>
-                  )}
-                </div>
+                {sensor.online ? (
+                  <Wifi className={`h-3 w-3 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                ) : (
+                  <WifiOff className="h-3 w-3 text-gray-400" />
+                )}
               </div>
               
               <div className="flex items-end justify-between">
                 <div>
-                  <p className={`text-3xl font-bold ${getStatusColor(sensor.status)}`}>
+                  <p className={`text-xl font-bold ${getStatusColor(sensor.status)}`}>
                     {formatTemp(sensor.currentTemp)}
                   </p>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Required: {formatRange(sensor.requiredRange)}
+                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {formatRange(sensor.requiredRange)}
                   </p>
                 </div>
                 
-                <div className="text-right">
-                  {sensor.status === 'compliant' ? (
-                    <span className={`inline-flex items-center gap-1 text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                      <CheckCircle className="h-3.5 w-3.5" />
-                      OK
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-amber-500 text-xs font-medium">
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      Check
-                    </span>
-                  )}
-                </div>
+                {sensor.status === 'compliant' ? (
+                  <CheckCircle className={`h-4 w-4 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                )}
               </div>
               
-              {/* Battery indicator */}
-              <div className={`mt-3 pt-3 border-t ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                <div className={`flex items-center justify-between text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  <span>Battery</span>
-                  <span>{sensor.battery}%</span>
-                </div>
-                <div className={`mt-1 h-1 rounded-full overflow-hidden ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+              {/* Battery - inline */}
+              <div className={`mt-2 flex items-center gap-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                <div className={`flex-1 h-1 rounded-full overflow-hidden ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
                   <div 
                     className={`h-full rounded-full ${
                       sensor.battery > 50 ? 'bg-emerald-500' :
@@ -366,41 +340,42 @@ export default function OwnerDashboard() {
                     style={{ width: `${sensor.battery}%` }}
                   />
                 </div>
+                <span className="text-[10px]">{sensor.battery}%</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Recent Alerts */}
-      <div className={`rounded-xl border overflow-hidden ${
+      {/* Recent Alerts - Compact */}
+      <div className={`rounded-lg border overflow-hidden ${
         isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'
       }`}>
-        <div className={`px-4 py-3 border-b flex items-center justify-between ${
+        <div className={`px-3 py-2 border-b flex items-center justify-between ${
           isDark ? 'border-gray-700' : 'border-gray-100'
         }`}>
-          <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Alerts</h2>
+          <h2 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Alerts</h2>
           <button 
             onClick={() => router.push('/kitchen-owner/alerts')}
-            className="text-sm text-orange-500 hover:text-orange-400 font-medium"
+            className="text-xs text-orange-500 hover:text-orange-400 font-medium"
           >
-            View All
+            All
           </button>
         </div>
         
         <div className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-50'}`}>
           {RECENT_ALERTS.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <CheckCircle className={`h-10 w-10 mx-auto mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
-              <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No alerts - everything is running smoothly!</p>
+            <div className="px-3 py-4 text-center">
+              <CheckCircle className={`h-6 w-6 mx-auto mb-1 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
+              <p className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No alerts</p>
             </div>
           ) : (
             RECENT_ALERTS.map(alert => (
-              <div key={alert.id} className={`px-4 py-3 flex items-center justify-between transition-colors ${
+              <div key={alert.id} className={`px-3 py-2 flex items-center justify-between transition-colors ${
                 isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
               }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                <div className="flex items-center gap-2">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
                     isDark
                       ? alert.severity === 'warning' ? 'bg-amber-900/30' :
                         alert.severity === 'critical' ? 'bg-red-900/30' : 'bg-blue-900/30'
@@ -408,9 +383,9 @@ export default function OwnerDashboard() {
                         alert.severity === 'critical' ? 'bg-red-100' : 'bg-blue-100'
                   }`}>
                     {alert.severity === 'info' ? (
-                      <CheckCircle className={`h-4 w-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                      <CheckCircle className={`h-3 w-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                     ) : (
-                      <AlertTriangle className={`h-4 w-4 ${
+                      <AlertTriangle className={`h-3 w-3 ${
                         alert.severity === 'warning' 
                           ? isDark ? 'text-amber-400' : 'text-amber-600' 
                           : isDark ? 'text-red-400' : 'text-red-600'
@@ -418,15 +393,15 @@ export default function OwnerDashboard() {
                     )}
                   </div>
                   <div>
-                    <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{alert.sensor}</p>
-                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{alert.message}</p>
+                    <p className={`font-medium text-xs ${isDark ? 'text-white' : 'text-gray-900'}`}>{alert.sensor}</p>
+                    <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{alert.message}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{alert.time}</p>
+                <div className="text-right flex-shrink-0">
+                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{alert.time}</p>
                   {!alert.acknowledged && (
-                    <button className="text-xs text-orange-500 hover:text-orange-400 font-medium mt-0.5">
-                      Acknowledge
+                    <button className="text-[10px] text-orange-500 hover:text-orange-400 font-medium">
+                      Ack
                     </button>
                   )}
                 </div>

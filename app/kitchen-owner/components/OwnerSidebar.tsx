@@ -64,38 +64,38 @@ export default function OwnerSidebar() {
   const isDark = theme === 'dark'
 
   return (
-    <aside className={`w-64 flex flex-col h-screen sticky top-0 transition-colors duration-300 ${
+    <aside className={`w-52 flex flex-col h-screen sticky top-0 transition-colors duration-300 ${
       isDark ? 'bg-[#1d1d1f] border-r border-gray-800' : 'bg-white border-r border-gray-200'
     }`}>
-      {/* Header */}
-      <div className={`p-5 border-b ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center text-white font-bold text-lg ${isDark ? 'shadow-lg shadow-orange-900/30' : 'shadow-lg shadow-orange-200'}`}>
-            <ChefHat className="h-5 w-5" />
+      {/* Header - Compact */}
+      <div className={`p-3 border-b ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white ${isDark ? 'shadow-md shadow-orange-900/30' : 'shadow-md shadow-orange-200'}`}>
+            <ChefHat className="h-4 w-4" />
           </div>
           <div>
-            <h1 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Smart Kitchen</h1>
-            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Owner Portal</p>
+            <h1 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Smart Kitchen</h1>
+            <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Owner Portal</p>
           </div>
         </div>
         
-        {/* Time */}
-        <div className={`mt-4 px-3 py-2.5 rounded-xl ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
-          <p className={`text-2xl font-light tabular-nums ${isDark ? 'text-white' : 'text-gray-900'}`}>
+        {/* Time - Compact */}
+        <div className={`mt-2 px-2 py-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+          <p className={`text-lg font-light tabular-nums ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-            <span className={`text-sm ml-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+            <span className={`text-xs ml-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
               {currentTime.toLocaleTimeString('en-US', { second: '2-digit' }).slice(-2)}
             </span>
           </p>
-          <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </p>
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="flex-1 p-3 overflow-y-auto">
-        <div className="space-y-1">
+      {/* Main Navigation - Compact */}
+      <nav className="flex-1 p-2 overflow-y-auto">
+        <div className="space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon
             const active = isActive(item.href)
@@ -104,16 +104,16 @@ export default function OwnerSidebar() {
               <button
                 key={item.id}
                 onClick={() => router.push(item.href)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   active
                     ? isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-50 text-orange-600'
                     : isDark ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                <Icon className={`h-5 w-5 ${active ? 'text-orange-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                <Icon className={`h-4 w-4 ${active ? 'text-orange-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                 <span className="flex-1 text-left">{item.label}</span>
                 {item.badge && item.badge > 0 && (
-                  <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-medium rounded-full">
+                  <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-medium rounded-full">
                     {item.badge}
                   </span>
                 )}
@@ -123,10 +123,10 @@ export default function OwnerSidebar() {
         </div>
 
         {/* Separator */}
-        <div className={`my-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`} />
+        <div className={`my-2 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`} />
 
         {/* Bottom Nav */}
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {bottomNavItems.map((item) => {
             const Icon = item.icon
             const active = isActive(item.href)
@@ -135,13 +135,13 @@ export default function OwnerSidebar() {
               <button
                 key={item.id}
                 onClick={() => router.push(item.href)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   active
                     ? isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-50 text-orange-600'
                     : isDark ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                <Icon className={`h-5 w-5 ${active ? 'text-orange-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                <Icon className={`h-4 w-4 ${active ? 'text-orange-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                 <span className="flex-1 text-left">{item.label}</span>
               </button>
             )
@@ -149,48 +149,47 @@ export default function OwnerSidebar() {
         </div>
       </nav>
 
-      {/* Footer - User & Actions */}
-      <div className={`p-3 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+      {/* Footer - Compact */}
+      <div className={`p-2 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleTheme}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-2 ${
+          className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all mb-1.5 ${
             isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'
           }`}
         >
           {isDark ? (
-            <Sun className="h-5 w-5 text-yellow-400" />
+            <Sun className="h-4 w-4 text-yellow-400" />
           ) : (
-            <Moon className="h-5 w-5 text-gray-400" />
+            <Moon className="h-4 w-4 text-gray-400" />
           )}
-          <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+          <span>{isDark ? 'Light' : 'Dark'}</span>
         </button>
 
         {/* User Info */}
-        <div className={`flex items-center gap-3 px-3 py-3 rounded-xl ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
-          <div className="w-9 h-9 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+        <div className={`flex items-center gap-2 px-2 py-2 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+          <div className="w-7 h-7 bg-gradient-to-br from-orange-400 to-red-500 rounded-md flex items-center justify-center text-white font-semibold text-xs">
             {OWNER_DATA.initial}
           </div>
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{OWNER_DATA.name}</p>
-            <p className={`text-xs truncate ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{OWNER_DATA.kitchen}</p>
+            <p className={`text-xs font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{OWNER_DATA.name}</p>
+            <p className={`text-[10px] truncate ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{OWNER_DATA.kitchen}</p>
           </div>
           <button
             onClick={handleLogout}
-            className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+            className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
             title="Sign Out"
           >
-            <LogOut className={`h-4 w-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+            <LogOut className={`h-3.5 w-3.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
         </div>
 
         {/* Compliance Badge */}
-        <div className={`mt-3 px-3 py-2 rounded-lg border ${isDark ? 'bg-emerald-900/30 border-emerald-800' : 'bg-emerald-50 border-emerald-100'}`}>
-          <div className="flex items-center gap-2">
-            <Shield className={`h-4 w-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
-            <span className={`text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>DM Compliant</span>
+        <div className={`mt-1.5 px-2 py-1.5 rounded-md border ${isDark ? 'bg-emerald-900/30 border-emerald-800' : 'bg-emerald-50 border-emerald-100'}`}>
+          <div className="flex items-center gap-1.5">
+            <Shield className={`h-3 w-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+            <span className={`text-[10px] font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>DM Compliant</span>
           </div>
-          <p className={`text-[10px] mt-0.5 ${isDark ? 'text-emerald-500' : 'text-emerald-600'}`}>DM-HSD-GU46-KFPA2</p>
         </div>
       </div>
     </aside>
