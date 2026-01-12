@@ -60,13 +60,45 @@ aws lambda get-function --function-name VisionDrive-Parking-ApiHandler --profile
 |-------|----------|
 | Network connectivity | Check NB-IoT signal |
 | Wrong APN settings | Verify du APN configuration |
-| IoT certificate expired | Renew certificate |
+| Wrong MQTT credentials | Verify username/password |
+| Custom Authorizer issue | Check authorizer Lambda logs |
 | IoT rule disabled | Enable IoT rule |
 | Sensor battery depleted | Replace battery |
 
 **Debug Steps:**
 
-1. Check IoT Core logs:
+1. **Verify MQTT credentials are correct:**
+   
+   | Setting | Value |
+   |---------|-------|
+   | Host | `a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com` |
+   | Port | `8883` |
+   | Username | `swiott01` |
+   | Password | `Demolition999` |
+   | SSL | Enabled |
+
+2. **Check Custom Authorizer logs:**
+   ```bash
+   aws logs tail /aws/lambda/VisionDrive-Parking-CustomAuthorizer \
+     --follow \
+     --profile visiondrive-parking \
+     --region me-central-1
+   ```
+   
+   Look for:
+   - "Auth attempt for user: swiott01" - Connection attempt
+   - "User swiott01 authenticated successfully" - Success
+   - "Invalid credentials" - Wrong password
+
+3. **Verify Custom Authorizer is active:**
+   ```bash
+   aws iot describe-authorizer \
+     --authorizer-name VisionDriveParkingAuthorizer \
+     --profile visiondrive-parking \
+     --region me-central-1
+   ```
+
+4. **Check IoT Core logs:**
    ```bash
    aws logs tail /aws/iot/VisionDriveParkingStatusRule \
      --follow \
@@ -74,7 +106,7 @@ aws lambda get-function --function-name VisionDrive-Parking-ApiHandler --profile
      --region me-central-1
    ```
 
-2. Verify IoT rule is active:
+5. **Verify IoT rule is active:**
    ```bash
    aws iot get-topic-rule \
      --rule-name VisionDriveParkingStatusRule \
@@ -82,16 +114,59 @@ aws lambda get-function --function-name VisionDrive-Parking-ApiHandler --profile
      --region me-central-1
    ```
 
-3. Test MQTT connection:
+---
+
+### 2.1 Authentication Failures
+
+**Symptoms:**
+- Sensor connects but immediately disconnects
+- "Connection Failed" in SWIOTT app
+- No data in IoT Core
+
+**Causes & Solutions:**
+
+| Cause | Solution |
+|-------|----------|
+| Wrong username | Use `swiott01` |
+| Wrong password | Use `Demolition999` |
+| SSL not enabled | Enable SSL in SWIOTT app |
+| Wrong port | Use `8883` |
+| Authorizer not active | Check authorizer status |
+
+**Debug Steps:**
+
+1. **Check authorizer Lambda environment:**
    ```bash
-   mosquitto_pub -h a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com \
-     -p 8883 \
-     --cafile root-CA.crt \
-     --cert device.pem.crt \
-     --key private.pem.key \
-     -t "visiondrive/parking/test/test/status" \
-     -m '{"deviceId":"test","status":"vacant","battery":100,"signal":-70}'
+   aws lambda get-function-configuration \
+     --function-name VisionDrive-Parking-CustomAuthorizer \
+     --profile visiondrive-parking \
+     --region me-central-1 \
+     | jq '.Environment.Variables'
    ```
+   
+   Should show:
+   ```json
+   {
+     "SWIOTT_PASSWORD": "Demolition999",
+     "AWS_ACCOUNT_ID": "307436091440"
+   }
+   ```
+
+2. **Update password if needed:**
+   ```bash
+   aws lambda update-function-configuration \
+     --function-name VisionDrive-Parking-CustomAuthorizer \
+     --environment "Variables={SWIOTT_PASSWORD=Demolition999,AWS_ACCOUNT_ID=307436091440}" \
+     --region me-central-1 \
+     --profile visiondrive-parking
+   ```
+
+3. **Reconfigure sensor via SWIOTT app:**
+   - Connect via Bluetooth
+   - Go to CONFIG → NB-IoT
+   - Verify all settings match
+   - Tap UPDATE MQTT
+   - Reboot sensor
 
 ---
 

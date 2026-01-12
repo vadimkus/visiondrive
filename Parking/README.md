@@ -22,10 +22,10 @@ Smart parking management system using NB-IoT sensors with AWS cloud infrastructu
 │                           VISIONDRIVE PARKING                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│   ┌─────────┐                                            ┌─────────────┐    │
+│   ┌─────────┐       MQTT + Username/Password             ┌─────────────┐    │
 │   │ PSL01B  │──── NB-IoT (du) ────▶ AWS IoT Core ──────▶│   Lambda    │    │
-│   │ Sensors │                       (UAE Region)         │  Processor  │    │
-│   └─────────┘                                            └──────┬──────┘    │
+│   │ Sensors │    User: swiott01     │ Custom Auth │      │  Processor  │    │
+│   └─────────┘    SSL: Enabled       └─────────────┘      └──────┬──────┘    │
 │                                                                  │          │
 │                                                                  ▼          │
 │                                                          ┌──────────────┐   │
@@ -82,41 +82,49 @@ Parking/
 ├── README.md                 # This file
 │
 ├── docs/                     # Documentation
-│   ├── README.md
-│   ├── OVERVIEW.md
-│   ├── AWS_SETUP.md
-│   ├── API_REFERENCE.md
-│   ├── SENSOR_GUIDE.md
-│   ├── DASHBOARD_GUIDE.md
-│   ├── DEPLOYMENT.md
-│   ├── MIGRATION.md
-│   ├── TROUBLESHOOTING.md
-│   └── SECURITY.md
+│   ├── README.md             # Documentation index
+│   ├── OVERVIEW.md           # System overview
+│   ├── AWS_SETUP.md          # AWS services configuration
+│   ├── AWS_ACCOUNT_SETUP.md  # AWS account setup
+│   ├── API_REFERENCE.md      # REST API documentation
+│   ├── SENSOR_GUIDE.md       # PSL01B sensor configuration
+│   ├── DASHBOARD_GUIDE.md    # Portal user guide
+│   ├── DEPLOYMENT.md         # Deployment instructions
+│   ├── MIGRATION.md          # TimescaleDB migration guide
+│   ├── TROUBLESHOOTING.md    # Common issues & solutions
+│   └── SECURITY.md           # Security best practices
 │
 ├── infrastructure/           # AWS infrastructure
-│   ├── cdk/                  # CDK definitions
+│   ├── cdk/                  # CDK definitions (optional)
 │   │   ├── bin/
 │   │   ├── lib/
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
 │   └── lambda/               # Lambda functions
-│       ├── event-processor/
+│       ├── event-processor/  # Processes sensor events
 │       │   ├── index.js
 │       │   └── package.json
-│       └── api-handler/
-│           ├── index.js
+│       ├── api-handler/      # REST API handler
+│       │   ├── index.js
+│       │   └── package.json
+│       └── custom-authorizer/  # MQTT authentication
+│           ├── index.js        # Username/password validation
 │           └── package.json
 │
 └── scripts/                  # Utility scripts
     ├── deploy/
-    │   └── deploy-all.sh     # Full deployment
+    │   ├── deploy-all.sh     # Full infrastructure deployment
+    │   └── setup-mqtt-auth.sh  # MQTT auth setup
     ├── migration/
-    │   ├── run-migration.js  # TimescaleDB migration
-    │   └── explore-schema.js
+    │   ├── run-migration.js  # TimescaleDB → DynamoDB
+    │   ├── explore-schema.js # Schema exploration
+    │   └── package.json
     └── sensor-config/
         ├── register-sensors.ts
-        └── sensors.example.csv
+        ├── sensors.example.csv
+        ├── package.json
+        └── README.md
 ```
 
 ---
@@ -136,13 +144,32 @@ aws dynamodb scan --table-name VisionDrive-Parking --select COUNT \
 
 ### View Lambda Logs
 ```bash
+# API Handler logs
 aws logs tail /aws/lambda/VisionDrive-Parking-ApiHandler --follow \
+  --profile visiondrive-parking --region me-central-1
+
+# Event Processor logs
+aws logs tail /aws/lambda/VisionDrive-Parking-EventProcessor --follow \
+  --profile visiondrive-parking --region me-central-1
+
+# Custom Authorizer logs (for MQTT auth debugging)
+aws logs tail /aws/lambda/VisionDrive-Parking-CustomAuthorizer --follow \
   --profile visiondrive-parking --region me-central-1
 ```
 
 ### Deploy Updates
 ```bash
+# Full deployment
 cd scripts/deploy && ./deploy-all.sh
+
+# Update MQTT authentication only
+cd scripts/deploy && SWIOTT_PASSWORD='Demolition999' ./setup-mqtt-auth.sh
+```
+
+### Check Custom Authorizer
+```bash
+aws iot describe-authorizer --authorizer-name VisionDriveParkingAuthorizer \
+  --profile visiondrive-parking --region me-central-1
 ```
 
 ---
@@ -178,10 +205,22 @@ cd scripts/deploy && ./deploy-all.sh
 
 ---
 
-## 🔐 Security
+## 🔐 Security & Authentication
+
+### Sensor Authentication (MQTT)
+
+| Setting | Value |
+|---------|-------|
+| **Authorizer** | `VisionDriveParkingAuthorizer` |
+| **Username** | `swiott01` |
+| **Password** | `Demolition999` |
+| **SSL** | Enabled (Port 8883) |
+
+### Security Features
 
 - All data in UAE region (me-central-1)
-- TLS encryption in transit
+- TLS encryption in transit (MQTTS)
+- Custom Authorizer for sensor authentication
 - IAM-based access control
 - Credentials should be rotated regularly
 

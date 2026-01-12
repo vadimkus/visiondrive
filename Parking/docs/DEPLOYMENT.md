@@ -99,18 +99,67 @@ Visit: `https://your-domain.vercel.app/portal/parking`
 
 ---
 
-## Step 3: Sensor Configuration
+## Step 3: MQTT Authentication Setup
 
-### 3.1 Register Sensors
+### 3.1 Deploy Custom Authorizer
+
+SWIOTT PSL01B sensors use username/password authentication (not certificates). Deploy the custom authorizer:
+
+```bash
+cd /Users/vadimkus/VisionDrive/Parking/scripts/deploy
+chmod +x setup-mqtt-auth.sh
+SWIOTT_PASSWORD='Demolition999' ./setup-mqtt-auth.sh
+```
+
+This creates:
+- Custom Authorizer Lambda
+- IoT Core Authorizer (`VisionDriveParkingAuthorizer`)
+
+### 3.2 Verify Authorizer
+
+```bash
+aws iot describe-authorizer \
+  --authorizer-name VisionDriveParkingAuthorizer \
+  --profile visiondrive-parking \
+  --region me-central-1
+```
+
+---
+
+## Step 4: Sensor Configuration
+
+### 4.1 Register Sensors in Database
 
 ```bash
 cd /Users/vadimkus/VisionDrive/Parking/scripts/sensor-config
 npx tsx register-sensors.ts sensors.csv
 ```
 
-### 3.2 Configure IoT Certificates
+### 4.2 Configure Sensors via SWIOTT App
 
-For each sensor, create IoT thing with certificate:
+Use the **SWIOTT Sensor Tool** mobile app to configure each sensor:
+
+| Setting | Value |
+|---------|-------|
+| **MQTT Host** | `a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com` |
+| **Port** | `8883` |
+| **Timeout** | `60` |
+| **Username** | `swiott01` |
+| **Password** | `Demolition999` |
+| **SSL** | ENABLED |
+| **APN** | `du` |
+
+**Steps:**
+1. Connect to sensor via Bluetooth
+2. Go to CONFIG → NB-IoT tab
+3. Enter the settings above
+4. Tap **UPDATE MQTT**
+5. Tap **Device Reboot** in STATUS tab
+6. Reconnect and verify connection
+
+### 4.3 (Alternative) Certificate Authentication
+
+For sensors that support X.509 certificates:
 
 ```bash
 aws iot create-thing --thing-name PSL01B-001 --profile visiondrive-parking --region me-central-1

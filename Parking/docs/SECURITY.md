@@ -96,12 +96,116 @@ All data is stored in the **UAE region (me-central-1)** for compliance with loca
 
 #### Device Authentication
 
-Each sensor requires:
-1. **X.509 Certificate** - Device identity
-2. **IoT Policy** - Permission to publish/subscribe
-3. **Thing Registration** - Device metadata
+SWIOTT PSL01B sensors use **username/password authentication** via AWS IoT Custom Authorizer:
 
-**IoT Policy Example:**
+| Component | Value |
+|-----------|-------|
+| **Authorizer** | `VisionDriveParkingAuthorizer` |
+| **Username** | `swiott01` |
+| **Password** | `Demolition999` |
+| **Protocol** | MQTTS (TLS 1.2) |
+| **Port** | 8883 |
+
+#### Custom Authorizer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    MQTT AUTHENTICATION FLOW                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌─────────────┐                           ┌──────────────────────────┐ │
+│  │  PSL01B     │    MQTTS (8883)           │     AWS IoT Core         │ │
+│  │  Sensor     │───────────────────────────▶                          │ │
+│  │             │   Username: swiott01      │  ┌────────────────────┐  │ │
+│  │             │   Password: ********      │  │  Custom Authorizer │  │ │
+│  └─────────────┘                           │  │     (Lambda)       │  │ │
+│                                            │  └──────────┬─────────┘  │ │
+│                                            │             │            │ │
+│                                            │             ▼            │ │
+│                                            │  ┌────────────────────┐  │ │
+│                                            │  │ 1. Validate user   │  │ │
+│                                            │  │ 2. Check password  │  │ │
+│                                            │  │ 3. Return policy   │  │ │
+│                                            │  └────────────────────┘  │ │
+│                                            │             │            │ │
+│                                            │             ▼            │ │
+│                                            │  ┌────────────────────┐  │ │
+│                                            │  │   IAM Policy       │  │ │
+│                                            │  │   - iot:Connect    │  │ │
+│                                            │  │   - iot:Publish    │  │ │
+│                                            │  │   - iot:Subscribe  │  │ │
+│                                            │  └────────────────────┘  │ │
+│                                            │                          │ │
+│                                            └──────────────────────────┘ │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Custom Authorizer Lambda
+
+**Location:** `Parking/infrastructure/lambda/custom-authorizer/index.js`
+
+**Returned Policy (on successful auth):**
+```json
+{
+  "isAuthenticated": true,
+  "principalId": "swiott01",
+  "policyDocuments": [{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": "iot:Connect",
+        "Resource": "arn:aws:iot:me-central-1:307436091440:client/*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": "iot:Publish",
+        "Resource": "arn:aws:iot:me-central-1:307436091440:topic/visiondrive/parking/*"
+      }
+    ]
+  }]
+}
+```
+
+#### Credential Management
+
+**Current Setup:** All sensors share the same credentials for simplified management.
+
+**To Change Password:**
+```bash
+aws lambda update-function-configuration \
+  --function-name VisionDrive-Parking-CustomAuthorizer \
+  --environment "Variables={SWIOTT_PASSWORD=NEW_SECURE_PASSWORD,AWS_ACCOUNT_ID=307436091440}" \
+  --region me-central-1 \
+  --profile visiondrive-parking
+```
+
+⚠️ **After changing password:** Update all sensors via SWIOTT Sensor Tool app.
+
+#### Production Recommendations
+
+1. **Unique credentials per sensor** - Store in DynamoDB or Secrets Manager
+2. **Password rotation** - Rotate quarterly
+3. **Monitor auth failures** - CloudWatch alarm on failed authentications
+4. **Rate limiting** - Consider adding request throttling
+
+#### Alternative: X.509 Certificates
+
+For sensors that support certificates:
+
+```bash
+# Create thing and certificate
+aws iot create-thing --thing-name PSL01B-001 --region me-central-1
+
+aws iot create-keys-and-certificate \
+  --set-as-active \
+  --certificate-pem-outfile "sensor-cert.pem" \
+  --public-key-outfile "sensor-public.key" \
+  --private-key-outfile "sensor-private.key"
+```
+
+**IoT Policy for Certificate Auth:**
 ```json
 {
   "Version": "2012-10-17",
@@ -119,12 +223,6 @@ Each sensor requires:
   ]
 }
 ```
-
-#### Certificate Management
-
-- Rotate certificates annually
-- Revoke compromised certificates immediately
-- Use AWS IoT Fleet Provisioning for new devices
 
 ---
 

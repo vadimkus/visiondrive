@@ -104,6 +104,26 @@ https://o2s68toqw0.execute-api.me-central-1.amazonaws.com/prod
 a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com
 ```
 
+**Authentication:**
+
+The system uses **Custom Authorizer** for username/password MQTT authentication (required by SWIOTT PSL01B sensors).
+
+| Component | Value |
+|-----------|-------|
+| **Authorizer Name** | `VisionDriveParkingAuthorizer` |
+| **Authorizer ARN** | `arn:aws:iot:me-central-1:307436091440:authorizer/VisionDriveParkingAuthorizer` |
+| **Lambda Function** | `VisionDrive-Parking-CustomAuthorizer` |
+| **Auth Type** | Username/Password |
+
+**Sensor Credentials (All Sensors):**
+
+| Setting | Value |
+|---------|-------|
+| **Username** | `swiott01` |
+| **Password** | `Demolition999` |
+| **Port** | `8883` (MQTTS) |
+| **SSL** | Enabled |
+
 **Topics:**
 | Topic | Purpose |
 |-------|---------|
@@ -119,6 +139,35 @@ a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com
 2. **VisionDriveParkingBatteryAlert**
    - SQL: `SELECT *, 'LOW_BATTERY' as alertType FROM 'visiondrive/parking/+/+/status' WHERE battery < 20`
    - Action: Invoke EventProcessor Lambda (triggers SNS alert)
+
+#### Custom Authorizer Lambda
+
+**Name:** `VisionDrive-Parking-CustomAuthorizer`
+
+**Purpose:** Validates MQTT username/password and returns IAM policy.
+
+**Environment Variables:**
+```bash
+SWIOTT_PASSWORD=Demolition999
+AWS_ACCOUNT_ID=307436091440
+```
+
+**Authentication Flow:**
+```
+┌─────────────┐     MQTT + Username/Password      ┌──────────────────┐
+│   SWIOTT    │────────────────────────────────────▶│  AWS IoT Core    │
+│   Sensor    │    Username: swiott01               │                  │
+└─────────────┘    Password: ********               │  ┌────────────┐  │
+                                                    │  │  Custom    │  │
+                                                    │  │ Authorizer │  │
+                                                    │  │  (Lambda)  │  │
+                                                    │  └─────┬──────┘  │
+                                                    │        │         │
+                                                    │        ▼         │
+                                                    │  ✓ Validate      │
+                                                    │  ✓ Return Policy │
+                                                    └──────────────────┘
+```
 
 ---
 
@@ -190,7 +239,36 @@ aws iot describe-endpoint --endpoint-type iot:Data-ATS --profile visiondrive-par
 
 ---
 
-## Deployment Script
+### 7. Custom Authorizer Lambda
+
+**Name:** `VisionDrive-Parking-CustomAuthorizer`
+
+**ARN:**
+```
+arn:aws:lambda:me-central-1:307436091440:function:VisionDrive-Parking-CustomAuthorizer
+```
+
+**Purpose:** Validates MQTT username/password for SWIOTT parking sensors.
+
+**Code Location:**
+```
+Parking/infrastructure/lambda/custom-authorizer/index.js
+```
+
+**Update Credentials:**
+```bash
+aws lambda update-function-configuration \
+  --function-name VisionDrive-Parking-CustomAuthorizer \
+  --environment "Variables={SWIOTT_PASSWORD=NEW_PASSWORD,AWS_ACCOUNT_ID=307436091440}" \
+  --region me-central-1 \
+  --profile visiondrive-parking
+```
+
+---
+
+## Deployment Scripts
+
+### Main Deployment
 
 The deployment script is located at:
 ```
@@ -202,6 +280,19 @@ The deployment script is located at:
 cd /Users/vadimkus/VisionDrive/Parking/scripts/deploy
 chmod +x deploy-all.sh
 ./deploy-all.sh
+```
+
+### MQTT Authentication Setup
+
+```
+/Users/vadimkus/VisionDrive/Parking/scripts/deploy/setup-mqtt-auth.sh
+```
+
+**To setup/update authentication:**
+```bash
+cd /Users/vadimkus/VisionDrive/Parking/scripts/deploy
+chmod +x setup-mqtt-auth.sh
+SWIOTT_PASSWORD='Demolition999' ./setup-mqtt-auth.sh
 ```
 
 ---

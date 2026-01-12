@@ -37,11 +37,22 @@ This document describes the architecture for migrating VisionDrive's parking sen
   └──────┬──────┘
          │
          │ NB-IoT (du network)
-         │ Status: occupied/vacant
+         │ MQTTS Port 8883
+         │ Username: swiott01
+         │ Password: ********
          │
          ▼
   ┌─────────────────────────────────────────────────────────────────────────┐
   │                        AWS IoT Core                                      │
+  │                                                                          │
+  │  ┌───────────────────────────────────────────────────────────────────┐  │
+  │  │                    Custom Authorizer                               │  │
+  │  │                 VisionDriveParkingAuthorizer                       │  │
+  │  │                                                                    │  │
+  │  │  → Validates username/password                                    │  │
+  │  │  → Returns IAM policy (Allow: iot:Connect, iot:Publish)          │  │
+  │  │  → Lambda: VisionDrive-Parking-CustomAuthorizer                  │  │
+  │  └───────────────────────────────────────────────────────────────────┘  │
   │                                                                          │
   │  Topic: visiondrive/parking/{zoneId}/{bayId}/status                     │
   │                                                                          │
