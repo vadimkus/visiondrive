@@ -50,11 +50,15 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // Determine if user is kitchen owner or admin
+      const isOwner = awsData.user?.role === 'KITCHEN_OWNER'
+      
       const response = NextResponse.json({
         success: true,
         user: awsData.user,
         token: awsData.token,
         portal: 'kitchen',
+        isOwner,
       })
 
       // Set HTTP-only cookie

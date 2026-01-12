@@ -50,9 +50,14 @@ export default function LoginPage() {
       }
 
       // Token is stored in HTTP-only cookie, no need for localStorage
-      // Redirect based on selected portal
+      // Redirect based on selected portal and user role
       if (formData.portal === 'kitchen') {
-        router.push('/portal/smart-kitchen')
+        // Kitchen owners go to owner dashboard, admins go to admin dashboard
+        if (data.isOwner) {
+          router.push('/portal/smart-kitchen/owner')
+        } else {
+          router.push('/portal/smart-kitchen')
+        }
       } else {
         router.push('/portal')
       }
