@@ -164,8 +164,8 @@ export default function OwnerDashboard() {
   }
 
   return (
-    <div className={`p-4 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
-      <div className="max-w-5xl mx-auto">
+    <div className={`p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+      <div className="max-w-4xl mx-auto">
       {/* Overall Status Hero - Compact */}
       <div className={`rounded-xl p-4 mb-4 ${
         overallStatus === 'good' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
@@ -283,7 +283,7 @@ export default function OwnerDashboard() {
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {(showAllSensors ? SENSORS : SENSORS.slice(0, 5)).map(sensor => (
             <div 
               key={sensor.id}
