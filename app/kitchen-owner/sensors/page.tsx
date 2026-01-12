@@ -18,6 +18,8 @@ import {
   Thermometer,
   Edit3,
   Save,
+  Info,
+  Hash,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useSettings } from '../context/SettingsContext'
@@ -34,6 +36,8 @@ interface Sensor {
   online: boolean
   battery: number
   signal: string
+  model?: string
+  serialNumber?: string
 }
 
 interface ReadingEntry {
@@ -55,6 +59,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 85,
     signal: 'strong',
+    model: 'Dragino LHT65N',
+    serialNumber: 'DRG-2024-001',
   },
   {
     id: 'sensor-a2',
@@ -68,6 +74,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 92,
     signal: 'strong',
+    model: 'Dragino LHT65N',
+    serialNumber: 'DRG-2024-002',
   },
   {
     id: 'sensor-a3',
@@ -81,6 +89,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 78,
     signal: 'medium',
+    model: 'Dragino LHT65N',
+    serialNumber: 'DRG-2024-003',
   },
   {
     id: 'sensor-a4',
@@ -94,6 +104,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 65,
     signal: 'strong',
+    model: 'Dragino LHT65N',
+    serialNumber: 'DRG-2024-004',
   },
   {
     id: 'sensor-a5',
@@ -107,6 +119,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 88,
     signal: 'strong',
+    model: 'Dragino LHT65N-HT',
+    serialNumber: 'DRG-2024-005',
   },
 ]
 
@@ -315,6 +329,26 @@ export default function OwnerSensors() {
                 </p>
               </div>
             </div>
+            
+            {/* Device Info */}
+            {(selectedSensor.model || selectedSensor.serialNumber) && (
+              <div className={`mt-3 pt-3 border-t flex flex-wrap gap-4 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+                {selectedSensor.model && (
+                  <div className="flex items-center gap-1.5">
+                    <Info className={`h-3 w-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Model:</span>
+                    <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{selectedSensor.model}</span>
+                  </div>
+                )}
+                {selectedSensor.serialNumber && (
+                  <div className="flex items-center gap-1.5">
+                    <Hash className={`h-3 w-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>S/N:</span>
+                    <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{selectedSensor.serialNumber}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Edit Mode Banner */}
