@@ -9,11 +9,11 @@ import {
   FileText,
   Settings,
   LogOut,
-  ChefHat,
   Shield,
   HelpCircle,
   Moon,
   Sun,
+  Lock,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
@@ -34,6 +34,7 @@ const navItems = [
 
 const bottomNavItems = [
   { id: 'settings', label: 'Settings', icon: Settings, href: '/kitchen-owner/settings' },
+  { id: 'privacy', label: 'Privacy', icon: Lock, href: '/kitchen-owner/privacy' },
   { id: 'help', label: 'Help & Support', icon: HelpCircle, href: '/kitchen-owner/help' },
 ]
 
@@ -82,14 +83,9 @@ export default function OwnerSidebar() {
         </div>
         
         {/* Smart Kitchen Label */}
-        <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white ${isDark ? 'shadow-md shadow-orange-900/30' : 'shadow-md shadow-orange-200'}`}>
-            <ChefHat className="h-4 w-4" />
-          </div>
-          <div>
-            <h1 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Smart Kitchen</h1>
-            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Owner Portal</p>
-          </div>
+        <div className={`px-3 py-2 rounded-lg ${isDark ? 'bg-orange-900/20' : 'bg-orange-50'}`}>
+          <h1 className={`font-medium text-sm ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>Smart Kitchen</h1>
+          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Owner Portal</p>
         </div>
         
         {/* Time */}
