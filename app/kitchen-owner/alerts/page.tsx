@@ -8,6 +8,7 @@ import {
   Filter,
   Check
 } from 'lucide-react'
+import { useTheme } from '../context/ThemeContext'
 
 const ALERTS = [
   {
@@ -57,6 +58,8 @@ const ALERTS = [
 ]
 
 export default function OwnerAlerts() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
   const [filter, setFilter] = useState('all')
   const [alerts, setAlerts] = useState(ALERTS)
 
@@ -79,128 +82,135 @@ export default function OwnerAlerts() {
   const unreadCount = alerts.filter(a => !a.acknowledged).length
 
   return (
-    <div className="p-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Alerts</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {unreadCount > 0 ? `${unreadCount} unread alert${unreadCount > 1 ? 's' : ''}` : 'All alerts acknowledged'}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
+    <div className={`p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+      <div className="max-w-4xl mx-auto">
+        {/* Page Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Alerts</h1>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              {unreadCount > 0 ? `${unreadCount} unread` : 'All acknowledged'}
+            </p>
+          </div>
+          
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-400" />
             <select 
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="all">All Alerts</option>
-              <option value="unread">Unread ({unreadCount})</option>
-              <option value="warning">Warnings</option>
-              <option value="info">Info</option>
-            </select>
-          </div>
-          
-          {unreadCount > 0 && (
-            <button
-              onClick={handleAcknowledgeAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              <Check className="h-4 w-4" />
-              Acknowledge All
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-gray-400" />
-            <span className="text-sm text-gray-500">Total</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{alerts.length}</p>
-        </div>
-        <div className="bg-amber-50 rounded-xl border border-amber-100 p-4">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
-            <span className="text-sm text-amber-700">Warnings</span>
-          </div>
-          <p className="text-2xl font-bold text-amber-600 mt-1">{alerts.filter(a => a.severity === 'warning').length}</p>
-        </div>
-        <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-emerald-500" />
-            <span className="text-sm text-emerald-700">Resolved</span>
-          </div>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">{alerts.filter(a => a.acknowledged).length}</p>
-        </div>
-      </div>
-
-      {/* Alerts List */}
-      <div className="space-y-3">
-        {filteredAlerts.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
-            <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-            <p className="font-semibold text-gray-900">No alerts to show</p>
-            <p className="text-sm text-gray-500 mt-1">All systems are running smoothly</p>
-          </div>
-        ) : (
-          filteredAlerts.map(alert => (
-            <div 
-              key={alert.id}
-              className={`bg-white rounded-xl border p-4 transition-all ${
-                !alert.acknowledged ? 'border-amber-200 shadow-sm' : 'border-gray-100'
+              className={`border rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                isDark ? 'bg-[#2d2d2f] border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-700'
               }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    alert.severity === 'warning' ? 'bg-amber-100' :
-                    alert.severity === 'critical' ? 'bg-red-100' : 'bg-blue-100'
-                  }`}>
-                    {alert.severity === 'info' ? (
-                      <CheckCircle className="h-5 w-5 text-blue-600" />
-                    ) : (
-                      <AlertTriangle className={`h-5 w-5 ${
-                        alert.severity === 'warning' ? 'text-amber-600' : 'text-red-600'
-                      }`} />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{alert.sensorIcon}</span>
-                      <h3 className="font-semibold text-gray-900">{alert.sensor}</h3>
-                      {!alert.acknowledged && (
-                        <span className="px-2 py-0.5 bg-orange-100 text-orange-600 text-xs font-medium rounded-full">
-                          New
-                        </span>
+              <option value="all">All</option>
+              <option value="unread">Unread ({unreadCount})</option>
+              <option value="warning">Warnings</option>
+            </select>
+            
+            {unreadCount > 0 && (
+              <button
+                onClick={handleAcknowledgeAll}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-xs font-medium rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                <Check className="h-3.5 w-3.5" />
+                Ack All
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className="flex items-center gap-2">
+              <Bell className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+              <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total</span>
+            </div>
+            <p className={`text-xl font-bold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>{alerts.length}</p>
+          </div>
+          <div className={`rounded-xl border p-3 ${isDark ? 'bg-amber-900/20 border-amber-800' : 'bg-amber-50 border-amber-100'}`}>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <span className={`text-xs ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>Warnings</span>
+            </div>
+            <p className="text-xl font-bold text-amber-500 mt-0.5">{alerts.filter(a => a.severity === 'warning').length}</p>
+          </div>
+          <div className={`rounded-xl border p-3 ${isDark ? 'bg-emerald-900/20 border-emerald-800' : 'bg-emerald-50 border-emerald-100'}`}>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-emerald-500" />
+              <span className={`text-xs ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Resolved</span>
+            </div>
+            <p className="text-xl font-bold text-emerald-500 mt-0.5">{alerts.filter(a => a.acknowledged).length}</p>
+          </div>
+        </div>
+
+        {/* Alerts List */}
+        <div className="space-y-2">
+          {filteredAlerts.length === 0 ? (
+            <div className={`rounded-xl border p-6 text-center ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+              <CheckCircle className="h-10 w-10 text-emerald-500 mx-auto mb-2" />
+              <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>No alerts</p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>All systems running smoothly</p>
+            </div>
+          ) : (
+            filteredAlerts.map(alert => (
+              <div 
+                key={alert.id}
+                className={`rounded-xl border p-3 transition-all ${
+                  isDark 
+                    ? !alert.acknowledged ? 'bg-[#2d2d2f] border-amber-700' : 'bg-[#2d2d2f] border-gray-700'
+                    : !alert.acknowledged ? 'bg-white border-amber-200 shadow-sm' : 'bg-white border-gray-100'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isDark
+                        ? alert.severity === 'warning' ? 'bg-amber-900/30' :
+                          alert.severity === 'critical' ? 'bg-red-900/30' : 'bg-blue-900/30'
+                        : alert.severity === 'warning' ? 'bg-amber-100' :
+                          alert.severity === 'critical' ? 'bg-red-100' : 'bg-blue-100'
+                    }`}>
+                      {alert.severity === 'info' ? (
+                        <CheckCircle className={`h-4 w-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                      ) : (
+                        <AlertTriangle className={`h-4 w-4 ${
+                          alert.severity === 'warning' 
+                            ? isDark ? 'text-amber-400' : 'text-amber-600' 
+                            : isDark ? 'text-red-400' : 'text-red-600'
+                        }`} />
                       )}
                     </div>
-                    <p className="text-sm text-gray-700 mt-0.5">{alert.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">{alert.details}</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{alert.sensorIcon}</span>
+                        <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{alert.sensor}</h3>
+                        {!alert.acknowledged && (
+                          <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-500 text-[10px] font-medium rounded-full">
+                            New
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{alert.message}</p>
+                      <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{alert.details}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right flex-shrink-0">
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{alert.time}</p>
+                    {!alert.acknowledged && (
+                      <button 
+                        onClick={() => handleAcknowledge(alert.id)}
+                        className="mt-1 text-xs text-orange-500 hover:text-orange-400 font-medium"
+                      >
+                        Acknowledge
+                      </button>
+                    )}
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">{alert.time}</p>
-                  {!alert.acknowledged && (
-                    <button 
-                      onClick={() => handleAcknowledge(alert.id)}
-                      className="mt-2 text-sm text-orange-600 hover:text-orange-700 font-medium"
-                    >
-                      Acknowledge
-                    </button>
-                  )}
-                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   )
