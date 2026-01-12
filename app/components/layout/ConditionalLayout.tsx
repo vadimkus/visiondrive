@@ -7,6 +7,7 @@ import Footer from './Footer'
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isPortal = pathname?.startsWith('/portal')
+  const isKitchenOwner = pathname?.startsWith('/kitchen-owner')
   const isAuth = pathname === '/login'
 
   // In dev/HMR, `usePathname()` can be briefly undefined during the first paint.
@@ -15,8 +16,8 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     return <main className="flex-1 min-h-screen">{children}</main>
   }
 
-  if (isPortal) {
-    // Portal pages: no marketing header/footer. Portal has its own navigation.
+  if (isPortal || isKitchenOwner) {
+    // Portal pages and kitchen owner: no marketing header/footer
     return <main className="flex-1 min-h-screen">{children}</main>
   }
 
