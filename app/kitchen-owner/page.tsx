@@ -90,8 +90,8 @@ const SENSORS = [
   },
 ]
 
-// Recent alerts for Abdul
-const RECENT_ALERTS = [
+// Initial alerts data
+const INITIAL_ALERTS = [
   {
     id: 'alert-1',
     sensor: 'Display Cooler',
@@ -114,8 +114,15 @@ export default function OwnerDashboard() {
   const router = useRouter()
   const [currentTime, setCurrentTime] = useState(new Date())
   const [showAllSensors, setShowAllSensors] = useState(false)
+  const [alerts, setAlerts] = useState(INITIAL_ALERTS)
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+
+  const handleAcknowledge = (alertId: string) => {
+    setAlerts(prev => prev.map(alert => 
+      alert.id === alertId ? { ...alert, acknowledged: true } : alert
+    ))
+  }
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
@@ -202,7 +209,7 @@ export default function OwnerDashboard() {
                 <p className="text-sm text-white/70">Online</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold">{RECENT_ALERTS.filter(a => !a.acknowledged).length}</p>
+                <p className="text-3xl font-bold">{alerts.filter(a => !a.acknowledged).length}</p>
                 <p className="text-sm text-white/70">Alerts</p>
               </div>
             </div>
@@ -365,13 +372,13 @@ export default function OwnerDashboard() {
         </div>
         
         <div className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-50'}`}>
-          {RECENT_ALERTS.length === 0 ? (
+          {alerts.length === 0 ? (
             <div className="px-4 py-5 text-center">
               <CheckCircle className={`h-7 w-7 mx-auto mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
               <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No alerts</p>
             </div>
           ) : (
-            RECENT_ALERTS.map(alert => (
+            alerts.map(alert => (
               <div key={alert.id} className={`px-4 py-3 flex items-center justify-between transition-colors ${
                 isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
               }`}>
@@ -400,10 +407,17 @@ export default function OwnerDashboard() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{alert.time}</p>
-                  {!alert.acknowledged && (
-                    <button className="text-xs text-orange-500 hover:text-orange-400 font-medium">
-                      Ack
+                  {!alert.acknowledged ? (
+                    <button 
+                      onClick={() => handleAcknowledge(alert.id)}
+                      className="text-xs text-orange-500 hover:text-orange-400 font-medium mt-0.5"
+                    >
+                      Acknowledge
                     </button>
+                  ) : (
+                    <span className={`text-xs ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                      ✓ Acknowledged
+                    </span>
                   )}
                 </div>
               </div>
