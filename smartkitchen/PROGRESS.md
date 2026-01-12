@@ -168,6 +168,24 @@ If role = KITCHEN_OWNER → Redirect to /kitchen-owner
 | Live header data | Weather updates every 30 seconds |
 | Centered layout | All pages use max-w-4xl mx-auto |
 | 10% larger fonts | Better readability across portal |
+| Weather emoji | ☀️ Pleasant, ❄️ Cold, etc. in header |
+| Removed "All Sensors" | Reports page - per equipment only |
+| **WhatsApp Alerts UI** | Settings toggle, test button, Alerts banner |
+
+### WhatsApp Integration (Prepared) 🆕
+
+| Component | File | Status |
+|-----------|------|--------|
+| Settings UI | `settings/page.tsx` | ✅ Toggle, phone input, test button |
+| Alerts Banner | `alerts/page.tsx` | ✅ Status banner with Configure link |
+| Lambda Code | `lambda/alerts/whatsapp.js` | ✅ Twilio SDK integration |
+| Setup Guide | `docs/WHATSAPP_SETUP.md` | ✅ Full documentation |
+
+**To Activate:**
+1. Create Twilio account at twilio.com
+2. Get Account SID and Auth Token
+3. Add environment variables to Lambda
+4. Deploy with `cdk deploy`
 
 ### Code Files Updated
 
@@ -310,9 +328,14 @@ VisionDrive/
     ├── PROGRESS.md                       # This file
     ├── PROJECT_PLAN.md
     ├── docs/
+    │   ├── ARCHITECTURE.md
+    │   ├── DATA_RESIDENCY.md
+    │   └── WHATSAPP_SETUP.md             # WhatsApp integration guide 🆕
     └── infrastructure/
         ├── cdk/
-        └── lambda/api/index.js
+        └── lambda/
+            ├── api/index.js              # REST API handler
+            └── alerts/whatsapp.js        # Twilio WhatsApp module 🆕
 ```
 
 ---
@@ -331,6 +354,8 @@ VisionDrive/
 - [ ] Replace mock data with live API data
 - [ ] Test acknowledge flow end-to-end
 - [ ] Test equipment management save to backend
+- [ ] **Create Twilio account** for WhatsApp alerts
+- [ ] **Deploy WhatsApp Lambda integration**
 
 ### Future
 - [ ] Onboard first real kitchen customer

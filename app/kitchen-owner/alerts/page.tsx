@@ -6,8 +6,11 @@ import {
   CheckCircle, 
   Bell,
   Filter,
-  Check
+  Check,
+  MessageCircle,
+  Settings
 } from 'lucide-react'
+import Link from 'next/link'
 import { useTheme } from '../context/ThemeContext'
 
 const ALERTS = [
@@ -115,6 +118,39 @@ export default function OwnerAlerts() {
                 Ack All
               </button>
             )}
+          </div>
+        </div>
+
+        {/* WhatsApp Status Banner */}
+        <div className={`rounded-xl border p-3 mb-4 ${isDark ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-green-900/50' : 'bg-green-100'}`}>
+                <MessageCircle className="h-4 w-4 text-green-500" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className={`text-sm font-medium ${isDark ? 'text-green-300' : 'text-green-800'}`}>
+                    WhatsApp Alerts
+                  </p>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${isDark ? 'bg-green-800 text-green-300' : 'bg-green-200 text-green-700'}`}>
+                    Active
+                  </span>
+                </div>
+                <p className={`text-xs ${isDark ? 'text-green-400' : 'text-green-700'}`}>
+                  Sending alerts to +971-50-123-4567
+                </p>
+              </div>
+            </div>
+            <Link 
+              href="/kitchen-owner/settings"
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                isDark ? 'bg-green-800/50 text-green-300 hover:bg-green-800' : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              <Settings className="h-3 w-3" />
+              Configure
+            </Link>
           </div>
         </div>
 

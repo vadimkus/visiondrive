@@ -15,7 +15,10 @@ import {
   ChevronDown,
   ChevronUp,
   Hash,
-  Tag
+  Tag,
+  MessageCircle,
+  Send,
+  AlertCircle
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useSettings } from '../context/SettingsContext'
@@ -60,6 +63,24 @@ export default function OwnerSettings() {
     freezerMax: -18,
     hotHoldingMin: 60,
   })
+
+  // WhatsApp Integration
+  const [whatsApp, setWhatsApp] = useState({
+    enabled: false,
+    number: '+971-50-123-4567',
+    testSent: false,
+    testSending: false,
+  })
+
+  const handleTestWhatsApp = () => {
+    if (!whatsApp.number) return
+    setWhatsApp(prev => ({ ...prev, testSending: true }))
+    // Simulate API call - in production this would call Twilio
+    setTimeout(() => {
+      setWhatsApp(prev => ({ ...prev, testSending: false, testSent: true }))
+      setTimeout(() => setWhatsApp(prev => ({ ...prev, testSent: false })), 3000)
+    }, 1500)
+  }
 
   const updateEquipment = (id: string, field: keyof Equipment, value: string) => {
     setEquipment(prev => prev.map(eq => 
@@ -251,6 +272,107 @@ export default function OwnerSettings() {
                     className="w-3.5 h-3.5 text-orange-600 rounded focus:ring-orange-500"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* WhatsApp Alerts */}
+            <div className={`rounded-xl border p-4 ${
+              whatsApp.enabled
+                ? isDark ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'
+                : isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'
+            }`}>
+              <div className="flex items-center gap-2 mb-3">
+                <MessageCircle className={`h-4 w-4 ${whatsApp.enabled ? 'text-green-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                <h2 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>WhatsApp Alerts</h2>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                  via Twilio
+                </span>
+              </div>
+              
+              <div className="space-y-3">
+                {/* Enable Toggle */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Enable WhatsApp Notifications
+                    </span>
+                    <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      Receive temperature alerts instantly
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setWhatsApp(prev => ({ ...prev, enabled: !prev.enabled }))}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      whatsApp.enabled ? 'bg-green-500' : isDark ? 'bg-gray-700' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform`}
+                      style={{ transform: whatsApp.enabled ? 'translateX(18px)' : 'translateX(4px)' }}
+                    />
+                  </button>
+                </div>
+
+                {/* WhatsApp Number Input */}
+                {whatsApp.enabled && (
+                  <>
+                    <div>
+                      <label className={`flex items-center gap-1 text-[10px] mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        📱 WhatsApp Number (with country code)
+                      </label>
+                      <input 
+                        type="tel" 
+                        value={whatsApp.number}
+                        onChange={(e) => setWhatsApp(prev => ({ ...prev, number: e.target.value }))}
+                        placeholder="+971-50-123-4567"
+                        className={inputClass}
+                      />
+                    </div>
+
+                    {/* Test Button */}
+                    <button
+                      onClick={handleTestWhatsApp}
+                      disabled={whatsApp.testSending || !whatsApp.number}
+                      className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                        whatsApp.testSent
+                          ? 'bg-green-500 text-white'
+                          : isDark 
+                            ? 'bg-green-600 text-white hover:bg-green-700' 
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
+                    >
+                      {whatsApp.testSending ? (
+                        <>
+                          <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Sending...
+                        </>
+                      ) : whatsApp.testSent ? (
+                        <>
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Test Sent!
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-3.5 w-3.5" />
+                          Send Test Message
+                        </>
+                      )}
+                    </button>
+
+                    {/* Info Notice */}
+                    <div className={`flex items-start gap-2 p-2 rounded-lg ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
+                      <AlertCircle className={`h-3.5 w-3.5 flex-shrink-0 mt-0.5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                      <div className={`text-[10px] ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                        <p className="font-medium">Alert Types:</p>
+                        <ul className="mt-0.5 space-y-0.5">
+                          <li>• Critical temperature breaches</li>
+                          <li>• Danger Zone warnings (5-60°C)</li>
+                          <li>• Equipment offline alerts</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

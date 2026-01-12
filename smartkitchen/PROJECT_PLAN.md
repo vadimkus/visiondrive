@@ -372,6 +372,42 @@ Role:     KITCHEN_OWNER → Redirects to /kitchen-owner
 - [ ] Add alert sound/visual indicators
 - [ ] Allow customers to customize alert thresholds
 
+### 5.8 WhatsApp Alerts Integration 🆕 (Prepared Jan 12, 2026)
+
+**Service:** Twilio WhatsApp Business API
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| Settings UI | ✅ Ready | Enable toggle, phone number input, test button |
+| Alerts Page Banner | ✅ Ready | Shows WhatsApp status and Configure link |
+| Lambda Integration Code | ✅ Ready | `whatsapp.js` with Twilio SDK |
+| Setup Documentation | ✅ Ready | `docs/WHATSAPP_SETUP.md` |
+| Twilio Account | ⏳ Pending | User to create account |
+| Environment Variables | ⏳ Pending | TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN |
+| Production Deployment | ⏳ Pending | After Twilio setup |
+
+**Alert Types:**
+- 🚨 Critical temperature breaches
+- 🔴 Danger Zone warnings (5-60°C)
+- ⚠️ Equipment offline alerts
+
+**Message Format:**
+```
+🚨 *CRITICAL TEMPERATURE ALERT*
+
+🛒 *Display Cooler*
+Temperature above safe threshold
+
+📍 *Kitchen:* Abdul's Kitchen
+🌡️ *Current:* 8.2°C
+✅ *Required:* 0°C to 5°C
+⏰ *Time:* 12/01/2026, 08:15 PM
+
+Action required to maintain DM compliance.
+```
+
+**Estimated Cost:** ~$0.05/message (~$10/month for typical usage)
+
 ---
 
 ## Phase 6: Testing & Validation (Week 6)
