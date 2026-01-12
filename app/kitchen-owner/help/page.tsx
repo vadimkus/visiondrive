@@ -51,9 +51,9 @@ export default function OwnerHelp() {
           {/* Left Column */}
           <div className="space-y-4">
             {/* Contact Support */}
-            <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-4 text-white">
+            <div className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl p-4 text-white">
               <h2 className="text-base font-semibold mb-1">Need Help?</h2>
-              <p className="text-orange-100 text-xs mb-3">Support available 24/7</p>
+              <p className="text-teal-100 text-xs mb-3">Support available 24/7</p>
               
               <div className="space-y-2">
                 <a 
@@ -63,7 +63,7 @@ export default function OwnerHelp() {
                   <Phone className="h-4 w-4" />
                   <div>
                     <p className="font-medium text-sm">+971 55 915 2985</p>
-                    <p className="text-[10px] text-orange-100">24/7 Support</p>
+                    <p className="text-[10px] text-teal-100">24/7 Support</p>
                   </div>
                 </a>
                 
@@ -74,7 +74,7 @@ export default function OwnerHelp() {
                   <Mail className="h-4 w-4" />
                   <div>
                     <p className="font-medium text-sm">support@visiondrive.ae</p>
-                    <p className="text-[10px] text-orange-100">Email</p>
+                    <p className="text-[10px] text-teal-100">Email</p>
                   </div>
                 </a>
                 
@@ -87,7 +87,7 @@ export default function OwnerHelp() {
                   <MessageCircle className="h-4 w-4" />
                   <div>
                     <p className="font-medium text-sm">WhatsApp</p>
-                    <p className="text-[10px] text-orange-100">Quick Response</p>
+                    <p className="text-[10px] text-teal-100">Quick Response</p>
                   </div>
                 </a>
               </div>
