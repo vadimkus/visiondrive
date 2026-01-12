@@ -26,7 +26,7 @@ const OWNER_DATA = {
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/kitchen-owner' },
-  { id: 'sensors', label: 'My Sensors', icon: Thermometer, href: '/kitchen-owner/sensors' },
+  { id: 'sensors', label: 'My Equipment', icon: Thermometer, href: '/kitchen-owner/sensors' },
   { id: 'alerts', label: 'Alerts', icon: Bell, href: '/kitchen-owner/alerts', badge: 1 },
   { id: 'reports', label: 'Reports', icon: FileText, href: '/kitchen-owner/reports' },
   { id: 'compliance', label: 'DM Compliance', icon: Shield, href: '/kitchen-owner/compliance' },

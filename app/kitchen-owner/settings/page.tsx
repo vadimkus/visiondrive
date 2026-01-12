@@ -151,7 +151,7 @@ export default function OwnerSettings() {
                         Edit Mode Enabled
                       </p>
                       <p className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                        You can now adjust sensor readings in My Sensors to ensure compliance.
+                        You can now adjust readings in My Equipment to ensure compliance.
                       </p>
                     </div>
                   </div>

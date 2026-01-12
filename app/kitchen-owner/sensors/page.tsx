@@ -558,8 +558,8 @@ export default function OwnerSensors() {
         {/* Page Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>My Sensors</h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Click sensor to view detailed stats</p>
+            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>My Equipment</h1>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Click equipment to view detailed stats</p>
           </div>
           
           <div className="flex items-center gap-2">
@@ -585,7 +585,7 @@ export default function OwnerSensors() {
           }`}>
             <Edit3 className="h-4 w-4 text-emerald-500" />
             <p className={`text-xs ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
-              <strong>Edit Mode Active</strong> — Select a sensor to adjust readings for compliance
+              <strong>Edit Mode Active</strong> — Select equipment to adjust readings for compliance
             </p>
           </div>
         )}
@@ -675,7 +675,7 @@ export default function OwnerSensors() {
 
         {/* Hint */}
         <p className={`mt-4 text-center text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
-          Tap any sensor to view temperature history{manualEditEnabled && ' and adjust readings'}
+          Tap any equipment to view temperature history{manualEditEnabled && ' and adjust readings'}
         </p>
       </div>
     </div>
