@@ -165,6 +165,7 @@ export default function OwnerDashboard() {
 
   return (
     <div className={`p-4 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+      <div className="max-w-5xl mx-auto">
       {/* Overall Status Hero - Compact */}
       <div className={`rounded-xl p-4 mb-4 ${
         overallStatus === 'good' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
@@ -409,6 +410,7 @@ export default function OwnerDashboard() {
             ))
           )}
         </div>
+      </div>
       </div>
     </div>
   )
