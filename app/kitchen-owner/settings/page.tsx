@@ -10,15 +10,40 @@ import {
   Building,
   Save,
   Edit3,
-  CheckCircle
+  CheckCircle,
+  Refrigerator,
+  ChevronDown,
+  ChevronUp,
+  Hash,
+  Tag
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useSettings } from '../context/SettingsContext'
+
+// Equipment data with editable fields
+interface Equipment {
+  id: string
+  name: string
+  icon: string
+  model: string
+  serialNumber: string
+  sensorId: string
+}
+
+const initialEquipment: Equipment[] = [
+  { id: 'eq-1', name: 'Walk-in Fridge', icon: '🚪', model: 'True TWT-48SD', serialNumber: 'TWI-2023-45892', sensorId: 'PS-NB-001' },
+  { id: 'eq-2', name: 'Main Freezer', icon: '❄️', model: 'Liebherr GGv 5060', serialNumber: 'LBH-2022-78341', sensorId: 'PS-NB-002' },
+  { id: 'eq-3', name: 'Prep Fridge', icon: '🔪', model: 'Hoshizaki CR1S-FS', serialNumber: 'HSK-2024-12076', sensorId: 'PS-NB-003' },
+  { id: 'eq-4', name: 'Display Cooler', icon: '🛒', model: 'Turbo Air TOM-40', serialNumber: 'TAR-2023-90215', sensorId: 'PS-NB-004' },
+  { id: 'eq-5', name: 'Hot Holding', icon: '🔥', model: 'Alto-Shaam 500-HW', serialNumber: 'ASH-2023-33987', sensorId: 'PS-NB-005' },
+]
 
 export default function OwnerSettings() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const { manualEditEnabled, setManualEditEnabled } = useSettings()
+  const [equipment, setEquipment] = useState<Equipment[]>(initialEquipment)
+  const [expandedEquipment, setExpandedEquipment] = useState<string | null>(null)
   const [notifications, setNotifications] = useState({
     email: true,
     sms: true,
@@ -35,6 +60,12 @@ export default function OwnerSettings() {
     freezerMax: -18,
     hotHoldingMin: 60,
   })
+
+  const updateEquipment = (id: string, field: keyof Equipment, value: string) => {
+    setEquipment(prev => prev.map(eq => 
+      eq.id === id ? { ...eq, [field]: value } : eq
+    ))
+  }
 
   const [saved, setSaved] = useState(false)
 
@@ -276,6 +307,107 @@ export default function OwnerSettings() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Equipment Management Section - Full Width */}
+        <div className={`mt-4 rounded-xl border p-4 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+          <div className="flex items-center gap-2 mb-4">
+            <Refrigerator className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+            <h2 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Equipment Management</h2>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+              {equipment.length} devices
+            </span>
+          </div>
+          
+          <p className={`text-xs mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            Assign model names and serial numbers to your kitchen equipment for better tracking and compliance records.
+          </p>
+
+          <div className="space-y-2">
+            {equipment.map((eq) => (
+              <div 
+                key={eq.id}
+                className={`rounded-lg border overflow-hidden ${
+                  isDark ? 'border-gray-700' : 'border-gray-200'
+                }`}
+              >
+                {/* Equipment Header - Clickable */}
+                <button
+                  onClick={() => setExpandedEquipment(expandedEquipment === eq.id ? null : eq.id)}
+                  className={`w-full flex items-center justify-between p-3 transition-colors ${
+                    isDark 
+                      ? 'bg-gray-800/50 hover:bg-gray-800' 
+                      : 'bg-gray-50 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">{eq.icon}</span>
+                    <div className="text-left">
+                      <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {eq.name}
+                      </p>
+                      <p className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                        {eq.model || 'No model assigned'} • {eq.serialNumber || 'No serial'}
+                      </p>
+                    </div>
+                  </div>
+                  {expandedEquipment === eq.id ? (
+                    <ChevronUp className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  ) : (
+                    <ChevronDown className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  )}
+                </button>
+
+                {/* Expanded Form */}
+                {expandedEquipment === eq.id && (
+                  <div className={`p-3 border-t ${isDark ? 'border-gray-700 bg-gray-800/30' : 'border-gray-200 bg-white'}`}>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <label className={`flex items-center gap-1 text-[10px] mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <Tag className="h-3 w-3" />
+                          Equipment Model
+                        </label>
+                        <input 
+                          type="text" 
+                          value={eq.model}
+                          onChange={(e) => updateEquipment(eq.id, 'model', e.target.value)}
+                          placeholder="e.g., True TWT-48SD"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className={`flex items-center gap-1 text-[10px] mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <Hash className="h-3 w-3" />
+                          Serial Number
+                        </label>
+                        <input 
+                          type="text" 
+                          value={eq.serialNumber}
+                          onChange={(e) => updateEquipment(eq.id, 'serialNumber', e.target.value)}
+                          placeholder="e.g., ABC-123-456"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className={`flex items-center gap-1 text-[10px] mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          📡 Sensor ID
+                        </label>
+                        <input 
+                          type="text" 
+                          value={eq.sensorId}
+                          disabled
+                          className={`${inputClass} opacity-60 cursor-not-allowed`}
+                        />
+                      </div>
+                    </div>
+                    <p className={`text-[10px] mt-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      💡 Model and serial number will appear in compliance reports and equipment details.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
