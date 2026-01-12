@@ -125,7 +125,7 @@ _Reply STOP to unsubscribe_`;
 };
 
 /**
- * Send WhatsApp alert message
+ * Send WhatsApp alert message to a single number
  * 
  * @param {Object} options - Message options
  * @param {string} options.to - Recipient phone number (with country code)
@@ -162,6 +162,60 @@ const sendWhatsAppAlert = async ({ to, alert }) => {
     console.error('Failed to send WhatsApp message:', error);
     throw error;
   }
+};
+
+/**
+ * Send WhatsApp alert to multiple numbers (up to 4)
+ * 
+ * @param {Object} options - Message options
+ * @param {string[]} options.numbers - Array of recipient phone numbers (max 4)
+ * @param {Object} options.alert - Alert data
+ * @returns {Promise<Object>} Results for all numbers
+ */
+const sendWhatsAppAlertToMultiple = async ({ numbers, alert }) => {
+  if (!numbers || !Array.isArray(numbers) || numbers.length === 0) {
+    throw new Error('At least one phone number is required');
+  }
+  
+  // Limit to 4 numbers
+  const validNumbers = numbers.slice(0, 4).filter(n => n && n.trim());
+  
+  if (validNumbers.length === 0) {
+    throw new Error('No valid phone numbers provided');
+  }
+  
+  const results = await Promise.allSettled(
+    validNumbers.map(number => sendWhatsAppAlert({ to: number, alert }))
+  );
+  
+  const summary = {
+    total: validNumbers.length,
+    successful: 0,
+    failed: 0,
+    results: [],
+  };
+  
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled') {
+      summary.successful++;
+      summary.results.push({
+        number: validNumbers[index],
+        success: true,
+        messageId: result.value.messageId,
+      });
+    } else {
+      summary.failed++;
+      summary.results.push({
+        number: validNumbers[index],
+        success: false,
+        error: result.reason?.message || 'Unknown error',
+      });
+    }
+  });
+  
+  console.log(`WhatsApp alerts sent: ${summary.successful}/${summary.total} successful`);
+  
+  return summary;
 };
 
 /**
@@ -269,6 +323,7 @@ const processAlertWithWhatsApp = async (alertData, userId) => {
 
 module.exports = {
   sendWhatsAppAlert,
+  sendWhatsAppAlertToMultiple,
   sendTestMessage,
   getUserWhatsAppSettings,
   processAlertWithWhatsApp,

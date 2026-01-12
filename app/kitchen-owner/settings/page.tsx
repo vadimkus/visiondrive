@@ -18,7 +18,10 @@ import {
   Tag,
   MessageCircle,
   Send,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Minus,
+  Users
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useSettings } from '../context/SettingsContext'
@@ -64,18 +67,45 @@ export default function OwnerSettings() {
     hotHoldingMin: 60,
   })
 
-  // WhatsApp Integration
+  // WhatsApp Integration - Support up to 4 numbers
+  const MAX_WHATSAPP_NUMBERS = 4
   const [whatsApp, setWhatsApp] = useState({
     enabled: false,
-    number: '+971-50-123-4567',
+    numbers: ['+971-50-123-4567'] as string[],
     testSent: false,
     testSending: false,
   })
 
+  const addWhatsAppNumber = () => {
+    if (whatsApp.numbers.length < MAX_WHATSAPP_NUMBERS) {
+      setWhatsApp(prev => ({
+        ...prev,
+        numbers: [...prev.numbers, '']
+      }))
+    }
+  }
+
+  const removeWhatsAppNumber = (index: number) => {
+    if (whatsApp.numbers.length > 1) {
+      setWhatsApp(prev => ({
+        ...prev,
+        numbers: prev.numbers.filter((_, i) => i !== index)
+      }))
+    }
+  }
+
+  const updateWhatsAppNumber = (index: number, value: string) => {
+    setWhatsApp(prev => ({
+      ...prev,
+      numbers: prev.numbers.map((n, i) => i === index ? value : n)
+    }))
+  }
+
   const handleTestWhatsApp = () => {
-    if (!whatsApp.number) return
+    const validNumbers = whatsApp.numbers.filter(n => n.trim())
+    if (validNumbers.length === 0) return
     setWhatsApp(prev => ({ ...prev, testSending: true }))
-    // Simulate API call - in production this would call Twilio
+    // Simulate API call - in production this would call Twilio for all numbers
     setTimeout(() => {
       setWhatsApp(prev => ({ ...prev, testSending: false, testSent: true }))
       setTimeout(() => setWhatsApp(prev => ({ ...prev, testSent: false })), 3000)
@@ -313,26 +343,76 @@ export default function OwnerSettings() {
                   </button>
                 </div>
 
-                {/* WhatsApp Number Input */}
+                {/* WhatsApp Numbers Input - Up to 4 */}
                 {whatsApp.enabled && (
                   <>
                     <div>
-                      <label className={`flex items-center gap-1 text-[10px] mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                        📱 WhatsApp Number (with country code)
-                      </label>
-                      <input 
-                        type="tel" 
-                        value={whatsApp.number}
-                        onChange={(e) => setWhatsApp(prev => ({ ...prev, number: e.target.value }))}
-                        placeholder="+971-50-123-4567"
-                        className={inputClass}
-                      />
+                      <div className="flex items-center justify-between mb-2">
+                        <label className={`flex items-center gap-1 text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <Users className="h-3 w-3" />
+                          WhatsApp Numbers (with country code)
+                        </label>
+                        <span className={`text-[10px] font-medium ${
+                          whatsApp.numbers.length >= MAX_WHATSAPP_NUMBERS
+                            ? 'text-amber-500'
+                            : isDark ? 'text-gray-500' : 'text-gray-400'
+                        }`}>
+                          {whatsApp.numbers.length}/{MAX_WHATSAPP_NUMBERS}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {whatsApp.numbers.map((number, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <span className={`absolute left-2.5 top-1/2 -translate-y-1/2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {index + 1}.
+                              </span>
+                              <input 
+                                type="tel" 
+                                value={number}
+                                onChange={(e) => updateWhatsAppNumber(index, e.target.value)}
+                                placeholder="+971-50-123-4567"
+                                className={`${inputClass} pl-7`}
+                              />
+                            </div>
+                            {whatsApp.numbers.length > 1 && (
+                              <button
+                                onClick={() => removeWhatsAppNumber(index)}
+                                className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                                  isDark 
+                                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50' 
+                                    : 'bg-red-50 text-red-500 hover:bg-red-100'
+                                }`}
+                                title="Remove number"
+                              >
+                                <Minus className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Number Button */}
+                      {whatsApp.numbers.length < MAX_WHATSAPP_NUMBERS && (
+                        <button
+                          onClick={addWhatsAppNumber}
+                          className={`mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border-2 border-dashed transition-colors ${
+                            isDark 
+                              ? 'border-gray-700 text-gray-400 hover:border-green-700 hover:text-green-400 hover:bg-green-900/20' 
+                              : 'border-gray-200 text-gray-500 hover:border-green-300 hover:text-green-600 hover:bg-green-50'
+                          }`}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Add Another Number
+                        </button>
+                      )}
                     </div>
 
                     {/* Test Button */}
                     <button
                       onClick={handleTestWhatsApp}
-                      disabled={whatsApp.testSending || !whatsApp.number}
+                      disabled={whatsApp.testSending || whatsApp.numbers.filter(n => n.trim()).length === 0}
                       className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${
                         whatsApp.testSent
                           ? 'bg-green-500 text-white'
@@ -344,7 +424,7 @@ export default function OwnerSettings() {
                       {whatsApp.testSending ? (
                         <>
                           <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Sending...
+                          Sending to {whatsApp.numbers.filter(n => n.trim()).length} number{whatsApp.numbers.filter(n => n.trim()).length !== 1 ? 's' : ''}...
                         </>
                       ) : whatsApp.testSent ? (
                         <>
@@ -354,7 +434,7 @@ export default function OwnerSettings() {
                       ) : (
                         <>
                           <Send className="h-3.5 w-3.5" />
-                          Send Test Message
+                          Send Test Message{whatsApp.numbers.filter(n => n.trim()).length > 1 ? 's' : ''}
                         </>
                       )}
                     </button>
@@ -369,6 +449,7 @@ export default function OwnerSettings() {
                           <li>• Danger Zone warnings (5-60°C)</li>
                           <li>• Equipment offline alerts</li>
                         </ul>
+                        <p className="mt-1.5 text-[9px] opacity-75">All {whatsApp.numbers.filter(n => n.trim()).length} numbers will receive alerts simultaneously.</p>
                       </div>
                     </div>
                   </>
