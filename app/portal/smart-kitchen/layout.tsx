@@ -1,3 +1,6 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
 import KitchenSidebar from './components/KitchenSidebar'
 import KitchenHeader from './components/KitchenHeader'
 
@@ -6,6 +9,13 @@ export default function SmartKitchenLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  
+  // Owner portal has its own layout - no sidebar/header
+  if (pathname?.startsWith('/portal/smart-kitchen/owner')) {
+    return <>{children}</>
+  }
+  
   return (
     <div className="flex min-h-screen bg-[#f5f5f7]">
       <KitchenSidebar />
