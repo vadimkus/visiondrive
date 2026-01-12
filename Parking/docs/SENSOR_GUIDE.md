@@ -2,24 +2,94 @@
 
 ## Sensor Overview
 
-The **PSL01B-NBIoT** is a smart parking sensor that detects vehicle presence using dual-mode detection (geomagnetic + radar).
+The **PSL01B-NBIoT** (SWIOTT) is a smart parking sensor that detects vehicle presence using dual-mode detection (geomagnetic + radar).
 
 ### Specifications
 
 | Property | Value |
 |----------|-------|
 | Model | PSL01B-NBIoT |
-| Detection | Geomagnetic + Radar (dual mode) |
-| Protocol | NB-IoT |
+| Manufacturer | SWIOTT |
+| Detection | Geomagnetic + Microwave Radar (dual mode) |
+| Protocol | NB-IoT / LoRaWAN |
 | Network | du (UAE) |
 | Battery | 3.6V Lithium (5+ years) |
 | IP Rating | IP68 (waterproof) |
 | Operating Temp | -40°C to +85°C |
 | Dimensions | Ø120mm × 45mm |
+| Config App | SWIOTT Sensor Tool (Bluetooth) |
+
+### Detection Modes
+
+| Mode | Description | Battery Life |
+|------|-------------|--------------|
+| **Radar + Magnetic** | Full dual-mode detection (recommended) | Standard |
+| **Magnetic Only** | Radar in SLEEP mode for max battery | Extended |
 
 ---
 
-## Network Configuration
+## SWIOTT Sensor Tool App
+
+The **SWIOTT Sensor Tool** is the official mobile app for configuring sensors via Bluetooth.
+
+### App Features
+
+| Tab | Purpose |
+|-----|---------|
+| **STATUS** | Real-time monitoring dashboard |
+| **CONFIG** | Sensor and network configuration |
+| **LOGS** | Debug terminal with AT commands |
+
+### Connecting to Sensor
+
+1. **Enable Bluetooth** on your phone
+2. **Wake the sensor** - Use a strong magnet on the reed switch if sensor is asleep
+3. **Tap [Connect Device]** in the app
+4. **Select sensor** from list (identified by 16-character Hex ID)
+5. Wait for "Connected" status
+
+### Status Dashboard
+
+The STATUS tab shows real-time sensor data:
+
+| Metric | Description |
+|--------|-------------|
+| **Occupancy** | OCCUPIED (red) / VACANT (green) |
+| **Battery** | Remaining power % (red if <20%) |
+| **Temp** | Internal hardware temperature |
+| **Distance** | Radar measured distance (cm) |
+| **Mag X/Y/Z** | Three-axis magnetic field values |
+| **Water Cover** | Detects water/snow on surface |
+| **RSSI** | Bluetooth signal strength |
+
+### Actions
+
+| Button | Function |
+|--------|----------|
+| **Calibrate Radar** | Recalibrate radar (needs 2m clear radius, ~20 sec) |
+| **Device Reboot** | Restart sensor (reconnect Bluetooth after) |
+
+---
+
+## Sensor Configuration (CONFIG Tab)
+
+### Radar & General Settings
+
+| Setting | Options | Description |
+|---------|---------|-------------|
+| **Radar Module** | ENABLED / SLEEP | Enable dual-mode or magnetic-only |
+| **Mounting Type** | Horizontal / Vertical | Surface mount or underground |
+| **Detect Range** | 0-500 cm | Distance threshold to filter interference |
+
+### Network Configuration
+
+Switch between LoRaWAN and NB-IoT tabs.
+
+⚠️ **Note:** Device must be restarted after changing network settings.
+
+---
+
+## NB-IoT Configuration (du Network)
 
 ### du SIM Settings
 
@@ -28,6 +98,30 @@ The **PSL01B-NBIoT** is a smart parking sensor that detects vehicle presence usi
 | APN | du |
 | Network | NB-IoT (Band 20) |
 | Region | UAE |
+
+---
+
+## NB-IoT MQTT Configuration (via App)
+
+Configure these settings in the **CONFIG → NB-IoT** tab:
+
+### MQTT Broker Settings
+
+| Setting | Value |
+|---------|-------|
+| **APN** | `du` |
+| **MQTT Host** | `a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com` |
+| **MQTT Port** | `8883` |
+| **SSL** | ENABLED ✓ |
+| **Client ID** | Sensor DevEUI (e.g., `A84041000181234`) |
+
+### Topic Configuration
+
+| Setting | Value |
+|---------|-------|
+| **Publish Topic** | `visiondrive/parking/{zoneId}/{bayId}/status` |
+
+Example: `visiondrive/parking/zone-001/A-001/status`
 
 ---
 
@@ -203,25 +297,34 @@ curl -X POST https://o2s68toqw0.execute-api.me-central-1.amazonaws.com/prod/sens
 
 ## Calibration
 
-### Initial Calibration
+### Radar Calibration (via SWIOTT App)
 
-After installation, perform calibration:
+The radar sensor requires calibration for accurate distance measurement.
 
-1. Ensure bay is **empty** (no vehicle)
-2. Wait 5 minutes for sensor to stabilize
-3. Use the calibration endpoint:
+**Calibration Steps:**
 
-```bash
-curl -X POST https://API_URL/sensors/PSL01B-001/calibrate
-```
+1. **Connect** to sensor via Bluetooth using SWIOTT Sensor Tool
+2. **Clear the area** - Ensure NO objects within **2-meter radius**
+3. **Ensure bay is empty** - No vehicle present
+4. **Tap [Calibrate Radar]** in the STATUS tab
+5. **Wait ~20 seconds** for calibration to complete
+6. **Verify** - Check distance reading stabilizes
 
-### Recalibration
+⚠️ **Important:** 
+- The sensor area must be completely clear during calibration
+- Do not move the sensor during the 20-second process
+- Calibrate in dry weather conditions
+
+### When to Recalibrate
 
 Recalibrate if:
 - Detection accuracy drops
-- Sensor was moved
-- Ground conditions changed
+- Sensor shows "Radar Invalid" error
+- Sensor was physically moved
+- Surface is blocked by mud/ice (clean first)
+- Ground conditions changed significantly
 - After battery replacement
+- Mounting orientation changed
 
 ---
 
@@ -257,51 +360,101 @@ Alert flow:
 
 ## Troubleshooting
 
+### Quick Reference (from SWIOTT Manual)
+
+| Symptom | Indicator | Solution |
+|---------|-----------|----------|
+| Connection Failed | Can't pair via Bluetooth | Use strong magnet to trigger "Wake up" reed switch |
+| Radar Invalid | Detection errors | Clean sensor surface, perform [Calibrate Radar] |
+| Low Signal | Poor connectivity | Move closer or check NB-IoT SIM in CONFIG tab |
+
 ### Sensor Not Reporting
 
-1. **Check network coverage**
-   - Ensure NB-IoT signal in area
+1. **Wake the sensor**
+   - Use a strong magnet on the reed switch to wake from sleep mode
+   - Connect via Bluetooth to verify it's alive
+
+2. **Check network coverage**
+   - Ensure NB-IoT signal in area (du network)
+   - Check RSSI in STATUS tab
    - Check for RF interference
 
-2. **Verify registration**
+3. **Verify NB-IoT config** (via SWIOTT App)
+   - Open CONFIG → NB-IoT tab
+   - Verify APN is set to `du`
+   - Check MQTT broker settings
+   - Ensure SSL is ENABLED
+
+4. **Verify registration in backend**
    ```bash
    curl https://API_URL/sensors/SENSOR_ID
    ```
 
-3. **Check AWS IoT Core**
+5. **Check AWS IoT Core**
    - Verify thing exists
    - Check certificate validity
    - Review IoT logs
 
 ### Incorrect Detection
 
-1. **Recalibrate sensor**
-2. **Check for metal interference**
+1. **Clean the sensor surface**
+   - Remove mud, ice, or debris
+   - Water/snow cover affects detection
+
+2. **Recalibrate radar**
+   - Use SWIOTT App → STATUS → [Calibrate Radar]
+   - Ensure 2m clear radius
+   - Wait 20 seconds
+
+3. **Check mounting type**
+   - Verify Horizontal/Vertical setting matches physical installation
+
+4. **Adjust detect range**
+   - CONFIG → Detect Range (cm)
+   - Filter out overhead interference
+
+5. **Check for metal interference**
    - Remove nearby metal objects
    - Check underground utilities
 
-3. **Verify installation depth**
+6. **Verify installation**
    - Sensor should be flush with surface
+   - Center of parking bay
 
 ### Connectivity Issues
 
-1. **Check APN settings**
-   - APN should be "du"
+1. **Check APN settings** (via App)
+   - APN should be `du`
+   - Restart device after changes
 
-2. **Verify endpoint**
-   - Correct IoT endpoint URL
-   - Port 8883 accessible
+2. **Verify MQTT settings**
+   - Host: `a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com`
+   - Port: `8883`
+   - SSL: Enabled
 
-3. **Test with MQTT client**
-   ```bash
-   mosquitto_pub -h a15wlpv31y3kre-ats.iot.me-central-1.amazonaws.com \
-     -p 8883 \
-     --cafile root-CA.crt \
-     --cert device.pem.crt \
-     --key private.pem.key \
-     -t "visiondrive/parking/test/test/status" \
-     -m '{"deviceId":"test","status":"vacant"}'
-   ```
+3. **Check SIM status**
+   - Verify du SIM is active
+   - Check data plan
+
+4. **Reboot device**
+   - Use [Device Reboot] in STATUS tab
+   - Reconnect Bluetooth after restart
+
+5. **Use LOGS tab for debugging**
+   - View AT commands sent/received
+   - Blue: Commands sent by app
+   - Green: Responses from sensor
+
+### Debug with AT Commands
+
+Use the LOGS tab in SWIOTT App to send custom AT commands:
+
+```
+> AT+STATUS       # Query sensor status
+> AT+BATTERY      # Check battery level
+> AT+SIGNAL       # Check NB-IoT signal
+> AT+REBOOT       # Restart sensor
+```
 
 ---
 
