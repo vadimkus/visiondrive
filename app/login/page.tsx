@@ -54,7 +54,7 @@ export default function LoginPage() {
       if (formData.portal === 'kitchen') {
         // Kitchen owners go to owner dashboard, admins go to admin dashboard
         if (data.isOwner) {
-          router.push('/portal/smart-kitchen/owner')
+          router.push('/kitchen-owner')
         } else {
           router.push('/portal/smart-kitchen')
         }
