@@ -14,6 +14,7 @@ import {
   Moon,
   Sun,
   Lock,
+  CreditCard,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
@@ -34,6 +35,7 @@ const navItems = [
 
 const bottomNavItems = [
   { id: 'settings', label: 'Settings', icon: Settings, href: '/kitchen-owner/settings' },
+  { id: 'subscription', label: 'Subscription', icon: CreditCard, href: '/kitchen-owner/subscription' },
   { id: 'privacy', label: 'Privacy', icon: Lock, href: '/kitchen-owner/privacy' },
   { id: 'help', label: 'Help & Support', icon: HelpCircle, href: '/kitchen-owner/help' },
 ]
