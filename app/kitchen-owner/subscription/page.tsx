@@ -342,12 +342,10 @@ export default function SubscriptionPage() {
 
         {/* Need Help */}
         <div className={`mt-6 text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-          <p className="text-xs">
-            Need help with billing? Contact us at{' '}
-            <a href="mailto:billing@visiondrive.ae" className="text-orange-500 hover:underline">
-              billing@visiondrive.ae
-            </a>
-          </p>
+          <p className="text-xs">Need help with billing?</p>
+          <a href="mailto:billing@visiondrive.ae" className="text-xs text-orange-500 hover:underline">
+            billing@visiondrive.ae
+          </a>
         </div>
       </div>
     </div>
