@@ -1,8 +1,8 @@
 # Smart Kitchen - Implementation Progress
 
-## 🚀 Current Status: Phase 5 Complete + DM Compliance Implemented!
+## 🚀 Current Status: Kitchen Owner Portal Complete!
 
-**Last Updated:** January 12, 2026 at 2:30 PM UAE
+**Last Updated:** January 12, 2026 at 6:15 PM UAE
 
 ---
 
@@ -51,18 +51,49 @@
 | Settings Page | ✅ | DM requirements reference |
 | Compliance Report | ✅ | Full report at `/compliance` |
 
+### Phase 5.5: Kitchen Owner Portal ✅ (Jan 12, 2026) 🆕
+
+**Major Feature:** Dedicated portal for kitchen owners (non-admin users)
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| Separate Route | ✅ | `/kitchen-owner` with own layout |
+| Owner Dashboard | ✅ | Status hero, sensors, alerts overview |
+| My Equipment | ✅ | Equipment list with detail view |
+| Alert System | ✅ | **"Acknowledge" button** (was "Ack") |
+| Reports | ✅ | Per-sensor reports (daily/weekly/monthly/yearly) |
+| DM Compliance | ✅ | Compliance tracking page |
+| Settings | ✅ | Account, notifications, thresholds, equipment management |
+| Privacy | ✅ | UAE data residency compliance checklist |
+| Help & Support | ✅ | Contact info, FAQ, quick links |
+| Dark/Light Mode | ✅ | Toggle with `localStorage` persistence |
+| VisionDrive Branding | ✅ | Logo + text in sidebar |
+| Manual Edit Mode | ✅ | Enable temperature editing in Settings |
+| Equipment Management | ✅ | Assign model & serial numbers |
+
 ---
 
 ## 🔑 LOGIN CREDENTIALS
 
-### Kitchen Portal
+### Admin Portal (Full Access)
 | Field | Value |
 |-------|-------|
 | **URL** | https://www.visiondrive.ae/login |
 | **Portal** | Select "Kitchen" 🍳 |
 | **Email** | `admin@kitchen.ae` |
 | **Password** | `Kitchen@2026` |
+| **Role** | ADMIN |
 | **Redirects to** | `/portal/smart-kitchen` |
+
+### Kitchen Owner Portal (Abdul's Kitchen)
+| Field | Value |
+|-------|-------|
+| **URL** | https://www.visiondrive.ae/login |
+| **Portal** | Select "Kitchen" 🍳 |
+| **Email** | `abdul@kitchen.ae` |
+| **Password** | `Abdul@2026` |
+| **Role** | KITCHEN_OWNER |
+| **Redirects to** | `/kitchen-owner` |
 
 ### How Login Works
 ```
@@ -75,38 +106,89 @@ Enters credentials → POST /api/auth/login
 Frontend calls AWS API (UAE)
 https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/auth/login
         ↓
-Returns JWT token → Cookie set → Redirect to /portal/smart-kitchen
+Returns JWT token with role
+        ↓
+If role = ADMIN → Redirect to /portal/smart-kitchen
+If role = KITCHEN_OWNER → Redirect to /kitchen-owner
 ```
 
 ---
 
-## 🏛️ DUBAI MUNICIPALITY COMPLIANCE
+## 🏠 KITCHEN OWNER PORTAL
 
-### Temperature Requirements (Implemented)
+**URL:** https://visiondrive.ae/kitchen-owner
 
-| Equipment | Arabic | Required | Icon |
-|-----------|--------|----------|------|
-| Walk-in Fridge | غرفة تبريد | 0°C to 5°C | 🚪 |
-| Main Freezer | فريزر | ≤ -18°C | ❄️ |
-| Prep Area Fridge | ثلاجة التحضير | 0°C to 5°C | 🔪 |
-| Main Cooler | ثلاجة | 0°C to 5°C | 🧊 |
-| Display Fridge | ثلاجة عرض | 0°C to 5°C | 🛒 |
-| Hot Bain-Marie | حفظ ساخن | ≥ 60°C | 🔥 |
-| Blast Chiller | مبرد سريع | -10°C to 3°C | 💨 |
-| **Danger Zone** | **منطقة الخطر** | **5°C - 60°C** | ⚠️ |
-| Cooking Temp | درجة حرارة الطهي | ≥ 75°C core | 🍳 |
-
-### Portal Pages
+### Pages & Features
 
 | Page | URL | Features |
 |------|-----|----------|
-| Overview | `/portal/smart-kitchen` | Compliance rate, danger zones, stats |
-| Kitchens | `/portal/smart-kitchen/kitchens` | Kitchen list with compliance % |
-| Sensors | `/portal/smart-kitchen/sensors` | Equipment types, thresholds, status |
-| Alerts | `/portal/smart-kitchen/alerts` | Acknowledge workflow, severity |
-| Reports | `/portal/smart-kitchen/reports` | Analytics, export options |
-| Settings | `/portal/smart-kitchen/settings` | DM requirements, notifications |
-| **Compliance** | `/portal/smart-kitchen/compliance` | Full compliance report |
+| Dashboard | `/kitchen-owner` | Status hero, 5 sensors, recent alerts, quick actions |
+| My Equipment | `/kitchen-owner/sensors` | Equipment list, detail view, temp logs, edit mode |
+| Alerts | `/kitchen-owner/alerts` | Alert list with **Acknowledge** button |
+| Reports | `/kitchen-owner/reports` | Generate & download per-sensor reports |
+| DM Compliance | `/kitchen-owner/compliance` | Compliance rate, violations, trends |
+| Settings | `/kitchen-owner/settings` | Account, notifications, thresholds, **equipment management** |
+| Privacy | `/kitchen-owner/privacy` | UAE data residency, GDPR checklist |
+| Help & Support | `/kitchen-owner/help` | Contact (teal theme), FAQ, quick links |
+
+### Abdul's Kitchen - Demo Data
+
+| Equipment | Type | Model | Serial | Required Temp |
+|-----------|------|-------|--------|---------------|
+| Walk-in Fridge | 🚪 | True TWT-48SD | TWI-2023-45892 | 0°C to 5°C |
+| Main Freezer | ❄️ | Liebherr GGv 5060 | LBH-2022-78341 | ≤ -18°C |
+| Prep Fridge | 🔪 | Hoshizaki CR1S-FS | HSK-2024-12076 | 0°C to 5°C |
+| Display Cooler | 🛒 | Turbo Air TOM-40 | TAR-2023-90215 | 0°C to 5°C |
+| Hot Holding | 🔥 | Alto-Shaam 500-HW | ASH-2023-33987 | ≥ 60°C |
+
+### Design Features
+
+- **VisionDrive branding** in sidebar (logo + "VisionDrive" with orange accent)
+- **Dark/Light mode** toggle with persistence
+- **Apple-like minimal design**
+- **Centered content** (max-w-4xl)
+- **Live weather data** in header (temp, humidity, wind, condition)
+- **Teal/cyan color** for Help section (eye-friendly)
+
+---
+
+## 🛠️ RECENT CHANGES (Jan 12, 2026)
+
+### UI/UX Improvements
+
+| Change | Details |
+|--------|---------|
+| "Ack" → "Acknowledge" | Full word for clarity, now functional |
+| Orange → Teal | Help & Support section, eye-friendly |
+| Edit Mode text | Simplified to just "Edit Mode Enabled" |
+| Equipment Management | Added to Settings page |
+| Per-sensor reports | Daily/weekly/monthly/yearly downloads |
+| Sensor detail view | Temperature logs with stats |
+| Privacy page | UAE/GDPR compliance checklist |
+| Live header data | Weather updates every 30 seconds |
+| Centered layout | All pages use max-w-4xl mx-auto |
+| 10% larger fonts | Better readability across portal |
+
+### Code Files Updated
+
+```
+app/kitchen-owner/
+├── page.tsx                     # Dashboard with acknowledge alerts
+├── layout.tsx                   # ThemeProvider + SettingsProvider
+├── context/
+│   ├── ThemeContext.tsx         # Dark/light mode
+│   └── SettingsContext.tsx      # Manual edit mode
+├── components/
+│   ├── OwnerSidebar.tsx         # VisionDrive branding, navigation
+│   └── OwnerHeader.tsx          # Live weather data, left-aligned
+├── sensors/page.tsx             # Equipment list + detail + edit mode
+├── alerts/page.tsx              # Acknowledge button functional
+├── reports/page.tsx             # Per-sensor report generation
+├── compliance/page.tsx          # DM compliance tracking
+├── settings/page.tsx            # Account, thresholds, equipment mgmt
+├── privacy/page.tsx             # UAE/GDPR checklist
+└── help/page.tsx                # Teal contact card, FAQ
+```
 
 ---
 
@@ -188,25 +270,37 @@ VisionDrive/
 │   ├── login/page.tsx                    # Kitchen/Parking selector
 │   ├── api/auth/login/route.ts           # Routes Kitchen auth to AWS
 │   ├── api/auth/me/route.ts              # Dual JWT verification
-│   ├── portal/
-│   │   ├── layout.tsx                    # Conditional sidebar
-│   │   └── smart-kitchen/
-│   │       ├── page.tsx                  # Overview + DM compliance
-│   │       ├── layout.tsx                # Kitchen portal layout
-│   │       ├── lib/
-│   │       │   └── compliance.ts         # DM compliance library
-│   │       ├── components/
-│   │       │   ├── KitchenSidebar.tsx    # Dark Apple-like sidebar
-│   │       │   ├── KitchenHeader.tsx     # Weather header
-│   │       │   ├── AlertsPanel.tsx
-│   │       │   ├── SensorGrid.tsx
-│   │       │   └── TemperatureChart.tsx
-│   │       ├── kitchens/page.tsx         # Kitchen list
-│   │       ├── sensors/page.tsx          # Sensor grid
-│   │       ├── alerts/page.tsx           # Alerts with workflow
-│   │       ├── reports/page.tsx          # Analytics
-│   │       ├── settings/page.tsx         # DM requirements
-│   │       └── compliance/page.tsx       # Compliance report
+│   │
+│   ├── portal/smart-kitchen/             # ADMIN PORTAL
+│   │   ├── page.tsx                      # Overview + DM compliance
+│   │   ├── layout.tsx                    # Admin layout
+│   │   ├── lib/compliance.ts             # DM compliance library
+│   │   ├── components/
+│   │   │   ├── KitchenSidebar.tsx
+│   │   │   └── KitchenHeader.tsx
+│   │   ├── kitchens/page.tsx
+│   │   ├── sensors/page.tsx
+│   │   ├── alerts/page.tsx
+│   │   ├── reports/page.tsx
+│   │   ├── settings/page.tsx
+│   │   └── compliance/page.tsx
+│   │
+│   └── kitchen-owner/                    # OWNER PORTAL 🆕
+│       ├── page.tsx                      # Dashboard
+│       ├── layout.tsx                    # Owner layout + providers
+│       ├── context/
+│       │   ├── ThemeContext.tsx          # Dark/light mode
+│       │   └── SettingsContext.tsx       # Manual edit mode
+│       ├── components/
+│       │   ├── OwnerSidebar.tsx          # VisionDrive branded
+│       │   └── OwnerHeader.tsx           # Live weather
+│       ├── sensors/page.tsx              # My Equipment + detail
+│       ├── alerts/page.tsx               # With Acknowledge
+│       ├── reports/page.tsx              # Per-sensor reports
+│       ├── compliance/page.tsx
+│       ├── settings/page.tsx             # + Equipment Management
+│       ├── privacy/page.tsx              # UAE/GDPR
+│       └── help/page.tsx                 # Teal theme
 │
 ├── lib/smart-kitchen/
 │   └── aws-client.ts                     # AWS API client
@@ -216,13 +310,9 @@ VisionDrive/
     ├── PROGRESS.md                       # This file
     ├── PROJECT_PLAN.md
     ├── docs/
-    │   ├── ARCHITECTURE.md
-    │   ├── DATA_RESIDENCY.md
-    │   └── ...
     └── infrastructure/
-        ├── cdk/                          # AWS CDK stacks
-        └── lambda/
-            └── api/index.js              # REST API with auth
+        ├── cdk/
+        └── lambda/api/index.js
 ```
 
 ---
@@ -237,10 +327,10 @@ VisionDrive/
 5. [ ] Verify data appears in DynamoDB
 
 ### This Week
-- [ ] Link admin user to specific kitchen
-- [ ] Create more kitchen users
-- [ ] Test full end-to-end flow on live site
-- [ ] Configure real equipment types for sensors
+- [ ] Connect Abdul's Kitchen to real sensors
+- [ ] Replace mock data with live API data
+- [ ] Test acknowledge flow end-to-end
+- [ ] Test equipment management save to backend
 
 ### Future
 - [ ] Onboard first real kitchen customer
@@ -252,50 +342,18 @@ VisionDrive/
 
 ## 🔧 QUICK COMMANDS
 
-### Check AWS Stack Status
-```bash
-aws cloudformation describe-stacks --region me-central-1 \
-  --query 'Stacks[?contains(StackName, `SmartKitchen`)].{Name:StackName,Status:StackStatus}' \
-  --output table
-```
-
-### Get RDS Credentials
-```bash
-aws secretsmanager get-secret-value \
-  --secret-id smartkitchen/rds/credentials \
-  --region me-central-1 \
-  --query 'SecretString' --output text | jq
-```
-
-### Test Kitchen Login API
+### Test Kitchen Login (Admin)
 ```bash
 curl -X POST https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@kitchen.ae","password":"Kitchen@2026"}'
 ```
 
-### List Kitchens
+### Test Kitchen Login (Owner)
 ```bash
-curl https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/kitchens
-```
-
-### Create New Kitchen User (requires admin key)
-```bash
-curl -X POST https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/auth/register \
+curl -X POST https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/auth/login \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "manager@kitchen.ae",
-    "password": "Manager@2026",
-    "name": "Kitchen Manager",
-    "role": "CUSTOMER_OPS",
-    "adminKey": "VisionDrive2026!"
-  }'
-```
-
-### Deploy CDK Changes
-```bash
-cd /Users/vadimkus/VisionDrive/smartkitchen/infrastructure/cdk
-cdk deploy --all --require-approval never
+  -d '{"email":"abdul@kitchen.ae","password":"Abdul@2026"}'
 ```
 
 ### Git Push
@@ -312,25 +370,14 @@ git add -A && git commit -m "Update Smart Kitchen" && git push origin main
 |-------|----------|
 | Timestream not available in UAE | Using DynamoDB for time-series data |
 | PostgreSQL 15.4 not available | Using PostgreSQL 16.6 |
-| RDS in private subnet - can't connect from local | Used EC2 bastion via SSM for migrations |
+| RDS in private subnet | Used EC2 bastion via SSM for migrations |
 | Prisma 7 breaking changes | Downgraded to Prisma 5 for migrations |
 | Free tier backup limits | Reduced to 1-day retention |
 | JWT secret mismatch (parking vs kitchen) | Dual JWT verification in `/api/auth/me` |
 | Overlapping sidebars | Conditional render in `portal/layout.tsx` |
-
----
-
-## 💰 ESTIMATED MONTHLY COSTS
-
-| Service | Cost |
-|---------|------|
-| RDS PostgreSQL (db.t3.micro) | ~$15-20 |
-| DynamoDB (on-demand) | ~$1-5 |
-| Lambda | Free tier |
-| API Gateway | ~$1-3 |
-| IoT Core | ~$1-5 |
-| VPC NAT Gateway | ~$30-40 |
-| **Total** | **~$50-75/month** |
+| Dark mode not working | Added `darkMode: 'class'` to Tailwind config |
+| "Ack" text unclear | Changed to full "Acknowledge" |
+| Orange too harsh on eyes | Changed Help section to teal/cyan |
 
 ---
 
@@ -365,4 +412,4 @@ TEMPERATURE THRESHOLDS:
 
 ---
 
-*Progress last updated: January 12, 2026 at 2:30 PM UAE*
+*Progress last updated: January 12, 2026 at 6:15 PM UAE*

@@ -324,17 +324,51 @@ Temperature Data ─────────────────────
 - [x] Export PDF button (placeholder)
 - [x] DM document reference banner
 
-### 5.5 Mobile App Integration (Future)
+### 5.5 Kitchen Owner Portal ✅ COMPLETED (Jan 12, 2026)
+
+**Dedicated portal for kitchen owners (non-admin users)**
+
+**Access:** https://visiondrive.ae/kitchen-owner
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Separate Route | ✅ | `/kitchen-owner` with dedicated layout |
+| Owner Dashboard | ✅ | Status hero, sensors, alerts overview |
+| My Equipment | ✅ | Equipment list + detail view with temp logs |
+| Alert System | ✅ | **"Acknowledge"** button (functional) |
+| Reports | ✅ | Per-sensor reports (daily/weekly/monthly/yearly) |
+| DM Compliance | ✅ | Compliance tracking page |
+| Settings | ✅ | Account, notifications, thresholds, equipment mgmt |
+| Privacy | ✅ | UAE data residency & GDPR checklist |
+| Help & Support | ✅ | Teal contact card, FAQ, quick links |
+| Dark/Light Mode | ✅ | Toggle with localStorage persistence |
+| VisionDrive Branding | ✅ | Logo + text in sidebar |
+| Manual Edit Mode | ✅ | Enable temperature editing |
+| Equipment Management | ✅ | Assign model & serial numbers |
+| Centered Layout | ✅ | max-w-4xl mx-auto on all pages |
+| 10% Larger Fonts | ✅ | Better readability |
+| Live Weather Header | ✅ | Temp, humidity, wind, condition |
+
+**Owner Login Credentials:**
+```
+URL:      https://www.visiondrive.ae/login
+Portal:   Kitchen 🍳
+Email:    abdul@kitchen.ae
+Password: Abdul@2026
+Role:     KITCHEN_OWNER → Redirects to /kitchen-owner
+```
+
+### 5.6 Mobile App Integration (Future)
 - [ ] Add Smart Kitchen tab to VisionDrive mobile app
 - [ ] Push notifications for temperature alerts
 - [ ] Offline alert history caching
 - [ ] Biometric login support
 
-### 5.6 Alert System
+### 5.7 Alert System
+- [x] Implement acknowledge flow in UI ✅
 - [ ] Configure SNS topic subscriptions per customer
 - [ ] Set up email notifications (to kitchen managers)
 - [ ] SMS alerts for critical temperatures
-- [ ] Implement acknowledge flow in UI
 - [ ] Add alert sound/visual indicators
 - [ ] Allow customers to customize alert thresholds
 
@@ -515,9 +549,9 @@ smartkitchen/
         ├── analytics/                  # Generate reports
         └── api/                        # REST API handler
 
-app/portal/smart-kitchen/              # Frontend components
+app/portal/smart-kitchen/              # ADMIN PORTAL
 ├── page.tsx                           # Overview dashboard
-├── layout.tsx                         # Kitchen portal layout
+├── layout.tsx                         # Admin portal layout
 ├── lib/compliance.ts                  # DM compliance library
 ├── components/
 │   ├── KitchenSidebar.tsx             # Dark sidebar
@@ -528,38 +562,68 @@ app/portal/smart-kitchen/              # Frontend components
 ├── reports/page.tsx                   # Analytics reports
 ├── settings/page.tsx                  # DM requirements
 └── compliance/page.tsx                # Compliance report
+
+app/kitchen-owner/                     # OWNER PORTAL (NEW)
+├── page.tsx                           # Dashboard
+├── layout.tsx                         # Owner layout + providers
+├── context/
+│   ├── ThemeContext.tsx               # Dark/light mode
+│   └── SettingsContext.tsx            # Manual edit mode
+├── components/
+│   ├── OwnerSidebar.tsx               # VisionDrive branding
+│   └── OwnerHeader.tsx                # Live weather data
+├── sensors/page.tsx                   # My Equipment + detail view
+├── alerts/page.tsx                    # Acknowledge flow
+├── reports/page.tsx                   # Per-sensor reports
+├── compliance/page.tsx                # DM compliance
+├── settings/page.tsx                  # Account + equipment mgmt
+├── privacy/page.tsx                   # UAE/GDPR checklist
+└── help/page.tsx                      # Teal contact card
 ```
 
 ---
 
 ## ✅ Next Steps
 
-### Immediate (Jan 12, 2026)
+### Immediate (Jan 13, 2026)
 1. **Get du SIM card** for Dragino sensor
 2. **Configure sensor** with du APN and AWS IoT endpoint
 3. **Test first transmission** - verify data in DynamoDB
 
 ### This Week
-4. **Link admin to kitchen** - set kitchenId for admin user
-5. **Create additional users** - test multi-user access
-6. **Test live site** - login at visiondrive.ae with Kitchen portal
+4. **Connect Abdul's Kitchen** to real Dragino sensors
+5. **Replace mock data** with live API data in owner portal
+6. **Test acknowledge flow** end-to-end with real alerts
+7. **Test equipment management** save to backend
 
 ### Coming Weeks
-7. **Phase 2**: Sensor deployment at customer kitchens
-8. **Phase 6**: Testing and validation
-9. **Phase 7**: Customer onboarding
-10. **Phase 8**: Go live with first customer
+8. **Phase 2**: Sensor deployment at customer kitchens
+9. **Phase 6**: Testing and validation
+10. **Phase 7**: Customer onboarding
+11. **Phase 8**: Go live with first customer
 
 ---
 
 ## 🔑 Quick Reference
 
 ### Login Credentials
+
+**Admin Portal** (Full access to all kitchens)
 ```
 URL:      https://www.visiondrive.ae/login
 Portal:   Kitchen 🍳
 Email:    admin@kitchen.ae
 Password: Kitchen@2026
+Role:     ADMIN → /portal/smart-kitchen
+```
+
+**Owner Portal** (Abdul's Kitchen only)
+```
+URL:      https://www.visiondrive.ae/login
+Portal:   Kitchen 🍳
+Email:    abdul@kitchen.ae
+Password: Abdul@2026
+Role:     KITCHEN_OWNER → /kitchen-owner
 ```
 
 ### AWS API
@@ -584,6 +648,16 @@ Danger Zone:    5°C - 60°C (UNSAFE)
 Cooking:        ≥ 75°C core
 ```
 
+### Owner Portal Features
+```
+Dashboard:      Status hero, sensors, alerts, quick actions
+My Equipment:   List → Detail → Temp logs → Edit mode
+Reports:        Per-sensor (daily/weekly/monthly/yearly)
+Settings:       Account, notifications, equipment management
+Privacy:        UAE data residency + GDPR checklist
+Help:           Teal contact card + FAQ
+```
+
 ---
 
-*Last Updated: January 12, 2026 - Phases 1, 4, 5 Complete + DM Compliance*
+*Last Updated: January 12, 2026 - Phases 1, 4, 5, 5.5 Complete + Kitchen Owner Portal*
