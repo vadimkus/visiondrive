@@ -10,7 +10,7 @@ import {
   Building,
   Save,
   Edit3,
-  AlertTriangle
+  CheckCircle
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useSettings } from '../context/SettingsContext'
@@ -108,11 +108,11 @@ export default function OwnerSettings() {
             {/* Manual Edit Section */}
             <div className={`rounded-xl border p-4 ${
               manualEditEnabled 
-                ? isDark ? 'bg-amber-900/20 border-amber-700' : 'bg-amber-50 border-amber-200'
+                ? isDark ? 'bg-emerald-900/20 border-emerald-700' : 'bg-emerald-50 border-emerald-200'
                 : isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'
             }`}>
               <div className="flex items-center gap-2 mb-3">
-                <Edit3 className={`h-4 w-4 ${manualEditEnabled ? 'text-amber-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                <Edit3 className={`h-4 w-4 ${manualEditEnabled ? 'text-emerald-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                 <h2 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Manual Edit</h2>
               </div>
               
@@ -129,7 +129,7 @@ export default function OwnerSettings() {
                   <button
                     onClick={() => setManualEditEnabled(!manualEditEnabled)}
                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      manualEditEnabled ? 'bg-amber-500' : isDark ? 'bg-gray-700' : 'bg-gray-300'
+                      manualEditEnabled ? 'bg-emerald-500' : isDark ? 'bg-gray-700' : 'bg-gray-300'
                     }`}
                   >
                     <span
@@ -143,15 +143,15 @@ export default function OwnerSettings() {
 
                 {manualEditEnabled && (
                   <div className={`flex items-start gap-2 p-2 rounded-lg ${
-                    isDark ? 'bg-amber-900/30' : 'bg-amber-100'
+                    isDark ? 'bg-emerald-900/30' : 'bg-emerald-100'
                   }`}>
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className={`text-[10px] font-medium ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
-                        Manual Edit Mode Active
+                      <p className={`text-[10px] font-medium ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
+                        Edit Mode Enabled
                       </p>
-                      <p className={`text-[10px] ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>
-                        All manual edits are logged for DM compliance. Use with caution.
+                      <p className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                        You can now adjust sensor readings in My Sensors to ensure compliance.
                       </p>
                     </div>
                   </div>
