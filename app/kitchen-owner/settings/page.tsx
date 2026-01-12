@@ -173,18 +173,13 @@ export default function OwnerSettings() {
                 </div>
 
                 {manualEditEnabled && (
-                  <div className={`flex items-start gap-2 p-2 rounded-lg ${
+                  <div className={`flex items-center gap-2 p-2 rounded-lg ${
                     isDark ? 'bg-emerald-900/30' : 'bg-emerald-100'
                   }`}>
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className={`text-[10px] font-medium ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
-                        Edit Mode Enabled
-                      </p>
-                      <p className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                        You can now adjust readings in My Equipment to ensure compliance.
-                      </p>
-                    </div>
+                    <CheckCircle className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                    <p className={`text-[10px] font-medium ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
+                      Edit Mode Enabled
+                    </p>
                   </div>
                 )}
               </div>
