@@ -8,13 +8,17 @@ import {
   Shield, 
   User,
   Building,
-  Save
+  Save,
+  Edit3,
+  AlertTriangle
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
+import { useSettings } from '../context/SettingsContext'
 
 export default function OwnerSettings() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+  const { manualEditEnabled, setManualEditEnabled } = useSettings()
   const [notifications, setNotifications] = useState({
     email: true,
     sms: true,
@@ -31,6 +35,13 @@ export default function OwnerSettings() {
     freezerMax: -18,
     hotHoldingMin: 60,
   })
+
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = () => {
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
 
   const inputClass = `w-full px-2 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 ${
     isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'border-gray-200 text-gray-900'
@@ -91,6 +102,60 @@ export default function OwnerSettings() {
                   <label className={`block text-xs mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Trade License</label>
                   <input type="text" defaultValue="DM-12345678" className={inputClass} />
                 </div>
+              </div>
+            </div>
+
+            {/* Manual Edit Section */}
+            <div className={`rounded-xl border p-4 ${
+              manualEditEnabled 
+                ? isDark ? 'bg-amber-900/20 border-amber-700' : 'bg-amber-50 border-amber-200'
+                : isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'
+            }`}>
+              <div className="flex items-center gap-2 mb-3">
+                <Edit3 className={`h-4 w-4 ${manualEditEnabled ? 'text-amber-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                <h2 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Manual Edit</h2>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Enable Temperature Editing
+                    </span>
+                    <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      Allow manual amendments to sensor readings
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setManualEditEnabled(!manualEditEnabled)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      manualEditEnabled ? 'bg-amber-500' : isDark ? 'bg-gray-700' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                        manualEditEnabled ? 'translate-x-4.5' : 'translate-x-1'
+                      }`}
+                      style={{ transform: manualEditEnabled ? 'translateX(18px)' : 'translateX(4px)' }}
+                    />
+                  </button>
+                </div>
+
+                {manualEditEnabled && (
+                  <div className={`flex items-start gap-2 p-2 rounded-lg ${
+                    isDark ? 'bg-amber-900/30' : 'bg-amber-100'
+                  }`}>
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className={`text-[10px] font-medium ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+                        Manual Edit Mode Active
+                      </p>
+                      <p className={`text-[10px] ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>
+                        All manual edits are logged for DM compliance. Use with caution.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -216,9 +281,16 @@ export default function OwnerSettings() {
 
         {/* Save Button */}
         <div className="mt-4 flex justify-end">
-          <button className="flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors">
+          <button 
+            onClick={handleSave}
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              saved 
+                ? 'bg-emerald-600 text-white' 
+                : 'bg-orange-600 text-white hover:bg-orange-700'
+            }`}
+          >
             <Save className="h-3.5 w-3.5" />
-            Save
+            {saved ? 'Saved!' : 'Save'}
           </button>
         </div>
       </div>

@@ -16,8 +16,12 @@ import {
   TrendingDown,
   Clock,
   Thermometer,
+  Edit3,
+  Save,
+  RotateCcw,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
+import { useSettings } from '../context/SettingsContext'
 
 interface Sensor {
   id: string
@@ -37,6 +41,8 @@ interface ReadingEntry {
   time: string
   temp: number
   status: 'compliant' | 'warning' | 'critical'
+  edited?: boolean
+  originalTemp?: number
 }
 
 const SENSORS: Sensor[] = [
@@ -114,24 +120,19 @@ const generateReadings = (sensor: Sensor, period: string): ReadingEntry[] => {
   const range = sensor.requiredRange
   
   let entries = 24
-  let interval = 'hour'
   
   switch (period) {
     case 'daily':
       entries = 24
-      interval = 'hour'
       break
     case 'weekly':
-      entries = 7 * 4 // 4 readings per day for 7 days
-      interval = '6h'
+      entries = 7 * 4
       break
     case 'monthly':
       entries = 30
-      interval = 'day'
       break
     case 'yearly':
       entries = 12
-      interval = 'month'
       break
   }
   
@@ -184,9 +185,13 @@ const generateReadings = (sensor: Sensor, period: string): ReadingEntry[] => {
 export default function OwnerSensors() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+  const { manualEditEnabled } = useSettings()
   const [filter, setFilter] = useState('all')
   const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState('daily')
+  const [readings, setReadings] = useState<ReadingEntry[]>([])
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [editValue, setEditValue] = useState('')
 
   const filteredSensors = filter === 'all' 
     ? SENSORS 
@@ -223,8 +228,83 @@ export default function OwnerSensors() {
     return ''
   }
 
-  const readings = selectedSensor ? generateReadings(selectedSensor, selectedPeriod) : []
-  
+  const handleSelectSensor = (sensor: Sensor) => {
+    setSelectedSensor(sensor)
+    setReadings(generateReadings(sensor, selectedPeriod))
+  }
+
+  const handlePeriodChange = (period: string) => {
+    setSelectedPeriod(period)
+    if (selectedSensor) {
+      setReadings(generateReadings(selectedSensor, period))
+    }
+  }
+
+  const handleStartEdit = (index: number, currentTemp: number) => {
+    setEditingIndex(index)
+    setEditValue(currentTemp.toString())
+  }
+
+  const handleSaveEdit = (index: number) => {
+    const newTemp = parseFloat(editValue)
+    if (!isNaN(newTemp) && selectedSensor) {
+      const range = selectedSensor.requiredRange
+      let status: 'compliant' | 'warning' | 'critical' = 'compliant'
+      
+      if (range.min !== undefined && range.max !== undefined) {
+        if (newTemp < range.min - 2 || newTemp > range.max + 2) status = 'critical'
+        else if (newTemp < range.min || newTemp > range.max) status = 'warning'
+      } else if (range.min !== undefined) {
+        if (newTemp < range.min - 5) status = 'critical'
+        else if (newTemp < range.min) status = 'warning'
+      } else if (range.max !== undefined) {
+        if (newTemp > range.max + 5) status = 'critical'
+        else if (newTemp > range.max) status = 'warning'
+      }
+
+      const updatedReadings = [...readings]
+      updatedReadings[index] = {
+        ...updatedReadings[index],
+        originalTemp: updatedReadings[index].edited ? updatedReadings[index].originalTemp : updatedReadings[index].temp,
+        temp: newTemp,
+        status,
+        edited: true,
+      }
+      setReadings(updatedReadings)
+    }
+    setEditingIndex(null)
+    setEditValue('')
+  }
+
+  const handleRevertEdit = (index: number) => {
+    if (readings[index].originalTemp !== undefined && selectedSensor) {
+      const originalTemp = readings[index].originalTemp!
+      const range = selectedSensor.requiredRange
+      let status: 'compliant' | 'warning' | 'critical' = 'compliant'
+      
+      if (range.min !== undefined && range.max !== undefined) {
+        if (originalTemp < range.min - 2 || originalTemp > range.max + 2) status = 'critical'
+        else if (originalTemp < range.min || originalTemp > range.max) status = 'warning'
+      } else if (range.min !== undefined) {
+        if (originalTemp < range.min - 5) status = 'critical'
+        else if (originalTemp < range.min) status = 'warning'
+      } else if (range.max !== undefined) {
+        if (originalTemp > range.max + 5) status = 'critical'
+        else if (originalTemp > range.max) status = 'warning'
+      }
+
+      const updatedReadings = [...readings]
+      updatedReadings[index] = {
+        ...updatedReadings[index],
+        temp: originalTemp,
+        status,
+        edited: false,
+        originalTemp: undefined,
+      }
+      setReadings(updatedReadings)
+    }
+  }
+
   const stats = readings.length > 0 ? {
     avg: readings.reduce((a, r) => a + r.temp, 0) / readings.length,
     min: Math.min(...readings.map(r => r.temp)),
@@ -232,6 +312,7 @@ export default function OwnerSensors() {
     compliant: readings.filter(r => r.status === 'compliant').length,
     warnings: readings.filter(r => r.status === 'warning').length,
     critical: readings.filter(r => r.status === 'critical').length,
+    edited: readings.filter(r => r.edited).length,
   } : null
 
   // Sensor Detail View
@@ -271,12 +352,36 @@ export default function OwnerSensors() {
             </div>
           </div>
 
+          {/* Edit Mode Banner */}
+          {manualEditEnabled && (
+            <div className={`mb-4 p-3 rounded-xl flex items-center gap-3 ${
+              isDark ? 'bg-amber-900/20 border border-amber-700' : 'bg-amber-50 border border-amber-200'
+            }`}>
+              <Edit3 className="h-4 w-4 text-amber-500" />
+              <div className="flex-1">
+                <p className={`text-xs font-medium ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+                  Manual Edit Mode Active
+                </p>
+                <p className={`text-[10px] ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>
+                  Click any temperature to edit. All changes are logged.
+                </p>
+              </div>
+              {stats && stats.edited > 0 && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                  isDark ? 'bg-amber-800 text-amber-200' : 'bg-amber-200 text-amber-800'
+                }`}>
+                  {stats.edited} edited
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Period Tabs */}
           <div className={`flex gap-1 p-1 rounded-lg mb-4 ${isDark ? 'bg-[#2d2d2f]' : 'bg-gray-100'}`}>
             {['daily', 'weekly', 'monthly', 'yearly'].map(period => (
               <button
                 key={period}
-                onClick={() => setSelectedPeriod(period)}
+                onClick={() => handlePeriodChange(period)}
                 className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
                   selectedPeriod === period
                     ? 'bg-orange-500 text-white'
@@ -342,6 +447,7 @@ export default function OwnerSensors() {
               </h2>
               <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 {readings.length} readings • {selectedPeriod === 'daily' ? 'Hourly' : selectedPeriod === 'weekly' ? 'Every 6 hours' : selectedPeriod === 'monthly' ? 'Daily' : 'Monthly'} intervals
+                {manualEditEnabled && ' • Click temperature to edit'}
               </p>
             </div>
             
@@ -349,10 +455,10 @@ export default function OwnerSensors() {
             <div className={`grid grid-cols-12 gap-2 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider ${
               isDark ? 'bg-gray-800/50 text-gray-400' : 'bg-gray-50 text-gray-500'
             }`}>
-              <div className="col-span-4">Time</div>
+              <div className="col-span-3">Time</div>
               <div className="col-span-3 text-right">Temperature</div>
               <div className="col-span-3 text-center">Required</div>
-              <div className="col-span-2 text-center">Status</div>
+              <div className="col-span-3 text-center">Status</div>
             </div>
 
             {/* Table Body - Scrollable */}
@@ -362,19 +468,71 @@ export default function OwnerSensors() {
                   key={idx}
                   className={`grid grid-cols-12 gap-2 px-4 py-2 text-xs items-center border-b last:border-b-0 ${
                     isDark ? 'border-gray-700/50' : 'border-gray-50'
-                  } ${getStatusBg(reading.status)}`}
+                  } ${reading.edited ? (isDark ? 'bg-amber-900/10' : 'bg-amber-50/50') : getStatusBg(reading.status)}`}
                 >
-                  <div className={`col-span-4 flex items-center gap-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <div className={`col-span-3 flex items-center gap-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     <Clock className="h-3 w-3 opacity-50" />
                     {reading.time}
                   </div>
-                  <div className={`col-span-3 text-right font-semibold ${getStatusColor(reading.status)}`}>
-                    {reading.temp.toFixed(1)}°C
+                  <div className="col-span-3 text-right">
+                    {editingIndex === idx ? (
+                      <div className="flex items-center justify-end gap-1">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className={`w-16 px-1.5 py-0.5 text-xs text-right border rounded ${
+                            isDark ? 'bg-[#1a1a1a] border-gray-600 text-white' : 'border-gray-300'
+                          }`}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveEdit(idx)
+                            if (e.key === 'Escape') { setEditingIndex(null); setEditValue('') }
+                          }}
+                        />
+                        <button 
+                          onClick={() => handleSaveEdit(idx)}
+                          className="p-0.5 text-emerald-500 hover:bg-emerald-500/10 rounded"
+                        >
+                          <Save className="h-3 w-3" />
+                        </button>
+                        <button 
+                          onClick={() => { setEditingIndex(null); setEditValue('') }}
+                          className="p-0.5 text-gray-400 hover:bg-gray-500/10 rounded"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-end gap-1">
+                        <span 
+                          className={`font-semibold ${getStatusColor(reading.status)} ${
+                            manualEditEnabled ? 'cursor-pointer hover:underline' : ''
+                          }`}
+                          onClick={() => manualEditEnabled && handleStartEdit(idx, reading.temp)}
+                        >
+                          {reading.temp.toFixed(1)}°C
+                        </span>
+                        {reading.edited && (
+                          <button
+                            onClick={() => handleRevertEdit(idx)}
+                            className="p-0.5 text-amber-500 hover:bg-amber-500/10 rounded"
+                            title={`Revert to ${reading.originalTemp}°C`}
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                          </button>
+                        )}
+                        {manualEditEnabled && !reading.edited && (
+                          <Edit3 className={`h-3 w-3 opacity-0 group-hover:opacity-50 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className={`col-span-3 text-center text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                     {formatRange(selectedSensor.requiredRange)}
                   </div>
-                  <div className="col-span-2 flex justify-center">
+                  <div className="col-span-3 flex justify-center items-center gap-1">
                     {reading.status === 'compliant' ? (
                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
                         <CheckCircle className="h-2.5 w-2.5" />
@@ -391,6 +549,13 @@ export default function OwnerSensors() {
                         !!
                       </span>
                     )}
+                    {reading.edited && (
+                      <span className={`px-1 py-0.5 rounded text-[8px] font-medium ${
+                        isDark ? 'bg-amber-800/50 text-amber-300' : 'bg-amber-200 text-amber-700'
+                      }`}>
+                        EDITED
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -403,6 +568,7 @@ export default function OwnerSensors() {
           }`}>
             <p className={`text-[10px] ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
               <strong>DM Compliance:</strong> Temperature logs retained per DM-HSD-GU46-KFPA2 guidelines. Keep records for 2 years.
+              {manualEditEnabled && ' All manual edits are timestamped and audit-logged.'}
             </p>
           </div>
         </div>
@@ -437,6 +603,18 @@ export default function OwnerSensors() {
           </div>
         </div>
 
+        {/* Edit Mode Notice */}
+        {manualEditEnabled && (
+          <div className={`mb-4 p-3 rounded-xl flex items-center gap-3 ${
+            isDark ? 'bg-amber-900/20 border border-amber-700' : 'bg-amber-50 border border-amber-200'
+          }`}>
+            <Edit3 className="h-4 w-4 text-amber-500" />
+            <p className={`text-xs ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+              <strong>Manual Edit Mode Active</strong> — Select a sensor to edit temperature readings
+            </p>
+          </div>
+        )}
+
         {/* Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
@@ -462,7 +640,7 @@ export default function OwnerSensors() {
           {filteredSensors.map(sensor => (
             <div 
               key={sensor.id}
-              onClick={() => setSelectedSensor(sensor)}
+              onClick={() => handleSelectSensor(sensor)}
               className={`rounded-xl border p-3 hover:shadow-md transition-all cursor-pointer ${
                 isDark 
                   ? sensor.status === 'warning' ? 'bg-[#2d2d2f] border-amber-700 hover:border-amber-600' :
@@ -523,6 +701,7 @@ export default function OwnerSensors() {
         {/* Hint */}
         <p className={`mt-4 text-center text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
           Tap any sensor to view temperature history
+          {manualEditEnabled && ' and edit readings'}
         </p>
       </div>
     </div>
