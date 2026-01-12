@@ -8,11 +8,38 @@ import {
   AlertTriangle,
   Battery,
   ChevronRight,
-  Filter
+  Filter,
+  X,
+  ArrowLeft,
+  Download,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Thermometer,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
-const SENSORS = [
+interface Sensor {
+  id: string
+  name: string
+  location: string
+  icon: string
+  currentTemp: number
+  requiredRange: { min?: number; max?: number }
+  status: string
+  lastUpdate: string
+  online: boolean
+  battery: number
+  signal: string
+}
+
+interface ReadingEntry {
+  time: string
+  temp: number
+  status: 'compliant' | 'warning' | 'critical'
+}
+
+const SENSORS: Sensor[] = [
   {
     id: 'sensor-a1',
     name: 'Walk-in Fridge',
@@ -80,10 +107,86 @@ const SENSORS = [
   },
 ]
 
+// Generate mock readings for a sensor
+const generateReadings = (sensor: Sensor, period: string): ReadingEntry[] => {
+  const readings: ReadingEntry[] = []
+  const baseTemp = sensor.currentTemp
+  const range = sensor.requiredRange
+  
+  let entries = 24
+  let interval = 'hour'
+  
+  switch (period) {
+    case 'daily':
+      entries = 24
+      interval = 'hour'
+      break
+    case 'weekly':
+      entries = 7 * 4 // 4 readings per day for 7 days
+      interval = '6h'
+      break
+    case 'monthly':
+      entries = 30
+      interval = 'day'
+      break
+    case 'yearly':
+      entries = 12
+      interval = 'month'
+      break
+  }
+  
+  const now = new Date()
+  
+  for (let i = entries - 1; i >= 0; i--) {
+    const variation = (Math.random() - 0.5) * 4
+    const temp = baseTemp + variation
+    
+    let status: 'compliant' | 'warning' | 'critical' = 'compliant'
+    if (range.min !== undefined && range.max !== undefined) {
+      if (temp < range.min - 2 || temp > range.max + 2) status = 'critical'
+      else if (temp < range.min || temp > range.max) status = 'warning'
+    } else if (range.min !== undefined) {
+      if (temp < range.min - 5) status = 'critical'
+      else if (temp < range.min) status = 'warning'
+    } else if (range.max !== undefined) {
+      if (temp > range.max + 5) status = 'critical'
+      else if (temp > range.max) status = 'warning'
+    }
+    
+    let timeStr = ''
+    const date = new Date(now)
+    
+    switch (period) {
+      case 'daily':
+        date.setHours(now.getHours() - i)
+        timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        break
+      case 'weekly':
+        date.setHours(now.getHours() - (i * 6))
+        timeStr = date.toLocaleDateString('en-US', { weekday: 'short', hour: '2-digit' })
+        break
+      case 'monthly':
+        date.setDate(now.getDate() - i)
+        timeStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        break
+      case 'yearly':
+        date.setMonth(now.getMonth() - i)
+        timeStr = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+        break
+    }
+    
+    readings.push({ time: timeStr, temp: parseFloat(temp.toFixed(1)), status })
+  }
+  
+  return readings
+}
+
 export default function OwnerSensors() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const [filter, setFilter] = useState('all')
+  const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null)
+  const [selectedPeriod, setSelectedPeriod] = useState('daily')
 
   const filteredSensors = filter === 'all' 
     ? SENSORS 
@@ -95,6 +198,15 @@ export default function OwnerSensors() {
       case 'warning': return 'text-amber-500'
       case 'critical': return 'text-red-500'
       default: return isDark ? 'text-gray-400' : 'text-gray-600'
+    }
+  }
+
+  const getStatusBg = (status: string) => {
+    switch (status) {
+      case 'compliant': return isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'
+      case 'warning': return isDark ? 'bg-amber-900/20' : 'bg-amber-50'
+      case 'critical': return isDark ? 'bg-red-900/20' : 'bg-red-50'
+      default: return isDark ? 'bg-gray-800' : 'bg-gray-50'
     }
   }
 
@@ -111,6 +223,194 @@ export default function OwnerSensors() {
     return ''
   }
 
+  const readings = selectedSensor ? generateReadings(selectedSensor, selectedPeriod) : []
+  
+  const stats = readings.length > 0 ? {
+    avg: readings.reduce((a, r) => a + r.temp, 0) / readings.length,
+    min: Math.min(...readings.map(r => r.temp)),
+    max: Math.max(...readings.map(r => r.temp)),
+    compliant: readings.filter(r => r.status === 'compliant').length,
+    warnings: readings.filter(r => r.status === 'warning').length,
+    critical: readings.filter(r => r.status === 'critical').length,
+  } : null
+
+  // Sensor Detail View
+  if (selectedSensor) {
+    return (
+      <div className={`p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+        <div className="max-w-4xl mx-auto">
+          {/* Back Button */}
+          <button 
+            onClick={() => setSelectedSensor(null)}
+            className={`flex items-center gap-2 mb-4 text-sm font-medium transition-colors ${
+              isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Sensors
+          </button>
+
+          {/* Sensor Header */}
+          <div className={`rounded-xl border p-4 mb-4 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">{selectedSensor.icon}</span>
+                <div>
+                  <h1 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedSensor.name}</h1>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{selectedSensor.location}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className={`text-2xl font-bold ${getStatusColor(selectedSensor.status)}`}>
+                  {formatTemp(selectedSensor.currentTemp)}
+                </p>
+                <p className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                  Required: {formatRange(selectedSensor.requiredRange)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Period Tabs */}
+          <div className={`flex gap-1 p-1 rounded-lg mb-4 ${isDark ? 'bg-[#2d2d2f]' : 'bg-gray-100'}`}>
+            {['daily', 'weekly', 'monthly', 'yearly'].map(period => (
+              <button
+                key={period}
+                onClick={() => setSelectedPeriod(period)}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
+                  selectedPeriod === period
+                    ? 'bg-orange-500 text-white'
+                    : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                {period}
+              </button>
+            ))}
+          </div>
+
+          {/* Stats Summary */}
+          {stats && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+              <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Thermometer className={`h-3.5 w-3.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Average</p>
+                </div>
+                <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.avg.toFixed(1)}°C</p>
+              </div>
+              <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <TrendingDown className="h-3.5 w-3.5 text-blue-500" />
+                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Min</p>
+                </div>
+                <p className="text-lg font-bold text-blue-500">{stats.min.toFixed(1)}°C</p>
+              </div>
+              <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <TrendingUp className="h-3.5 w-3.5 text-red-500" />
+                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Max</p>
+                </div>
+                <p className="text-lg font-bold text-red-500">{stats.max.toFixed(1)}°C</p>
+              </div>
+              <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Compliance</p>
+                </div>
+                <p className="text-lg font-bold text-emerald-500">
+                  {Math.round((stats.compliant / readings.length) * 100)}%
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Export Button */}
+          <div className="flex justify-end mb-3">
+            <button className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              isDark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'
+            }`}>
+              <Download className="h-3.5 w-3.5" />
+              Export CSV
+            </button>
+          </div>
+
+          {/* Temperature Log Table */}
+          <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
+            <div className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <h2 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Temperature Log
+              </h2>
+              <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                {readings.length} readings • {selectedPeriod === 'daily' ? 'Hourly' : selectedPeriod === 'weekly' ? 'Every 6 hours' : selectedPeriod === 'monthly' ? 'Daily' : 'Monthly'} intervals
+              </p>
+            </div>
+            
+            {/* Table Header */}
+            <div className={`grid grid-cols-12 gap-2 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider ${
+              isDark ? 'bg-gray-800/50 text-gray-400' : 'bg-gray-50 text-gray-500'
+            }`}>
+              <div className="col-span-4">Time</div>
+              <div className="col-span-3 text-right">Temperature</div>
+              <div className="col-span-3 text-center">Required</div>
+              <div className="col-span-2 text-center">Status</div>
+            </div>
+
+            {/* Table Body - Scrollable */}
+            <div className="max-h-[400px] overflow-y-auto">
+              {readings.map((reading, idx) => (
+                <div 
+                  key={idx}
+                  className={`grid grid-cols-12 gap-2 px-4 py-2 text-xs items-center border-b last:border-b-0 ${
+                    isDark ? 'border-gray-700/50' : 'border-gray-50'
+                  } ${getStatusBg(reading.status)}`}
+                >
+                  <div className={`col-span-4 flex items-center gap-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <Clock className="h-3 w-3 opacity-50" />
+                    {reading.time}
+                  </div>
+                  <div className={`col-span-3 text-right font-semibold ${getStatusColor(reading.status)}`}>
+                    {reading.temp.toFixed(1)}°C
+                  </div>
+                  <div className={`col-span-3 text-center text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {formatRange(selectedSensor.requiredRange)}
+                  </div>
+                  <div className="col-span-2 flex justify-center">
+                    {reading.status === 'compliant' ? (
+                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
+                        <CheckCircle className="h-2.5 w-2.5" />
+                        OK
+                      </span>
+                    ) : reading.status === 'warning' ? (
+                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-medium">
+                        <AlertTriangle className="h-2.5 w-2.5" />
+                        !
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[10px] font-medium">
+                        <X className="h-2.5 w-2.5" />
+                        !!
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* DM Notice */}
+          <div className={`mt-4 p-3 rounded-xl border ${
+            isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-100'
+          }`}>
+            <p className={`text-[10px] ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
+              <strong>DM Compliance:</strong> Temperature logs retained per DM-HSD-GU46-KFPA2 guidelines. Keep records for 2 years.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Sensors List View
   return (
     <div className={`p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
       <div className="max-w-4xl mx-auto">
@@ -118,7 +418,7 @@ export default function OwnerSensors() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>My Sensors</h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Monitor all temperature sensors</p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Click sensor to view detailed stats</p>
           </div>
           
           <div className="flex items-center gap-2">
@@ -162,14 +462,15 @@ export default function OwnerSensors() {
           {filteredSensors.map(sensor => (
             <div 
               key={sensor.id}
+              onClick={() => setSelectedSensor(sensor)}
               className={`rounded-xl border p-3 hover:shadow-md transition-all cursor-pointer ${
                 isDark 
-                  ? sensor.status === 'warning' ? 'bg-[#2d2d2f] border-amber-700' :
-                    sensor.status === 'critical' ? 'bg-[#2d2d2f] border-red-700' :
-                    'bg-[#2d2d2f] border-gray-700'
-                  : sensor.status === 'warning' ? 'bg-white border-amber-200' :
-                    sensor.status === 'critical' ? 'bg-white border-red-200' :
-                    'bg-white border-gray-100'
+                  ? sensor.status === 'warning' ? 'bg-[#2d2d2f] border-amber-700 hover:border-amber-600' :
+                    sensor.status === 'critical' ? 'bg-[#2d2d2f] border-red-700 hover:border-red-600' :
+                    'bg-[#2d2d2f] border-gray-700 hover:border-gray-600'
+                  : sensor.status === 'warning' ? 'bg-white border-amber-200 hover:border-amber-300' :
+                    sensor.status === 'critical' ? 'bg-white border-red-200 hover:border-red-300' :
+                    'bg-white border-gray-100 hover:border-gray-200'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -218,6 +519,11 @@ export default function OwnerSensors() {
             </div>
           ))}
         </div>
+
+        {/* Hint */}
+        <p className={`mt-4 text-center text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+          Tap any sensor to view temperature history
+        </p>
       </div>
     </div>
   )
