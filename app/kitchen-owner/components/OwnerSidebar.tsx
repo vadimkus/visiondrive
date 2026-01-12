@@ -69,12 +69,25 @@ export default function OwnerSidebar() {
     }`}>
       {/* Header - Compact */}
       <div className={`p-3 border-b ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+        {/* VisionDrive Branding */}
+        <div className="flex items-center gap-2 mb-2">
+          <img 
+            src="/images/logo/logo.png" 
+            alt="VisionDrive" 
+            className="h-6 w-6 object-contain"
+          />
+          <span className={`text-sm font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Vision<span className="text-orange-500">Drive</span>
+          </span>
+        </div>
+        
+        {/* Smart Kitchen Label */}
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white ${isDark ? 'shadow-md shadow-orange-900/30' : 'shadow-md shadow-orange-200'}`}>
-            <ChefHat className="h-4 w-4" />
+          <div className={`w-7 h-7 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white ${isDark ? 'shadow-md shadow-orange-900/30' : 'shadow-md shadow-orange-200'}`}>
+            <ChefHat className="h-3.5 w-3.5" />
           </div>
           <div>
-            <h1 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Smart Kitchen</h1>
+            <h1 className={`font-medium text-xs ${isDark ? 'text-white' : 'text-gray-900'}`}>Smart Kitchen</h1>
             <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Owner Portal</p>
           </div>
         </div>
