@@ -59,8 +59,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 85,
     signal: 'strong',
-    model: 'Dragino LHT65N',
-    serialNumber: 'DRG-2024-001',
+    model: 'True TWT-48SD',
+    serialNumber: 'TWI-2023-45892',
   },
   {
     id: 'sensor-a2',
@@ -74,8 +74,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 92,
     signal: 'strong',
-    model: 'Dragino LHT65N',
-    serialNumber: 'DRG-2024-002',
+    model: 'Liebherr GGv 5060',
+    serialNumber: 'LBH-2022-78341',
   },
   {
     id: 'sensor-a3',
@@ -89,8 +89,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 78,
     signal: 'medium',
-    model: 'Dragino LHT65N',
-    serialNumber: 'DRG-2024-003',
+    model: 'Hoshizaki CR1S-FS',
+    serialNumber: 'HSK-2024-12076',
   },
   {
     id: 'sensor-a4',
@@ -104,8 +104,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 65,
     signal: 'strong',
-    model: 'Dragino LHT65N',
-    serialNumber: 'DRG-2024-004',
+    model: 'Turbo Air TOM-40',
+    serialNumber: 'TAR-2023-90215',
   },
   {
     id: 'sensor-a5',
@@ -119,8 +119,8 @@ const SENSORS: Sensor[] = [
     online: true,
     battery: 88,
     signal: 'strong',
-    model: 'Dragino LHT65N-HT',
-    serialNumber: 'DRG-2024-005',
+    model: 'Alto-Shaam 500-HW',
+    serialNumber: 'ASH-2024-33467',
   },
 ]
 
@@ -330,23 +330,28 @@ export default function OwnerSensors() {
               </div>
             </div>
             
-            {/* Device Info */}
+            {/* Equipment Info */}
             {(selectedSensor.model || selectedSensor.serialNumber) && (
-              <div className={`mt-3 pt-3 border-t flex flex-wrap gap-4 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <div className={`mt-3 pt-3 border-t flex flex-wrap gap-x-6 gap-y-2 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
                 {selectedSensor.model && (
                   <div className="flex items-center gap-1.5">
                     <Info className={`h-3 w-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Model:</span>
+                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Equipment:</span>
                     <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{selectedSensor.model}</span>
                   </div>
                 )}
                 {selectedSensor.serialNumber && (
                   <div className="flex items-center gap-1.5">
                     <Hash className={`h-3 w-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>S/N:</span>
+                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Serial:</span>
                     <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{selectedSensor.serialNumber}</span>
                   </div>
                 )}
+                <div className="flex items-center gap-1.5">
+                  <Wifi className={`h-3 w-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Sensor:</span>
+                  <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Dragino PS-NB-NA</span>
+                </div>
               </div>
             )}
           </div>
