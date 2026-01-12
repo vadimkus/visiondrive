@@ -24,50 +24,50 @@ export default function OwnerHeader() {
   }
 
   return (
-    <header className={`px-4 py-2 sticky top-0 z-40 transition-colors duration-300 ${
+    <header className={`px-5 py-3 sticky top-0 z-40 transition-colors duration-300 ${
       isDark ? 'bg-[#1d1d1f] border-b border-gray-800' : 'bg-white border-b border-gray-100'
     }`}>
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         {/* Left - Status */}
-        <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${
             isDark ? 'bg-emerald-900/30' : 'bg-emerald-50'
           }`}>
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-            <span className={`text-[10px] font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Live</span>
+            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            <span className={`text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Live</span>
           </div>
           
-          {/* Weather Pills - Compact */}
-          <div className="flex items-center gap-1.5">
-            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${
+          {/* Weather Pills */}
+          <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
               isDark ? 'bg-gray-800' : 'bg-gray-50'
             }`}>
-              <Thermometer className="h-3 w-3 text-orange-500" />
-              <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{weather.temp}°</span>
+              <Thermometer className="h-4 w-4 text-orange-500" />
+              <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{weather.temp}°</span>
             </div>
-            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
               isDark ? 'bg-gray-800' : 'bg-gray-50'
             }`}>
-              <Droplets className="h-3 w-3 text-blue-500" />
-              <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{weather.humidity}%</span>
+              <Droplets className="h-4 w-4 text-blue-500" />
+              <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{weather.humidity}%</span>
             </div>
           </div>
         </div>
 
         {/* Right - Refresh */}
-        <div className="flex items-center gap-2">
-          <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className="flex items-center gap-3">
+          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             {lastUpdate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </span>
           <button
             onClick={handleRefresh}
-            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded-full transition-colors ${
+            className={`flex items-center gap-1.5 p-2 text-xs font-medium rounded-full transition-colors ${
               isDark 
                 ? 'bg-white text-gray-900 hover:bg-gray-200' 
                 : 'bg-gray-900 text-white hover:bg-gray-800'
             }`}
           >
-            <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
