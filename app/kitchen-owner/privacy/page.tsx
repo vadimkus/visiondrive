@@ -261,10 +261,10 @@ export default function PrivacyPage() {
         <div className={`mt-6 p-4 rounded-lg text-center ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
           <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             For data access requests or privacy inquiries, contact{' '}
-            <a href="mailto:privacy@visiondrive.ae" className="text-orange-500 hover:underline">privacy@visiondrive.ae</a>
+            <a href="mailto:legal@visiondrive.ae" className="text-orange-500 hover:underline">legal@visiondrive.ae</a>
           </p>
           <p className={`text-xs mt-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-            Last updated: January 2026 • VisionDrive LLC, Dubai, UAE
+            Last updated: January 2026 • VisionDrive Technologies FZ-LLC, Dubai, UAE
           </p>
         </div>
       </div>
