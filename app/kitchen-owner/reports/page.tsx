@@ -8,7 +8,6 @@ import {
   CheckCircle,
   Clock,
   ChevronDown,
-  Thermometer,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
@@ -54,7 +53,7 @@ const GENERATED_REPORTS = [
 export default function OwnerReports() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const [selectedSensor, setSelectedSensor] = useState<string>('all')
+  const [selectedSensor, setSelectedSensor] = useState<string>('sensor-1')
   const [selectedPeriod, setSelectedPeriod] = useState<string>('weekly')
   const [isGenerating, setIsGenerating] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'generate' | 'history'>('generate')
@@ -64,7 +63,7 @@ export default function OwnerReports() {
     setIsGenerating(key)
     setTimeout(() => {
       setIsGenerating(null)
-      const sensorName = sensorId === 'all' ? 'All Sensors' : SENSORS.find(s => s.id === sensorId)?.name
+      const sensorName = SENSORS.find(s => s.id === sensorId)?.name
       const periodName = PERIODS.find(p => p.id === period)?.name
       alert(`${periodName} report for ${sensorName} downloaded successfully!`)
     }, 1500)
@@ -125,7 +124,6 @@ export default function OwnerReports() {
                       isDark ? 'bg-[#1a1a1a] border-gray-600 text-white' : 'bg-gray-50 border-gray-200 text-gray-700'
                     }`}
                   >
-                    <option value="all">All Sensors</option>
                     {SENSORS.map(sensor => (
                       <option key={sensor.id} value={sensor.id}>{sensor.icon} {sensor.name}</option>
                     ))}
@@ -136,17 +134,6 @@ export default function OwnerReports() {
 
               {/* Sensor Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                <button
-                  onClick={() => setSelectedSensor('all')}
-                  className={`p-2 rounded-lg text-center transition-all ${
-                    selectedSensor === 'all'
-                      ? 'bg-orange-500 text-white'
-                      : isDark ? 'bg-[#1a1a1a] hover:bg-gray-800 text-gray-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  <Thermometer className="h-5 w-5 mx-auto mb-1" />
-                  <p className="text-[10px] font-medium">All Sensors</p>
-                </button>
                 {SENSORS.map(sensor => (
                   <button
                     key={sensor.id}
@@ -223,7 +210,8 @@ export default function OwnerReports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedSensor === 'all' ? 'All Sensors' : SENSORS.find(s => s.id === selectedSensor)?.name}
+                      {SENSORS.find(s => s.id === selectedSensor)?.icon}{' '}
+                      {SENSORS.find(s => s.id === selectedSensor)?.name}
                       {' • '}
                       {PERIODS.find(p => p.id === selectedPeriod)?.name} Report
                     </p>

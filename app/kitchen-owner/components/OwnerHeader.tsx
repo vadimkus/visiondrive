@@ -1,8 +1,32 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Thermometer, Droplets, Wind, Wifi, Cloud } from 'lucide-react'
+import { Thermometer, Droplets, Wind, Wifi } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
+
+// Weather condition to emoji mapping
+const getConditionEmoji = (condition: string): string => {
+  const emojiMap: Record<string, string> = {
+    'Pleasant': '☀️',
+    'Sunny': '☀️',
+    'Clear': '🌙',
+    'Hot': '🔥',
+    'Very Hot': '🥵',
+    'Warm': '🌤️',
+    'Cloudy': '☁️',
+    'Partly Cloudy': '⛅',
+    'Overcast': '🌥️',
+    'Humid': '💧',
+    'Windy': '💨',
+    'Dusty': '🌫️',
+    'Sandstorm': '🏜️',
+    'Rainy': '🌧️',
+    'Stormy': '⛈️',
+    'Cool': '🌬️',
+    'Cold': '❄️',
+  }
+  return emojiMap[condition] || '🌡️'
+}
 
 // Simulate live weather data updates
 const getWeatherData = () => {
@@ -78,7 +102,7 @@ export default function OwnerHeader() {
         <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
           isDark ? 'bg-emerald-900/20 border-emerald-800' : 'bg-white border-gray-200'
         }`}>
-          <Cloud className={`h-4 w-4 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
+          <span className="text-base">{getConditionEmoji(weather.condition)}</span>
           <span className={`text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{weather.condition}</span>
         </div>
       </div>
