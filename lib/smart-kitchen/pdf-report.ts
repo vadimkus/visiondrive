@@ -95,7 +95,7 @@ function getStatusColor(status: 'normal' | 'warning' | 'critical') {
 }
 
 // Generate professional PDF report
-export function generateComplianceReport(data: ReportData): jsPDF {
+export function generateComplianceReport(data: ReportData, logoBase64?: string | null): jsPDF {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -113,42 +113,59 @@ export function generateComplianceReport(data: ReportData): jsPDF {
   doc.setFillColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b)
   doc.rect(0, 0, pageWidth, 5, 'F')
 
-  y = 18
+  y = 20
 
-  // VD Logo icon (stylized box)
-  doc.setFillColor(42, 100, 100) // Teal color matching website
-  doc.roundedRect(margin, y - 10, 14, 14, 2, 2, 'F')
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
-  doc.text('VD', margin + 3.5, y - 2)
+  // VD Logo from image file
+  const logoWidth = 16
+  const logoHeight = 16
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'JPEG', margin, y - 12, logoWidth, logoHeight)
+    } catch {
+      // Fallback to text if image fails
+      doc.setFillColor(42, 100, 100)
+      doc.roundedRect(margin, y - 12, logoWidth, logoHeight, 2, 2, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.text('VD', margin + 4, y - 2)
+    }
+  } else {
+    // Fallback to text logo
+    doc.setFillColor(42, 100, 100)
+    doc.roundedRect(margin, y - 12, logoWidth, logoHeight, 2, 2, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('VD', margin + 4, y - 2)
+  }
   
   // VisionDrive text
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
   doc.setTextColor(51, 65, 85) // Slate-700 matching website
-  doc.text('VisionDrive', margin + 18, y - 1)
+  doc.text('VisionDrive', margin + logoWidth + 4, y - 2)
   
-  // IoT Company + UAE flag
+  // IoT Company (UAE) - no emoji for PDF compatibility
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
-  doc.text('IoT Company 🇦🇪', margin + 18, y + 5)
+  doc.text('IoT Company (UAE)', margin + logoWidth + 4, y + 4)
   
   // Smart Kitchen badge on right
   doc.setFillColor(COLORS.background.r, COLORS.background.g, COLORS.background.b)
-  doc.roundedRect(pageWidth - margin - 35, y - 9, 35, 8, 2, 2, 'F')
+  doc.roundedRect(pageWidth - margin - 35, y - 11, 35, 8, 2, 2, 'F')
   doc.setFontSize(7)
   doc.setTextColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b)
   doc.setFont('helvetica', 'bold')
-  doc.text('SMART KITCHEN', pageWidth - margin - 32, y - 4)
+  doc.text('SMART KITCHEN', pageWidth - margin - 32, y - 6)
   
   // Report type below badge
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
   const periodLabel = `${data.period.type.charAt(0).toUpperCase() + data.period.type.slice(1)} Compliance Report`
-  doc.text(periodLabel, pageWidth - margin, y + 5, { align: 'right' })
+  doc.text(periodLabel, pageWidth - margin, y + 4, { align: 'right' })
 
   y += 12
 
@@ -594,9 +611,26 @@ export function generateSampleReportData(
   }
 }
 
+// Load logo as base64
+async function loadLogoBase64(): Promise<string | null> {
+  try {
+    const response = await fetch('/logo/logo.jpg')
+    const blob = await response.blob()
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(blob)
+    })
+  } catch {
+    return null
+  }
+}
+
 // Download helper
-export function downloadReport(data: ReportData): void {
-  const doc = generateComplianceReport(data)
+export async function downloadReport(data: ReportData): Promise<void> {
+  const logoBase64 = await loadLogoBase64()
+  const doc = generateComplianceReport(data, logoBase64)
   const fileName = `${data.equipment.name.replace(/\s+/g, '-')}_${data.period.type}_report_${formatDate(data.period.endDate).replace(/\s+/g, '-')}.pdf`
   doc.save(fileName)
 }
