@@ -50,7 +50,7 @@ export class LambdaStack extends cdk.Stack {
 
     this.eventProcessorFunction = new lambda.Function(this, 'EventProcessor', {
       functionName: 'parking-event-processor',
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/event-processor')),
       role: lambdaRole,
@@ -68,7 +68,7 @@ export class LambdaStack extends cdk.Stack {
 
     this.apiHandlerFunction = new lambda.Function(this, 'ApiHandler', {
       functionName: 'parking-api-handler',
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/api-handler')),
       role: lambdaRole,

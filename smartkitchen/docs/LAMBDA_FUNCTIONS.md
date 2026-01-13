@@ -2,7 +2,7 @@
 
 ## VisionDrive Smart Kitchen - AWS Lambda Functions
 
-All Lambda functions run in the UAE region (me-central-1) on Node.js 20.x runtime.
+All Lambda functions run in the UAE region (me-central-1) on Node.js 22.x runtime.
 
 ---
 
@@ -10,10 +10,10 @@ All Lambda functions run in the UAE region (me-central-1) on Node.js 20.x runtim
 
 | Function | Purpose | Trigger | Runtime |
 |----------|---------|---------|---------|
-| `smartkitchen-api` | REST API handler | API Gateway | Node.js 20.x |
-| `smartkitchen-data-ingestion` | Process sensor data | IoT Rule | Node.js 20.x |
-| `smartkitchen-alerts` | Alert processing | IoT Rule / DynamoDB Stream | Node.js 20.x |
-| `smartkitchen-analytics` | Statistics & reports | CloudWatch Events | Node.js 20.x |
+| `smartkitchen-api` | REST API handler | API Gateway | Node.js 22.x |
+| `smartkitchen-data-ingestion` | Process sensor data | IoT Rule | Node.js 22.x |
+| `smartkitchen-alerts` | Alert processing | IoT Rule / DynamoDB Stream | Node.js 22.x |
+| `smartkitchen-analytics` | Statistics & reports | CloudWatch Events | Node.js 22.x |
 
 ---
 
@@ -27,7 +27,7 @@ Main REST API handler for the Smart Kitchen portal. Handles all CRUD operations 
 
 ```
 Function Name:  smartkitchen-api
-Runtime:        Node.js 20.x
+Runtime:        Node.js 22.x
 Memory:         256 MB
 Timeout:        30 seconds
 Handler:        index.handler
@@ -142,7 +142,7 @@ Processes incoming sensor data from AWS IoT Core, converts raw values to tempera
 
 ```
 Function Name:  smartkitchen-data-ingestion
-Runtime:        Node.js 20.x
+Runtime:        Node.js 22.x
 Memory:         256 MB
 Timeout:        30 seconds
 Handler:        index.handler
@@ -195,7 +195,7 @@ Processes temperature readings and generates alerts when thresholds are exceeded
 
 ```
 Function Name:  smartkitchen-alerts
-Runtime:        Node.js 20.x
+Runtime:        Node.js 22.x
 Memory:         256 MB
 Timeout:        30 seconds
 Handler:        index.handler
@@ -261,7 +261,7 @@ Generates statistics and reports for temperature data.
 
 ```
 Function Name:  smartkitchen-analytics
-Runtime:        Node.js 20.x
+Runtime:        Node.js 22.x
 Memory:         512 MB
 Timeout:        5 minutes
 Handler:        index.handler

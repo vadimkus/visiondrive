@@ -49,7 +49,7 @@ arn:aws:dynamodb:me-central-1:307436091440:table/VisionDrive-Parking
 
 #### Event Processor
 - **Name:** `VisionDrive-Parking-EventProcessor`
-- **Runtime:** Node.js 20.x
+- **Runtime:** Node.js 22.x
 - **Memory:** 256 MB
 - **Timeout:** 30 seconds
 - **Trigger:** IoT Core Rules
@@ -64,7 +64,7 @@ ALERT_TOPIC_ARN=arn:aws:sns:me-central-1:307436091440:VisionDrive-Parking-Alerts
 
 #### API Handler
 - **Name:** `VisionDrive-Parking-ApiHandler`
-- **Runtime:** Node.js 20.x
+- **Runtime:** Node.js 22.x
 - **Memory:** 256 MB
 - **Timeout:** 30 seconds
 - **Trigger:** API Gateway

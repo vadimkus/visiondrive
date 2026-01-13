@@ -266,12 +266,12 @@ aws dynamodb put-item \
 
 | Function Name | Runtime | Purpose |
 |--------------|---------|---------|
-| `smartkitchen-data-ingestion` | Node.js 20.x | Process sensor data, store in DynamoDB |
-| `smartkitchen-alerts` | Node.js 20.x | Check thresholds, send notifications |
-| `smartkitchen-api` | Node.js 20.x | REST API handler |
-| `smartkitchen-analytics` | Node.js 20.x | Generate reports and statistics |
+| `smartkitchen-data-ingestion` | Node.js 22.x | Process sensor data, store in DynamoDB |
+| `smartkitchen-alerts` | Node.js 22.x | Check thresholds, send notifications |
+| `smartkitchen-api` | Node.js 22.x | REST API handler |
+| `smartkitchen-analytics` | Node.js 22.x | Generate reports and statistics |
 
-> **Note:** All Lambda functions were upgraded from Node.js 18.x to Node.js 20.x on January 13, 2026 (Node.js 18.x reached end-of-life).
+> **Note:** All Lambda functions were upgraded from Node.js 18.x to Node.js 22.x on January 13, 2026 (Node.js 20.x EOL scheduled for April 30, 2026).
 
 ### 5.1 Create IAM Role for Lambda
 

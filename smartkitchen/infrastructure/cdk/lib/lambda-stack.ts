@@ -60,7 +60,7 @@ export class LambdaStack extends cdk.Stack {
 
     this.dataIngestionFunction = new lambda.Function(this, 'DataIngestion', {
       functionName: 'smartkitchen-data-ingestion',
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/data-ingestion')),
       role: lambdaRole,
@@ -78,7 +78,7 @@ export class LambdaStack extends cdk.Stack {
 
     this.alertsFunction = new lambda.Function(this, 'Alerts', {
       functionName: 'smartkitchen-alerts',
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/alerts')),
       role: lambdaRole,
@@ -97,7 +97,7 @@ export class LambdaStack extends cdk.Stack {
 
     this.analyticsFunction = new lambda.Function(this, 'Analytics', {
       functionName: 'smartkitchen-analytics',
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/analytics')),
       role: lambdaRole,

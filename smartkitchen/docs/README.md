@@ -173,7 +173,7 @@ See [API_REFERENCE.md](API_REFERENCE.md) for complete documentation.
 | Date | Changes |
 |------|---------|
 | 2026-01-13 | Added Kitchen Management, Equipment, Owners APIs |
-| 2026-01-13 | Updated Lambda runtime to Node.js 20.x |
+| 2026-01-13 | Updated Lambda runtime to Node.js 22.x |
 | 2026-01-12 | PDF compliance reports |
 | 2026-01-11 | Dark/Light mode |
 | 2026-01-10 | Dubai Municipality compliance |

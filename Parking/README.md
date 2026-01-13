@@ -70,6 +70,7 @@ Smart parking management system using NB-IoT sensors with AWS cloud infrastructu
 | [docs/MIGRATION.md](docs/MIGRATION.md) | TimescaleDB migration guide |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common issues and solutions |
 | [docs/SECURITY.md](docs/SECURITY.md) | Security best practices |
+| [../docs/LAMBDA_RUNTIME_UPGRADE.md](../docs/LAMBDA_RUNTIME_UPGRADE.md) | Node.js 22.x upgrade (Jan 2026) |
 
 ---
 

@@ -28,4 +28,7 @@ This folder contains **implementation documentation** aligned with `/notes` → 
 - `11.6.1-maps-and-navigation.md`: Phase 11.6.1 (portal Mapbox + mobile Mapbox RN plan + navigation deep links).
 - `11.7-finance.md`: Phase 11.7 (Stripe billing metrics ingestion + expenses tracking + Master Admin finance dashboard).
 
+## Infrastructure & Maintenance
+
+- `LAMBDA_RUNTIME_UPGRADE.md`: Node.js 22.x upgrade for all Lambda functions (Jan 13, 2026) - addresses AWS Health notification for Node.js 20.x EOL.
 

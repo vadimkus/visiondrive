@@ -361,7 +361,7 @@ zip -r function.zip .
 # Create Lambda function
 aws lambda create-function \
   --function-name smartkitchen-data-ingestion \
-  --runtime nodejs20.x \
+  --runtime nodejs22.x \
   --handler index.handler \
   --zip-file fileb://function.zip \
   --role arn:aws:iam::YOUR_ACCOUNT:role/LambdaTimestreamRole \

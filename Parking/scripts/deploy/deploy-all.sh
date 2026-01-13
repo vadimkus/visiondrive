@@ -132,7 +132,7 @@ zip -r /tmp/event-processor.zip . -x "*.git*" > /dev/null
 echo "   Deploying event-processor..."
 aws lambda create-function \
   --function-name VisionDrive-Parking-EventProcessor \
-  --runtime nodejs20.x \
+  --runtime nodejs22.x \
   --handler index.handler \
   --role $LAMBDA_ROLE_ARN \
   --zip-file fileb:///tmp/event-processor.zip \
@@ -158,7 +158,7 @@ zip -r /tmp/api-handler.zip . -x "*.git*" > /dev/null
 echo "   Deploying api-handler..."
 aws lambda create-function \
   --function-name VisionDrive-Parking-ApiHandler \
-  --runtime nodejs20.x \
+  --runtime nodejs22.x \
   --handler index.handler \
   --role $LAMBDA_ROLE_ARN \
   --zip-file fileb:///tmp/api-handler.zip \

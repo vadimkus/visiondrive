@@ -223,7 +223,7 @@ app/portal/smart-kitchen/        # Frontend (Next.js)
 | **Network** | du NB-IoT (UAE) | UAE | 🔜 Pending |
 | **IoT Platform** | AWS IoT Core | me-central-1 🇦🇪 | ✅ Deployed |
 | **Database** | Amazon DynamoDB | me-central-1 🇦🇪 | ✅ Deployed |
-| **Compute** | AWS Lambda (Node.js 20.x) | me-central-1 🇦🇪 | ✅ Deployed |
+| **Compute** | AWS Lambda (Node.js 22.x) | me-central-1 🇦🇪 | ✅ Deployed |
 | **API** | Amazon API Gateway | me-central-1 🇦🇪 | ✅ Deployed |
 | **Frontend** | Next.js (Vercel) | Global CDN (no data) | ✅ Deployed |
 
@@ -246,6 +246,7 @@ Lambda Functions: smartkitchen-api, smartkitchen-data-ingestion, smartkitchen-al
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture |
 | [AWS_SETUP.md](docs/AWS_SETUP.md) | AWS services setup |
 | [LAMBDA_FUNCTIONS.md](docs/LAMBDA_FUNCTIONS.md) | Lambda reference |
+| [LAMBDA_RUNTIME_UPGRADE.md](../docs/LAMBDA_RUNTIME_UPGRADE.md) | Node.js 22.x upgrade (Jan 2026) |
 | [SENSOR_CONFIG.md](docs/SENSOR_CONFIG.md) | Dragino configuration |
 | [DATA_RESIDENCY.md](docs/DATA_RESIDENCY.md) | 🇦🇪 UAE compliance |
 | [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | Step-by-step guide |

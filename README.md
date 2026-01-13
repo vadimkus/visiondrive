@@ -29,7 +29,7 @@ VisionDrive/
 │   │   └── DATA_RESIDENCY.md
 │   ├── infrastructure/     # AWS infrastructure
 │   │   ├── cdk/            # CDK definitions
-│   │   └── lambda/         # Lambda functions (Node.js 20.x)
+│   │   └── lambda/         # Lambda functions (Node.js 22.x)
 │   └── scripts/            # Utility scripts
 │
 ├── Parking/                # 🅿️ SMART PARKING IoT PROJECT
@@ -43,7 +43,7 @@ VisionDrive/
 │   │   └── SECURITY.md
 │   ├── infrastructure/     # AWS infrastructure
 │   │   ├── cdk/            # CDK definitions
-│   │   └── lambda/         # Lambda functions (Node.js 20.x)
+│   │   └── lambda/         # Lambda functions (Node.js 22.x)
 │   └── scripts/            # Deployment & migration scripts
 │
 ├── docs/                   # Main documentation
@@ -85,7 +85,7 @@ Real-time temperature monitoring for commercial kitchens with Dubai Municipality
 | **Sensors** | Dragino PS-NB-GE |
 | **Network** | du NB-IoT (UAE) |
 | **Cloud** | AWS me-central-1 (UAE) |
-| **Runtime** | Node.js 20.x |
+| **Runtime** | Node.js 22.x |
 | **Database** | DynamoDB |
 | **Dashboard** | `/portal/smart-kitchen` |
 
@@ -102,7 +102,7 @@ Smart parking management using NB-IoT sensors for real-time bay monitoring.
 | **Sensors** | PSL01B-NB-IoT |
 | **Network** | du NB-IoT (UAE) |
 | **Cloud** | AWS me-central-1 (UAE) |
-| **Runtime** | Node.js 20.x |
+| **Runtime** | Node.js 22.x |
 | **Database** | DynamoDB |
 | **Dashboard** | `/portal/parking` |
 
@@ -140,6 +140,12 @@ Smart parking management using NB-IoT sensors for real-time bay monitoring.
 ## Development
 
 [Add development instructions here]
+
+## Recent Updates
+
+| Date | Update | Documentation |
+|------|--------|---------------|
+| 2026-01-13 | Lambda Runtime Upgrade to Node.js 22.x | [LAMBDA_RUNTIME_UPGRADE.md](docs/LAMBDA_RUNTIME_UPGRADE.md) |
 
 ## Contributing
 

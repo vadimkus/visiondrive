@@ -28,7 +28,7 @@ zip -r /tmp/custom-authorizer.zip . -x "*.git*" > /dev/null
 # Create or update Lambda
 aws lambda create-function \
   --function-name VisionDrive-Parking-CustomAuthorizer \
-  --runtime nodejs20.x \
+  --runtime nodejs22.x \
   --handler index.handler \
   --role arn:aws:iam::${ACCOUNT_ID}:role/VisionDrive-Parking-Lambda-Role \
   --zip-file fileb:///tmp/custom-authorizer.zip \

@@ -36,7 +36,7 @@ export class ApiStack extends cdk.Stack {
 
     const apiHandler = new lambda.Function(this, 'ApiHandler', {
       functionName: 'parking-api',
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/api-handler')),
       role: apiLambdaRole,

@@ -14,7 +14,7 @@
 |-------|--------|---------|
 | SmartKitchen-VPC | ✅ Deployed | VPC with public/private/isolated subnets |
 | SmartKitchen-Database | ✅ Deployed | 3 DynamoDB tables |
-| SmartKitchen-Lambda | ✅ Deployed | 4 Lambda functions (Node.js 20.x) |
+| SmartKitchen-Lambda | ✅ Deployed | 4 Lambda functions (Node.js 22.x) |
 | SmartKitchen-IoT | ✅ Deployed | IoT Core ready for sensors |
 | SmartKitchen-API | ✅ Deployed | REST API with full CRUD |
 
@@ -158,10 +158,10 @@ VisionDrive-Alerts          - Alert history
 
 ### Lambda Functions
 ```
-smartkitchen-api            - REST API (Node.js 20.x) ✅ Updated Jan 13
-smartkitchen-data-ingestion - Process sensor data (Node.js 20.x)
-smartkitchen-alerts         - Temperature alert handler (Node.js 20.x)
-smartkitchen-analytics      - Daily reports (Node.js 20.x)
+smartkitchen-api            - REST API (Node.js 22.x) ✅ Updated Jan 13
+smartkitchen-data-ingestion - Process sensor data (Node.js 22.x)
+smartkitchen-alerts         - Temperature alert handler (Node.js 22.x)
+smartkitchen-analytics      - Daily reports (Node.js 22.x)
 ```
 
 ### API Gateway
