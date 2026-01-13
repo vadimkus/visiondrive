@@ -153,11 +153,32 @@ async function listKitchens() {
     }
   }));
   
-  const kitchens = (result.Items || []).map(item => unmarshall(item));
-  return response(200, { kitchens, count: kitchens.length });
+  const kitchens = (result.Items || []).map(item => {
+    const k = unmarshall(item);
+    return {
+      id: k.kitchenId,
+      name: k.name,
+      address: k.address,
+      emirate: k.emirate || 'Dubai',
+      tradeLicense: k.tradeLicense,
+      dmPermitNumber: k.dmPermitNumber,
+      contactName: k.contactName || k.manager,
+      contactPhone: k.contactPhone || k.phone,
+      contactEmail: k.contactEmail,
+      sensorCount: k.equipmentCount || k.sensorCount || 0,
+      ownerCount: k.ownerCount || 0,
+      activeAlerts: k.activeAlerts || 0,
+      avgTemperature: k.avgTemperature || null,
+      status: k.status || 'normal',
+      createdAt: k.createdAt
+    };
+  });
+  
+  return response(200, { success: true, kitchens, count: kitchens.length });
 }
 
 async function getKitchen(kitchenId) {
+  // Get kitchen metadata
   const result = await dynamoClient.send(new GetItemCommand({
     TableName: DEVICES_TABLE,
     Key: {
@@ -167,15 +188,117 @@ async function getKitchen(kitchenId) {
   }));
   
   if (!result.Item) {
-    return response(404, { error: 'Kitchen not found' });
+    return response(404, { success: false, error: 'Kitchen not found' });
   }
   
-  return response(200, unmarshall(result.Item));
+  const k = unmarshall(result.Item);
+  
+  // Get equipment for this kitchen
+  const equipmentResult = await dynamoClient.send(new QueryCommand({
+    TableName: DEVICES_TABLE,
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': { S: `KITCHEN#${kitchenId}` },
+      ':sk': { S: 'EQUIPMENT#' }
+    }
+  }));
+  
+  const equipment = (equipmentResult.Items || []).map(item => {
+    const e = unmarshall(item);
+    return {
+      id: e.equipmentId,
+      name: e.name,
+      type: e.type,
+      serialNumber: e.serialNumber,
+      brand: e.brand,
+      model: e.model,
+      sensorDevEui: e.sensorDevEui,
+      sensorImei: e.sensorImei,
+      minTemp: e.minTemp,
+      maxTemp: e.maxTemp,
+      isFreezer: e.isFreezer,
+      location: e.location,
+      status: e.status,
+      lastReading: e.lastReading,
+      lastReadingAt: e.lastReadingAt,
+      batteryLevel: e.batteryLevel,
+      signalStrength: e.signalStrength,
+      installDate: e.installDate,
+      createdAt: e.createdAt
+    };
+  });
+  
+  // Get owners for this kitchen
+  const ownersResult = await dynamoClient.send(new QueryCommand({
+    TableName: DEVICES_TABLE,
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': { S: `KITCHEN#${kitchenId}` },
+      ':sk': { S: 'OWNER#' }
+    }
+  }));
+  
+  const owners = (ownersResult.Items || []).map(item => {
+    const o = unmarshall(item);
+    return {
+      id: o.ownerId,
+      name: o.name,
+      email: o.email,
+      phone: o.phone,
+      isPrimary: o.isPrimary,
+      canManage: o.canManage,
+      canViewReports: o.canViewReports,
+      notifyEmail: o.notifyEmail,
+      notifyWhatsApp: o.notifyWhatsApp,
+      notifyOnAlert: o.notifyOnAlert,
+      createdAt: o.createdAt
+    };
+  });
+  
+  // Calculate stats
+  const temps = equipment.filter(e => e.lastReading !== null).map(e => e.lastReading);
+  const avgTemperature = temps.length > 0 ? temps.reduce((a, b) => a + b, 0) / temps.length : null;
+  const minTemperature = temps.length > 0 ? Math.min(...temps) : null;
+  const maxTemperature = temps.length > 0 ? Math.max(...temps) : null;
+  
+  return response(200, {
+    success: true,
+    kitchen: {
+      id: k.kitchenId,
+      name: k.name,
+      address: k.address,
+      emirate: k.emirate || 'Dubai',
+      tradeLicense: k.tradeLicense,
+      dmPermitNumber: k.dmPermitNumber,
+      contactName: k.contactName || k.manager,
+      contactPhone: k.contactPhone || k.phone,
+      contactEmail: k.contactEmail,
+      lat: k.lat,
+      lng: k.lng,
+      status: k.status || 'normal',
+      sensorCount: equipment.length,
+      ownerCount: owners.length,
+      activeAlerts: k.activeAlerts || 0,
+      avgTemperature,
+      minTemperature,
+      maxTemperature,
+      equipment,
+      owners,
+      createdAt: k.createdAt,
+      updatedAt: k.updatedAt
+    }
+  });
 }
 
 async function createKitchen(body) {
   const data = JSON.parse(body);
+  
+  if (!data.name || !data.address) {
+    return response(400, { success: false, error: 'Name and address are required' });
+  }
+  
   const kitchenId = data.kitchenId || `kitchen-${Date.now()}`;
+  const now = new Date().toISOString();
   
   await dynamoClient.send(new PutItemCommand({
     TableName: DEVICES_TABLE,
@@ -187,17 +310,605 @@ async function createKitchen(body) {
       kitchenId,
       name: data.name,
       address: data.address,
-      manager: data.manager,
-      phone: data.phone,
-      createdAt: new Date().toISOString()
+      emirate: data.emirate || 'Dubai',
+      tradeLicense: data.tradeLicense || null,
+      dmPermitNumber: data.dmPermitNumber || null,
+      contactName: data.contactName || null,
+      contactPhone: data.contactPhone || null,
+      contactEmail: data.contactEmail || null,
+      lat: data.lat || null,
+      lng: data.lng || null,
+      status: 'ACTIVE',
+      equipmentCount: 0,
+      ownerCount: 0,
+      activeAlerts: 0,
+      createdAt: now,
+      updatedAt: now
     })
   }));
   
-  return response(201, { kitchenId, message: 'Kitchen created' });
+  return response(201, { 
+    success: true,
+    kitchen: { id: kitchenId, name: data.name },
+    message: 'Kitchen created successfully' 
+  });
+}
+
+async function updateKitchen(kitchenId, body) {
+  const data = JSON.parse(body);
+  const now = new Date().toISOString();
+  
+  const updateExpressions = [];
+  const expressionValues = {};
+  const expressionNames = {};
+  
+  const fields = ['name', 'address', 'emirate', 'tradeLicense', 'dmPermitNumber', 
+                  'contactName', 'contactPhone', 'contactEmail', 'lat', 'lng', 'status'];
+  
+  fields.forEach(field => {
+    if (data[field] !== undefined) {
+      updateExpressions.push(`#${field} = :${field}`);
+      expressionNames[`#${field}`] = field;
+      expressionValues[`:${field}`] = { S: String(data[field]) };
+    }
+  });
+  
+  updateExpressions.push('#updatedAt = :updatedAt');
+  expressionNames['#updatedAt'] = 'updatedAt';
+  expressionValues[':updatedAt'] = { S: now };
+  
+  await dynamoClient.send(new UpdateItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: 'METADATA' }
+    },
+    UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+    ExpressionAttributeNames: expressionNames,
+    ExpressionAttributeValues: expressionValues
+  }));
+  
+  return response(200, { success: true, message: 'Kitchen updated successfully' });
+}
+
+async function deleteKitchen(kitchenId) {
+  // Delete all equipment and owners first
+  const items = await dynamoClient.send(new QueryCommand({
+    TableName: DEVICES_TABLE,
+    KeyConditionExpression: 'PK = :pk',
+    ExpressionAttributeValues: {
+      ':pk': { S: `KITCHEN#${kitchenId}` }
+    }
+  }));
+  
+  for (const item of items.Items || []) {
+    const unmarshalled = unmarshall(item);
+    await dynamoClient.send(new DeleteItemCommand({
+      TableName: DEVICES_TABLE,
+      Key: {
+        PK: { S: `KITCHEN#${kitchenId}` },
+        SK: { S: unmarshalled.SK }
+      }
+    }));
+  }
+  
+  return response(200, { success: true, message: 'Kitchen deleted successfully' });
 }
 
 // ==========================================
-// SENSORS HANDLERS
+// EQUIPMENT HANDLERS
+// ==========================================
+
+async function listEquipment(kitchenId) {
+  const result = await dynamoClient.send(new QueryCommand({
+    TableName: DEVICES_TABLE,
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': { S: `KITCHEN#${kitchenId}` },
+      ':sk': { S: 'EQUIPMENT#' }
+    }
+  }));
+  
+  const equipment = (result.Items || []).map(item => {
+    const e = unmarshall(item);
+    return {
+      id: e.equipmentId,
+      kitchenId: e.kitchenId,
+      name: e.name,
+      type: e.type,
+      serialNumber: e.serialNumber,
+      brand: e.brand,
+      model: e.model,
+      sensorDevEui: e.sensorDevEui,
+      sensorImei: e.sensorImei,
+      minTemp: e.minTemp,
+      maxTemp: e.maxTemp,
+      isFreezer: e.isFreezer,
+      location: e.location,
+      status: e.status,
+      lastReading: e.lastReading,
+      lastReadingAt: e.lastReadingAt,
+      batteryLevel: e.batteryLevel,
+      signalStrength: e.signalStrength,
+      installDate: e.installDate,
+      lastMaintenanceAt: e.lastMaintenanceAt,
+      createdAt: e.createdAt
+    };
+  });
+  
+  return response(200, { success: true, equipment });
+}
+
+async function createEquipment(kitchenId, body) {
+  const data = JSON.parse(body);
+  
+  if (!data.name) {
+    return response(400, { success: false, error: 'Equipment name is required' });
+  }
+  
+  // Check for duplicate serial number
+  if (data.serialNumber) {
+    const dupCheck = await dynamoClient.send(new ScanCommand({
+      TableName: DEVICES_TABLE,
+      FilterExpression: 'serialNumber = :sn',
+      ExpressionAttributeValues: {
+        ':sn': { S: data.serialNumber }
+      }
+    }));
+    
+    if (dupCheck.Items && dupCheck.Items.length > 0) {
+      return response(400, { success: false, error: 'Serial number already exists' });
+    }
+  }
+  
+  // Check for duplicate DevEUI
+  if (data.sensorDevEui) {
+    const dupCheck = await dynamoClient.send(new ScanCommand({
+      TableName: DEVICES_TABLE,
+      FilterExpression: 'sensorDevEui = :deveui',
+      ExpressionAttributeValues: {
+        ':deveui': { S: data.sensorDevEui }
+      }
+    }));
+    
+    if (dupCheck.Items && dupCheck.Items.length > 0) {
+      return response(400, { success: false, error: 'Sensor DevEUI already registered' });
+    }
+  }
+  
+  const equipmentId = `equip-${Date.now()}`;
+  const now = new Date().toISOString();
+  const isFreezer = data.type === 'FREEZER' || data.type === 'BLAST_CHILLER' || data.isFreezer;
+  
+  await dynamoClient.send(new PutItemCommand({
+    TableName: DEVICES_TABLE,
+    Item: marshall({
+      PK: `KITCHEN#${kitchenId}`,
+      SK: `EQUIPMENT#${equipmentId}`,
+      GSI1PK: data.sensorDevEui ? `DEVEUI#${data.sensorDevEui}` : `EQUIP#${equipmentId}`,
+      GSI1SK: now,
+      equipmentId,
+      kitchenId,
+      name: data.name,
+      type: data.type || 'FRIDGE',
+      serialNumber: data.serialNumber || null,
+      brand: data.brand || null,
+      model: data.model || null,
+      sensorDevEui: data.sensorDevEui || null,
+      sensorImei: data.sensorImei || null,
+      minTemp: data.minTemp !== undefined ? data.minTemp : (isFreezer ? -25 : 0),
+      maxTemp: data.maxTemp !== undefined ? data.maxTemp : (isFreezer ? -15 : 5),
+      isFreezer,
+      location: data.location || null,
+      status: 'ACTIVE',
+      lastReading: null,
+      lastReadingAt: null,
+      batteryLevel: null,
+      signalStrength: null,
+      installDate: data.installDate || now,
+      createdAt: now,
+      updatedAt: now
+    })
+  }));
+  
+  // Update kitchen equipment count
+  await dynamoClient.send(new UpdateItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: 'METADATA' }
+    },
+    UpdateExpression: 'SET equipmentCount = if_not_exists(equipmentCount, :zero) + :one',
+    ExpressionAttributeValues: {
+      ':zero': { N: '0' },
+      ':one': { N: '1' }
+    }
+  }));
+  
+  return response(201, { 
+    success: true,
+    equipment: { id: equipmentId, name: data.name, type: data.type },
+    message: 'Equipment added successfully' 
+  });
+}
+
+async function updateEquipment(kitchenId, equipmentId, body) {
+  const data = JSON.parse(body);
+  const now = new Date().toISOString();
+  
+  const updateExpressions = [];
+  const expressionValues = { ':updatedAt': { S: now } };
+  const expressionNames = { '#updatedAt': 'updatedAt' };
+  
+  const fields = ['name', 'type', 'serialNumber', 'brand', 'model', 'sensorDevEui', 
+                  'sensorImei', 'minTemp', 'maxTemp', 'isFreezer', 'location', 'status'];
+  
+  fields.forEach(field => {
+    if (data[field] !== undefined) {
+      updateExpressions.push(`#${field} = :${field}`);
+      expressionNames[`#${field}`] = field;
+      if (typeof data[field] === 'number') {
+        expressionValues[`:${field}`] = { N: String(data[field]) };
+      } else if (typeof data[field] === 'boolean') {
+        expressionValues[`:${field}`] = { BOOL: data[field] };
+      } else {
+        expressionValues[`:${field}`] = { S: String(data[field] || '') };
+      }
+    }
+  });
+  
+  updateExpressions.push('#updatedAt = :updatedAt');
+  
+  await dynamoClient.send(new UpdateItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: `EQUIPMENT#${equipmentId}` }
+    },
+    UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+    ExpressionAttributeNames: expressionNames,
+    ExpressionAttributeValues: expressionValues
+  }));
+  
+  return response(200, { success: true, message: 'Equipment updated successfully' });
+}
+
+async function deleteEquipment(kitchenId, equipmentId) {
+  await dynamoClient.send(new DeleteItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: `EQUIPMENT#${equipmentId}` }
+    }
+  }));
+  
+  // Update kitchen equipment count
+  await dynamoClient.send(new UpdateItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: 'METADATA' }
+    },
+    UpdateExpression: 'SET equipmentCount = equipmentCount - :one',
+    ExpressionAttributeValues: {
+      ':one': { N: '1' }
+    }
+  }));
+  
+  return response(200, { success: true, message: 'Equipment deleted successfully' });
+}
+
+// ==========================================
+// OWNERS HANDLERS
+// ==========================================
+
+async function listOwners(kitchenId) {
+  const result = await dynamoClient.send(new QueryCommand({
+    TableName: DEVICES_TABLE,
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': { S: `KITCHEN#${kitchenId}` },
+      ':sk': { S: 'OWNER#' }
+    }
+  }));
+  
+  const owners = (result.Items || []).map(item => {
+    const o = unmarshall(item);
+    return {
+      id: o.ownerId,
+      kitchenId: o.kitchenId,
+      name: o.name,
+      email: o.email,
+      phone: o.phone,
+      emiratesId: o.emiratesId,
+      isPrimary: o.isPrimary,
+      canManage: o.canManage,
+      canViewReports: o.canViewReports,
+      notifyEmail: o.notifyEmail,
+      notifyWhatsApp: o.notifyWhatsApp,
+      notifyOnAlert: o.notifyOnAlert,
+      notifyDailyReport: o.notifyDailyReport,
+      hasPortalAccess: o.hasPortalAccess || false,
+      createdAt: o.createdAt
+    };
+  });
+  
+  // Sort: primary first, then by createdAt
+  owners.sort((a, b) => {
+    if (a.isPrimary && !b.isPrimary) return -1;
+    if (!a.isPrimary && b.isPrimary) return 1;
+    return new Date(a.createdAt) - new Date(b.createdAt);
+  });
+  
+  return response(200, { success: true, owners });
+}
+
+async function createOwner(kitchenId, body) {
+  const data = JSON.parse(body);
+  
+  if (!data.name || !data.email) {
+    return response(400, { success: false, error: 'Name and email are required' });
+  }
+  
+  // Check for duplicate email in this kitchen
+  const existingOwners = await dynamoClient.send(new QueryCommand({
+    TableName: DEVICES_TABLE,
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    FilterExpression: 'email = :email',
+    ExpressionAttributeValues: {
+      ':pk': { S: `KITCHEN#${kitchenId}` },
+      ':sk': { S: 'OWNER#' },
+      ':email': { S: data.email.toLowerCase() }
+    }
+  }));
+  
+  if (existingOwners.Items && existingOwners.Items.length > 0) {
+    return response(400, { success: false, error: 'Owner with this email already exists for this kitchen' });
+  }
+  
+  // Check if this is the first owner
+  const ownerCount = await dynamoClient.send(new QueryCommand({
+    TableName: DEVICES_TABLE,
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': { S: `KITCHEN#${kitchenId}` },
+      ':sk': { S: 'OWNER#' }
+    },
+    Select: 'COUNT'
+  }));
+  
+  const isFirst = (ownerCount.Count || 0) === 0;
+  const isPrimary = isFirst || data.isPrimary === true;
+  
+  // If making this owner primary, remove primary from others
+  if (isPrimary && !isFirst) {
+    const allOwners = await dynamoClient.send(new QueryCommand({
+      TableName: DEVICES_TABLE,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+      ExpressionAttributeValues: {
+        ':pk': { S: `KITCHEN#${kitchenId}` },
+        ':sk': { S: 'OWNER#' }
+      }
+    }));
+    
+    for (const item of allOwners.Items || []) {
+      const owner = unmarshall(item);
+      if (owner.isPrimary) {
+        await dynamoClient.send(new UpdateItemCommand({
+          TableName: DEVICES_TABLE,
+          Key: {
+            PK: { S: `KITCHEN#${kitchenId}` },
+            SK: { S: `OWNER#${owner.ownerId}` }
+          },
+          UpdateExpression: 'SET isPrimary = :false',
+          ExpressionAttributeValues: {
+            ':false': { BOOL: false }
+          }
+        }));
+      }
+    }
+  }
+  
+  const ownerId = `owner-${Date.now()}`;
+  const now = new Date().toISOString();
+  
+  await dynamoClient.send(new PutItemCommand({
+    TableName: DEVICES_TABLE,
+    Item: marshall({
+      PK: `KITCHEN#${kitchenId}`,
+      SK: `OWNER#${ownerId}`,
+      GSI1PK: `EMAIL#${data.email.toLowerCase()}`,
+      GSI1SK: kitchenId,
+      ownerId,
+      kitchenId,
+      name: data.name,
+      email: data.email.toLowerCase(),
+      phone: data.phone || null,
+      emiratesId: data.emiratesId || null,
+      isPrimary,
+      canManage: data.canManage || false,
+      canViewReports: data.canViewReports !== false,
+      notifyEmail: data.notifyEmail !== false,
+      notifyWhatsApp: data.notifyWhatsApp || false,
+      notifyOnAlert: data.notifyOnAlert !== false,
+      notifyDailyReport: data.notifyDailyReport || false,
+      hasPortalAccess: false,
+      createdAt: now,
+      updatedAt: now
+    })
+  }));
+  
+  // Update kitchen owner count
+  await dynamoClient.send(new UpdateItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: 'METADATA' }
+    },
+    UpdateExpression: 'SET ownerCount = if_not_exists(ownerCount, :zero) + :one',
+    ExpressionAttributeValues: {
+      ':zero': { N: '0' },
+      ':one': { N: '1' }
+    }
+  }));
+  
+  return response(201, { 
+    success: true,
+    owner: { id: ownerId, name: data.name, email: data.email, isPrimary },
+    message: 'Owner added successfully' 
+  });
+}
+
+async function updateOwner(kitchenId, ownerId, body) {
+  const data = JSON.parse(body);
+  const now = new Date().toISOString();
+  
+  // If making this owner primary, remove primary from others
+  if (data.isPrimary === true) {
+    const allOwners = await dynamoClient.send(new QueryCommand({
+      TableName: DEVICES_TABLE,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+      ExpressionAttributeValues: {
+        ':pk': { S: `KITCHEN#${kitchenId}` },
+        ':sk': { S: 'OWNER#' }
+      }
+    }));
+    
+    for (const item of allOwners.Items || []) {
+      const owner = unmarshall(item);
+      if (owner.isPrimary && owner.ownerId !== ownerId) {
+        await dynamoClient.send(new UpdateItemCommand({
+          TableName: DEVICES_TABLE,
+          Key: {
+            PK: { S: `KITCHEN#${kitchenId}` },
+            SK: { S: `OWNER#${owner.ownerId}` }
+          },
+          UpdateExpression: 'SET isPrimary = :false',
+          ExpressionAttributeValues: {
+            ':false': { BOOL: false }
+          }
+        }));
+      }
+    }
+  }
+  
+  const updateExpressions = [];
+  const expressionValues = { ':updatedAt': { S: now } };
+  const expressionNames = { '#updatedAt': 'updatedAt' };
+  
+  const fields = ['name', 'email', 'phone', 'emiratesId', 'isPrimary', 'canManage', 
+                  'canViewReports', 'notifyEmail', 'notifyWhatsApp', 'notifyOnAlert', 'notifyDailyReport'];
+  
+  fields.forEach(field => {
+    if (data[field] !== undefined) {
+      updateExpressions.push(`#${field} = :${field}`);
+      expressionNames[`#${field}`] = field;
+      if (typeof data[field] === 'boolean') {
+        expressionValues[`:${field}`] = { BOOL: data[field] };
+      } else {
+        expressionValues[`:${field}`] = { S: String(data[field] || '') };
+      }
+    }
+  });
+  
+  updateExpressions.push('#updatedAt = :updatedAt');
+  
+  await dynamoClient.send(new UpdateItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: `OWNER#${ownerId}` }
+    },
+    UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+    ExpressionAttributeNames: expressionNames,
+    ExpressionAttributeValues: expressionValues
+  }));
+  
+  return response(200, { success: true, message: 'Owner updated successfully' });
+}
+
+async function deleteOwner(kitchenId, ownerId) {
+  // Check owner count
+  const ownerCount = await dynamoClient.send(new QueryCommand({
+    TableName: DEVICES_TABLE,
+    KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+    ExpressionAttributeValues: {
+      ':pk': { S: `KITCHEN#${kitchenId}` },
+      ':sk': { S: 'OWNER#' }
+    },
+    Select: 'COUNT'
+  }));
+  
+  if ((ownerCount.Count || 0) <= 1) {
+    return response(400, { success: false, error: 'Cannot delete the last owner. Add another owner first.' });
+  }
+  
+  // Get owner to check if primary
+  const ownerResult = await dynamoClient.send(new GetItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: `OWNER#${ownerId}` }
+    }
+  }));
+  
+  const owner = ownerResult.Item ? unmarshall(ownerResult.Item) : null;
+  
+  // Delete the owner
+  await dynamoClient.send(new DeleteItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: `OWNER#${ownerId}` }
+    }
+  }));
+  
+  // If primary was deleted, make another owner primary
+  if (owner && owner.isPrimary) {
+    const remainingOwners = await dynamoClient.send(new QueryCommand({
+      TableName: DEVICES_TABLE,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+      ExpressionAttributeValues: {
+        ':pk': { S: `KITCHEN#${kitchenId}` },
+        ':sk': { S: 'OWNER#' }
+      },
+      Limit: 1
+    }));
+    
+    if (remainingOwners.Items && remainingOwners.Items.length > 0) {
+      const nextOwner = unmarshall(remainingOwners.Items[0]);
+      await dynamoClient.send(new UpdateItemCommand({
+        TableName: DEVICES_TABLE,
+        Key: {
+          PK: { S: `KITCHEN#${kitchenId}` },
+          SK: { S: `OWNER#${nextOwner.ownerId}` }
+        },
+        UpdateExpression: 'SET isPrimary = :true',
+        ExpressionAttributeValues: {
+          ':true': { BOOL: true }
+        }
+      }));
+    }
+  }
+  
+  // Update kitchen owner count
+  await dynamoClient.send(new UpdateItemCommand({
+    TableName: DEVICES_TABLE,
+    Key: {
+      PK: { S: `KITCHEN#${kitchenId}` },
+      SK: { S: 'METADATA' }
+    },
+    UpdateExpression: 'SET ownerCount = ownerCount - :one',
+    ExpressionAttributeValues: {
+      ':one': { N: '1' }
+    }
+  }));
+  
+  return response(200, { success: true, message: 'Owner removed successfully' });
+}
+
+// ==========================================
+// SENSORS HANDLERS (legacy - for backward compatibility)
 // ==========================================
 
 async function listSensors(kitchenId = null) {
@@ -448,8 +1159,13 @@ async function acknowledgeAlert(alertId) {
 exports.handler = async (event) => {
   console.log('API Request:', JSON.stringify(event, null, 2));
   
-  const { httpMethod, path, pathParameters, queryStringParameters, body } = event;
+  const { httpMethod, path, queryStringParameters, body } = event;
   const method = httpMethod;
+  
+  // Handle OPTIONS for CORS
+  if (method === 'OPTIONS') {
+    return response(200, {});
+  }
   
   try {
     // Parse path segments
@@ -469,26 +1185,57 @@ exports.handler = async (event) => {
       }
     }
 
+    // KITCHENS routes
     if (segments[0] === 'kitchens') {
+      // /kitchens
       if (segments.length === 1) {
         if (method === 'GET') return await listKitchens();
         if (method === 'POST') return await createKitchen(body);
       }
+      // /kitchens/{id}
       if (segments.length === 2) {
         const kitchenId = segments[1];
         if (method === 'GET') return await getKitchen(kitchenId);
+        if (method === 'PUT') return await updateKitchen(kitchenId, body);
+        if (method === 'DELETE') return await deleteKitchen(kitchenId);
       }
-      if (segments.length === 3) {
+      // /kitchens/{id}/equipment
+      if (segments.length === 3 && segments[2] === 'equipment') {
         const kitchenId = segments[1];
-        if (segments[2] === 'sensors') {
-          return await listSensors(kitchenId);
-        }
-        if (segments[2] === 'alerts') {
-          return await listAlerts(kitchenId, false);
-        }
+        if (method === 'GET') return await listEquipment(kitchenId);
+        if (method === 'POST') return await createEquipment(kitchenId, body);
+      }
+      // /kitchens/{id}/equipment/{equipmentId}
+      if (segments.length === 4 && segments[2] === 'equipment') {
+        const kitchenId = segments[1];
+        const equipmentId = segments[3];
+        if (method === 'PUT') return await updateEquipment(kitchenId, equipmentId, body);
+        if (method === 'DELETE') return await deleteEquipment(kitchenId, equipmentId);
+      }
+      // /kitchens/{id}/owners
+      if (segments.length === 3 && segments[2] === 'owners') {
+        const kitchenId = segments[1];
+        if (method === 'GET') return await listOwners(kitchenId);
+        if (method === 'POST') return await createOwner(kitchenId, body);
+      }
+      // /kitchens/{id}/owners/{ownerId}
+      if (segments.length === 4 && segments[2] === 'owners') {
+        const kitchenId = segments[1];
+        const ownerId = segments[3];
+        if (method === 'PUT') return await updateOwner(kitchenId, ownerId, body);
+        if (method === 'DELETE') return await deleteOwner(kitchenId, ownerId);
+      }
+      // /kitchens/{id}/sensors (legacy)
+      if (segments.length === 3 && segments[2] === 'sensors') {
+        return await listSensors(segments[1]);
+      }
+      // /kitchens/{id}/alerts
+      if (segments.length === 3 && segments[2] === 'alerts') {
+        return await listAlerts(segments[1], false);
       }
     }
     
+    // SENSORS routes (legacy)
     if (segments[0] === 'sensors') {
       if (segments.length === 1) {
         if (method === 'GET') return await listSensors();
@@ -510,6 +1257,7 @@ exports.handler = async (event) => {
       }
     }
     
+    // ALERTS routes
     if (segments[0] === 'alerts') {
       if (segments.length === 1) {
         if (method === 'GET') return await listAlerts();
@@ -520,6 +1268,7 @@ exports.handler = async (event) => {
       }
     }
     
+    // ANALYTICS routes
     if (segments[0] === 'analytics') {
       if (segments.length === 2 && segments[1] === 'daily') {
         return await getDailyStats();

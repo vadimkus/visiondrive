@@ -46,6 +46,7 @@ model User {
   alertEvents        AlertEvent[] @relation("AlertEventActor")
   reportSubscriptions ReportSubscription[] @relation("ReportCreatedBy")
   expenses Expense[] @relation("ExpenseCreatedBy")
+  kitchenOwnerships KitchenOwner[] @relation("KitchenOwnerUser")
 
   @@map("users")
 }
@@ -727,5 +728,214 @@ model RateLimit {
 
   @@index([updatedAt]) // For cleanup queries
   @@map("rate_limits")
+}
+
+// ==========================================
+// SMART KITCHEN MODELS
+// ==========================================
+
+enum KitchenStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum EquipmentType {
+  FRIDGE
+  FREEZER
+  DISPLAY_FRIDGE
+  COLD_ROOM
+  BLAST_CHILLER
+  OTHER
+}
+
+enum EquipmentStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  FAULT
+}
+
+model SmartKitchen {
+  id              String        @id @default(cuid())
+  name            String
+  address         String
+  emirate         String        @default("Dubai")
+  tradeLicense    String?
+  dmPermitNumber  String?       // Dubai Municipality permit
+  status          KitchenStatus @default(ACTIVE)
+  
+  // Contact info (can be different from owner)
+  contactName     String?
+  contactPhone    String?
+  contactEmail    String?
+  
+  // Location
+  lat             Float?
+  lng             Float?
+  
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  equipment       KitchenEquipment[]
+  owners          KitchenOwner[]
+  alerts          KitchenAlert[]
+  readings        KitchenReading[]
+
+  @@index([status])
+  @@index([emirate])
+  @@map("smart_kitchens")
+}
+
+model KitchenEquipment {
+  id              String          @id @default(cuid())
+  kitchenId       String
+  
+  name            String          // e.g., "Walk-in Fridge 1"
+  type            EquipmentType   @default(FRIDGE)
+  serialNumber    String?
+  brand           String?
+  model           String?
+  
+  // Sensor info (Dragino PS-NB-GE)
+  sensorDevEui    String?         @unique // Device EUI for IoT
+  sensorImei      String?         // IMEI for NB-IoT
+  
+  // Temperature thresholds (Dubai Municipality compliant)
+  minTemp         Float           @default(0)    // Minimum safe temp
+  maxTemp         Float           @default(5)    // Maximum safe temp
+  
+  // For freezers
+  isFreezer       Boolean         @default(false)
+  
+  // Location within kitchen
+  location        String?         // e.g., "Back storage area"
+  
+  status          EquipmentStatus @default(ACTIVE)
+  lastReading     Float?          // Last temperature reading
+  lastReadingAt   DateTime?       @db.Timestamptz(6)
+  batteryLevel    Float?          // Battery percentage
+  signalStrength  Int?            // RSSI
+  
+  installDate     DateTime?       @db.Timestamptz(6)
+  lastMaintenanceAt DateTime?     @db.Timestamptz(6)
+  
+  createdAt       DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  kitchen         SmartKitchen    @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  readings        KitchenReading[]
+  alerts          KitchenAlert[]
+
+  @@index([kitchenId])
+  @@index([sensorDevEui])
+  @@index([status])
+  @@map("kitchen_equipment")
+}
+
+model KitchenOwner {
+  id              String        @id @default(cuid())
+  kitchenId       String
+  
+  // Owner details
+  name            String
+  email           String
+  phone           String?
+  emiratesId      String?       // For verification
+  
+  // Portal access
+  userId          String?       // Link to User model if they have portal access
+  isPrimary       Boolean       @default(false)  // Primary owner
+  canManage       Boolean       @default(false)  // Can add/edit equipment
+  canViewReports  Boolean       @default(true)
+  
+  // Notification preferences
+  notifyEmail     Boolean       @default(true)
+  notifyWhatsApp  Boolean       @default(false)
+  notifyOnAlert   Boolean       @default(true)
+  notifyDailyReport Boolean     @default(false)
+  
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  kitchen         SmartKitchen  @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  user            User?         @relation("KitchenOwnerUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([kitchenId, email])
+  @@index([kitchenId])
+  @@index([userId])
+  @@map("kitchen_owners")
+}
+
+enum KitchenAlertType {
+  HIGH_TEMP
+  LOW_TEMP
+  DANGER_ZONE     // 5-60°C
+  SENSOR_OFFLINE
+  LOW_BATTERY
+  MAINTENANCE_DUE
+}
+
+enum KitchenAlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model KitchenAlert {
+  id              String              @id @default(cuid())
+  kitchenId       String
+  equipmentId     String?
+  
+  type            KitchenAlertType
+  status          KitchenAlertStatus  @default(ACTIVE)
+  
+  temperature     Float?              // Temperature that triggered alert
+  threshold       Float?              // Threshold that was exceeded
+  message         String?
+  
+  triggeredAt     DateTime            @default(now()) @db.Timestamptz(6)
+  acknowledgedAt  DateTime?           @db.Timestamptz(6)
+  acknowledgedBy  String?
+  resolvedAt      DateTime?           @db.Timestamptz(6)
+  
+  createdAt       DateTime            @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  kitchen         SmartKitchen        @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  equipment       KitchenEquipment?   @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+
+  @@index([kitchenId, status])
+  @@index([equipmentId, status])
+  @@index([type, triggeredAt])
+  @@map("kitchen_alerts")
+}
+
+model KitchenReading {
+  id              String            @id @default(cuid())
+  time            DateTime          @default(now()) @db.Timestamptz(6)
+  kitchenId       String
+  equipmentId     String
+  
+  temperature     Float
+  rawMA           Float?            // Raw 4-20mA value
+  batteryVoltage  Float?
+  signalStrength  Int?              // RSSI
+  
+  // DM Compliance
+  isCompliant     Boolean           @default(true)  // Within safe range
+  
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  kitchen         SmartKitchen      @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  equipment       KitchenEquipment  @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@index([kitchenId, time])
+  @@index([equipmentId, time])
+  @@map("kitchen_readings")
 }
 

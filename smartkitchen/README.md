@@ -6,9 +6,9 @@ Real-time temperature monitoring for commercial kitchens using NB-IoT sensors wi
 
 ---
 
-## 🚀 Current Status: Phase 5 Complete + DM Compliance
+## 🚀 Current Status: Phase 5 Complete + PDF Reports + Dark Mode
 
-**Last Updated:** January 12, 2026
+**Last Updated:** January 13, 2026
 
 | Phase | Status | Description |
 |-------|--------|-------------|
@@ -41,6 +41,57 @@ The portal implements Dubai Municipality food safety temperature requirements:
 - Daily compliance trend tracking
 - Export PDF compliance reports
 - Arabic translations for all equipment types
+
+---
+
+## 📄 PDF Compliance Reports
+
+**Professional, Apple-inspired PDF reports** for Dubai Municipality compliance.
+
+### Report Contents
+| Section | Description |
+|---------|-------------|
+| **Header** | VisionDrive logo, company info, report type |
+| **Kitchen Info** | Legal name, trade name, license, address |
+| **Equipment** | Name, type, model, serial number, location |
+| **Compliance** | Rate %, readings count, alerts count |
+| **Temperature Log** | Date, time, temperature, status, notes |
+| **Certification** | DM reference, data center info |
+
+### Report Periods
+- **Daily**: Every 5 min readings (288/day)
+- **Weekly**: Hourly readings (168/week)
+- **Monthly**: Every 3 hours (240/month)
+- **Yearly**: Daily readings (365/year)
+
+### Technical Details
+- **Library**: jsPDF v4.0.0
+- **File**: `lib/smart-kitchen/pdf-report.ts`
+- **Logo**: `/public/logo/logo.jpg`
+- **Branding**: "Vision" (slate) + "Drive" (orange)
+
+---
+
+## 🌙 Dark/Light Mode
+
+Both portals support theme switching with localStorage persistence.
+
+### Kitchen Owner Portal
+- **Context**: `app/kitchen-owner/context/ThemeContext.tsx`
+- **Storage Key**: `kitchen-theme`
+
+### Smart Kitchen Portal  
+- **Context**: `app/portal/smart-kitchen/context/ThemeContext.tsx`
+- **Storage Key**: `smart-kitchen-theme`
+
+### Color Schemes
+| Element | Light Mode | Dark Mode |
+|---------|------------|-----------|
+| Background | `#f5f5f7` | `#1a1a1a` |
+| Cards | `white` | `#2d2d2f` |
+| Text Primary | `gray-900` | `white` |
+| Text Secondary | `gray-500` | `gray-400` |
+| Borders | `gray-100` | `gray-700` |
 
 ---
 
@@ -204,6 +255,7 @@ Database:      visiondrive_smartkitchen
 | Document | Description |
 |----------|-------------|
 | [**Implementation Progress**](PROGRESS.md) | ⭐ Current status |
+| [**Changelog**](../docs/SMART_KITCHEN_CHANGELOG.md) | 📋 Recent changes |
 | [Project Plan](PROJECT_PLAN.md) | Full roadmap |
 | [docs/README.md](docs/README.md) | Documentation index |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture |
@@ -213,3 +265,25 @@ Database:      visiondrive_smartkitchen
 | [docs/DATA_RESIDENCY.md](docs/DATA_RESIDENCY.md) | 🇦🇪 UAE compliance |
 | [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | Step-by-step guide |
 | [docs/WHATSAPP_SETUP.md](docs/WHATSAPP_SETUP.md) | WhatsApp alerts |
+
+---
+
+## 💰 Subscription & Billing
+
+### Pricing
+| Plan | Price | Discount |
+|------|-------|----------|
+| Monthly | 199 AED/sensor | - |
+| Yearly | 179 AED/sensor/month | 10% off |
+
+### Features Included
+- 24/7 temperature monitoring
+- Real-time alerts (dashboard + WhatsApp)
+- PDF compliance reports
+- 2-year data retention
+- Email support
+
+### Payment
+- **Provider**: Stripe
+- **Methods**: Credit/Debit cards
+- **Billing**: billing@visiondrive.ae
