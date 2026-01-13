@@ -111,29 +111,46 @@ export function generateComplianceReport(data: ReportData): jsPDF {
   // ===== HEADER =====
   // Orange accent bar at top
   doc.setFillColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b)
-  doc.rect(0, 0, pageWidth, 4, 'F')
+  doc.rect(0, 0, pageWidth, 5, 'F')
 
-  y = 15
+  y = 18
 
-  // VisionDrive Logo text (styled)
+  // VD Logo icon (stylized box)
+  doc.setFillColor(42, 100, 100) // Teal color matching website
+  doc.roundedRect(margin, y - 10, 14, 14, 2, 2, 'F')
+  doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(22)
-  doc.setTextColor(COLORS.primary.r, COLORS.primary.g, COLORS.primary.b)
-  doc.text('VisionDrive', margin, y)
-  
-  // Smart Kitchen badge
-  doc.setFontSize(8)
-  doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
-  doc.text('SMART KITCHEN', margin + 48, y - 3)
-  
-  // Report type on the right
-  doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
+  doc.text('VD', margin + 3.5, y - 2)
+  
+  // VisionDrive text
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(18)
+  doc.setTextColor(51, 65, 85) // Slate-700 matching website
+  doc.text('VisionDrive', margin + 18, y - 1)
+  
+  // IoT Company + UAE flag
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
+  doc.text('IoT Company 🇦🇪', margin + 18, y + 5)
+  
+  // Smart Kitchen badge on right
+  doc.setFillColor(COLORS.background.r, COLORS.background.g, COLORS.background.b)
+  doc.roundedRect(pageWidth - margin - 35, y - 9, 35, 8, 2, 2, 'F')
+  doc.setFontSize(7)
+  doc.setTextColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b)
+  doc.setFont('helvetica', 'bold')
+  doc.text('SMART KITCHEN', pageWidth - margin - 32, y - 4)
+  
+  // Report type below badge
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
   doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
   const periodLabel = `${data.period.type.charAt(0).toUpperCase() + data.period.type.slice(1)} Compliance Report`
-  doc.text(periodLabel, pageWidth - margin, y, { align: 'right' })
+  doc.text(periodLabel, pageWidth - margin, y + 5, { align: 'right' })
 
-  y += 10
+  y += 12
 
   // Divider line
   doc.setDrawColor(COLORS.border.r, COLORS.border.g, COLORS.border.b)
@@ -330,13 +347,23 @@ export function generateComplianceReport(data: ReportData): jsPDF {
       
       // Add header on new page
       doc.setFillColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b)
-      doc.rect(0, 0, pageWidth, 4, 'F')
+      doc.rect(0, 0, pageWidth, 5, 'F')
       
       y = 15
+      
+      // VD Logo icon (smaller for continuation pages)
+      doc.setFillColor(42, 100, 100)
+      doc.roundedRect(margin, y - 6, 10, 10, 1.5, 1.5, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(7)
+      doc.text('VD', margin + 2.5, y)
+      
+      // Title
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(10)
-      doc.setTextColor(COLORS.primary.r, COLORS.primary.g, COLORS.primary.b)
-      doc.text(`${data.equipment.name} — Temperature Readings (continued)`, margin, y)
+      doc.setTextColor(51, 65, 85)
+      doc.text(`${data.equipment.name} — Temperature Readings (continued)`, margin + 14, y)
       
       y += 8
       
