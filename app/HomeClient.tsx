@@ -127,8 +127,7 @@ export default function HomeClient() {
             <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50 rounded-3xl border border-orange-100 p-6 sm:p-8 lg:p-10">
               {/* Background Pattern */}
               <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-4 right-4 text-8xl">🍳</div>
-                <div className="absolute bottom-4 left-4 text-6xl">🌡️</div>
+                <div className="absolute top-4 right-4 text-8xl">🌡️</div>
               </div>
 
               <div className="relative">
@@ -153,7 +152,7 @@ export default function HomeClient() {
                 </p>
 
                 {/* Features Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   <div className="bg-white/80 backdrop-blur rounded-xl p-3 sm:p-4 border border-orange-100 text-center">
                     <Thermometer className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500 mx-auto mb-2" />
                     <div className="text-xs sm:text-sm font-semibold text-gray-900">0°C - 5°C</div>
@@ -174,23 +173,6 @@ export default function HomeClient() {
                     <div className="text-xs sm:text-sm font-semibold text-gray-900">DM Compliant</div>
                     <div className="text-xs text-gray-500">Food Safety</div>
                   </div>
-                </div>
-
-                {/* CTA */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <a
-                    href="/portal/smart-kitchen"
-                    className="inline-flex items-center justify-center px-5 py-3 bg-orange-500 text-white text-sm font-semibold rounded-xl hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-500/25 group"
-                  >
-                    View Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </a>
-                  <a
-                    href="/contact"
-                    className="inline-flex items-center justify-center px-5 py-3 bg-white text-gray-700 text-sm font-semibold rounded-xl border border-gray-200 hover:border-orange-300 hover:text-orange-600 active:scale-[0.98] transition-all"
-                  >
-                    Learn More
-                  </a>
                 </div>
               </div>
             </div>
