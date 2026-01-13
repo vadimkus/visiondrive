@@ -3,7 +3,7 @@ export const footerTranslations = {
     solutions: 'Solutions',
     company: 'Company',
     contact: 'Contact',
-    description: 'Revolutionizing urban mobility\nin the UAE with smart NB IoT solutions',
+    description: 'Transforming UAE with\nSmart NB-IoT Solutions',
     copyright: 'All rights reserved.',
     solutionsLinks: {
       communities: 'For Communities',

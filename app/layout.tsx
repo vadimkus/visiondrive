@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'Vision Drive - Smart Parking Solutions for the UAE',
-  description: 'Revolutionizing urban mobility in the UAE with cutting-edge, data-driven smart parking solutions. Real-time occupancy and unparalleled convenience.',
+  description: 'Transforming UAE with Smart NB-IoT Solutions. Real-time monitoring, data-driven insights, and unparalleled convenience.',
   keywords: 'smart parking, UAE, Dubai, parking app, real-time parking, RTA parking solution',
   authors: [{ name: 'Vision Drive Technologies FZ-LLC' }],
   icons: {

@@ -2,7 +2,7 @@ export const aboutTranslations = {
   en: {
     hero: {
       title: 'About Vision Drive',
-      subtitle: 'Revolutionizing urban mobility in the UAE.',
+      subtitle: 'Transforming UAE with Smart NB-IoT Solutions.',
     },
     values: {
       items: [
