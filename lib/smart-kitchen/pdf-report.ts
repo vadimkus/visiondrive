@@ -434,8 +434,7 @@ function addFooter(doc: jsPDF, pageWidth: number, pageHeight: number, margin: nu
   doc.text('VisionDrive Technologies FZ-LLC, Dubai, UAE', margin, footerY)
   doc.text('support@visiondrive.ae | visiondrive.ae', pageWidth / 2, footerY, { align: 'center' })
   
-  // @ts-expect-error - getNumberOfPages exists on jsPDF
-  const pageNum = doc.getNumberOfPages ? doc.getNumberOfPages() : 1
+  const pageNum = doc.getNumberOfPages()
   doc.text(`Page ${pageNum}`, pageWidth - margin, footerY, { align: 'right' })
 }
 
