@@ -95,7 +95,7 @@ function getStatusColor(status: 'normal' | 'warning' | 'critical') {
 }
 
 // Generate professional PDF report
-export function generateComplianceReport(data: ReportData, logoBase64?: string | null): jsPDF {
+export function generateComplianceReport(data: ReportData, images?: { logo: string | null; flag: string | null }): jsPDF {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -118,9 +118,9 @@ export function generateComplianceReport(data: ReportData, logoBase64?: string |
   // VD Logo from image file
   const logoWidth = 16
   const logoHeight = 16
-  if (logoBase64) {
+  if (images?.logo) {
     try {
-      doc.addImage(logoBase64, 'JPEG', margin, y - 12, logoWidth, logoHeight)
+      doc.addImage(images.logo, 'JPEG', margin, y - 12, logoWidth, logoHeight)
     } catch {
       // Fallback to text if image fails
       doc.setFillColor(42, 100, 100)
@@ -150,11 +150,24 @@ export function generateComplianceReport(data: ReportData, logoBase64?: string |
   doc.setTextColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b) // Orange for "Drive"
   doc.text('Drive', textStartX + visionWidth, y - 2)
   
-  // IoT Company (UAE) - no emoji for PDF compatibility
+  // IoT Company + UAE flag
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
-  doc.text('IoT Company (UAE)', textStartX, y + 4)
+  doc.text('IoT Company', textStartX, y + 4)
+  const iotTextWidth = doc.getTextWidth('IoT Company ')
+  
+  // Add UAE flag icon (small)
+  if (images?.flag) {
+    try {
+      doc.addImage(images.flag, 'PNG', textStartX + iotTextWidth, y + 0.5, 5, 3.5)
+    } catch {
+      // Fallback to text if flag image fails
+      doc.text('(UAE)', textStartX + iotTextWidth, y + 4)
+    }
+  } else {
+    doc.text('(UAE)', textStartX + iotTextWidth, y + 4)
+  }
   
   // Smart Kitchen badge on right
   doc.setFillColor(COLORS.background.r, COLORS.background.g, COLORS.background.b)
@@ -615,10 +628,10 @@ export function generateSampleReportData(
   }
 }
 
-// Load logo as base64
-async function loadLogoBase64(): Promise<string | null> {
+// Load image as base64
+async function loadImageBase64(path: string): Promise<string | null> {
   try {
-    const response = await fetch('/logo/logo.jpg')
+    const response = await fetch(path)
     const blob = await response.blob()
     return new Promise((resolve) => {
       const reader = new FileReader()
@@ -631,10 +644,19 @@ async function loadLogoBase64(): Promise<string | null> {
   }
 }
 
+// Load all images for PDF
+async function loadPdfImages(): Promise<{ logo: string | null; flag: string | null }> {
+  const [logo, flag] = await Promise.all([
+    loadImageBase64('/logo/logo.jpg'),
+    loadImageBase64('/logo/flag.png'),
+  ])
+  return { logo, flag }
+}
+
 // Download helper
 export async function downloadReport(data: ReportData): Promise<void> {
-  const logoBase64 = await loadLogoBase64()
-  const doc = generateComplianceReport(data, logoBase64)
+  const images = await loadPdfImages()
+  const doc = generateComplianceReport(data, images)
   const fileName = `${data.equipment.name.replace(/\s+/g, '-')}_${data.period.type}_report_${formatDate(data.period.endDate).replace(/\s+/g, '-')}.pdf`
   doc.save(fileName)
 }
