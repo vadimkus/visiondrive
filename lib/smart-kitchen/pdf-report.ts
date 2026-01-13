@@ -141,19 +141,20 @@ export function generateComplianceReport(data: ReportData, logoBase64?: string |
   }
   
   // VisionDrive text (Vision in slate, Drive in orange)
+  const textStartX = margin + logoWidth + 2
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
   doc.setTextColor(51, 65, 85) // Slate-700 for "Vision"
-  doc.text('Vision', margin + logoWidth + 4, y - 2)
+  doc.text('Vision', textStartX, y - 2)
   const visionWidth = doc.getTextWidth('Vision')
   doc.setTextColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b) // Orange for "Drive"
-  doc.text('Drive', margin + logoWidth + 4 + visionWidth, y - 2)
+  doc.text('Drive', textStartX + visionWidth, y - 2)
   
   // IoT Company (UAE) - no emoji for PDF compatibility
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
-  doc.text('IoT Company (UAE)', margin + logoWidth + 4, y + 4)
+  doc.text('IoT Company (UAE)', textStartX, y + 4)
   
   // Smart Kitchen badge on right
   doc.setFillColor(COLORS.background.r, COLORS.background.g, COLORS.background.b)
