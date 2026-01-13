@@ -160,7 +160,7 @@ export function generateComplianceReport(data: ReportData, images?: { logo: stri
   // Add UAE flag icon (small)
   if (images?.flag) {
     try {
-      doc.addImage(images.flag, 'PNG', textStartX + iotTextWidth, y + 0.5, 5, 3.5)
+      doc.addImage(images.flag, 'PNG', textStartX + iotTextWidth, y + 1.5, 2.5, 1.75)
     } catch {
       // Fallback to text if flag image fails
       doc.text('(UAE)', textStartX + iotTextWidth, y + 4)
