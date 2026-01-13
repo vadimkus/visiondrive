@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Download,
   Calendar,
@@ -8,16 +8,18 @@ import {
   CheckCircle,
   Clock,
   ChevronDown,
+  Loader2,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
+import { generateSampleReportData, downloadReport } from '../../../lib/smart-kitchen/pdf-report'
 
-// Sensors data
+// Sensors data with equipment details
 const SENSORS = [
-  { id: 'sensor-1', name: 'Walk-in Fridge', icon: '🚪', compliance: 98 },
-  { id: 'sensor-2', name: 'Main Freezer', icon: '❄️', compliance: 100 },
-  { id: 'sensor-3', name: 'Prep Fridge', icon: '🔪', compliance: 95 },
-  { id: 'sensor-4', name: 'Display Cooler', icon: '🛒', compliance: 87 },
-  { id: 'sensor-5', name: 'Hot Holding', icon: '🔥', compliance: 99 },
+  { id: 'sensor-1', name: 'Walk-in Fridge', icon: '🚪', compliance: 98, type: 'Cold Storage', serialNumber: 'WIF-2024-001', modelName: 'Dragino PS-NB-UAE' },
+  { id: 'sensor-2', name: 'Main Freezer', icon: '❄️', compliance: 100, type: 'Freezer', serialNumber: 'MFZ-2024-002', modelName: 'Dragino PS-NB-UAE' },
+  { id: 'sensor-3', name: 'Prep Fridge', icon: '🔪', compliance: 95, type: 'Prep Cold Storage', serialNumber: 'PRF-2024-003', modelName: 'Dragino PS-NB-UAE' },
+  { id: 'sensor-4', name: 'Display Cooler', icon: '🛒', compliance: 87, type: 'Display Refrigeration', serialNumber: 'DSC-2024-004', modelName: 'Dragino PS-NB-UAE' },
+  { id: 'sensor-5', name: 'Hot Holding', icon: '🔥', compliance: 99, type: 'Hot Holding Unit', serialNumber: 'HHU-2024-005', modelName: 'Dragino PS-NB-UAE' },
 ]
 
 // Time periods
@@ -57,24 +59,74 @@ export default function OwnerReports() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('weekly')
   const [isGenerating, setIsGenerating] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'generate' | 'history'>('generate')
+  const [isMounted, setIsMounted] = useState(false)
 
-  const handleDownload = (sensorId: string, period: string) => {
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  const handleDownload = async (sensorId: string, period: string) => {
     const key = `${sensorId}-${period}`
     setIsGenerating(key)
-    setTimeout(() => {
+    
+    try {
+      // Small delay for UX
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      const sensor = SENSORS.find(s => s.id === sensorId)
+      if (!sensor) return
+      
+      const periodType = period as 'daily' | 'weekly' | 'monthly' | 'yearly'
+      const reportData = generateSampleReportData(
+        sensor.name,
+        sensor.type,
+        periodType,
+        sensor.serialNumber,
+        sensor.modelName
+      )
+      
+      downloadReport(reportData)
+    } catch (error) {
+      console.error('Error generating report:', error)
+      alert('Error generating report. Please try again.')
+    } finally {
       setIsGenerating(null)
-      const sensorName = SENSORS.find(s => s.id === sensorId)?.name
-      const periodName = PERIODS.find(p => p.id === period)?.name
-      alert(`${periodName} report for ${sensorName} downloaded successfully!`)
-    }, 1500)
+    }
   }
 
-  const handleQuickDownload = (reportId: string) => {
+  const handleQuickDownload = async (reportId: string) => {
     setIsGenerating(reportId)
-    setTimeout(() => {
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Use first sensor for history reports
+      const sensor = SENSORS[0]
+      const periodType = reportId === 'report-1' ? 'weekly' : 'monthly'
+      
+      const reportData = generateSampleReportData(
+        sensor.name,
+        sensor.type,
+        periodType,
+        sensor.serialNumber,
+        sensor.modelName
+      )
+      
+      downloadReport(reportData)
+    } catch (error) {
+      console.error('Error generating report:', error)
+      alert('Error generating report. Please try again.')
+    } finally {
       setIsGenerating(null)
-      alert('Report downloaded successfully!')
-    }, 1500)
+    }
+  }
+
+  if (!isMounted) {
+    return (
+      <div className={`p-4 md:p-6 lg:p-8 flex items-center justify-center min-h-[400px] ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    )
   }
 
   return (
@@ -193,12 +245,21 @@ export default function OwnerReports() {
                       <button
                         onClick={() => handleDownload(selectedSensor, period.id)}
                         disabled={isDownloading}
-                        className={`mt-2 w-full flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] font-medium rounded-md transition-colors disabled:opacity-50 ${
+                        className={`mt-2 w-full flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-medium rounded-md transition-colors disabled:opacity-50 ${
                           isDark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'
                         }`}
                       >
-                        <Download className={`h-3 w-3 ${isDownloading ? 'animate-bounce' : ''}`} />
-                        {isDownloading ? 'Generating...' : 'Download PDF'}
+                        {isDownloading ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="h-3 w-3" />
+                            Download PDF
+                          </>
+                        )}
                       </button>
                     </div>
                   )
@@ -222,10 +283,19 @@ export default function OwnerReports() {
                   <button
                     onClick={() => handleDownload(selectedSensor, selectedPeriod)}
                     disabled={isGenerating === `${selectedSensor}-${selectedPeriod}`}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-orange-500 text-white text-xs font-medium rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-orange-500 text-white text-xs font-medium rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
                   >
-                    <Download className={`h-3.5 w-3.5 ${isGenerating === `${selectedSensor}-${selectedPeriod}` ? 'animate-bounce' : ''}`} />
-                    Generate Report
+                    {isGenerating === `${selectedSensor}-${selectedPeriod}` ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Generating PDF...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-4 w-4" />
+                        Generate PDF Report
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -285,12 +355,21 @@ export default function OwnerReports() {
                     <button 
                       onClick={() => handleQuickDownload(report.id)}
                       disabled={isGenerating === report.id}
-                      className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                         isDark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'
                       }`}
                     >
-                      <Download className={`h-3 w-3 ${isGenerating === report.id ? 'animate-bounce' : ''}`} />
-                      {isGenerating === report.id ? '...' : 'Download'}
+                      {isGenerating === report.id ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-3 w-3" />
+                          Download PDF
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
