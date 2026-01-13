@@ -156,6 +156,10 @@ export function generateComplianceReport(data: ReportData, images?: { logo: stri
   doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
   doc.text('IoT Company', textStartX, y + 4)
   
+  // Website
+  doc.setFontSize(8)
+  doc.text('www.visiondrive.ae', textStartX, y + 8)
+  
   // Smart Kitchen badge on right
   doc.setFillColor(COLORS.background.r, COLORS.background.g, COLORS.background.b)
   doc.roundedRect(pageWidth - margin - 35, y - 11, 35, 8, 2, 2, 'F')
