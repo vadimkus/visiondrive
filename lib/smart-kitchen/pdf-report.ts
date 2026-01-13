@@ -141,7 +141,7 @@ export function generateComplianceReport(data: ReportData, images?: { logo: stri
   }
   
   // VisionDrive text (Vision in slate, Drive in orange)
-  const textStartX = margin + logoWidth + 2
+  const textStartX = margin + logoWidth + 1
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
   doc.setTextColor(51, 65, 85) // Slate-700 for "Vision"
