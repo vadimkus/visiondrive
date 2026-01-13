@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { 
   ArrowRight, 
   Radio, 
@@ -111,19 +110,6 @@ export default function HomeClient() {
             ))}
           </div>
 
-          {/* Partners */}
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-gray-500 uppercase tracking-wider font-medium mb-4">
-              Trusted by UAE Authorities
-            </p>
-            <div className="flex flex-wrap justify-center gap-3 sm:gap-5 items-center">
-              <Image src="/images/gov/icons/rta.jpg" alt="RTA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-              <Image src="/images/gov/icons/parkin.jpg" alt="Parkin" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-              <Image src="/images/gov/icons/itc.jpg" alt="ITC Abu Dhabi" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-              <Image src="/images/gov/icons/srta.jpg" alt="SRTA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-              <Image src="/images/gov/icons/tdra.jpg" alt="TDRA" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-            </div>
-          </div>
         </div>
 
       </div>
