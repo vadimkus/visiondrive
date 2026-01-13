@@ -140,11 +140,14 @@ export function generateComplianceReport(data: ReportData, logoBase64?: string |
     doc.text('VD', margin + 4, y - 2)
   }
   
-  // VisionDrive text
+  // VisionDrive text (Vision in slate, Drive in orange)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
-  doc.setTextColor(51, 65, 85) // Slate-700 matching website
-  doc.text('VisionDrive', margin + logoWidth + 4, y - 2)
+  doc.setTextColor(51, 65, 85) // Slate-700 for "Vision"
+  doc.text('Vision', margin + logoWidth + 4, y - 2)
+  const visionWidth = doc.getTextWidth('Vision')
+  doc.setTextColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b) // Orange for "Drive"
+  doc.text('Drive', margin + logoWidth + 4 + visionWidth, y - 2)
   
   // IoT Company (UAE) - no emoji for PDF compatibility
   doc.setFont('helvetica', 'normal')
