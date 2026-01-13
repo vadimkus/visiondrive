@@ -1,208 +1,101 @@
 # Lambda Functions Reference
 
-## VisionDrive Smart Kitchen - AWS Lambda Documentation
+## VisionDrive Smart Kitchen - AWS Lambda Functions
+
+All Lambda functions run in the UAE region (me-central-1) on Node.js 20.x runtime.
 
 ---
 
-## Overview
+## Functions Overview
 
-All Smart Kitchen Lambda functions run in the **UAE region (me-central-1)** using **Node.js 20.x** runtime.
-
-| Function | Runtime | Memory | Timeout | Purpose |
-|----------|---------|--------|---------|---------|
-| `smartkitchen-data-ingestion` | Node.js 20.x | 256 MB | 30s | Process sensor data |
-| `smartkitchen-alerts` | Node.js 20.x | 256 MB | 30s | Temperature alerts |
-| `smartkitchen-api` | Node.js 20.x | 256 MB | 30s | REST API handler |
-| `smartkitchen-analytics` | Node.js 20.x | 512 MB | 5min | Analytics reports |
-
-> **Note:** Runtime upgraded from Node.js 18.x to 20.x on January 13, 2026 (Node.js 18.x EOL).
+| Function | Purpose | Trigger | Runtime |
+|----------|---------|---------|---------|
+| `smartkitchen-api` | REST API handler | API Gateway | Node.js 20.x |
+| `smartkitchen-data-ingestion` | Process sensor data | IoT Rule | Node.js 20.x |
+| `smartkitchen-alerts` | Alert processing | IoT Rule / DynamoDB Stream | Node.js 20.x |
+| `smartkitchen-analytics` | Statistics & reports | CloudWatch Events | Node.js 20.x |
 
 ---
 
-## 1. Data Ingestion Lambda
+## 1. smartkitchen-api
 
-**Name:** `smartkitchen-data-ingestion`
+### Overview
 
-**Trigger:** AWS IoT Core Rules Engine
+Main REST API handler for the Smart Kitchen portal. Handles all CRUD operations for kitchens, equipment, owners, sensors, and alerts.
 
-**Purpose:** Processes incoming sensor data from Dragino PS-NB-GE sensors, converts 4-20mA readings to temperature, and stores in DynamoDB.
-
-### Input (from IoT Rule)
-
-```json
-{
-  "deviceId": "sensor-001",
-  "kitchenId": "kitchen-001",
-  "raw_ma": 8.5,
-  "battery": 3.52,
-  "voltage": 12.1,
-  "received_at": 1736678400000
-}
-```
-
-### Processing
-
-1. Convert 4-20mA to temperature using probe profile
-2. Store reading in `VisionDrive-SensorReadings` table
-3. Update device last seen timestamp in `VisionDrive-Devices`
-
-### Environment Variables
-
-```bash
-SENSOR_READINGS_TABLE=VisionDrive-SensorReadings
-DEVICES_TABLE=VisionDrive-Devices
-```
-
-### Temperature Conversion Profiles
-
-| Probe Type | mA Range | Temperature Range |
-|------------|----------|-------------------|
-| `fridge` | 4-20 mA | 0°C to 10°C |
-| `freezer` | 4-20 mA | -30°C to 0°C |
-| `general` | 4-20 mA | -40°C to 85°C |
-| `ambient` | 4-20 mA | 15°C to 35°C |
-
-### Code Location
+### Configuration
 
 ```
-smartkitchen/infrastructure/lambda/data-ingestion/index.js
-```
-
----
-
-## 2. Alerts Lambda
-
-**Name:** `smartkitchen-alerts`
-
-**Trigger:** AWS IoT Core Rules Engine (threshold breach)
-
-**Purpose:** Evaluates temperature against DM compliance thresholds and sends SNS notifications for violations.
-
-### Input
-
-```json
-{
-  "deviceId": "sensor-001",
-  "kitchenId": "kitchen-001",
-  "raw_ma": 15.5,
-  "timestamp": "1736678400000"
-}
-```
-
-### Alert Types
-
-| Type | Condition | Severity |
-|------|-----------|----------|
-| `HIGH_TEMP` | Above max threshold | Critical |
-| `LOW_TEMP` | Below min threshold | Critical |
-| `DANGER_ZONE` | 5°C - 60°C | Danger |
-
-### Processing
-
-1. Get device thresholds from DynamoDB
-2. Convert raw_ma to temperature
-3. Check against min/max thresholds
-4. Create alert in `VisionDrive-Alerts` table
-5. Send SNS notification
-
-### Environment Variables
-
-```bash
-DEVICES_TABLE=VisionDrive-Devices
-ALERTS_TABLE=VisionDrive-Alerts
-ALERT_TOPIC_ARN=arn:aws:sns:me-central-1:ACCOUNT:SmartKitchen-Alerts
-```
-
-### SNS Message Format
-
-```
-🔥 TEMPERATURE ALERT - VisionDrive Smart Kitchen
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⚠️ Alert Type: HIGH_TEMP
-
-📍 Location: Walk-in Fridge
-🏪 Kitchen: Main Kitchen
-🔌 Device: sensor-001
-
-🌡️ Current Temperature: 12.5°C
-📏 Threshold: 8°C
-
-⏰ Time: 12/01/2026, 2:30:00 PM (Dubai)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚨 ACTION REQUIRED: Temperature is TOO HIGH - check refrigeration!
-```
-
-### Code Location
-
-```
-smartkitchen/infrastructure/lambda/alerts/index.js
-```
-
----
-
-## 3. API Handler Lambda
-
-**Name:** `smartkitchen-api`
-
-**Trigger:** API Gateway
-
-**Purpose:** Handles all REST API requests for the dashboard.
-
-### Endpoints
-
-```
-POST   /auth/login          - User login (returns JWT)
-POST   /auth/register       - Create user (requires adminKey)
-
-GET    /kitchens            - List kitchens
-GET    /kitchens/{id}       - Get kitchen details
-POST   /kitchens            - Create kitchen
-
-GET    /sensors             - List sensors
-GET    /sensors/{id}        - Get sensor details
-POST   /sensors             - Register sensor
-
-GET    /sensors/{id}/current   - Get latest reading
-GET    /sensors/{id}/readings  - Get readings history
-
-GET    /alerts              - List alerts
-PUT    /alerts/{id}/acknowledge - Acknowledge alert
-
-GET    /analytics/daily     - Daily statistics
+Function Name:  smartkitchen-api
+Runtime:        Node.js 20.x
+Memory:         256 MB
+Timeout:        30 seconds
+Handler:        index.handler
 ```
 
 ### Environment Variables
 
-```bash
-SENSOR_READINGS_TABLE=VisionDrive-SensorReadings
-DEVICES_TABLE=VisionDrive-Devices
-ALERTS_TABLE=VisionDrive-Alerts
-JWT_SECRET=smartkitchen-uae-secret-2026
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `DEVICES_TABLE` | VisionDrive-Devices | Main data table |
+| `SENSOR_READINGS_TABLE` | VisionDrive-SensorReadings | Time-series data |
+| `ALERTS_TABLE` | VisionDrive-Alerts | Alert records |
+| `JWT_SECRET` | (configured) | JWT signing secret |
+
+### API Routes
+
+#### Authentication
+```
+POST /auth/login          → login()
+POST /auth/register       → createUser()
 ```
 
-### Authentication
-
-Uses JWT tokens with bcryptjs for password hashing.
-
-```javascript
-// Login response
-{
-  "success": true,
-  "user": {
-    "id": "user-123",
-    "email": "admin@kitchen.ae",
-    "name": "Kitchen Admin",
-    "role": "ADMIN"
-  },
-  "token": "eyJhbGciOiJIUzI1NiIs..."
-}
+#### Kitchens
+```
+GET    /kitchens                              → listKitchens()
+POST   /kitchens                              → createKitchen()
+GET    /kitchens/{id}                         → getKitchen()
+PUT    /kitchens/{id}                         → updateKitchen()
+DELETE /kitchens/{id}                         → deleteKitchen()
 ```
 
-### Code Location
+#### Equipment
+```
+GET    /kitchens/{id}/equipment               → listEquipment()
+POST   /kitchens/{id}/equipment               → createEquipment()
+PUT    /kitchens/{id}/equipment/{equipmentId} → updateEquipment()
+DELETE /kitchens/{id}/equipment/{equipmentId} → deleteEquipment()
+```
+
+#### Owners
+```
+GET    /kitchens/{id}/owners                  → listOwners()
+POST   /kitchens/{id}/owners                  → createOwner()
+PUT    /kitchens/{id}/owners/{ownerId}        → updateOwner()
+DELETE /kitchens/{id}/owners/{ownerId}        → deleteOwner()
+```
+
+#### Sensors (Legacy)
+```
+GET    /sensors                               → listSensors()
+POST   /sensors                               → registerSensor()
+GET    /sensors/{id}                          → getSensor()
+GET    /sensors/{id}/current                  → getCurrentReading()
+GET    /sensors/{id}/readings                 → getSensorReadings()
+```
+
+#### Alerts
+```
+GET    /alerts                                → listAlerts()
+PUT    /alerts/{id}/acknowledge               → acknowledgeAlert()
+```
+
+#### Analytics
+```
+GET    /analytics/daily                       → getDailyStats()
+```
+
+### Source Code Location
 
 ```
 smartkitchen/infrastructure/lambda/api/index.js
@@ -212,38 +105,191 @@ smartkitchen/infrastructure/lambda/api/index.js
 
 ```json
 {
-  "@aws-sdk/client-dynamodb": "^3.966.0",
-  "@aws-sdk/util-dynamodb": "^3.966.0",
+  "@aws-sdk/client-dynamodb": "^3.x",
+  "@aws-sdk/util-dynamodb": "^3.x",
   "bcryptjs": "^2.4.3",
   "jsonwebtoken": "^9.0.0"
 }
 ```
 
+### Deployment
+
+```bash
+cd smartkitchen/infrastructure/lambda/api
+
+# Install dependencies
+npm install
+
+# Create deployment package
+zip -r function.zip index.js package.json node_modules/
+
+# Deploy to AWS
+aws lambda update-function-code \
+  --function-name smartkitchen-api \
+  --zip-file fileb://function.zip \
+  --region me-central-1
+```
+
 ---
 
-## 4. Analytics Lambda
+## 2. smartkitchen-data-ingestion
 
-**Name:** `smartkitchen-analytics`
+### Overview
 
-**Trigger:** API Gateway / CloudWatch Events (scheduled)
+Processes incoming sensor data from AWS IoT Core, converts raw values to temperature, and stores in DynamoDB.
 
-**Purpose:** Generates daily/weekly analytics reports.
+### Configuration
 
-### Features
-
-- Daily temperature statistics per sensor
-- Hourly averages for kitchen
-- Temperature trend analysis
-- Compliance rate calculation
+```
+Function Name:  smartkitchen-data-ingestion
+Runtime:        Node.js 20.x
+Memory:         256 MB
+Timeout:        30 seconds
+Handler:        index.handler
+```
 
 ### Environment Variables
 
-```bash
-SENSOR_READINGS_TABLE=VisionDrive-SensorReadings
-DEVICES_TABLE=VisionDrive-Devices
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `SENSOR_READINGS_TABLE` | VisionDrive-SensorReadings | Time-series storage |
+| `DEVICES_TABLE` | VisionDrive-Devices | Device metadata |
+
+### Trigger
+
+IoT Rule: `SmartKitchen_DataIngestion`
+
+```sql
+SELECT 
+  topic(3) as deviceId, 
+  topic(2) as kitchenId, 
+  IDC_mA as raw_ma, 
+  Battery as battery, 
+  timestamp() as received_at 
+FROM 'visiondrive/+/+/temperature'
 ```
 
-### Code Location
+### Processing Logic
+
+1. Receive raw sensor data (4-20mA)
+2. Convert mA to temperature: `temp = (mA - 4) / 16 * (maxTemp - minTemp) + minTemp`
+3. Look up equipment by DevEUI to get kitchen context
+4. Store reading in DynamoDB
+5. Update equipment's `lastReading` and `lastReadingAt`
+
+### Source Code Location
+
+```
+smartkitchen/infrastructure/lambda/data-ingestion/index.js
+```
+
+---
+
+## 3. smartkitchen-alerts
+
+### Overview
+
+Processes temperature readings and generates alerts when thresholds are exceeded.
+
+### Configuration
+
+```
+Function Name:  smartkitchen-alerts
+Runtime:        Node.js 20.x
+Memory:         256 MB
+Timeout:        30 seconds
+Handler:        index.handler
+```
+
+### Environment Variables
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `DEVICES_TABLE` | VisionDrive-Devices | Device thresholds |
+| `ALERTS_TABLE` | VisionDrive-Alerts | Alert storage |
+| `ALERT_TOPIC_ARN` | arn:aws:sns:... | SNS topic for notifications |
+
+### Trigger
+
+IoT Rule: `SmartKitchen_Alerts`
+
+```sql
+SELECT 
+  topic(3) as deviceId, 
+  topic(2) as kitchenId, 
+  IDC_mA as raw_ma, 
+  timestamp() as timestamp 
+FROM 'visiondrive/+/+/temperature' 
+WHERE IDC_mA > 15 OR IDC_mA < 5
+```
+
+### Alert Types
+
+| Type | Trigger | Severity |
+|------|---------|----------|
+| `HIGH_TEMP` | Temperature > max threshold | Warning/Critical |
+| `LOW_TEMP` | Temperature < min threshold | Warning |
+| `DANGER_ZONE` | Temperature 5°C - 60°C | Critical |
+| `SENSOR_OFFLINE` | No reading for 30 min | Warning |
+| `LOW_BATTERY` | Battery < 20% | Info |
+
+### Processing Logic
+
+1. Receive sensor reading
+2. Get equipment thresholds from DynamoDB
+3. Compare temperature against thresholds
+4. Create alert record in DynamoDB
+5. Send SNS notification
+6. (Optional) Send WhatsApp via Business API
+
+### Source Code Location
+
+```
+smartkitchen/infrastructure/lambda/alerts/index.js
+smartkitchen/infrastructure/lambda/alerts/whatsapp.js
+```
+
+---
+
+## 4. smartkitchen-analytics
+
+### Overview
+
+Generates statistics and reports for temperature data.
+
+### Configuration
+
+```
+Function Name:  smartkitchen-analytics
+Runtime:        Node.js 20.x
+Memory:         512 MB
+Timeout:        5 minutes
+Handler:        index.handler
+```
+
+### Environment Variables
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `SENSOR_READINGS_TABLE` | VisionDrive-SensorReadings | Time-series data |
+| `DEVICES_TABLE` | VisionDrive-Devices | Device metadata |
+
+### Trigger
+
+CloudWatch Events rule: Daily at 00:00 UTC
+
+### Processing Logic
+
+1. Query all sensors
+2. For each sensor, calculate:
+   - Average temperature
+   - Min/Max temperature
+   - Compliance rate
+   - Alert count
+3. Update kitchen metadata with aggregated stats
+4. Generate daily report (optional S3 export)
+
+### Source Code Location
 
 ```
 smartkitchen/infrastructure/lambda/analytics/index.js
@@ -251,122 +297,136 @@ smartkitchen/infrastructure/lambda/analytics/index.js
 
 ---
 
-## Deployment
+## DynamoDB Access Patterns
 
-### Update Function Code
+### VisionDrive-Devices Table
 
-```bash
-# Package function
-cd smartkitchen/infrastructure/lambda/data-ingestion
-npm install --omit=dev
-zip -r /tmp/data-ingestion.zip . -x "*.git*"
+| Pattern | Key Condition | Use Case |
+|---------|---------------|----------|
+| Get kitchen | PK = "KITCHEN#{id}", SK = "METADATA" | Kitchen details |
+| List all kitchens | Scan with filter | Dashboard |
+| Get equipment | PK = "KITCHEN#{id}", SK begins_with "EQUIPMENT#" | Equipment list |
+| Get owners | PK = "KITCHEN#{id}", SK begins_with "OWNER#" | Owner list |
+| Find by DevEUI | GSI1PK = "DEVEUI#{devEui}" | Sensor lookup |
+| Get user | PK = "USER#{email}", SK = "PROFILE" | Authentication |
 
-# Deploy
-aws lambda update-function-code \
-  --function-name smartkitchen-data-ingestion \
-  --zip-file fileb:///tmp/data-ingestion.zip \
-  --region me-central-1
-```
+### VisionDrive-SensorReadings Table
 
-### Update Runtime
+| Pattern | Key Condition | Use Case |
+|---------|---------------|----------|
+| Latest reading | PK = deviceId, ScanIndexForward = false, Limit = 1 | Current temperature |
+| Time range | PK = deviceId, SK > timestamp | History chart |
 
-```bash
-aws lambda update-function-configuration \
-  --function-name smartkitchen-data-ingestion \
-  --runtime nodejs20.x \
-  --region me-central-1
-```
+### VisionDrive-Alerts Table
 
-### Update Environment Variables
+| Pattern | Key Condition | Use Case |
+|---------|---------------|----------|
+| Active alerts | GSI1PK = "ALERT#ACTIVE" | Alert list |
+| Kitchen alerts | PK = "KITCHEN#{id}" | Kitchen-specific alerts |
 
-```bash
-aws lambda update-function-configuration \
-  --function-name smartkitchen-api \
-  --environment "Variables={DEVICES_TABLE=VisionDrive-Devices,ALERTS_TABLE=VisionDrive-Alerts}" \
-  --region me-central-1
+---
+
+## IAM Permissions
+
+All Lambda functions use the `SmartKitchen-LambdaRole` with these policies:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:me-central-1:*:table/VisionDrive-*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sns:Publish"
+      ],
+      "Resource": [
+        "arn:aws:sns:me-central-1:*:SmartKitchen-*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
 ```
 
 ---
 
 ## Monitoring
 
-### CloudWatch Logs
+### CloudWatch Log Groups
 
-```bash
-# View logs
-aws logs tail /aws/lambda/smartkitchen-api --follow --region me-central-1
+| Function | Log Group |
+|----------|-----------|
+| smartkitchen-api | /aws/lambda/smartkitchen-api |
+| smartkitchen-data-ingestion | /aws/lambda/smartkitchen-data-ingestion |
+| smartkitchen-alerts | /aws/lambda/smartkitchen-alerts |
+| smartkitchen-analytics | /aws/lambda/smartkitchen-analytics |
 
-# Search for errors
-aws logs filter-log-events \
-  --log-group-name /aws/lambda/smartkitchen-api \
-  --filter-pattern "ERROR" \
-  --region me-central-1
-```
+### Key Metrics
 
-### CloudWatch Metrics
-
-| Metric | Namespace | Description |
-|--------|-----------|-------------|
-| Invocations | AWS/Lambda | Function call count |
-| Duration | AWS/Lambda | Execution time |
-| Errors | AWS/Lambda | Error count |
-| Throttles | AWS/Lambda | Throttled invocations |
-
-### Create Alarm
-
-```bash
-aws cloudwatch put-metric-alarm \
-  --alarm-name "SmartKitchen-API-Errors" \
-  --metric-name Errors \
-  --namespace AWS/Lambda \
-  --dimensions Name=FunctionName,Value=smartkitchen-api \
-  --statistic Sum \
-  --period 300 \
-  --threshold 5 \
-  --comparison-operator GreaterThanThreshold \
-  --evaluation-periods 1 \
-  --alarm-actions arn:aws:sns:me-central-1:ACCOUNT:SmartKitchen-Alerts \
-  --region me-central-1
-```
-
----
-
-## IAM Role
-
-**Role Name:** `SmartKitchen-LambdaRole`
-
-**Permissions:**
-- `AWSLambdaBasicExecutionRole` - CloudWatch Logs
-- `AmazonDynamoDBFullAccess` - DynamoDB operations
-- `AmazonSNSFullAccess` - SNS notifications
+| Metric | Description | Alarm Threshold |
+|--------|-------------|-----------------|
+| Invocations | Request count | N/A |
+| Duration | Execution time | > 10s |
+| Errors | Failed executions | > 1% |
+| Throttles | Rate limit hits | > 0 |
 
 ---
 
 ## Troubleshooting
 
-### Function Not Receiving Events
+### Common Issues
 
-1. Check IoT Rule is enabled
-2. Verify Lambda permission for IoT
-3. Check CloudWatch Logs for errors
+**1. DynamoDB Timeout**
+- Increase Lambda timeout
+- Check for missing indexes
 
-### Timeout Errors
+**2. JWT Token Expired**
+- Check token expiration (7 days)
+- Verify JWT_SECRET matches
 
-1. Increase timeout in function configuration
-2. Check DynamoDB capacity
-3. Optimize database queries
+**3. Missing Environment Variables**
+- Check Lambda configuration
+- Verify table names
 
-### Permission Errors
+**4. CORS Errors**
+- All responses include CORS headers
+- Check API Gateway configuration
 
-1. Verify IAM role has required policies
-2. Check resource ARNs are correct
-3. Verify function can access DynamoDB tables
+### Debug Logging
+
+Enable debug logging by setting:
+```javascript
+console.log('API Request:', JSON.stringify(event, null, 2));
+```
+
+Check CloudWatch Logs for details.
 
 ---
 
-## Version History
+## Related Documentation
 
-| Date | Version | Changes |
-|------|---------|---------|
-| 2026-01-13 | 2.0 | Upgraded all functions to Node.js 20.x |
-| 2026-01-12 | 1.0 | Initial deployment with Node.js 18.x |
+- [API_REFERENCE.md](API_REFERENCE.md) - REST API documentation
+- [AWS_SETUP.md](AWS_SETUP.md) - AWS configuration
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture

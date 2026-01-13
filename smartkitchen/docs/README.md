@@ -1,154 +1,179 @@
-# VisionDrive Smart Kitchen - Documentation
+# Smart Kitchen Documentation
 
-## Complete Technical Documentation
+## VisionDrive Smart Kitchen - Documentation Index
 
-This folder contains all documentation for the VisionDrive Smart Kitchen IoT Temperature Monitoring System.
+Complete documentation for the Smart Kitchen IoT temperature monitoring system.
 
 ---
 
-## 📚 Documentation Index
+## Quick Links
 
 | Document | Description |
 |----------|-------------|
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System architecture, data flow, and DM compliance |
-| [AWS_SETUP.md](./AWS_SETUP.md) | AWS services configuration |
-| [SETUP_GUIDE.md](./SETUP_GUIDE.md) | Step-by-step implementation guide |
-| [SENSOR_CONFIG.md](./SENSOR_CONFIG.md) | Dragino PS-NB-GE sensor configuration |
-| [DATA_RESIDENCY.md](./DATA_RESIDENCY.md) | UAE data residency compliance |
-| [WHATSAPP_SETUP.md](./WHATSAPP_SETUP.md) | WhatsApp alert integration |
-
-**Main README:** See [../README.md](../README.md) for project overview.
+| [**../README.md**](../README.md) | 📋 Project overview and quick start |
+| [**../PROGRESS.md**](../PROGRESS.md) | ✅ Implementation status |
 
 ---
 
-## 🚀 Quick Start
+## Core Documentation
 
-### 1. Access the Dashboard
-```
-URL:      https://www.visiondrive.ae/login
-Portal:   Kitchen 🍳
-Email:    admin@kitchen.ae
-Password: Kitchen@2026
-```
+### Getting Started
 
-### 2. API Endpoint
-```
-https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/
-```
+| Document | Description |
+|----------|-------------|
+| [SETUP_GUIDE.md](SETUP_GUIDE.md) | Step-by-step setup instructions |
+| [SENSOR_CONFIG.md](SENSOR_CONFIG.md) | Dragino PS-NB-GE sensor configuration |
 
-### 3. IoT Endpoint
-```
-xxxxxx-ats.iot.me-central-1.amazonaws.com
-```
+### Features
 
----
+| Document | Description |
+|----------|-------------|
+| [**KITCHEN_MANAGEMENT.md**](KITCHEN_MANAGEMENT.md) | ⭐ **NEW** Kitchen, Equipment & Owner management |
+| [**API_REFERENCE.md**](API_REFERENCE.md) | ⭐ **NEW** Complete REST API documentation |
+| [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md) | WhatsApp alert notifications |
 
-## 📊 System Overview
+### Architecture & Infrastructure
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        VISIONDRIVE SMART KITCHEN                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│   ┌─────────┐       MQTTs (X.509 Cert)                   ┌─────────────┐    │
-│   │ Dragino │──── NB-IoT (du) ────▶ AWS IoT Core ──────▶│   Lambda    │    │
-│   │ PS-NB-GE│                       (UAE Region)         │  Node.js 20 │    │
-│   └─────────┘                                            └──────┬──────┘    │
-│                                                                  │          │
-│                                                                  ▼          │
-│                                                          ┌──────────────┐   │
-│   ┌─────────────┐                                        │   DynamoDB   │   │
-│   │   Next.js   │◀──── API Gateway ◀────────────────────│   (NoSQL)    │   │
-│   │  Dashboard  │      (REST API)                        └──────────────┘   │
-│   └─────────────┘                                                           │
-│        │                                                                    │
-│        ▼                                                                    │
-│   ┌─────────┐                                                               │
-│   │ Vercel  │                                                               │
-│   └─────────┘                                                               │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture diagrams |
+| [AWS_SETUP.md](AWS_SETUP.md) | AWS services configuration |
+| [LAMBDA_FUNCTIONS.md](LAMBDA_FUNCTIONS.md) | Lambda function reference |
+| [DATA_RESIDENCY.md](DATA_RESIDENCY.md) | 🇦🇪 UAE data compliance |
 
 ---
 
-## 🏛️ Dubai Municipality Compliance
+## Document Summaries
 
-**Reference:** DM-HSD-GU46-KFPA2 (Version 3, May 9, 2024)
+### KITCHEN_MANAGEMENT.md ⭐ NEW
 
-| Equipment | Arabic | Required Temp | Status |
-|-----------|--------|---------------|--------|
-| Walk-in Fridge | غرفة تبريد | 0°C to 5°C | ✅ |
-| Main Freezer | فريزر | ≤ -18°C | ✅ |
-| Hot Holding | حفظ ساخن | ≥ 60°C | ✅ |
-| **Danger Zone** | **منطقة الخطر** | **5°C - 60°C** | ⚠️ Alert |
+Complete guide to managing:
+- **Kitchens** - Create, update, delete kitchen locations with trade license and DM permit
+- **Equipment** - Add fridges/freezers with serial numbers and sensor DevEUI
+- **Owners** - Manage owners with permissions and notification preferences
+
+### API_REFERENCE.md ⭐ NEW
+
+Full REST API documentation:
+- Authentication endpoints
+- CRUD operations for kitchens, equipment, owners
+- Sensor readings and alerts
+- Request/response examples
+- Error codes
+
+### ARCHITECTURE.md
+
+System architecture including:
+- High-level component diagram
+- Data flow from sensor to dashboard
+- DynamoDB schema design
+- Security layers
+- Dubai Municipality compliance processing
+
+### AWS_SETUP.md
+
+AWS configuration guide:
+- IoT Core setup (Things, Policies, Rules)
+- DynamoDB tables
+- Lambda functions
+- API Gateway
+- SNS for notifications
+- CloudWatch monitoring
+
+### SENSOR_CONFIG.md
+
+Dragino PS-NB-GE configuration:
+- Hardware specifications
+- du NB-IoT APN settings
+- MQTT configuration
+- AT commands reference
+- Temperature probe calibration
+
+### DATA_RESIDENCY.md
+
+UAE compliance documentation:
+- Data storage locations
+- No data leaves UAE
+- DynamoDB in me-central-1
+- Vercel as CDN only (no data stored)
+
+### LAMBDA_FUNCTIONS.md
+
+Lambda function reference:
+- `smartkitchen-api` - REST API handler
+- `smartkitchen-data-ingestion` - Process sensor readings
+- `smartkitchen-alerts` - Temperature alert processing
+- `smartkitchen-analytics` - Statistics and reporting
+
+### WHATSAPP_SETUP.md
+
+WhatsApp Business API integration:
+- Meta Business account setup
+- Message templates
+- Alert delivery configuration
+- Rate limits and costs
 
 ---
 
-## 📦 AWS Resources
+## API Quick Reference
 
-| Resource | Name/Value |
-|----------|------------|
-| **Region** | `me-central-1` (UAE) |
-| **Lambda - Ingestion** | `smartkitchen-data-ingestion` (Node.js 20.x) |
-| **Lambda - Alerts** | `smartkitchen-alerts` (Node.js 20.x) |
-| **Lambda - API** | `smartkitchen-api` (Node.js 20.x) |
-| **Lambda - Analytics** | `smartkitchen-analytics` (Node.js 20.x) |
-| **API Gateway** | `w7gfk5cka2` |
-| **DynamoDB - Devices** | `VisionDrive-Devices` |
-| **DynamoDB - Alerts** | `VisionDrive-Alerts` |
-| **DynamoDB - Readings** | `VisionDrive-SensorReadings` |
-| **SNS Topic** | `SmartKitchen-Alerts` |
-
----
-
-## 🔧 Quick Commands
-
-### Test API
-```bash
-curl https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/kitchens | jq
+### Base URL
+```
+https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod
 ```
 
-### View Lambda Logs
-```bash
-# API Handler
-aws logs tail /aws/lambda/smartkitchen-api --follow --region me-central-1
+### Key Endpoints
 
-# Data Ingestion
-aws logs tail /aws/lambda/smartkitchen-data-ingestion --follow --region me-central-1
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/kitchens` | List all kitchens |
+| POST | `/kitchens` | Create kitchen |
+| GET | `/kitchens/{id}` | Get kitchen with equipment & owners |
+| POST | `/kitchens/{id}/equipment` | Add equipment |
+| POST | `/kitchens/{id}/owners` | Add owner |
+| GET | `/alerts` | List active alerts |
 
-# Alerts
-aws logs tail /aws/lambda/smartkitchen-alerts --follow --region me-central-1
-```
-
-### Check Lambda Runtime
-```bash
-aws lambda list-functions --region me-central-1 \
-  --query 'Functions[?starts_with(FunctionName, `smartkitchen`)].{Name:FunctionName,Runtime:Runtime}' \
-  --output table
-```
+See [API_REFERENCE.md](API_REFERENCE.md) for complete documentation.
 
 ---
 
-## 🇦🇪 UAE Data Residency
+## DynamoDB Tables
 
-All customer data is stored exclusively in **AWS me-central-1 (Abu Dhabi, UAE)**:
-
-| Data Type | Storage | Location |
-|-----------|---------|----------|
-| User accounts | DynamoDB | 🇦🇪 UAE |
-| Temperature readings | DynamoDB | 🇦🇪 UAE |
-| Device configs | DynamoDB | 🇦🇪 UAE |
-| Alerts | DynamoDB | 🇦🇪 UAE |
-| Frontend assets | Vercel CDN | Global (no PII) |
-
-> **Note:** Using DynamoDB instead of Timestream because Timestream is not available in UAE region.
+| Table | Purpose |
+|-------|---------|
+| `VisionDrive-Devices` | Kitchens, Equipment, Owners, Users |
+| `VisionDrive-SensorReadings` | Temperature readings (time-series) |
+| `VisionDrive-Alerts` | Alert records |
 
 ---
 
-## 📞 Getting Help
+## Portal URLs
 
-1. **Sensor Issues**: See [SENSOR_CONFIG.md](./SENSOR_CONFIG.md)
-2. **AWS Issues**: See [AWS_SETUP.md](./AWS_SETUP.md)
-3. **Architecture Questions**: See [ARCHITECTURE.md](./ARCHITECTURE.md)
-4. **Data Compliance**: See [DATA_RESIDENCY.md](./DATA_RESIDENCY.md)
+| Portal | URL | Description |
+|--------|-----|-------------|
+| Login | https://www.visiondrive.ae/login | Select Kitchen portal |
+| Overview | https://www.visiondrive.ae/portal/smart-kitchen | Dashboard |
+| Kitchens | https://www.visiondrive.ae/portal/smart-kitchen/kitchens | ⭐ Kitchen management |
+| Kitchen Detail | https://www.visiondrive.ae/portal/smart-kitchen/kitchens/{id} | Equipment & Owners |
+
+---
+
+## Support
+
+| Resource | Contact |
+|----------|---------|
+| Technical Support | support@visiondrive.ae |
+| Sales | sales@visiondrive.ae |
+| Billing | billing@visiondrive.ae |
+
+---
+
+## Updates
+
+| Date | Changes |
+|------|---------|
+| 2026-01-13 | Added Kitchen Management, Equipment, Owners APIs |
+| 2026-01-13 | Updated Lambda runtime to Node.js 20.x |
+| 2026-01-12 | PDF compliance reports |
+| 2026-01-11 | Dark/Light mode |
+| 2026-01-10 | Dubai Municipality compliance |

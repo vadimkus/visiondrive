@@ -6,18 +6,43 @@ Real-time temperature monitoring for commercial kitchens using NB-IoT sensors wi
 
 ---
 
-## 🚀 Current Status: Phase 5 Complete + PDF Reports + Dark Mode
+## 🚀 Current Status: Full Kitchen Management System
 
 **Last Updated:** January 13, 2026
 
 | Phase | Status | Description |
 |-------|--------|-------------|
 | Phase 1 | ✅ Complete | AWS Infrastructure in UAE |
-| Phase 4 | ✅ Complete | Customer Authentication |
+| Phase 2 | ✅ Complete | Kitchen Management Portal |
+| Phase 3 | ✅ Complete | Equipment Management |
+| Phase 4 | ✅ Complete | Owner Management |
 | Phase 5 | ✅ Complete | Dashboard + DM Compliance |
-| Phase 2 | 🔜 Next | Sensor Configuration |
+| Phase 6 | 🔜 Next | Physical Sensor Setup |
 
-See [PROGRESS.md](PROGRESS.md) for detailed implementation status.
+---
+
+## ✨ New Features (January 2026)
+
+### 🏠 Kitchen Management
+- Create and manage multiple kitchen locations
+- Trade License & Dubai Municipality Permit tracking
+- Contact information management
+- Emirate selection (Dubai, Abu Dhabi, Sharjah, etc.)
+- Real-time status (Normal, Warning, Critical)
+
+### 🧊 Equipment Management
+- Add equipment with **serial numbers**
+- Register **Dragino PS-NB-GE sensors** with DevEUI/IMEI
+- Temperature thresholds (DM compliant)
+- Equipment types: Fridge, Freezer, Display Fridge, Cold Room, Blast Chiller
+- Track last reading, battery level, signal strength
+
+### 👥 Kitchen Owner Management
+- Add multiple owners per kitchen
+- **Primary owner** designation
+- **Permissions**: Can Manage, Can View Reports
+- **Notifications**: Email, WhatsApp, Alerts, Daily Reports
+- Emirates ID tracking for verification
 
 ---
 
@@ -27,71 +52,15 @@ See [PROGRESS.md](PROGRESS.md) for detailed implementation status.
 
 The portal implements Dubai Municipality food safety temperature requirements:
 
-| Equipment | Required | Status |
-|-----------|----------|--------|
-| Refrigerator | 0°C to 5°C | ✅ Implemented |
-| Freezer | ≤ -18°C | ✅ Implemented |
-| Hot Holding | ≥ 60°C | ✅ Implemented |
-| Danger Zone | 5°C - 60°C | ✅ Alerts |
-| Cooking | ≥ 75°C core | ✅ Implemented |
-
-**Features:**
-- Real-time compliance status per sensor
-- Danger Zone alerts (immediate food safety violations)
-- Daily compliance trend tracking
-- Export PDF compliance reports
-- Arabic translations for all equipment types
-
----
-
-## 📄 PDF Compliance Reports
-
-**Professional, Apple-inspired PDF reports** for Dubai Municipality compliance.
-
-### Report Contents
-| Section | Description |
-|---------|-------------|
-| **Header** | VisionDrive logo, company info, report type |
-| **Kitchen Info** | Legal name, trade name, license, address |
-| **Equipment** | Name, type, model, serial number, location |
-| **Compliance** | Rate %, readings count, alerts count |
-| **Temperature Log** | Date, time, temperature, status, notes |
-| **Certification** | DM reference, data center info |
-
-### Report Periods
-- **Daily**: Every 5 min readings (288/day)
-- **Weekly**: Hourly readings (168/week)
-- **Monthly**: Every 3 hours (240/month)
-- **Yearly**: Daily readings (365/year)
-
-### Technical Details
-- **Library**: jsPDF v4.0.0
-- **File**: `lib/smart-kitchen/pdf-report.ts`
-- **Logo**: `/public/logo/logo.jpg`
-- **Branding**: "Vision" (slate) + "Drive" (orange)
-
----
-
-## 🌙 Dark/Light Mode
-
-Both portals support theme switching with localStorage persistence.
-
-### Kitchen Owner Portal
-- **Context**: `app/kitchen-owner/context/ThemeContext.tsx`
-- **Storage Key**: `kitchen-theme`
-
-### Smart Kitchen Portal  
-- **Context**: `app/portal/smart-kitchen/context/ThemeContext.tsx`
-- **Storage Key**: `smart-kitchen-theme`
-
-### Color Schemes
-| Element | Light Mode | Dark Mode |
-|---------|------------|-----------|
-| Background | `#f5f5f7` | `#1a1a1a` |
-| Cards | `white` | `#2d2d2f` |
-| Text Primary | `gray-900` | `white` |
-| Text Secondary | `gray-500` | `gray-400` |
-| Borders | `gray-100` | `gray-700` |
+| Equipment | Arabic | Required | Status |
+|-----------|--------|----------|--------|
+| Refrigerator | ثلاجة | 0°C to 5°C | ✅ Implemented |
+| Freezer | فريزر | ≤ -18°C | ✅ Implemented |
+| Walk-in Fridge | غرفة تبريد | 0°C to 5°C | ✅ Implemented |
+| Display Fridge | ثلاجة عرض | 0°C to 5°C | ✅ Implemented |
+| Hot Holding | حفظ ساخن | ≥ 60°C | ✅ Implemented |
+| Blast Chiller | مبرد سريع | -10°C to 3°C | ✅ Implemented |
+| **Danger Zone** | **منطقة الخطر** | **5°C - 60°C** | ⚠️ **Alerts** |
 
 ---
 
@@ -101,12 +70,14 @@ Both portals support theme switching with localStorage persistence.
 
 | Data Type | Storage | Location |
 |-----------|---------|----------|
-| User accounts & auth | DynamoDB | 🇦🇪 UAE |
-| Temperature readings | DynamoDB* | 🇦🇪 UAE |
-| Device configs | DynamoDB | 🇦🇪 UAE |
+| Kitchens | DynamoDB | 🇦🇪 UAE |
+| Equipment | DynamoDB | 🇦🇪 UAE |
+| Owners | DynamoDB | 🇦🇪 UAE |
+| Temperature readings | DynamoDB | 🇦🇪 UAE |
 | Alerts | DynamoDB | 🇦🇪 UAE |
+| User accounts | DynamoDB | 🇦🇪 UAE |
 
-> *Note: Using DynamoDB instead of Timestream because Timestream is not available in UAE region.
+> **Note:** Using DynamoDB instead of Timestream because Timestream is not available in UAE region.
 
 ---
 
@@ -118,6 +89,7 @@ Both portals support theme switching with localStorage persistence.
 | **Sensors** | Dragino PS-NB-GE |
 | **Network** | du NB-IoT (UAE) |
 | **Cloud** | AWS me-central-1 (Abu Dhabi) |
+| **Database** | Amazon DynamoDB |
 | **Frontend** | Next.js on Vercel (no data stored) |
 | **Data Residency** | 🇦🇪 100% UAE Compliant |
 | **Customer Portal** | https://www.visiondrive.ae/login |
@@ -136,15 +108,59 @@ Password: Kitchen@2026
 
 ### Portal Pages
 
-| Page | Description |
-|------|-------------|
-| Overview | Compliance dashboard with key metrics |
-| Kitchens | List of all kitchen locations |
-| Sensors | Sensor grid with equipment types |
-| Alerts | Alert management with acknowledge workflow |
-| Reports | Analytics and data exports |
-| Settings | DM requirements and notifications |
-| Compliance | Full compliance report |
+| Page | Route | Description |
+|------|-------|-------------|
+| Overview | `/portal/smart-kitchen` | Compliance dashboard with key metrics |
+| **Kitchens** | `/portal/smart-kitchen/kitchens` | ⭐ Manage kitchen locations |
+| Kitchen Detail | `/portal/smart-kitchen/kitchens/{id}` | Equipment & Owners tabs |
+| Sensors | `/portal/smart-kitchen/sensors` | Sensor grid with equipment types |
+| Alerts | `/portal/smart-kitchen/alerts` | Alert management |
+| Reports | `/portal/smart-kitchen/reports` | Analytics and PDF exports |
+| Settings | `/portal/smart-kitchen/settings` | DM requirements reference |
+
+---
+
+## 🔧 API Reference
+
+### Base URL
+```
+https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod
+```
+
+### Kitchens API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/kitchens` | List all kitchens |
+| POST | `/kitchens` | Create a new kitchen |
+| GET | `/kitchens/{id}` | Get kitchen with equipment & owners |
+| PUT | `/kitchens/{id}` | Update kitchen |
+| DELETE | `/kitchens/{id}` | Delete kitchen |
+
+### Equipment API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/kitchens/{id}/equipment` | List equipment |
+| POST | `/kitchens/{id}/equipment` | Add equipment |
+| PUT | `/kitchens/{id}/equipment/{equipmentId}` | Update equipment |
+| DELETE | `/kitchens/{id}/equipment/{equipmentId}` | Delete equipment |
+
+### Owners API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/kitchens/{id}/owners` | List owners |
+| POST | `/kitchens/{id}/owners` | Add owner |
+| PUT | `/kitchens/{id}/owners/{ownerId}` | Update owner |
+| DELETE | `/kitchens/{id}/owners/{ownerId}` | Delete owner |
+
+### Authentication API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/login` | Login (returns JWT) |
+| POST | `/auth/register` | Register (requires adminKey) |
 
 ---
 
@@ -153,42 +169,48 @@ Password: Kitchen@2026
 ```
 smartkitchen/
 ├── README.md                    # This file
-├── PROGRESS.md                  # Implementation progress ⭐
+├── PROGRESS.md                  # Implementation progress
 ├── PROJECT_PLAN.md              # Full project plan
 ├── docs/
+│   ├── README.md                # Documentation index
 │   ├── ARCHITECTURE.md          # System architecture
-│   ├── SETUP_GUIDE.md           # Step-by-step setup
+│   ├── AWS_SETUP.md             # AWS services setup
+│   ├── API_REFERENCE.md         # Full API documentation
+│   ├── KITCHEN_MANAGEMENT.md    # ⭐ Kitchen/Equipment/Owners guide
+│   ├── LAMBDA_FUNCTIONS.md      # Lambda reference
 │   ├── SENSOR_CONFIG.md         # Dragino configuration
 │   ├── DATA_RESIDENCY.md        # UAE compliance
-│   └── AWS_SETUP.md             # AWS IoT Core setup
+│   ├── SETUP_GUIDE.md           # Step-by-step guide
+│   └── WHATSAPP_SETUP.md        # WhatsApp alerts
 ├── infrastructure/
-│   ├── cdk/                     # AWS CDK infrastructure code
+│   ├── cdk/                     # AWS CDK infrastructure
 │   │   └── lib/
-│   │       ├── vpc-stack.ts
-│   │       ├── rds-stack.ts
 │   │       ├── database-stack.ts
 │   │       ├── lambda-stack.ts
 │   │       ├── iot-stack.ts
 │   │       └── api-stack.ts
 │   └── lambda/
-│       └── api/index.js         # REST API handler
+│       ├── api/index.js         # ⭐ REST API (kitchens, equipment, owners)
+│       ├── data-ingestion/      # Sensor data processing
+│       └── alerts/              # Alert notifications
 └── scripts/
     ├── test/                    # Test scripts
     └── dragino-config/          # Sensor config tools
 
-app/portal/smart-kitchen/        # Frontend components
+app/portal/smart-kitchen/        # Frontend (Next.js)
 ├── page.tsx                     # Overview dashboard
 ├── layout.tsx                   # Portal layout
 ├── lib/compliance.ts            # DM compliance library
 ├── components/
-│   ├── KitchenSidebar.tsx       # Dark sidebar
-│   └── KitchenHeader.tsx        # Weather header
-├── kitchens/page.tsx
+│   ├── KitchenSidebar.tsx
+│   └── KitchenHeader.tsx
+├── kitchens/
+│   ├── page.tsx                 # ⭐ Kitchen list + Add Kitchen modal
+│   └── [id]/page.tsx            # ⭐ Kitchen detail with tabs
 ├── sensors/page.tsx
 ├── alerts/page.tsx
 ├── reports/page.tsx
-├── settings/page.tsx
-└── compliance/page.tsx          # Compliance report
+└── settings/page.tsx
 ```
 
 ---
@@ -200,53 +222,18 @@ app/portal/smart-kitchen/        # Frontend components
 | **Sensors** | Dragino PS-NB-GE | On-site (UAE) | 🔜 Pending |
 | **Network** | du NB-IoT (UAE) | UAE | 🔜 Pending |
 | **IoT Platform** | AWS IoT Core | me-central-1 🇦🇪 | ✅ Deployed |
-| **User Database** | Amazon RDS PostgreSQL 16.6 | me-central-1 🇦🇪 | ✅ Deployed |
-| **Sensor Data** | Amazon DynamoDB | me-central-1 🇦🇪 | ✅ Deployed |
+| **Database** | Amazon DynamoDB | me-central-1 🇦🇪 | ✅ Deployed |
 | **Compute** | AWS Lambda (Node.js 20.x) | me-central-1 🇦🇪 | ✅ Deployed |
 | **API** | Amazon API Gateway | me-central-1 🇦🇪 | ✅ Deployed |
 | **Frontend** | Next.js (Vercel) | Global CDN (no data) | ✅ Deployed |
-| **Monitoring** | Amazon CloudWatch | me-central-1 🇦🇪 | ✅ Deployed |
 
 ### Deployed Resources
 
 ```
-API Endpoint:  https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/
-RDS Endpoint:  smartkitchen-postgres.ctoi8gckc521.me-central-1.rds.amazonaws.com:5432
-Database:      visiondrive_smartkitchen
+API Endpoint:     https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod/
+DynamoDB Tables:  VisionDrive-Devices, VisionDrive-SensorReadings, VisionDrive-Alerts
+Lambda Functions: smartkitchen-api, smartkitchen-data-ingestion, smartkitchen-alerts
 ```
-
----
-
-## 🚀 Quick Start
-
-### Phase 1: AWS Infrastructure ✅ DONE
-1. Set up AWS account with UAE region access
-2. Deploy VPC, RDS, DynamoDB, Lambda
-3. Configure IoT policies and rules
-4. Deploy API Gateway
-
-### Phase 2: Sensor Setup 🔜 NEXT
-1. Configure Dragino PS-NB-GE sensors
-2. Insert du SIM card
-3. Set du APN and MQTT settings
-4. Test connectivity
-
-### Phase 3: Dashboard ✅ DONE
-1. Integrate AWS API with Next.js
-2. Build monitoring dashboard
-3. Configure DM compliance tracking
-4. Configure alerts
-
----
-
-## 📞 Support
-
-| Resource | Link |
-|----------|------|
-| Sensor Hardware | [Dragino Wiki](https://wiki.dragino.com) |
-| du NB-IoT | [du Business IoT](https://www.du.ae/business/iot) |
-| AWS | [AWS Support](https://aws.amazon.com/support) |
-| DM Guidelines | [Dubai Municipality](https://www.dm.gov.ae) |
 
 ---
 
@@ -254,17 +241,15 @@ Database:      visiondrive_smartkitchen
 
 | Document | Description |
 |----------|-------------|
-| [**Implementation Progress**](PROGRESS.md) | ⭐ Current status |
-| [**Changelog**](../docs/SMART_KITCHEN_CHANGELOG.md) | 📋 Recent changes |
-| [Project Plan](PROJECT_PLAN.md) | Full roadmap |
-| [docs/README.md](docs/README.md) | Documentation index |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture |
-| [docs/AWS_SETUP.md](docs/AWS_SETUP.md) | AWS services setup |
-| [docs/LAMBDA_FUNCTIONS.md](docs/LAMBDA_FUNCTIONS.md) | Lambda reference |
-| [docs/SENSOR_CONFIG.md](docs/SENSOR_CONFIG.md) | Dragino configuration |
-| [docs/DATA_RESIDENCY.md](docs/DATA_RESIDENCY.md) | 🇦🇪 UAE compliance |
-| [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | Step-by-step guide |
-| [docs/WHATSAPP_SETUP.md](docs/WHATSAPP_SETUP.md) | WhatsApp alerts |
+| [**KITCHEN_MANAGEMENT.md**](docs/KITCHEN_MANAGEMENT.md) | ⭐ Kitchen, Equipment, Owners guide |
+| [**API_REFERENCE.md**](docs/API_REFERENCE.md) | Complete API documentation |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture |
+| [AWS_SETUP.md](docs/AWS_SETUP.md) | AWS services setup |
+| [LAMBDA_FUNCTIONS.md](docs/LAMBDA_FUNCTIONS.md) | Lambda reference |
+| [SENSOR_CONFIG.md](docs/SENSOR_CONFIG.md) | Dragino configuration |
+| [DATA_RESIDENCY.md](docs/DATA_RESIDENCY.md) | 🇦🇪 UAE compliance |
+| [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | Step-by-step guide |
+| [WHATSAPP_SETUP.md](docs/WHATSAPP_SETUP.md) | WhatsApp alerts |
 
 ---
 
@@ -283,7 +268,14 @@ Database:      visiondrive_smartkitchen
 - 2-year data retention
 - Email support
 
-### Payment
-- **Provider**: Stripe
-- **Methods**: Credit/Debit cards
-- **Billing**: billing@visiondrive.ae
+---
+
+## 📞 Support
+
+| Resource | Link |
+|----------|------|
+| Sensor Hardware | [Dragino Wiki](https://wiki.dragino.com) |
+| du NB-IoT | [du Business IoT](https://www.du.ae/business/iot) |
+| AWS | [AWS Support](https://aws.amazon.com/support) |
+| DM Guidelines | [Dubai Municipality](https://www.dm.gov.ae) |
+| VisionDrive | support@visiondrive.ae |
