@@ -12,29 +12,45 @@ Vision Drive is a smart parking solution platform that leverages real-time data 
 
 ```
 VisionDrive/
-├── frontend/          # Frontend web application (visiondrive.ae)
-│   ├── src/
-│   │   ├── pages/    # Website pages (home, solutions, technology, etc.)
-│   │   ├── components/ # Reusable components
-│   │   ├── assets/   # Images, videos, icons
-│   │   └── routes.md # Routing structure
-│   ├── public/       # Static assets
-│   └── tests/        # Frontend tests
-├── backend/          # Backend API and services
-│   ├── api/          # API routes and handlers
-│   ├── services/     # Business logic services
-│   ├── models/       # Data models
-│   ├── utils/       # Utility functions
-│   └── tests/       # Backend tests
-├── docs/             # Documentation
-│   ├── api/         # API documentation
-│   ├── architecture/ # Architecture documentation
-│   ├── WEBSITE_STRUCTURE.md # Website structure and pages
-│   ├── CONTENT_STRATEGY.md  # Content strategy guide
-│   └── PROJECT_STRUCTURE.md # Project structure guide
-├── config/           # Configuration files
-├── scripts/          # Utility scripts
-└── tests/            # Integration tests
+├── app/                    # Next.js application (visiondrive.ae)
+│   ├── portal/             # Customer portals
+│   │   ├── smart-kitchen/  # 🍳 Kitchen temperature monitoring portal
+│   │   └── parking/        # 🅿️ Smart parking portal
+│   ├── api/                # API routes
+│   └── components/         # Reusable components
+│
+├── smartkitchen/           # 🍳 SMART KITCHEN IoT PROJECT
+│   ├── README.md           # Project overview
+│   ├── docs/               # Documentation
+│   │   ├── ARCHITECTURE.md
+│   │   ├── AWS_SETUP.md
+│   │   ├── LAMBDA_FUNCTIONS.md
+│   │   ├── SENSOR_CONFIG.md
+│   │   └── DATA_RESIDENCY.md
+│   ├── infrastructure/     # AWS infrastructure
+│   │   ├── cdk/            # CDK definitions
+│   │   └── lambda/         # Lambda functions (Node.js 20.x)
+│   └── scripts/            # Utility scripts
+│
+├── Parking/                # 🅿️ SMART PARKING IoT PROJECT
+│   ├── README.md           # Project overview
+│   ├── ARCHITECTURE.md     # System architecture
+│   ├── docs/               # Documentation
+│   │   ├── AWS_SETUP.md
+│   │   ├── API_REFERENCE.md
+│   │   ├── SENSOR_GUIDE.md
+│   │   ├── DEPLOYMENT.md
+│   │   └── SECURITY.md
+│   ├── infrastructure/     # AWS infrastructure
+│   │   ├── cdk/            # CDK definitions
+│   │   └── lambda/         # Lambda functions (Node.js 20.x)
+│   └── scripts/            # Deployment & migration scripts
+│
+├── docs/                   # Main documentation
+├── lib/                    # Shared libraries
+├── prisma/                 # Database schema
+├── public/                 # Static assets
+└── scripts/                # Utility scripts
 ```
 
 ## Website Structure
@@ -58,13 +74,51 @@ The Vision Drive website (visiondrive.ae) features a streamlined navigation stru
 
 See [WEBSITE_STRUCTURE_V2.md](docs/WEBSITE_STRUCTURE_V2.md) for complete page structure and [CONTENT_STRATEGY.md](docs/CONTENT_STRATEGY.md) for content guidelines.
 
+## IoT Projects
+
+### 🍳 Smart Kitchen (Temperature Monitoring)
+
+Real-time temperature monitoring for commercial kitchens with Dubai Municipality compliance.
+
+| Feature | Value |
+|---------|-------|
+| **Sensors** | Dragino PS-NB-GE |
+| **Network** | du NB-IoT (UAE) |
+| **Cloud** | AWS me-central-1 (UAE) |
+| **Runtime** | Node.js 20.x |
+| **Database** | DynamoDB |
+| **Dashboard** | `/portal/smart-kitchen` |
+
+📖 **Documentation:** [smartkitchen/README.md](smartkitchen/README.md)
+
+---
+
+### 🅿️ Smart Parking (Occupancy Tracking)
+
+Smart parking management using NB-IoT sensors for real-time bay monitoring.
+
+| Feature | Value |
+|---------|-------|
+| **Sensors** | PSL01B-NB-IoT |
+| **Network** | du NB-IoT (UAE) |
+| **Cloud** | AWS me-central-1 (UAE) |
+| **Runtime** | Node.js 20.x |
+| **Database** | DynamoDB |
+| **Dashboard** | `/portal/parking` |
+
+📖 **Documentation:** [Parking/README.md](Parking/README.md)
+
+---
+
 ## Features
 
 - **Real-time Occupancy Tracking**: Live updates on parking space availability
 - **Smart Parking Management**: Intelligent allocation and routing
+- **Temperature Monitoring**: DM-compliant kitchen temperature tracking
 - **Data Analytics**: Comprehensive insights for commercial partners
 - **User-Friendly Interface**: Seamless experience for drivers
 - **Commercial Partner Portal**: Management tools for parking operators
+- **UAE Data Residency**: All data stored in AWS UAE region (me-central-1)
 
 ## Getting Started
 

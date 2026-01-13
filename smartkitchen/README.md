@@ -151,7 +151,7 @@ app/portal/smart-kitchen/        # Frontend components
 | **IoT Platform** | AWS IoT Core | me-central-1 🇦🇪 | ✅ Deployed |
 | **User Database** | Amazon RDS PostgreSQL 16.6 | me-central-1 🇦🇪 | ✅ Deployed |
 | **Sensor Data** | Amazon DynamoDB | me-central-1 🇦🇪 | ✅ Deployed |
-| **Compute** | AWS Lambda | me-central-1 🇦🇪 | ✅ Deployed |
+| **Compute** | AWS Lambda (Node.js 20.x) | me-central-1 🇦🇪 | ✅ Deployed |
 | **API** | Amazon API Gateway | me-central-1 🇦🇪 | ✅ Deployed |
 | **Frontend** | Next.js (Vercel) | Global CDN (no data) | ✅ Deployed |
 | **Monitoring** | Amazon CloudWatch | me-central-1 🇦🇪 | ✅ Deployed |
@@ -201,10 +201,15 @@ Database:      visiondrive_smartkitchen
 
 ## 📄 Documentation
 
-- [**Implementation Progress**](PROGRESS.md) ⭐ Current status
-- [Project Plan](PROJECT_PLAN.md) - Full roadmap
-- [Architecture Overview](docs/ARCHITECTURE.md)
-- [UAE Data Residency](docs/DATA_RESIDENCY.md) 🇦🇪
-- [Setup Guide](docs/SETUP_GUIDE.md)
-- [Sensor Configuration](docs/SENSOR_CONFIG.md)
-- [AWS Setup](docs/AWS_SETUP.md)
+| Document | Description |
+|----------|-------------|
+| [**Implementation Progress**](PROGRESS.md) | ⭐ Current status |
+| [Project Plan](PROJECT_PLAN.md) | Full roadmap |
+| [docs/README.md](docs/README.md) | Documentation index |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture |
+| [docs/AWS_SETUP.md](docs/AWS_SETUP.md) | AWS services setup |
+| [docs/LAMBDA_FUNCTIONS.md](docs/LAMBDA_FUNCTIONS.md) | Lambda reference |
+| [docs/SENSOR_CONFIG.md](docs/SENSOR_CONFIG.md) | Dragino configuration |
+| [docs/DATA_RESIDENCY.md](docs/DATA_RESIDENCY.md) | 🇦🇪 UAE compliance |
+| [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | Step-by-step guide |
+| [docs/WHATSAPP_SETUP.md](docs/WHATSAPP_SETUP.md) | WhatsApp alerts |
