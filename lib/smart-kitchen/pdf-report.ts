@@ -95,7 +95,7 @@ function getStatusColor(status: 'normal' | 'warning' | 'critical') {
 }
 
 // Generate professional PDF report
-export function generateComplianceReport(data: ReportData, images?: { logo: string | null; flag: string | null }): jsPDF {
+export function generateComplianceReport(data: ReportData, images?: { logo: string | null }): jsPDF {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -150,24 +150,11 @@ export function generateComplianceReport(data: ReportData, images?: { logo: stri
   doc.setTextColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b) // Orange for "Drive"
   doc.text('Drive', textStartX + visionWidth, y - 2)
   
-  // IoT Company + UAE flag
+  // IoT Company
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(COLORS.secondary.r, COLORS.secondary.g, COLORS.secondary.b)
   doc.text('IoT Company', textStartX, y + 4)
-  const iotTextWidth = doc.getTextWidth('IoT Company ')
-  
-  // Add UAE flag icon (small)
-  if (images?.flag) {
-    try {
-      doc.addImage(images.flag, 'PNG', textStartX + iotTextWidth, y + 1.5, 2.5, 1.75)
-    } catch {
-      // Fallback to text if flag image fails
-      doc.text('(UAE)', textStartX + iotTextWidth, y + 4)
-    }
-  } else {
-    doc.text('(UAE)', textStartX + iotTextWidth, y + 4)
-  }
   
   // Smart Kitchen badge on right
   doc.setFillColor(COLORS.background.r, COLORS.background.g, COLORS.background.b)
@@ -645,12 +632,9 @@ async function loadImageBase64(path: string): Promise<string | null> {
 }
 
 // Load all images for PDF
-async function loadPdfImages(): Promise<{ logo: string | null; flag: string | null }> {
-  const [logo, flag] = await Promise.all([
-    loadImageBase64('/logo/logo.jpg'),
-    loadImageBase64('/logo/flag.png'),
-  ])
-  return { logo, flag }
+async function loadPdfImages(): Promise<{ logo: string | null }> {
+  const logo = await loadImageBase64('/logo/logo.jpg')
+  return { logo }
 }
 
 // Download helper
