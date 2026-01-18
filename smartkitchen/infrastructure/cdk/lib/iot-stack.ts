@@ -10,17 +10,32 @@ interface IoTStackProps extends cdk.StackProps {
 }
 
 export class IoTStack extends cdk.Stack {
+  private iotLogsRole: iam.Role;
+
   constructor(scope: Construct, id: string, props: IoTStackProps) {
     super(scope, id, props);
 
+    // Create IoT Logs Role once for reuse
+    this.iotLogsRole = this.createIoTLogsRole();
+
     // ==========================================
-    // IOT THING TYPE
+    // IOT THING TYPES
     // ==========================================
 
+    // PS-NB-GE: Analog temperature sensor (4-20mA probe)
     const thingType = new iot.CfnThingType(this, 'TemperatureSensorType', {
       thingTypeName: 'TemperatureSensor',
       thingTypeProperties: {
         thingTypeDescription: 'Dragino PS-NB-GE Temperature Sensor',
+        searchableAttributes: ['kitchen', 'location'],
+      },
+    });
+
+    // S31-NB: Environment sensor (SHT31 temp + humidity)
+    const environmentSensorType = new iot.CfnThingType(this, 'EnvironmentSensorType', {
+      thingTypeName: 'EnvironmentSensor',
+      thingTypeProperties: {
+        thingTypeDescription: 'Dragino S31-NB Temperature & Humidity Sensor',
         searchableAttributes: ['kitchen', 'location'],
       },
     });
@@ -95,14 +110,91 @@ export class IoTStack extends cdk.Stack {
         errorAction: {
           cloudwatchLogs: {
             logGroupName: '/aws/iot/smartkitchen-errors',
-            roleArn: this.createIoTLogsRole().roleArn,
+            roleArn: this.iotLogsRole.roleArn,
           },
         },
       },
     });
 
     // ==========================================
-    // IOT RULE - ALERTS (High/Low Temperature)
+    // IOT RULE - S31-NB ENVIRONMENT SENSORS
+    // ==========================================
+    // S31-NB sends Temperature and Humidity directly (no mA conversion needed)
+    // Payload: { mod: "S31-NB", Battery: 3.52, Temperature: 24.5, Humidity: 62.3 }
+
+    props.dataIngestionLambda.addPermission('IoTInvokeEnvironment', {
+      principal: new iam.ServicePrincipal('iot.amazonaws.com'),
+      action: 'lambda:InvokeFunction',
+      sourceArn: `arn:aws:iot:${this.region}:${this.account}:rule/SmartKitchen_EnvironmentIngestion`,
+    });
+
+    const environmentIngestionRule = new iot.CfnTopicRule(this, 'EnvironmentIngestionRule', {
+      ruleName: 'SmartKitchen_EnvironmentIngestion',
+      topicRulePayload: {
+        sql: `SELECT 
+          topic(3) as deviceId, 
+          topic(2) as kitchenId, 
+          Temperature as temperature,
+          Humidity as humidity,
+          Battery as battery,
+          mod as sensorModel,
+          timestamp() as received_at 
+        FROM 'visiondrive/+/+/environment'`,
+        awsIotSqlVersion: '2016-03-23',
+        ruleDisabled: false,
+        actions: [
+          {
+            lambda: {
+              functionArn: props.dataIngestionLambda.functionArn,
+            },
+          },
+        ],
+        errorAction: {
+          cloudwatchLogs: {
+            logGroupName: '/aws/iot/smartkitchen-errors',
+            roleArn: this.iotLogsRole.roleArn,
+          },
+        },
+      },
+    });
+
+    // ==========================================
+    // IOT RULE - S31-NB ALERTS (Danger Zone)
+    // ==========================================
+    // Alert when temperature is in danger zone (5°C - 60°C) for refrigeration equipment
+
+    props.alertsLambda.addPermission('IoTInvokeEnvironmentAlerts', {
+      principal: new iam.ServicePrincipal('iot.amazonaws.com'),
+      action: 'lambda:InvokeFunction',
+      sourceArn: `arn:aws:iot:${this.region}:${this.account}:rule/SmartKitchen_EnvironmentAlerts`,
+    });
+
+    const environmentAlertsRule = new iot.CfnTopicRule(this, 'EnvironmentAlertsRule', {
+      ruleName: 'SmartKitchen_EnvironmentAlerts',
+      topicRulePayload: {
+        // Alert when temperature is in Dubai Municipality danger zone (5°C - 60°C)
+        sql: `SELECT 
+          topic(3) as deviceId, 
+          topic(2) as kitchenId, 
+          Temperature as temperature,
+          Humidity as humidity,
+          timestamp() as timestamp 
+        FROM 'visiondrive/+/+/environment' 
+        WHERE Temperature > 5 AND Temperature < 60`,
+        awsIotSqlVersion: '2016-03-23',
+        ruleDisabled: false,
+        actions: [
+          {
+            lambda: {
+              functionArn: props.alertsLambda.functionArn,
+            },
+          },
+        ],
+      },
+    });
+
+    // ==========================================
+    // IOT RULE - ALERTS (High/Low Temperature) for PS-NB-GE
     // ==========================================
 
     props.alertsLambda.addPermission('IoTInvokeAlerts', {
