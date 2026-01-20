@@ -8,6 +8,7 @@ import { DatabaseStack } from '../lib/database-stack';
 import { LambdaStack } from '../lib/lambda-stack';
 import { ApiStack } from '../lib/api-stack';
 import { WafStack } from '../lib/waf-stack';
+import { CloudTrailStack } from '../lib/cloudtrail-stack';
 
 const app = new cdk.App();
 
@@ -96,6 +97,15 @@ const wafStack = new WafStack(app, 'SmartKitchen-WAF', {
 wafStack.addDependency(apiStack);
 
 // ==========================================
+// STACK 8: CloudTrail (Audit Logging)
+// 📋 Security: Comprehensive audit trail
+// ==========================================
+const cloudTrailStack = new CloudTrailStack(app, 'SmartKitchen-CloudTrail', {
+  env,
+  description: 'VisionDrive Smart Kitchen - CloudTrail Audit Logging',
+});
+
+// ==========================================
 // DEPLOYMENT ORDER
 // ==========================================
 // 1. VPC (network foundation)
@@ -105,5 +115,6 @@ wafStack.addDependency(apiStack);
 // 5. IoT Core (sensor connectivity)
 // 6. API Gateway (REST API)
 // 7. WAF (Web Application Firewall)
+// 8. CloudTrail (Audit Logging)
 
 app.synth();

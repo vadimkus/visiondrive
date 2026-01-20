@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { sql } from './sql'
+import { validatePassword, type PasswordValidationResult } from './password-policy'
 
 // JWT Secret - MUST be set in production
 const JWT_SECRET = process.env.JWT_SECRET
@@ -9,16 +10,31 @@ if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
 }
 const jwtSecret = JWT_SECRET || 'dev-only-secret-do-not-use-in-production'
 
+/**
+ * Hash password with bcrypt (cost factor 12 for security)
+ */
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10)
+  // Validate password before hashing (VD-2026-005)
+  const validation = validatePassword(password)
+  if (!validation.isValid) {
+    throw new Error(`Password does not meet security requirements: ${validation.errors.join(', ')}`)
+  }
+  return bcrypt.hash(password, 12) // Increased cost factor from 10 to 12
 }
+
+/**
+ * Validate password against security policy
+ * Export for use in registration/password change forms
+ */
+export { validatePassword, type PasswordValidationResult } from './password-policy'
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash)
 }
 
 export function generateToken(userId: string, email: string, role: string, tenantId?: string | null): string {
-  return jwt.sign({ userId, email, role, tenantId: tenantId || null }, jwtSecret, { expiresIn: '7d' })
+  // Session timeout: 24 hours (security best practice - VD-2026-004)
+  return jwt.sign({ userId, email, role, tenantId: tenantId || null }, jwtSecret, { expiresIn: '24h' })
 }
 
 export function verifyToken(token: string): { userId: string; email: string; role: string; tenantId?: string | null } | null {

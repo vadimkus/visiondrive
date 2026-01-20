@@ -61,19 +61,19 @@ export async function POST(request: NextRequest) {
         isOwner,
       })
 
-      // Set HTTP-only cookie
+      // Set HTTP-only cookie (24-hour session - VD-2026-004)
       response.cookies.set('authToken', awsData.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: 60 * 60 * 24, // 24 hours (security best practice)
       })
 
       response.cookies.set('portal', 'kitchen', {
         httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: 60 * 60 * 24, // 24 hours
       })
 
       return response
@@ -113,12 +113,12 @@ export async function POST(request: NextRequest) {
       token: result.token,
     })
 
-    // Set HTTP-only cookie for security
+    // Set HTTP-only cookie for security (24-hour session - VD-2026-004)
     response.cookies.set('authToken', result.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24, // 24 hours (security best practice)
     })
 
     return response
