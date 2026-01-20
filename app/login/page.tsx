@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Section from '../components/common/Section'
 import Button from '../components/common/Button'
-import { Mail, Lock, Eye, EyeOff, ChefHat, Car } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ChefHat } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -12,7 +12,6 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    portal: 'parking' as 'parking' | 'kitchen',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -37,7 +36,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          portal: formData.portal,
+          portal: 'kitchen',
         }),
       })
 
@@ -50,16 +49,11 @@ export default function LoginPage() {
       }
 
       // Token is stored in HTTP-only cookie, no need for localStorage
-      // Redirect based on selected portal and user role
-      if (formData.portal === 'kitchen') {
-        // Kitchen owners go to owner dashboard, admins go to admin dashboard
-        if (data.isOwner) {
-          router.push('/kitchen-owner')
-        } else {
-          router.push('/portal/smart-kitchen')
-        }
+      // Redirect based on user role - kitchen owners go to owner dashboard, admins go to admin dashboard
+      if (data.isOwner) {
+        router.push('/kitchen-owner')
       } else {
-        router.push('/portal')
+        router.push('/portal/smart-kitchen')
       }
       router.refresh()
     } catch (err) {
@@ -103,37 +97,10 @@ export default function LoginPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Portal Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Portal
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, portal: 'parking' })}
-                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                      formData.portal === 'parking'
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                    }`}
-                  >
-                    <Car className="h-5 w-5" />
-                    <span className="font-medium">Parking</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, portal: 'kitchen' })}
-                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-                      formData.portal === 'kitchen'
-                        ? 'border-orange-500 bg-orange-50 text-orange-700'
-                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                    }`}
-                  >
-                    <ChefHat className="h-5 w-5" />
-                    <span className="font-medium">Kitchen</span>
-                  </button>
-                </div>
+              {/* Portal Indicator */}
+              <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-orange-500 bg-orange-50 text-orange-700">
+                <ChefHat className="h-5 w-5" />
+                <span className="font-medium">Smart Kitchen Portal</span>
               </div>
 
               <div>
