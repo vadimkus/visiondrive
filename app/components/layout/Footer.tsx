@@ -100,9 +100,9 @@ export default function Footer() {
               ))}
             </p>
             
-            {/* Kitchen Owner Portal Quick Link */}
+            {/* Kitchen Owner Portal Quick Link - Goes to login */}
             <Link 
-              href="/kitchen-owner"
+              href="/login"
               className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-orange-50 text-orange-700 text-sm font-medium rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors"
             >
               <ChefHat className="h-4 w-4" />
