@@ -16,9 +16,9 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Vision Drive - Smart Parking Solutions for the UAE',
-  description: 'Transforming UAE with Smart NB-IoT Solutions. Real-time monitoring, data-driven insights, and unparalleled convenience.',
-  keywords: 'smart parking, UAE, Dubai, parking app, real-time parking, RTA parking solution',
+  title: 'VisionDrive - Smart Kitchen Temperature Monitoring for UAE',
+  description: 'Real-time temperature monitoring for commercial kitchens. Dubai Municipality compliant food safety sensors with automated alerts and compliance reporting.',
+  keywords: 'smart kitchen, temperature monitoring, food safety, Dubai Municipality, commercial kitchen, IoT sensors, HACCP, UAE',
   authors: [{ name: 'Vision Drive Technologies FZ-LLC' }],
   icons: {
     icon: [
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'Vision Drive - Smart Parking Solutions',
-    description: 'Guaranteed Parking. Seamless Mobility. Driven by Vision.',
+    title: 'VisionDrive - Smart Kitchen Temperature Monitoring',
+    description: 'Real-time food safety monitoring for commercial kitchens in the UAE.',
     type: 'website',
   },
 }

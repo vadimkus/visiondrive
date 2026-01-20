@@ -21,35 +21,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/sensor`,
+      url: `${baseUrl}/technology`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: 0.9,
     },
-    {
-      url: `${baseUrl}/technology`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/app`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
 
-    // Target audience pages - high priority
+    // Kitchen Owner Portal - high priority
     {
-      url: `${baseUrl}/municipalities`,
+      url: `${baseUrl}/kitchen-owner`,
       lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/communities`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly',
       priority: 0.85,
     },
 
@@ -61,19 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/partners`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.75,
-    },
-    {
       url: `${baseUrl}/mission`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/vision`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: 0.7,
@@ -93,12 +63,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/careers`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
       url: `${baseUrl}/faq`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
@@ -111,26 +75,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/certificates`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-
-    // Analytics and additional features
-    {
-      url: `${baseUrl}/data-analytics`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/budget`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
     },
 
     // Legal pages - low priority but required
@@ -148,6 +92,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 }
-
-
-

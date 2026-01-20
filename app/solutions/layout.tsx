@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Smart Parking Solutions - VisionDrive NB-IoT Technology',
-  description: 'Enterprise-grade NB-IoT parking sensors for UAE municipalities. Bay-level occupancy data, UAE data residency, TDRA compliance, and government API integration.',
-  keywords: 'smart parking solutions, NB-IoT parking sensors, UAE parking technology, municipal parking system, RTA parking solution, IoT parking infrastructure',
+  title: 'Smart Kitchen Solutions - VisionDrive Temperature Monitoring',
+  description: 'Enterprise-grade NB-IoT temperature sensors for commercial kitchens. Real-time monitoring, danger zone alerts, and Dubai Municipality compliance reporting.',
+  keywords: 'smart kitchen solutions, temperature monitoring, food safety sensors, Dubai Municipality compliance, commercial kitchen IoT, restaurant temperature monitoring',
   openGraph: {
-    title: 'VisionDrive Smart Parking Solutions',
-    description: 'NB-IoT parking sensors for bay-level ground truth occupancy data with UAE data residency compliance.',
+    title: 'VisionDrive Smart Kitchen Solutions',
+    description: 'Temperature monitoring sensors for commercial kitchens with real-time alerts and compliance reporting.',
     type: 'website',
   },
 }
@@ -18,6 +18,3 @@ export default function SolutionsLayout({
 }) {
   return children
 }
-
-
-

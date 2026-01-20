@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Section from '../components/common/Section'
 import { 
   Mail, 
@@ -9,13 +8,13 @@ import {
   MessageCircle, 
   Clock, 
   CheckCircle2, 
-  Building2, 
-  Users, 
+  ChefHat,
+  Thermometer, 
   Zap,
   ArrowRight,
   Send,
-  Headphones,
-  Globe,
+  FileCheck,
+  Bell,
   Shield
 } from 'lucide-react'
 
@@ -23,7 +22,7 @@ const contactMethods = [
   {
     label: 'Email',
     value: 'tech@visiondrive.ae',
-    description: 'For technical inquiries and partnerships',
+    description: 'For inquiries and demonstrations',
     href: 'mailto:tech@visiondrive.ae',
     icon: Mail,
     color: 'text-blue-600',
@@ -54,57 +53,57 @@ const contactMethods = [
 
 const reasons = [
   {
-    icon: Building2,
-    title: 'Government & Municipal Projects',
-    description: 'Deploy NB-IoT parking sensors for RTA, municipalities, and smart city initiatives with full regulatory compliance.',
+    icon: Thermometer,
+    title: 'Temperature Monitoring',
+    description: 'Deploy smart sensors for real-time fridge, freezer, and ambient temperature monitoring in your kitchen.',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
   },
   {
-    icon: Users,
-    title: 'Strategic Partnerships',
-    description: 'Collaborate on IoT infrastructure, technology integration, and joint ventures in the UAE parking ecosystem.',
-    color: 'text-purple-600',
-    bg: 'bg-purple-50',
+    icon: FileCheck,
+    title: 'Compliance Support',
+    description: 'Ensure your kitchen meets Dubai Municipality food safety standards with automated compliance reporting.',
+    color: 'text-green-600',
+    bg: 'bg-green-50',
   },
   {
-    icon: Zap,
-    title: 'Technical Integration',
-    description: 'Connect your existing systems with our platform via REST APIs for real-time occupancy data and analytics.',
+    icon: Bell,
+    title: 'Alert Configuration',
+    description: 'Set up custom temperature thresholds and alert channels for your specific kitchen requirements.',
     color: 'text-orange-600',
     bg: 'bg-orange-50',
   },
   {
-    icon: Headphones,
-    title: 'Pilot Support',
-    description: 'Get dedicated support for sensor deployment, commissioning, and ongoing maintenance during your pilot.',
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-50',
+    icon: Shield,
+    title: 'Technical Support',
+    description: 'Get dedicated support for sensor deployment, configuration, and ongoing maintenance.',
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
   },
 ]
 
 const features = [
   { icon: Clock, text: 'Response within 1 business day' },
-  { icon: Globe, text: 'UAE-focused with regional coverage' },
-  { icon: Shield, text: 'Secure & compliant communications' },
+  { icon: ChefHat, text: 'Kitchen-focused solutions' },
+  { icon: Shield, text: 'UAE data residency compliant' },
 ]
 
 const faqs = [
   {
-    q: 'How quickly can we start a pilot?',
-    a: 'After initial discussions and NOC approval, sensor deployment typically begins within 2-4 weeks.',
+    q: 'How quickly can sensors be installed?',
+    a: 'Sensors are wireless and can be deployed within hours. No complex wiring or infrastructure changes required.',
   },
   {
-    q: 'Do you support projects outside Dubai?',
-    a: 'Yes, we serve all UAE emirates including Abu Dhabi, Sharjah, RAK, and beyond.',
+    q: 'What types of kitchens do you serve?',
+    a: 'We serve restaurants, hotels, catering companies, central kitchens, and food production facilities across the UAE.',
   },
   {
-    q: 'What integration options are available?',
-    a: 'We provide REST APIs, MQTT streams, and can integrate with existing parking management and smart city platforms.',
+    q: 'Is the system Dubai Municipality compliant?',
+    a: 'Yes, our reports are designed to meet Dubai Municipality food safety inspection requirements and HACCP documentation standards.',
   },
   {
-    q: 'Is there a minimum deployment size?',
-    a: 'Pilots typically start with 50-100 sensors. We customize based on your specific requirements and location.',
+    q: 'What happens if a sensor goes offline?',
+    a: 'You receive immediate alerts if a sensor loses connectivity. Sensors also store data locally and sync when reconnected.',
   },
 ]
 
@@ -116,32 +115,34 @@ export default function ContactPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <div className="text-center md:text-left">
-              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-4 sm:mb-6">
-                <span className="text-xs sm:text-sm font-semibold text-primary-700">Get In Touch</span>
+              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100 mb-4 sm:mb-6">
+                <ChefHat className="h-4 w-4 text-orange-600 mr-2" />
+                <span className="text-xs sm:text-sm font-semibold text-orange-700">Get In Touch</span>
               </div>
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 sm:mb-6">
-                Let&apos;s Build
-                <span className="text-primary-600 block sm:inline"> Smart Parking</span> Together
+                Start Monitoring
+                <span className="text-orange-600 block sm:inline"> Your Kitchen</span> Today
               </h1>
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8">
-                Whether you&apos;re a government entity, municipality, property manager, or technology partner—we&apos;re ready to discuss how NB-IoT parking sensors can transform your infrastructure.
+                Whether you manage a single restaurant or a chain of kitchens, we&apos;re ready to help you 
+                ensure food safety compliance with smart temperature monitoring.
               </p>
               
-              {/* Features - hidden on mobile, shown as compact list */}
+              {/* Features */}
               <div className="hidden sm:flex flex-wrap gap-4 mb-8">
                 {features.map((feature) => (
                   <div key={feature.text} className="flex items-center gap-2 text-sm text-gray-600">
-                    <feature.icon className="h-4 w-4 text-primary-600" />
+                    <feature.icon className="h-4 w-4 text-orange-600" />
                     {feature.text}
                   </div>
                 ))}
               </div>
 
-              {/* CTA Buttons - Stack on mobile */}
+              {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 md:mb-0">
                 <a
                   href="mailto:tech@visiondrive.ae"
-                  className="inline-flex items-center justify-center px-6 py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.98] transition-all shadow-lg shadow-primary-600/25"
+                  className="inline-flex items-center justify-center px-6 py-3.5 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 active:scale-[0.98] transition-all shadow-lg shadow-orange-600/25"
                 >
                   <Send className="h-5 w-5 mr-2" />
                   Send Email
@@ -173,10 +174,10 @@ export default function ContactPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">{contact.label}</div>
-                    <div className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors truncate">{contact.value}</div>
+                    <div className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors truncate">{contact.value}</div>
                     <div className="text-xs sm:text-sm text-gray-500 truncate">{contact.description}</div>
                   </div>
-                  <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                  <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
                 </a>
               ))}
 
@@ -192,10 +193,10 @@ export default function ContactPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Office</div>
-                  <div className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">VisionDrive HQ</div>
+                  <div className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">VisionDrive HQ</div>
                   <div className="text-xs sm:text-sm text-gray-500">Compass Coworking, RAK, UAE</div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
               </a>
             </div>
           </div>
@@ -208,7 +209,7 @@ export default function ContactPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">How Can We Help?</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We work with government entities, municipalities, and enterprises to deploy smart parking infrastructure
+              We work with restaurants, hotels, and food service businesses across the UAE
             </p>
           </div>
 
@@ -216,7 +217,7 @@ export default function ContactPage() {
             {reasons.map((reason) => (
               <div
                 key={reason.title}
-                className="bg-white rounded-xl p-6 border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200"
+                className="bg-white rounded-xl p-6 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200"
               >
                 <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${reason.bg} mb-4`}>
                   <reason.icon className={`h-6 w-6 ${reason.color}`} />
@@ -235,7 +236,7 @@ export default function ContactPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
             <p className="text-lg text-gray-600">
-              Quick answers to common questions about working with VisionDrive
+              Quick answers to common questions about our smart kitchen solutions
             </p>
           </div>
 
@@ -243,10 +244,10 @@ export default function ContactPage() {
             {faqs.map((faq) => (
               <div
                 key={faq.q}
-                className="bg-gray-50 rounded-xl p-6 border border-gray-200"
+                className="bg-orange-50 rounded-xl p-6 border border-orange-100"
               >
                 <div className="flex items-start gap-3 mb-3">
-                  <CheckCircle2 className="h-6 w-6 text-primary-600 flex-shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-6 w-6 text-orange-600 flex-shrink-0 mt-0.5" />
                   <h3 className="font-semibold text-gray-900">{faq.q}</h3>
                 </div>
                 <p className="text-gray-600 leading-relaxed ml-9">{faq.a}</p>
@@ -258,7 +259,7 @@ export default function ContactPage() {
             <p className="text-gray-500 mb-4">Have a question not listed here?</p>
             <a
               href="mailto:tech@visiondrive.ae"
-              className="inline-flex items-center text-primary-600 font-medium hover:text-primary-700"
+              className="inline-flex items-center text-orange-600 font-medium hover:text-orange-700"
             >
               Send us an email <ArrowRight className="h-4 w-4 ml-1" />
             </a>
@@ -266,44 +267,28 @@ export default function ContactPage() {
         </div>
       </Section>
 
-      {/* Partners Section */}
-      <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Working with UAE Authorities</h2>
-          <p className="text-gray-600 mb-8">
-            Partnering with government entities across the Emirates
-          </p>
-          <div className="flex flex-wrap justify-center gap-8 items-center opacity-70">
-            <Image src="/images/gov/icons/rta.jpg" alt="RTA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-            <Image src="/images/gov/icons/parkin.jpg" alt="Parkin" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-            <Image src="/images/gov/icons/itc.jpg" alt="ITC Abu Dhabi" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-            <Image src="/images/gov/icons/srta.jpg" alt="SRTA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-            <Image src="/images/gov/icons/tdra.jpg" alt="TDRA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-          </div>
-        </div>
-      </Section>
-
       {/* CTA Section */}
-      <Section className="py-12 md:py-16">
+      <Section background="gray" className="py-12 md:py-16">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-8 md:p-12 text-white text-center">
+          <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-8 md:p-12 text-white text-center">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              Ready to Transform Your Parking Infrastructure?
+              Ready to Ensure Food Safety Compliance?
             </h2>
-            <p className="text-lg text-primary-100 mb-8 max-w-2xl mx-auto">
-              Join RTA, municipalities, and leading enterprises deploying NB-IoT parking sensors across the UAE.
+            <p className="text-lg text-orange-100 mb-8 max-w-2xl mx-auto">
+              Join restaurants, hotels, and food service businesses across the UAE using smart 
+              temperature monitoring to protect their customers and reputation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="mailto:tech@visiondrive.ae" 
-                className="inline-flex items-center justify-center px-6 py-3 bg-white text-primary-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white text-orange-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <Mail className="h-5 w-5 mr-2" />
-                Start a Conversation
+                Request a Demo
               </a>
               <a 
                 href="/solutions" 
-                className="inline-flex items-center justify-center px-6 py-3 bg-primary-500 text-white font-medium rounded-lg border border-primary-400 hover:bg-primary-400 transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 bg-orange-500 text-white font-medium rounded-lg border border-orange-400 hover:bg-orange-400 transition-colors"
               >
                 Explore Solutions
               </a>

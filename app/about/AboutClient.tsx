@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Section from '../components/common/Section'
 import { 
   Wifi, 
@@ -12,49 +11,53 @@ import {
   Shield,
   Target,
   Users,
-  Cpu
+  Thermometer,
+  ChefHat,
+  Bell,
+  FileCheck,
+  ArrowRight
 } from 'lucide-react'
 
 const capabilities = [
   {
-    icon: Wifi,
-    title: 'IoT & Wireless Solutions',
-    description: 'Trading and deployment of wireless communication equipment, NB-IoT sensors, and smart devices for connected urban infrastructure.',
+    icon: Thermometer,
+    title: 'Temperature Monitoring',
+    description: 'Real-time monitoring of fridges, freezers, and ambient temperatures using NB-IoT sensors with medical-grade accuracy.',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
   },
   {
-    icon: Server,
-    title: 'Telecommunications Infrastructure',
-    description: 'Supply and integration of telecommunication systems, network equipment, and connectivity solutions for enterprise and municipal deployments.',
-    color: 'text-purple-600',
-    bg: 'bg-purple-50',
+    icon: Bell,
+    title: 'Alert Systems',
+    description: 'Instant SMS, email, and push notifications when temperatures enter dangerous zones, ensuring rapid response.',
+    color: 'text-red-600',
+    bg: 'bg-red-50',
   },
   {
-    icon: Code,
-    title: 'Software Development',
-    description: 'Custom software design, web and mobile application development, and scalable platform solutions tailored to client requirements.',
+    icon: FileCheck,
+    title: 'Compliance Reporting',
+    description: 'Automated Dubai Municipality compliant reports with HACCP documentation ready for health inspections.',
     color: 'text-green-600',
     bg: 'bg-green-50',
   },
   {
     icon: BarChart3,
-    title: 'Data Analytics & Intelligence',
-    description: 'Advanced data classification, analysis, and visualization services to transform raw data into actionable insights for informed decision-making.',
+    title: 'Analytics & Insights',
+    description: 'Historical data analysis, temperature trends, and predictive insights for proactive kitchen management.',
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+  },
+  {
+    icon: Server,
+    title: 'UAE Data Residency',
+    description: 'All data hosted in AWS UAE region (me-central-1) for full compliance with local data protection requirements.',
     color: 'text-orange-600',
     bg: 'bg-orange-50',
   },
   {
-    icon: Lightbulb,
-    title: 'IT Consulting',
-    description: 'Strategic technology consultancy to optimize operations, select appropriate solutions, and drive digital transformation across organizations.',
-    color: 'text-yellow-600',
-    bg: 'bg-yellow-50',
-  },
-  {
     icon: Globe,
-    title: 'Digital Platforms',
-    description: 'Development and operation of web portals, marketplaces, and digital platforms connecting service providers with end users.',
+    title: 'Multi-Location Support',
+    description: 'Manage multiple kitchen locations from a single dashboard with role-based access for staff.',
     color: 'text-cyan-600',
     bg: 'bg-cyan-50',
   },
@@ -63,18 +66,18 @@ const capabilities = [
 const values = [
   {
     icon: Target,
-    title: 'Innovation First',
-    description: 'We embrace cutting-edge technology to solve real-world urban mobility challenges.',
+    title: 'Food Safety First',
+    description: 'We help kitchens maintain the highest standards of food safety compliance.',
   },
   {
     icon: Shield,
     title: 'UAE Compliant',
-    description: 'Full compliance with UAE data sovereignty, TDRA, and DESC security regulations.',
+    description: 'Full compliance with Dubai Municipality, TDRA, and local regulations.',
   },
   {
     icon: Users,
     title: 'Partnership Driven',
-    description: 'Collaborating with municipalities, communities, and businesses for sustainable solutions.',
+    description: 'Working closely with restaurants, hotels, and food service operators.',
   },
 ]
 
@@ -84,15 +87,18 @@ export default function AboutClient() {
       {/* Hero Section */}
       <Section className="py-12 md:py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase mb-4">About VisionDrive</p>
+          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100 mb-4">
+            <ChefHat className="h-4 w-4 text-orange-600 mr-2" />
+            <span className="text-sm font-semibold text-orange-700">About VisionDrive</span>
+          </div>
           <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-6">
-            Smart Technology for <br className="hidden sm:block" />
-            <span className="text-primary-600">Urban Mobility</span>
+            Smart Kitchen IoT for <br className="hidden sm:block" />
+            <span className="text-orange-600">Food Safety Compliance</span>
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-            VisionDrive Technologies FZ-LLC is a UAE-based technology company specializing in IoT solutions, 
-            software development, and digital infrastructure. Our flagship product, <strong>ParkSense</strong>, 
-            revolutionizes urban parking with real-time NB-IoT sensor technology.
+            VisionDrive Technologies FZ-LLC is a UAE-based technology company specializing in IoT solutions 
+            for commercial kitchen temperature monitoring. We help restaurants, hotels, and food service 
+            operators ensure food safety compliance with Dubai Municipality standards.
           </p>
         </div>
       </Section>
@@ -102,18 +108,18 @@ export default function AboutClient() {
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
-              <Cpu className="h-8 w-8 text-primary-600" />
+              <Thermometer className="h-8 w-8 text-orange-600" />
               <h2 className="text-2xl font-bold text-gray-900">Our Mission</h2>
             </div>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              To transform urban mobility in the UAE and beyond through intelligent IoT solutions that make 
-              cities smarter, parking easier, and data-driven decisions accessible to municipalities, 
-              communities, and businesses.
+              To protect public health and help food service businesses maintain the highest standards 
+              of food safety through intelligent IoT monitoring solutions. We make temperature 
+              compliance simple, automated, and stress-free.
             </p>
             <div className="grid sm:grid-cols-3 gap-6 pt-6 border-t border-gray-100">
               {values.map((value) => (
                 <div key={value.title} className="text-center sm:text-left">
-                  <value.icon className="h-6 w-6 text-primary-600 mx-auto sm:mx-0 mb-2" />
+                  <value.icon className="h-6 w-6 text-orange-600 mx-auto sm:mx-0 mb-2" />
                   <h3 className="font-semibold text-gray-900 mb-1">{value.title}</h3>
                   <p className="text-sm text-gray-600">{value.description}</p>
                 </div>
@@ -129,8 +135,7 @@ export default function AboutClient() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Capabilities</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              As a licensed technology company in the UAE, we offer comprehensive services across 
-              the full spectrum of digital innovation.
+              Comprehensive smart kitchen solutions for food safety compliance
             </p>
           </div>
           
@@ -138,7 +143,7 @@ export default function AboutClient() {
             {capabilities.map((cap) => (
               <div 
                 key={cap.title} 
-                className="bg-white rounded-xl p-6 border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200"
+                className="bg-white rounded-xl p-6 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200"
               >
                 <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${cap.bg} mb-4`}>
                   <cap.icon className={`h-6 w-6 ${cap.color}`} />
@@ -151,36 +156,36 @@ export default function AboutClient() {
         </div>
       </Section>
 
-      {/* Flagship Product Section */}
+      {/* Product Section */}
       <Section background="gray" className="py-12 md:py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Flagship Product: ParkSense</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Smart Kitchen Platform</h2>
             <p className="text-lg text-gray-600">
-              Our smart parking platform powered by NB-IoT sensor technology
+              Our comprehensive temperature monitoring solution
             </p>
           </div>
           
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
             <div className="grid md:grid-cols-2 gap-8">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">What is ParkSense?</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">What We Provide</h3>
                 <p className="text-gray-600 mb-4">
-                  ParkSense is our comprehensive smart parking solution that combines ground-level 
-                  IoT sensors with a powerful software platform to provide real-time parking availability, 
-                  analytics, and management tools.
+                  Our smart kitchen platform combines NB-IoT temperature sensors with a powerful 
+                  monitoring dashboard to provide real-time visibility into your kitchen&apos;s 
+                  food safety status.
                 </p>
                 <ul className="space-y-2">
                   {[
-                    'Real-time bay-level occupancy detection',
+                    'Real-time temperature monitoring',
                     'NB-IoT sensors with 5+ year battery life',
-                    'Mobile app for drivers (iOS & Android)',
-                    'Management portal for operators',
-                    'Analytics and reporting dashboard',
-                    'UAE data sovereignty compliant',
+                    'Kitchen Owner Portal dashboard',
+                    'Automated compliance reports',
+                    'SMS and email alerts',
+                    'UAE data residency compliant',
                   ].map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="text-primary-600 mt-1">✓</span>
+                      <span className="text-orange-600 mt-1">✓</span>
                       {feature}
                     </li>
                   ))}
@@ -189,22 +194,22 @@ export default function AboutClient() {
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Who We Serve</h3>
                 <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-1">Municipalities</h4>
+                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                    <h4 className="font-medium text-gray-900 mb-1">Restaurants & Cafes</h4>
                     <p className="text-sm text-gray-600">
-                      City-wide parking management, traffic reduction, and revenue optimization for government parking authorities.
+                      From QSR chains to fine dining, ensure every fridge and freezer meets food safety standards.
                     </p>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-1">Communities</h4>
+                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                    <h4 className="font-medium text-gray-900 mb-1">Hotels & Catering</h4>
                     <p className="text-sm text-gray-600">
-                      Residential and commercial complexes seeking efficient visitor parking and resident allocation.
+                      Monitor multiple kitchens, banquet storage, and cold rooms from a single dashboard.
                     </p>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-1">Private Operators</h4>
+                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                    <h4 className="font-medium text-gray-900 mb-1">Food Production</h4>
                     <p className="text-sm text-gray-600">
-                      Shopping malls, airports, hospitals, and commercial parking facilities.
+                      Central kitchens and food manufacturing with HACCP and ISO 22000 compliance support.
                     </p>
                   </div>
                 </div>
@@ -245,7 +250,7 @@ export default function AboutClient() {
                         href="/license/E-License.pdf" 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-medium text-primary-600 hover:text-primary-700 inline-flex items-center gap-1"
+                        className="font-medium text-orange-600 hover:text-orange-700 inline-flex items-center gap-1"
                       >
                         View E-License
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -262,7 +267,7 @@ export default function AboutClient() {
                   <div>
                     <dt className="text-gray-500">Email</dt>
                     <dd>
-                      <a href="mailto:tech@visiondrive.ae" className="font-medium text-primary-600 hover:text-primary-700">
+                      <a href="mailto:tech@visiondrive.ae" className="font-medium text-orange-600 hover:text-orange-700">
                         tech@visiondrive.ae
                       </a>
                     </dd>
@@ -270,7 +275,7 @@ export default function AboutClient() {
                   <div>
                     <dt className="text-gray-500">Phone</dt>
                     <dd>
-                      <a href="tel:+971559152985" className="font-medium text-gray-900 hover:text-primary-600">
+                      <a href="tel:+971559152985" className="font-medium text-gray-900 hover:text-orange-600">
                         +971 55 915 2985
                       </a>
                     </dd>
@@ -289,51 +294,28 @@ export default function AboutClient() {
         </div>
       </Section>
 
-      {/* Partners Section */}
-      <Section className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Partnering with UAE Authorities</h2>
-          <p className="text-gray-600 mb-8">
-            Working with government entities to deploy smart parking across the Emirates
-          </p>
-          <div className="flex flex-wrap justify-center gap-8 items-center opacity-70">
-            <Image src="/images/gov/icons/rta.jpg" alt="RTA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-            <Image src="/images/gov/icons/parkin.jpg" alt="Parkin" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-            <Image src="/images/gov/icons/itc.jpg" alt="ITC Abu Dhabi" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-            <Image src="/images/gov/icons/srta.jpg" alt="SRTA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-            <Image src="/images/gov/icons/tdra.jpg" alt="TDRA" width={56} height={56} className="h-14 w-14 object-contain rounded-lg" />
-          </div>
-          <a 
-            href="/partners" 
-            className="inline-flex items-center text-primary-600 font-medium hover:text-primary-700 mt-6"
-          >
-            View all partners <svg className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </a>
-        </div>
-      </Section>
-
       {/* CTA Section */}
       <Section background="gray" className="py-12 md:py-16">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-            Ready to Transform Your Parking Operations?
+            Ready to Ensure Food Safety Compliance?
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            Let&apos;s discuss how VisionDrive can help your municipality, community, or business 
-            implement smart parking solutions.
+            Let&apos;s discuss how VisionDrive can help your kitchen maintain the highest 
+            standards of food safety with smart temperature monitoring.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="/contact" 
-              className="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+              className="inline-flex items-center justify-center px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
             >
               Contact Us
             </a>
             <a 
-              href="/technology" 
-              className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-900 font-medium rounded-lg border border-gray-300 hover:border-primary-300 hover:text-primary-600 transition-colors"
+              href="/solutions" 
+              className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-900 font-medium rounded-lg border border-gray-300 hover:border-orange-300 hover:text-orange-600 transition-colors"
             >
-              Learn About Our Technology
+              View Solutions
             </a>
           </div>
         </div>
@@ -341,6 +323,3 @@ export default function AboutClient() {
     </main>
   )
 }
-
-
-

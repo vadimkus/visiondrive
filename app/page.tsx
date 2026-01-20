@@ -2,20 +2,20 @@ import type { Metadata } from 'next'
 import HomeClient from './HomeClient'
 
 export const metadata: Metadata = {
-  title: 'VisionDrive - NB-IoT Smart Parking Solutions for UAE',
-  description: 'Bay-level parking intelligence for UAE municipalities and smart cities. Real-time occupancy data, 99% accuracy, sub-30s latency. Trusted by RTA, SRTA, and UAE government authorities.',
-  keywords: 'smart parking UAE, NB-IoT parking sensors, Dubai parking solution, RTA parking technology, real-time parking occupancy, smart city parking, municipal parking system',
+  title: 'VisionDrive - Smart Kitchen Temperature Monitoring for UAE',
+  description: 'Real-time temperature monitoring for commercial kitchens. Dubai Municipality compliant food safety sensors. Automated alerts, compliance reporting, and 24/7 monitoring for restaurants, hotels, and food service.',
+  keywords: 'smart kitchen UAE, temperature monitoring Dubai, food safety sensors, Dubai Municipality compliance, commercial kitchen IoT, restaurant temperature monitoring, HACCP compliance UAE',
   openGraph: {
-    title: 'VisionDrive - Smart Parking Intelligence',
-    description: 'Real-time parking occupancy for municipalities and smart cities. Know exactly which bays are free, instantly.',
+    title: 'VisionDrive - Smart Kitchen Temperature Monitoring',
+    description: 'Real-time temperature monitoring for commercial kitchens. Ensure food safety compliance with Dubai Municipality standards.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VisionDrive - NB-IoT Smart Parking',
-    description: 'Bay-level parking intelligence for UAE smart cities',
+    title: 'VisionDrive - Smart Kitchen IoT',
+    description: 'Temperature monitoring and food safety compliance for commercial kitchens',
   },
 }
 
