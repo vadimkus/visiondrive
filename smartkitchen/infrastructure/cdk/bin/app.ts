@@ -7,6 +7,7 @@ import { IoTStack } from '../lib/iot-stack';
 import { DatabaseStack } from '../lib/database-stack';
 import { LambdaStack } from '../lib/lambda-stack';
 import { ApiStack } from '../lib/api-stack';
+import { WafStack } from '../lib/waf-stack';
 
 const app = new cdk.App();
 
@@ -84,6 +85,17 @@ const apiStack = new ApiStack(app, 'SmartKitchen-API', {
 apiStack.addDependency(databaseStack);
 
 // ==========================================
+// STACK 7: WAF (Web Application Firewall)
+// 🛡️ Security: OWASP protection for API
+// ==========================================
+const wafStack = new WafStack(app, 'SmartKitchen-WAF', {
+  env,
+  description: 'VisionDrive Smart Kitchen - AWS WAF Protection',
+  api: apiStack.api,
+});
+wafStack.addDependency(apiStack);
+
+// ==========================================
 // DEPLOYMENT ORDER
 // ==========================================
 // 1. VPC (network foundation)
@@ -92,5 +104,6 @@ apiStack.addDependency(databaseStack);
 // 4. Lambda (functions with VPC access)
 // 5. IoT Core (sensor connectivity)
 // 6. API Gateway (REST API)
+// 7. WAF (Web Application Firewall)
 
 app.synth();
