@@ -254,20 +254,158 @@ Lambda Functions: smartkitchen-api, smartkitchen-data-ingestion, smartkitchen-al
 
 ---
 
-## 💰 Subscription & Billing
+## 💰 Pricing & Subscription
 
-### Pricing
-| Plan | Price | Discount |
-|------|-------|----------|
-| Monthly | 199 AED/sensor | - |
-| Yearly | 179 AED/sensor/month | 10% off |
+### Market Position: **Exclusive Provider**
 
-### Features Included
-- 24/7 temperature monitoring
-- Real-time alerts (dashboard + WhatsApp)
-- PDF compliance reports
-- 2-year data retention
-- Email support
+VisionDrive is the **only** Dubai Municipality-compliant, UAE data-resident IoT temperature monitoring solution in the market. No alternatives exist that meet UAE regulatory requirements.
+
+### Hardware & Installation (One-Time)
+
+| Item | Cost | Notes |
+|------|------|-------|
+| Sensor (Dragino S31-NB) | 257 AED | ~70 USD |
+| Shipping (from China) | 55-75 AED | ~$15-20 per unit |
+| SIM Card Activation | 25 AED | du NB-IoT |
+| Installation & Setup | Included | Professional configuration |
+| Site Survey | Included | Free with commitment |
+| Training (1 hour) | Included | Staff onboarding |
+| **Total Installation Fee** | **999 AED** | Per sensor, one-time |
+
+> ⚠️ **Sensor Replacement:** All sensors must be replaced every **5 years** (battery life / wear). Free replacement included with active subscription.
+
+### Monthly Subscription Plans (Premium Pricing)
+
+| Plan | Sensors | Price/Sensor/Month | Annual Price (15% off) |
+|------|---------|-------------------|------------------------|
+| **Starter** | 1-2 | **449 AED** | 382 AED/sensor/month |
+| **Standard** | 3-5 | **399 AED** | 339 AED/sensor/month |
+| **Professional** | 6-15 | **349 AED** | 297 AED/sensor/month |
+| **Enterprise** | 16+ | **299 AED** | 254 AED/sensor/month |
+
+### Daily Cost Perspective
+
+| Plan | Monthly | Daily Cost | Equivalent To |
+|------|---------|------------|---------------|
+| Starter | 449 AED | **~15 AED/day** | Less than a sandwich |
+| Standard | 399 AED | **~13 AED/day** | A coffee |
+| Professional | 349 AED | **~12 AED/day** | A snack |
+| Enterprise | 299 AED | **~10 AED/day** | A water bottle |
+
+### ROI Justification
+
+| Scenario | Cost | vs VisionDrive |
+|----------|------|----------------|
+| 1 DM fine (temperature violation) | 10,000-100,000 AED | = 2-20+ years of subscription |
+| 1 fridge failure (food spoilage) | 5,000-30,000 AED | = 1-6+ years of subscription |
+| License suspension (1 week) | 50,000-200,000 AED | = 10-40+ years of subscription |
+| Manual temperature logging (labor) | 500-1,500 AED/month | = More than subscription cost |
+
+---
+
+## 📊 Business Cost Structure (Internal)
+
+### Fixed Monthly Overhead
+
+| Item | Monthly Cost | Annual Cost | Amortization |
+|------|--------------|-------------|--------------|
+| **Staff Salary** | **25,000 AED** | 300,000 AED | Operations & Support |
+| Company Setup (UAE) | 444 AED | 5,333 AED | 16,000 AED / 3 years |
+| TDRA Dealer Certificate | 93 AED | 1,120 AED | 5,600 AED / 5 years |
+| TDRA Device Authorization | 19 AED | 233 AED | 700 AED / 3 years |
+| Website Domain (Tasjeel) | 417 AED | 5,000 AED | Per year |
+| AWS Hosting (at scale) | 1,000 AED | 12,000 AED | Per month |
+| **Total Fixed Overhead** | **26,973 AED** | **323,686 AED** | |
+
+### Per-Sensor Variable Costs
+
+| Item | Monthly Cost | Notes |
+|------|--------------|-------|
+| SIM Data (du) | 30 AED | NB-IoT connectivity |
+| AWS Infrastructure | ~5-10 AED | IoT Core, DynamoDB, Lambda |
+| **Sensor Depreciation** | **~6 AED** | 350 AED hardware / 60 months (5-year replacement) |
+| **Total Variable** | **~41-46 AED** | Per sensor per month |
+
+### Break-Even Analysis (Premium Pricing)
+
+| Subscription Price | Margin per Sensor | Sensors to Break Even |
+|-------------------|-------------------|----------------------|
+| 449 AED (Starter) | ~403 AED | **67 sensors** |
+| 399 AED (Standard) | ~353 AED | **76 sensors** |
+| 349 AED (Professional) | ~303 AED | **89 sensors** |
+| 299 AED (Enterprise) | ~253 AED | **107 sensors** |
+| **Blended Average (~374 AED)** | **~328 AED** | **~82 sensors** |
+
+> 💡 **Target:** Minimum **85-100 sensors** deployed to cover fixed costs (including salary).
+
+### Profitability Scenarios (Premium Pricing)
+
+#### Scenario A: 85 Sensors (Break-Even)
+| Revenue | Amount |
+|---------|--------|
+| Installation (one-time) | 85 × 999 = 84,915 AED |
+| Monthly subscription (avg 374 AED) | 85 × 374 = 31,790 AED |
+| **Monthly Costs** | 26,973 + (85 × 46) = 30,883 AED |
+| **Monthly P&L** | **+907 AED (Break-Even)** |
+
+#### Scenario B: 100 Sensors (Profitable)
+| Revenue | Amount |
+|---------|--------|
+| Installation (one-time) | 100 × 999 = 99,900 AED |
+| Monthly subscription (avg 374 AED) | 100 × 374 = 37,400 AED |
+| **Monthly Costs** | 26,973 + (100 × 46) = 31,573 AED |
+| **Monthly P&L** | **+5,827 AED (Profit)** |
+| **Annual Profit** | **~69,924 AED** |
+
+#### Scenario C: 150 Sensors (Growth)
+| Revenue | Amount |
+|---------|--------|
+| Installation (one-time) | 150 × 999 = 149,850 AED |
+| Monthly subscription (avg 374 AED) | 150 × 374 = 56,100 AED |
+| **Monthly Costs** | 26,973 + (150 × 46) = 33,873 AED |
+| **Monthly P&L** | **+22,227 AED (Profit)** |
+| **Annual Profit** | **~266,724 AED** |
+
+#### Scenario D: 250 Sensors (Scale)
+| Revenue | Amount |
+|---------|--------|
+| Installation (one-time) | 250 × 999 = 249,750 AED |
+| Monthly subscription (avg 349 AED) | 250 × 349 = 87,250 AED |
+| **Monthly Costs** | 26,973 + (250 × 46) = 38,473 AED |
+| **Monthly P&L** | **+48,777 AED (Profit)** |
+| **Annual Profit** | **~585,324 AED** |
+
+#### Scenario E: 500 Sensors (Market Leader)
+| Revenue | Amount |
+|---------|--------|
+| Installation (one-time) | 500 × 999 = 499,500 AED |
+| Monthly subscription (avg 324 AED) | 500 × 324 = 162,000 AED |
+| **Monthly Costs** | 26,973 + (500 × 46) = 49,973 AED |
+| **Monthly P&L** | **+112,027 AED (Profit)** |
+| **Annual Profit** | **~1,344,324 AED** |
+
+---
+
+### Value Proposition (Customer Benefits)
+
+| Benefit | Value to Kitchen Owner |
+|---------|----------------------|
+| **Avoid DM fines** | 5,000-50,000 AED per violation |
+| **Prevent license suspension** | Business continuity |
+| **Food waste prevention** | 10,000+ AED per fridge failure |
+| **Insurance compliance** | May reduce premiums |
+| **24/7 automated monitoring** | No manual temperature logs |
+
+### Features Included (All Plans)
+- ✅ 24/7 real-time temperature monitoring
+- ✅ Instant alerts (Dashboard, WhatsApp, Email)
+- ✅ Dubai Municipality compliance reports
+- ✅ PDF export for inspections
+- ✅ 2-year data retention
+- ✅ Equipment & kitchen management
+- ✅ Multi-user access with permissions
+- ✅ Priority email support
+- ✅ **Sensor replacement included after 5 years**
 
 ---
 

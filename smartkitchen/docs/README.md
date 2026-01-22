@@ -17,12 +17,19 @@ Complete documentation for the Smart Kitchen IoT temperature monitoring system.
 
 ## Core Documentation
 
+### Business & Pricing
+
+| Document | Description |
+|----------|-------------|
+| [**BUSINESS_MODEL.md**](BUSINESS_MODEL.md) | 💰 **Complete business model, pricing, market analysis** |
+| [**PRICING_CARD.md**](PRICING_CARD.md) | 📋 **Quick reference pricing card for sales** |
+
 ### Getting Started
 
 | Document | Description |
 |----------|-------------|
 | [SETUP_GUIDE.md](SETUP_GUIDE.md) | Step-by-step setup instructions |
-| [SENSOR_CONFIG.md](SENSOR_CONFIG.md) | Dragino PS-NB-GE sensor configuration |
+| [SENSOR_CONFIG.md](SENSOR_CONFIG.md) | Dragino S31-NB sensor configuration |
 
 ### Features
 
@@ -45,7 +52,28 @@ Complete documentation for the Smart Kitchen IoT temperature monitoring system.
 
 ## Document Summaries
 
-### KITCHEN_MANAGEMENT.md ⭐ NEW
+### BUSINESS_MODEL.md 💰 NEW
+
+Complete business documentation including:
+- **Market Analysis** - TAM of 150,000-200,000 refrigeration units in UAE
+- **Competitive Landscape** - VisionDrive is the ONLY DM-compliant solution
+- **Cost Structure** - Fixed overhead (26,973 AED/month) + variable costs (46 AED/sensor)
+- **Pricing Strategy** - Premium tiered pricing (299-449 AED/sensor/month)
+- **Break-Even Analysis** - ~82 sensors with blended pricing
+- **Profitability Projections** - 5-year financial model
+- **Value Proposition** - ROI justification and customer value analysis
+- **Sales & Marketing** - Target segments, messaging, objection handling
+
+### PRICING_CARD.md 📋 NEW
+
+Quick reference for sales team:
+- **Installation fee** - 999 AED per sensor
+- **Subscription tiers** - Starter/Standard/Professional/Enterprise
+- **Quick quotes** - Pre-calculated for 2, 4, 10, 25 sensors
+- **ROI calculator** - Risk vs cost comparison
+- **Objection handling** - Ready responses
+
+### KITCHEN_MANAGEMENT.md ⭐
 
 Complete guide to managing:
 - **Kitchens** - Create, update, delete kitchen locations with trade license and DM permit
@@ -172,6 +200,9 @@ See [API_REFERENCE.md](API_REFERENCE.md) for complete documentation.
 
 | Date | Changes |
 |------|---------|
+| 2026-01-21 | **Added BUSINESS_MODEL.md** - Complete pricing, market analysis, profitability |
+| 2026-01-21 | Updated pricing to premium tiers (299-449 AED) |
+| 2026-01-21 | Installation fee updated to 999 AED |
 | 2026-01-13 | Added Kitchen Management, Equipment, Owners APIs |
 | 2026-01-13 | Updated Lambda runtime to Node.js 22.x |
 | 2026-01-12 | PDF compliance reports |
