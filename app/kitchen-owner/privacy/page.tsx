@@ -47,7 +47,7 @@ const dataResidencyItems: ComplianceItem[] = [
   {
     icon: Clock,
     title: 'Data Retention Policy',
-    description: 'Temperature logs retained for 2 years as per Dubai Municipality requirements. User data retained per UAE regulations.',
+    description: 'Temperature readings: 2 years (DM requirement). Account data: Duration of service + 1 year. Billing records: 5 years (UAE tax law). Alert history: 2 years. Data deleted upon request within 30 days (except regulatory requirements).',
     status: 'compliant',
   },
 ]
@@ -238,21 +238,48 @@ export default function PrivacyPage() {
             <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
               <h3 className={`font-medium text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Data We Collect</h3>
               <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Temperature readings</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Device timestamps</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Equipment identifiers</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Account information</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Contact info (name, email, phone)</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Kitchen details (address, trade license)</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Equipment data (type, serial numbers)</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Sensor readings (temp, humidity, battery)</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Alert history and acknowledgments</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Billing and payment records</li>
               </ul>
             </div>
             
             <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
               <h3 className={`font-medium text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>How We Use It</h3>
               <ul className={`text-sm space-y-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Food safety monitoring</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Compliance reporting</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Alert notifications</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Temperature monitoring & alerts</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Dubai Municipality compliance reports</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> WhatsApp/Email notifications</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Billing and invoicing</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Technical support</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Service improvements</li>
               </ul>
+            </div>
+          </div>
+          
+          {/* Data Retention Details */}
+          <div className={`mt-4 p-4 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+            <h3 className={`font-medium text-sm mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Data Retention Periods</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className={`text-center p-2 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-white'}`}>
+                <p className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>2 Years</p>
+                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Sensor Readings</p>
+              </div>
+              <div className={`text-center p-2 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-white'}`}>
+                <p className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>2 Years</p>
+                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Alert History</p>
+              </div>
+              <div className={`text-center p-2 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-white'}`}>
+                <p className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>5 Years</p>
+                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Billing Records</p>
+              </div>
+              <div className={`text-center p-2 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-white'}`}>
+                <p className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>30 Days</p>
+                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Post-Deletion</p>
+              </div>
             </div>
           </div>
         </div>

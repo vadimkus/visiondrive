@@ -58,7 +58,7 @@ const FAQ_CATEGORIES = [
       },
       {
         question: 'Can I add more sensors?',
-        answer: 'Yes! Contact support to add sensors. Each additional sensor is 199 AED/month (or 179 AED/month on yearly plans). Installation is included.',
+        answer: 'Yes! Contact support to add sensors. Pricing depends on total sensor count: Starter (1-2) 449 AED, Standard (3-5) 399 AED, Professional (6-15) 349 AED, Enterprise (16+) 299 AED per sensor/month. 15% discount on annual plans. Installation is 999 AED per sensor (one-time).',
       },
       {
         question: 'How do I assign equipment details to sensors?',
@@ -121,11 +121,11 @@ const FAQ_CATEGORIES = [
     items: [
       {
         question: 'How much does the service cost?',
-        answer: 'Monthly plan: 199 AED per sensor. Yearly plan: 179 AED per sensor/month (10% discount). Prices include 24/7 monitoring, alerts, reports, and support.',
+        answer: 'Installation: 999 AED per sensor (one-time). Monthly subscription varies by sensor count: Starter (1-2 sensors) 449 AED, Standard (3-5) 399 AED, Professional (6-15) 349 AED, Enterprise (16+) 299 AED per sensor/month. Annual plans get 15% discount. All plans include 24/7 monitoring, alerts, reports, support, and free sensor replacement after 5 years.',
       },
       {
         question: 'How do I change my subscription?',
-        answer: 'Go to Subscription page to view plans and switch between monthly/yearly. Changes take effect at the next billing cycle.',
+        answer: 'Go to Subscription page to view plans and switch between monthly/yearly. Adding sensors may change your tier and reduce per-sensor price. Changes take effect at the next billing cycle.',
       },
       {
         question: 'What payment methods are accepted?',
@@ -133,7 +133,11 @@ const FAQ_CATEGORIES = [
       },
       {
         question: 'Can I cancel anytime?',
-        answer: 'Monthly plans can be cancelled anytime with no penalty. Yearly plans can be cancelled but are non-refundable for the remaining period.',
+        answer: 'Monthly plans can be cancelled with 30 days written notice. Yearly plans can be cancelled but are non-refundable for the remaining period. Contact support@visiondrive.ae to cancel.',
+      },
+      {
+        question: 'Is sensor replacement included?',
+        answer: 'Yes! Sensors are replaced free of charge after 5 years of continuous service with an active subscription. Defective sensors are replaced at no cost during the subscription period.',
       },
     ],
   },

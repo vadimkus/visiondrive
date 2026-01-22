@@ -15,6 +15,7 @@ import {
   Sun,
   Lock,
   CreditCard,
+  ScrollText,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
@@ -36,6 +37,7 @@ const navItems = [
 const bottomNavItems = [
   { id: 'settings', label: 'Settings', icon: Settings, href: '/kitchen-owner/settings' },
   { id: 'subscription', label: 'Subscription', icon: CreditCard, href: '/kitchen-owner/subscription' },
+  { id: 'terms', label: 'Terms of Service', icon: ScrollText, href: '/kitchen-owner/terms' },
   { id: 'privacy', label: 'Privacy', icon: Lock, href: '/kitchen-owner/privacy' },
   { id: 'help', label: 'Help & Support', icon: HelpCircle, href: '/kitchen-owner/help' },
 ]
