@@ -11,7 +11,7 @@ const footerTranslations = {
     solutions: 'Solutions',
     company: 'Company',
     contact: 'Contact',
-    description: 'Smart Kitchen IoT Solutions\nfor Food Safety Compliance',
+    description: 'IoT Solutions\nfor Food Safety Compliance',
     copyright: 'All rights reserved.',
     solutionsLinks: {
       restaurants: 'For Restaurants',
@@ -88,7 +88,7 @@ export default function Footer() {
                 <span className="text-xl font-semibold text-gray-900">
                   Vision<span className="text-orange-600">Drive</span>
                 </span>
-                <span className="text-xs text-gray-500">Smart Kitchen IoT 🇦🇪</span>
+                <span className="text-xs text-gray-500">IoT company 🇦🇪</span>
               </div>
             </Link>
             <p className="text-sm text-gray-600 max-w-xs mx-auto sm:mx-0" dir={language === 'ar' ? 'rtl' : 'ltr'}>

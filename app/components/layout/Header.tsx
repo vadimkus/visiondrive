@@ -90,7 +90,7 @@ export default function Header() {
                   <span className="text-base sm:text-xl font-semibold text-gray-900 leading-tight">
                     Vision<span className="text-orange-600">Drive</span>
                   </span>
-                  <span className="text-[8px] sm:text-[10px] text-gray-500 whitespace-nowrap">Smart Kitchen IoT 🇦🇪</span>
+                  <span className="text-[8px] sm:text-[10px] text-gray-500 whitespace-nowrap">IoT company 🇦🇪</span>
                 </div>
               </Link>
             </div>
@@ -121,7 +121,6 @@ export default function Header() {
             <div className={`hidden lg:flex lg:items-center flex-shrink-0 ${language === 'ar' ? 'space-x-4' : ''}`}>
               {/* Contact Info */}
               <div className={`flex flex-col text-right ${language === 'ar' ? 'mr-4' : 'mr-2'}`}>
-                <span className="text-xs font-medium text-gray-700">Smart Kitchen Solutions</span>
                 <a href="https://wa.me/971559152985" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-600 hover:text-orange-600 transition-colors">
                   +971 55 915 29 85 📱
                 </a>
