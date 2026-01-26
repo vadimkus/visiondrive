@@ -8,7 +8,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const pathname = usePathname()
   const isPortal = pathname?.startsWith('/portal')
   const isKitchenOwner = pathname?.startsWith('/kitchen-owner')
-  const isAuth = pathname === '/login'
+  const isLogin = pathname === '/login'
 
   // In dev/HMR, `usePathname()` can be briefly undefined during the first paint.
   // Avoid mounting the marketing header/footer in that transient state (it triggers /api/auth/me).
@@ -16,12 +16,12 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     return <main className="flex-1 min-h-screen">{children}</main>
   }
 
-  if (isPortal || isKitchenOwner) {
-    // Portal pages and kitchen owner: no marketing header/footer
+  // Portal, kitchen owner, and login pages: no marketing header/footer
+  if (isPortal || isKitchenOwner || isLogin) {
     return <main className="flex-1 min-h-screen">{children}</main>
   }
 
-  // Public pages (including login): show header and footer
+  // Public marketing pages: show header and footer
   return (
     <>
       <Header />

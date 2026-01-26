@@ -1,10 +1,23 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
-  title: 'Login - VisionDrive Portal',
-  description: 'Sign in to the VisionDrive management portal. Access sensor data, analytics, and parking management tools.',
-  keywords: 'VisionDrive login, portal sign in, parking management login',
+  title: 'Sign In - Smart Kitchen',
+  description: 'Sign in to your VisionDrive Smart Kitchen portal. Access temperature monitoring, compliance reports, and alerts.',
   robots: 'noindex, nofollow',
+  themeColor: '#f5f5f7',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Smart Kitchen',
+  },
 }
 
 export default function LoginLayout({

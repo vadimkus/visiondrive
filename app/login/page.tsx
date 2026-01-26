@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, Eye, EyeOff, ChefHat, Thermometer, Shield, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, ChefHat } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    rememberMe: false,
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -41,7 +42,7 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        setError(data.error || 'Login failed. Please check your credentials.')
+        setError(data.error || 'Invalid credentials')
         setLoading(false)
         return
       }
@@ -55,209 +56,226 @@ export default function LoginPage() {
       router.refresh()
     } catch (err) {
       console.error('Login error:', err)
-      setError('Login failed. Please try again.')
+      setError('Connection error. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] flex flex-col">
-      {/* Mobile-optimized login */}
-      <div className="flex-1 flex flex-col">
-        
-        {/* Header Area - Gradient background */}
-        <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-red-500 px-6 pt-16 pb-12 md:pt-20 md:pb-16 relative overflow-hidden">
-          {/* Decorative circles */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/3" />
-          
-          <div className="relative z-10 max-w-md mx-auto text-center">
-            {/* Logo */}
-            <div className="w-20 h-20 mx-auto mb-5 bg-white rounded-3xl shadow-xl flex items-center justify-center">
-              <img 
-                src="/images/logo/logo.jpg" 
-                alt="VisionDrive" 
-                className="w-14 h-14 object-contain rounded-2xl"
-              />
-            </div>
-            
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-              Smart Kitchen
-            </h1>
-            <p className="text-orange-100 text-base">
-              Temperature Monitoring Portal
-            </p>
+    <div className="min-h-screen bg-[#f5f5f7] flex items-center justify-center p-4">
+      {/* Background subtle gradient */}
+      <div className="fixed inset-0 bg-gradient-to-br from-orange-50/50 via-white to-emerald-50/30 pointer-events-none" />
+      
+      {/* Login Card */}
+      <div className="relative w-full max-w-[400px]">
+        {/* Logo & Welcome */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[22px] bg-gradient-to-br from-orange-500 to-red-500 shadow-xl shadow-orange-500/25 mb-6">
+            <ChefHat className="w-10 h-10 text-white" />
           </div>
+          <h1 className="text-[28px] font-semibold text-gray-900 tracking-tight">
+            Smart Kitchen
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Sign in to your account
+          </p>
         </div>
 
-        {/* Form Area - White card that overlaps the gradient */}
-        <div className="flex-1 bg-[#f5f5f7] -mt-6 rounded-t-[2rem] relative z-20">
-          <div className="max-w-md mx-auto px-6 pt-8 pb-10">
-            
-            {/* Features pills */}
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full shadow-sm">
-                <Thermometer className="w-4 h-4 text-orange-500" />
-                <span className="text-xs font-medium text-gray-700">Live Monitoring</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full shadow-sm">
-                <Shield className="w-4 h-4 text-emerald-500" />
-                <span className="text-xs font-medium text-gray-700">DM Compliant</span>
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl">
+              <p className="text-sm text-red-600 text-center">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Field */}
+            <div>
+              <label 
+                htmlFor="email" 
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email
+              </label>
+              <input
+                type="text"
+                id="email"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                className="
+                  w-full px-4 py-3.5
+                  bg-gray-50 border border-gray-200
+                  rounded-xl
+                  text-gray-900 text-[16px]
+                  placeholder:text-gray-400
+                  focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10
+                  transition-all duration-200
+                  outline-none
+                "
+                placeholder="name@company.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label 
+                htmlFor="password" 
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  autoComplete="current-password"
+                  className="
+                    w-full px-4 py-3.5 pr-12
+                    bg-gray-50 border border-gray-200
+                    rounded-xl
+                    text-gray-900 text-[16px]
+                    placeholder:text-gray-400
+                    focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10
+                    transition-all duration-200
+                    outline-none
+                  "
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="
+                    absolute right-3 top-1/2 -translate-y-1/2
+                    p-1.5 rounded-lg
+                    text-gray-400 hover:text-gray-600
+                    hover:bg-gray-100
+                    transition-colors
+                  "
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 
-            {/* Error message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl">
-                <p className="text-sm text-red-600 text-center">{error}</p>
-              </div>
-            )}
-
-            {/* Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              
-              {/* Portal Badge */}
-              <div className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-orange-50 border-2 border-orange-200 mb-6">
-                <ChefHat className="h-5 w-5 text-orange-600" />
-                <span className="font-semibold text-orange-700">Kitchen Owner Portal</span>
-              </div>
-
-              {/* Email Input */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email or Username
-                </label>
+            {/* Remember Me & Forgot */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center cursor-pointer group">
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    id="email"
-                    required
-                    autoComplete="username"
-                    autoCapitalize="none"
-                    className="
-                      w-full pl-12 pr-4 py-4
-                      bg-white border border-gray-200 
-                      rounded-2xl
-                      text-gray-900 text-base
-                      placeholder:text-gray-400
-                      focus:ring-2 focus:ring-orange-500 focus:border-transparent
-                      transition-all duration-200
-                    "
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              {/* Password Input */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    required
-                    autoComplete="current-password"
-                    className="
-                      w-full pl-12 pr-14 py-4
-                      bg-white border border-gray-200 
-                      rounded-2xl
-                      text-gray-900 text-base
-                      placeholder:text-gray-400
-                      focus:ring-2 focus:ring-orange-500 focus:border-transparent
-                      transition-all duration-200
-                    "
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember & Forgot */}
-              <div className="flex items-center justify-between pt-2">
-                <label className="flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
-                    className="w-5 h-5 rounded-lg border-gray-300 text-orange-500 focus:ring-orange-500 cursor-pointer" 
+                    checked={formData.rememberMe}
+                    onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+                    className="sr-only peer"
                   />
-                  <span className="ml-2.5 text-sm text-gray-600">Remember me</span>
-                </label>
-                <a href="#" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
-                  Forgot password?
-                </a>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="
-                  w-full py-4 mt-4
-                  bg-gradient-to-r from-orange-500 to-orange-600
-                  hover:from-orange-600 hover:to-orange-700
-                  active:scale-[0.98]
-                  text-white font-semibold text-base
-                  rounded-2xl
-                  shadow-lg shadow-orange-500/30
-                  transition-all duration-200
-                  disabled:opacity-70 disabled:cursor-not-allowed
-                  flex items-center justify-center gap-2
-                "
+                  <div className="
+                    w-5 h-5 rounded-md border-2 border-gray-300
+                    peer-checked:bg-orange-500 peer-checked:border-orange-500
+                    transition-all duration-200
+                    flex items-center justify-center
+                  ">
+                    <svg 
+                      className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" 
+                      viewBox="0 0 12 12"
+                      fill="none"
+                    >
+                      <path 
+                        d="M2 6l3 3 5-6" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <span className="ml-2.5 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                  Remember me
+                </span>
+              </label>
+              <a 
+                href="#" 
+                className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors"
               >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    Sign In
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Contact Link */}
-            <div className="mt-8 text-center">
-              <p className="text-sm text-gray-500">
-                Don't have an account?{' '}
-                <a href="/contact" className="text-orange-600 hover:text-orange-700 font-semibold">
-                  Contact us
-                </a>
-              </p>
+                Forgot password?
+              </a>
             </div>
 
-            {/* VisionDrive Branding */}
-            <div className="mt-10 pt-6 border-t border-gray-200 text-center">
-              <p className="text-xs text-gray-400 mb-1">Powered by</p>
-              <div className="flex items-center justify-center gap-1.5">
-                <span className="text-sm font-semibold text-gray-600">Vision</span>
-                <span className="text-sm font-semibold text-orange-500">Drive</span>
-              </div>
-              <p className="text-xs text-gray-400 mt-2">
-                🇦🇪 Made in UAE • TDRA Certified
-              </p>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="
+                w-full py-4 mt-2
+                bg-gray-900 hover:bg-gray-800
+                active:scale-[0.98]
+                text-white font-semibold text-[15px]
+                rounded-xl
+                transition-all duration-200
+                disabled:opacity-60 disabled:cursor-not-allowed
+                flex items-center justify-center gap-2
+              "
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-4 bg-white text-sm text-gray-400">or</span>
             </div>
           </div>
+
+          {/* Contact Link */}
+          <p className="text-center text-sm text-gray-500">
+            Don't have an account?{' '}
+            <a 
+              href="/contact" 
+              className="text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+            >
+              Contact us
+            </a>
+          </p>
+        </div>
+
+        {/* Footer Branding */}
+        <div className="mt-8 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <img 
+              src="/images/logo/logo.jpg" 
+              alt="VisionDrive" 
+              className="w-6 h-6 rounded-md"
+            />
+            <span className="text-sm font-medium text-gray-600">
+              Vision<span className="text-orange-500">Drive</span>
+            </span>
+          </div>
+          <p className="text-xs text-gray-400">
+            🇦🇪 UAE • TDRA Certified • Dubai Municipality Compliant
+          </p>
         </div>
       </div>
     </div>
