@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
   Thermometer,
@@ -58,74 +57,62 @@ export default function MobileNav() {
           const active = isActive(item.href)
           
           return (
-            <motion.button
+            <button
               key={item.id}
               onClick={() => handleNavigation(item.href)}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              className="relative flex flex-col items-center justify-center min-w-[64px] py-2 px-3"
+              className="
+                relative flex flex-col items-center justify-center
+                min-w-[64px] py-2 px-3
+                transition-transform duration-150
+                active:scale-90
+              "
             >
               {/* Icon container */}
-              <div className="relative flex items-center justify-center w-7 h-7 mb-0.5">
-                <motion.div
-                  animate={active ? { scale: [1, 1.2, 1] } : { scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Icon 
-                    className={`w-6 h-6 transition-colors duration-200 ${
-                      active 
-                        ? 'text-orange-500' 
-                        : isDark ? 'text-gray-500' : 'text-gray-400'
-                    }`}
-                    strokeWidth={active ? 2.5 : 2}
-                  />
-                </motion.div>
+              <div className={`
+                relative flex items-center justify-center
+                w-7 h-7 mb-0.5
+                transition-transform duration-200
+                ${active ? 'scale-110' : 'scale-100'}
+              `}>
+                <Icon 
+                  className={`w-6 h-6 transition-colors duration-200 ${
+                    active 
+                      ? 'text-orange-500' 
+                      : isDark ? 'text-gray-500' : 'text-gray-400'
+                  }`}
+                  strokeWidth={active ? 2.5 : 2}
+                />
                 
-                {/* Alert Badge (red) with animation */}
-                <AnimatePresence>
-                  {item.badge && item.badge > 0 && (
-                    <motion.span 
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                      className="
-                        absolute -top-1 -right-1
-                        min-w-[18px] h-[18px]
-                        flex items-center justify-center
-                        bg-red-500 text-white
-                        text-[10px] font-bold
-                        rounded-full
-                        px-1
-                      "
-                    >
-                      {item.badge}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                {/* Alert Badge (red) */}
+                {item.badge && item.badge > 0 && (
+                  <span className="
+                    absolute -top-1 -right-1
+                    min-w-[18px] h-[18px]
+                    flex items-center justify-center
+                    bg-red-500 text-white
+                    text-[10px] font-bold
+                    rounded-full
+                    px-1
+                    animate-pulse
+                  ">
+                    {item.badge}
+                  </span>
+                )}
                 
-                {/* Sensor Count Badge (emerald) with animation */}
-                <AnimatePresence>
-                  {'sensorCount' in item && item.sensorCount && item.sensorCount > 0 && (
-                    <motion.span 
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                      className="
-                        absolute -top-1 -right-1
-                        min-w-[18px] h-[18px]
-                        flex items-center justify-center
-                        bg-emerald-500 text-white
-                        text-[10px] font-bold
-                        rounded-full
-                        px-1
-                      "
-                    >
-                      {item.sensorCount}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                {/* Sensor Count Badge (emerald) */}
+                {'sensorCount' in item && item.sensorCount && item.sensorCount > 0 && (
+                  <span className="
+                    absolute -top-1 -right-1
+                    min-w-[18px] h-[18px]
+                    flex items-center justify-center
+                    bg-emerald-500 text-white
+                    text-[10px] font-bold
+                    rounded-full
+                    px-1
+                  ">
+                    {item.sensorCount}
+                  </span>
+                )}
               </div>
               
               {/* Label */}
@@ -141,19 +128,14 @@ export default function MobileNav() {
               </span>
               
               {/* Active indicator dot */}
-              <AnimatePresence>
-                {active && (
-                  <motion.div 
-                    layoutId="activeIndicator"
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    className="absolute -bottom-1 w-1 h-1 rounded-full bg-orange-500"
-                  />
-                )}
-              </AnimatePresence>
-            </motion.button>
+              <div className={`
+                absolute -bottom-1
+                w-1 h-1 rounded-full
+                bg-orange-500
+                transition-all duration-200
+                ${active ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}
+              `} />
+            </button>
           )
         })}
       </div>

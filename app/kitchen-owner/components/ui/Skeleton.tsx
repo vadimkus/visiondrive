@@ -1,7 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
-
 interface SkeletonProps {
   className?: string
   variant?: 'text' | 'circular' | 'rectangular' | 'rounded'
@@ -28,32 +26,13 @@ export default function Skeleton({
 
   const animationClasses = {
     pulse: 'animate-pulse',
-    wave: '',
+    wave: 'skeleton-wave',
     none: '',
   }
 
   const style = {
     width: width,
     height: height,
-  }
-
-  if (animation === 'wave') {
-    return (
-      <div 
-        className={`${baseClasses} ${variantClasses[variant]} ${className} overflow-hidden relative`}
-        style={style}
-      >
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-          animate={{ x: ['-100%', '100%'] }}
-          transition={{ 
-            repeat: Infinity, 
-            duration: 1.5,
-            ease: 'easeInOut',
-          }}
-        />
-      </div>
-    )
   }
 
   return (

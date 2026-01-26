@@ -195,7 +195,7 @@ export default function SubscriptionPage() {
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-3.5 w-3.5 text-emerald-500" />
-              <span>du NB-IoT SIM</span>
+              <span>Etisalat NB-IoT SIM</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-3.5 w-3.5 text-emerald-500" />
