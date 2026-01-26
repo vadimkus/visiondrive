@@ -10,9 +10,12 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
+// Active sensors count - in production this would come from API/context
+const ACTIVE_SENSORS = 5
+
 const navItems = [
   { id: 'dashboard', label: 'Home', icon: LayoutDashboard, href: '/kitchen-owner' },
-  { id: 'sensors', label: 'Sensors', icon: Thermometer, href: '/kitchen-owner/sensors' },
+  { id: 'sensors', label: 'Sensors', icon: Thermometer, href: '/kitchen-owner/sensors', sensorCount: ACTIVE_SENSORS },
   { id: 'alerts', label: 'Alerts', icon: Bell, href: '/kitchen-owner/alerts', badge: 1 },
   { id: 'reports', label: 'Reports', icon: FileText, href: '/kitchen-owner/reports' },
   { id: 'profile', label: 'Profile', icon: User, href: '/kitchen-owner/settings' },
@@ -73,7 +76,7 @@ export default function MobileNav() {
                   strokeWidth={active ? 2.5 : 2}
                 />
                 
-                {/* Badge */}
+                {/* Alert Badge (red) */}
                 {item.badge && item.badge > 0 && (
                   <span className="
                     absolute -top-1 -right-1
@@ -85,6 +88,21 @@ export default function MobileNav() {
                     px-1
                   ">
                     {item.badge}
+                  </span>
+                )}
+                
+                {/* Sensor Count Badge (emerald) */}
+                {'sensorCount' in item && item.sensorCount && item.sensorCount > 0 && (
+                  <span className="
+                    absolute -top-1 -right-1
+                    min-w-[18px] h-[18px]
+                    flex items-center justify-center
+                    bg-emerald-500 text-white
+                    text-[10px] font-bold
+                    rounded-full
+                    px-1
+                  ">
+                    {item.sensorCount}
                   </span>
                 )}
               </div>
