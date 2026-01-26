@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Section from '../components/common/Section'
-import Button from '../components/common/Button'
-import { Mail, Lock, Eye, EyeOff, ChefHat } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ChefHat, Thermometer, Shield, ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -48,8 +46,7 @@ export default function LoginPage() {
         return
       }
 
-      // Token is stored in HTTP-only cookie, no need for localStorage
-      // Redirect based on user role - kitchen owners go to owner dashboard, admins go to admin dashboard
+      // Redirect based on user role
       if (data.isOwner) {
         router.push('/kitchen-owner')
       } else {
@@ -65,73 +62,117 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-gray-50 px-4 sm:px-6 lg:px-8" style={{ paddingTop: '9.6rem', paddingBottom: '7.5rem' }}>
-      <div className="max-w-7xl w-full mx-auto">
-        {/* Image-based login panel (form is visually part of the image) */}
-        <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          {/* Background image (centered + not cropped) - 20% bigger */}
-          <div 
-            className="h-[816px] sm:h-[840px] md:h-[768px] lg:h-[720px] w-full bg-gray-50 bg-no-repeat bg-center"
-            style={{ backgroundImage: "url('/images/portal.png')", backgroundSize: 'cover' }}
-          />
+    <div className="min-h-screen bg-[#f5f5f7] flex flex-col">
+      {/* Mobile-optimized login */}
+      <div className="flex-1 flex flex-col">
+        
+        {/* Header Area - Gradient background */}
+        <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-red-500 px-6 pt-16 pb-12 md:pt-20 md:pb-16 relative overflow-hidden">
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/3" />
+          
+          <div className="relative z-10 max-w-md mx-auto text-center">
+            {/* Logo */}
+            <div className="w-20 h-20 mx-auto mb-5 bg-white rounded-3xl shadow-xl flex items-center justify-center">
+              <img 
+                src="/images/logo/logo.jpg" 
+                alt="VisionDrive" 
+                className="w-14 h-14 object-contain rounded-2xl"
+              />
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              Smart Kitchen
+            </h1>
+            <p className="text-orange-100 text-base">
+              Temperature Monitoring Portal
+            </p>
+          </div>
+        </div>
 
-          {/* Subtle overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/35 to-transparent" />
+        {/* Form Area - White card that overlaps the gradient */}
+        <div className="flex-1 bg-[#f5f5f7] -mt-6 rounded-t-[2rem] relative z-20">
+          <div className="max-w-md mx-auto px-6 pt-8 pb-10">
+            
+            {/* Features pills */}
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full shadow-sm">
+                <Thermometer className="w-4 h-4 text-orange-500" />
+                <span className="text-xs font-medium text-gray-700">Live Monitoring</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full shadow-sm">
+                <Shield className="w-4 h-4 text-emerald-500" />
+                <span className="text-xs font-medium text-gray-700">DM Compliant</span>
+              </div>
+            </div>
 
-          {/* Form overlay */}
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full px-6 sm:px-10">
-              {/* Slightly smaller panel (~20%) */}
-              <div className="max-w-sm">
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-                      Login
-                    </h1>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-5 sm:mb-6">
-                      Vision Drive dashboard
-                    </p>
-
+            {/* Error message */}
             {error && (
-              <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl">
+                <p className="text-sm text-red-600 text-center">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Portal Indicator */}
-              <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-orange-500 bg-orange-50 text-orange-700">
-                <ChefHat className="h-5 w-5" />
-                <span className="font-medium">Smart Kitchen Portal</span>
+            {/* Login Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              
+              {/* Portal Badge */}
+              <div className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-orange-50 border-2 border-orange-200 mb-6">
+                <ChefHat className="h-5 w-5 text-orange-600" />
+                <span className="font-semibold text-orange-700">Kitchen Owner Portal</span>
               </div>
 
+              {/* Email Input */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Username / Email
+                  Email or Username
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
                     id="email"
                     required
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="admin"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    className="
+                      w-full pl-12 pr-4 py-4
+                      bg-white border border-gray-200 
+                      rounded-2xl
+                      text-gray-900 text-base
+                      placeholder:text-gray-400
+                      focus:ring-2 focus:ring-orange-500 focus:border-transparent
+                      transition-all duration-200
+                    "
+                    placeholder="Enter your email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
               </div>
 
+              {/* Password Input */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
                     required
-                    className="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    autoComplete="current-password"
+                    className="
+                      w-full pl-12 pr-14 py-4
+                      bg-white border border-gray-200 
+                      rounded-2xl
+                      text-gray-900 text-base
+                      placeholder:text-gray-400
+                      focus:ring-2 focus:ring-orange-500 focus:border-transparent
+                      transition-all duration-200
+                    "
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -139,7 +180,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -150,36 +191,71 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-                <label className="flex items-center">
-                  <input type="checkbox" className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                  <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              {/* Remember & Forgot */}
+              <div className="flex items-center justify-between pt-2">
+                <label className="flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="w-5 h-5 rounded-lg border-gray-300 text-orange-500 focus:ring-orange-500 cursor-pointer" 
+                  />
+                  <span className="ml-2.5 text-sm text-gray-600">Remember me</span>
                 </label>
-                <a href="#" className="text-sm text-primary-600 hover:text-primary-700">
+                <a href="#" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
                   Forgot password?
                 </a>
               </div>
 
-              <Button
+              {/* Submit Button */}
+              <button
                 type="submit"
-                size="md"
-                variant="outline"
-                className="w-full bg-white/30 border-white/60 backdrop-blur hover:bg-white/40 text-gray-900"
-                onClick={() => {}}
+                disabled={loading}
+                className="
+                  w-full py-4 mt-4
+                  bg-gradient-to-r from-orange-500 to-orange-600
+                  hover:from-orange-600 hover:to-orange-700
+                  active:scale-[0.98]
+                  text-white font-semibold text-base
+                  rounded-2xl
+                  shadow-lg shadow-orange-500/30
+                  transition-all duration-200
+                  disabled:opacity-70 disabled:cursor-not-allowed
+                  flex items-center justify-center gap-2
+                "
               >
-                {loading ? 'Logging in...' : 'Login'}
-              </Button>
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+            {/* Contact Link */}
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-500">
                 Don't have an account?{' '}
-                <a href="/contact" className="text-primary-600 hover:text-primary-700 font-medium">
+                <a href="/contact" className="text-orange-600 hover:text-orange-700 font-semibold">
                   Contact us
                 </a>
               </p>
             </div>
+
+            {/* VisionDrive Branding */}
+            <div className="mt-10 pt-6 border-t border-gray-200 text-center">
+              <p className="text-xs text-gray-400 mb-1">Powered by</p>
+              <div className="flex items-center justify-center gap-1.5">
+                <span className="text-sm font-semibold text-gray-600">Vision</span>
+                <span className="text-sm font-semibold text-orange-500">Drive</span>
               </div>
+              <p className="text-xs text-gray-400 mt-2">
+                🇦🇪 Made in UAE • TDRA Certified
+              </p>
             </div>
           </div>
         </div>
@@ -187,4 +263,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

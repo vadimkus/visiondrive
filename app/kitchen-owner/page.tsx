@@ -10,13 +10,18 @@ import {
   TrendingUp,
   Shield,
   FileText,
-  ChevronRight
+  ChevronRight,
+  Thermometer,
+  Snowflake,
+  Flame,
+  Battery,
+  Clock,
 } from 'lucide-react'
 import { useTheme } from './context/ThemeContext'
 
 // Abdul's Kitchen Data
 const OWNER_DATA = {
-  name: 'Abdul Rahman',
+  name: 'Abdul',
   email: 'abdul@kitchen.ae',
   kitchen: {
     id: 'kitchen-abdul-001',
@@ -96,7 +101,7 @@ const INITIAL_ALERTS = [
     id: 'alert-1',
     sensor: 'Display Cooler',
     message: 'Temperature above 5°C threshold',
-    time: '15 minutes ago',
+    time: '15 min ago',
     severity: 'warning',
     acknowledged: false,
   },
@@ -113,7 +118,6 @@ const INITIAL_ALERTS = [
 export default function OwnerDashboard() {
   const router = useRouter()
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [showAllSensors, setShowAllSensors] = useState(false)
   const [alerts, setAlerts] = useState(INITIAL_ALERTS)
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -136,32 +140,13 @@ export default function OwnerDashboard() {
   
   const overallStatus = criticalCount > 0 ? 'critical' : warningCount > 0 ? 'warning' : 'good'
   const complianceRate = Math.round((compliantCount / SENSORS.length) * 100)
+  const unacknowledgedAlerts = alerts.filter(a => !a.acknowledged).length
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'compliant': return 'text-emerald-600'
-      case 'warning': return 'text-amber-500'
-      case 'critical': return 'text-red-600'
-      default: return 'text-gray-600'
-    }
-  }
-
-  const getStatusBg = (status: string) => {
-    switch (status) {
-      case 'compliant': return 'bg-emerald-50'
-      case 'warning': return 'bg-amber-50'
-      case 'critical': return 'bg-red-50'
-      default: return 'bg-gray-50'
-    }
-  }
-
-  const formatTemp = (temp: number) => {
-    return `${temp.toFixed(1)}°C`
-  }
+  const formatTemp = (temp: number) => `${temp.toFixed(1)}°`
 
   const formatRange = (range: { min?: number; max?: number }) => {
     if (range.min !== undefined && range.max !== undefined) {
-      return `${range.min}° to ${range.max}°C`
+      return `${range.min}° - ${range.max}°C`
     } else if (range.min !== undefined) {
       return `≥ ${range.min}°C`
     } else if (range.max !== undefined) {
@@ -171,260 +156,334 @@ export default function OwnerDashboard() {
   }
 
   return (
-    <div className={`p-5 md:p-7 lg:p-9 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
-      <div className="max-w-4xl mx-auto">
-      {/* Overall Status Hero */}
-      <div className={`rounded-xl p-5 mb-5 ${
-        overallStatus === 'good' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
-        overallStatus === 'warning' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
-        'bg-gradient-to-r from-red-500 to-red-600'
-      } text-white shadow-md`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-5">
-            {overallStatus === 'good' ? (
-              <CheckCircle className="h-7 w-7" />
-            ) : (
-              <AlertTriangle className="h-7 w-7" />
-            )}
-            <div>
-              <h2 className="text-xl font-semibold">
-                {overallStatus === 'good' ? 'All Clear' : 
-                 overallStatus === 'warning' ? 'Attention Needed' : 
-                 'Action Required'}
-              </h2>
-              <p className="text-white/80 text-base">
-                {overallStatus === 'good' 
-                  ? 'All temperatures within safe ranges' 
-                  : `${warningCount + criticalCount} sensor${warningCount + criticalCount > 1 ? 's' : ''} need${warningCount + criticalCount === 1 ? 's' : ''} attention`}
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-5 ml-7 pl-7 border-l border-white/20">
-              <div className="text-center">
-                <p className="text-3xl font-bold">{complianceRate}%</p>
-                <p className="text-sm text-white/70">Compliance</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold">{onlineCount}/{SENSORS.length}</p>
-                <p className="text-sm text-white/70">Online</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold">{alerts.filter(a => !a.acknowledged).length}</p>
-                <p className="text-sm text-white/70">Alerts</p>
+    <div className={`min-h-full transition-colors duration-300 ${isDark ? 'bg-[#000000]' : 'bg-[#f5f5f7]'}`}>
+      <div className="max-w-2xl mx-auto px-4 py-4 md:px-6 md:py-6">
+        
+        {/* Greeting - Mobile optimized */}
+        <div className="mb-5">
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </p>
+          <h1 className={`text-2xl md:text-3xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Hello, {OWNER_DATA.name} 👋
+          </h1>
+        </div>
+
+        {/* Status Card - Apple-like design */}
+        <div className={`
+          rounded-3xl p-5 mb-5 
+          ${overallStatus === 'good' 
+            ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' 
+            : overallStatus === 'warning' 
+              ? 'bg-gradient-to-br from-amber-500 to-orange-500' 
+              : 'bg-gradient-to-br from-red-500 to-red-600'
+          } 
+          text-white shadow-lg
+          ${overallStatus === 'good' ? 'shadow-emerald-500/30' : overallStatus === 'warning' ? 'shadow-orange-500/30' : 'shadow-red-500/30'}
+        `}>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                {overallStatus === 'good' ? (
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                    <AlertTriangle className="h-6 w-6" />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-semibold">
+                    {overallStatus === 'good' ? 'All Clear' : 
+                     overallStatus === 'warning' ? 'Attention Needed' : 
+                     'Action Required'}
+                  </h2>
+                  <p className="text-white/80 text-sm">
+                    {overallStatus === 'good' 
+                      ? 'All temperatures in safe range' 
+                      : `${warningCount + criticalCount} sensor needs attention`}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
           
-          <div className="text-right">
-            <p className="text-xl font-medium tabular-nums">
-              {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-            </p>
-            <p className="text-white/70 text-sm">
-              {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-            </p>
+          {/* Stats Row */}
+          <div className="flex items-center gap-3 mt-4">
+            <div className="flex-1 bg-white/15 backdrop-blur rounded-2xl px-4 py-3 text-center">
+              <p className="text-2xl font-bold">{complianceRate}%</p>
+              <p className="text-xs text-white/70 mt-0.5">Compliance</p>
+            </div>
+            <div className="flex-1 bg-white/15 backdrop-blur rounded-2xl px-4 py-3 text-center">
+              <p className="text-2xl font-bold">{onlineCount}/{SENSORS.length}</p>
+              <p className="text-xs text-white/70 mt-0.5">Online</p>
+            </div>
+            <div className="flex-1 bg-white/15 backdrop-blur rounded-2xl px-4 py-3 text-center">
+              <p className="text-2xl font-bold">{unacknowledgedAlerts}</p>
+              <p className="text-xs text-white/70 mt-0.5">Alerts</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
-        <button 
-          onClick={() => router.push('/kitchen-owner/reports')}
-          className={`rounded-xl p-4 text-left hover:shadow-sm transition-all group flex items-center gap-4 ${
-            isDark ? 'bg-[#2d2d2f] border border-gray-700 hover:border-gray-600' : 'bg-white border border-gray-100'
-          }`}
-        >
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            isDark ? 'bg-blue-900/30' : 'bg-blue-50'
-          }`}>
-            <FileText className={`h-5 w-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-          </div>
-          <div>
-            <h3 className={`font-medium text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>Download Report</h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>PDF</p>
-          </div>
-        </button>
-        
-        <button className={`rounded-xl p-4 text-left hover:shadow-sm transition-all group flex items-center gap-4 ${
-          isDark ? 'bg-[#2d2d2f] border border-gray-700 hover:border-gray-600' : 'bg-white border border-gray-100'
-        }`}>
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            isDark ? 'bg-purple-900/30' : 'bg-purple-50'
-          }`}>
-            <TrendingUp className={`h-5 w-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
-          </div>
-          <div>
-            <h3 className={`font-medium text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>View History</h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Trends</p>
-          </div>
-        </button>
-        
-        <button 
-          onClick={() => router.push('/kitchen-owner/compliance')}
-          className={`rounded-xl p-4 text-left hover:shadow-sm transition-all group flex items-center gap-4 ${
-            isDark ? 'bg-[#2d2d2f] border border-gray-700 hover:border-gray-600' : 'bg-white border border-gray-100'
-          }`}
-        >
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            isDark ? 'bg-emerald-900/30' : 'bg-emerald-50'
-          }`}>
-            <Shield className={`h-5 w-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
-          </div>
-          <div>
-            <h3 className={`font-medium text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>DM Guidelines</h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Safety</p>
-          </div>
-        </button>
-      </div>
-
-      {/* Sensors Grid */}
-      <div className="mb-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Your Sensors</h2>
+        {/* Quick Actions - iOS style */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
           <button 
-            onClick={() => setShowAllSensors(!showAllSensors)}
-            className="text-sm text-orange-500 hover:text-orange-400 font-medium flex items-center gap-1"
+            onClick={() => router.push('/kitchen-owner/reports')}
+            className={`
+              rounded-2xl p-4 text-center
+              transition-all duration-200 active:scale-95
+              ${isDark ? 'bg-[#1c1c1e] active:bg-[#2c2c2e]' : 'bg-white active:bg-gray-50'}
+              shadow-sm
+            `}
           >
-            {showAllSensors ? 'Less' : 'All'}
-            <ChevronRight className={`h-4 w-4 transition-transform ${showAllSensors ? 'rotate-90' : ''}`} />
+            <div className={`
+              w-12 h-12 mx-auto rounded-2xl mb-2
+              flex items-center justify-center
+              bg-gradient-to-br from-blue-500 to-blue-600
+              shadow-lg shadow-blue-500/30
+            `}>
+              <FileText className="h-6 w-6 text-white" />
+            </div>
+            <p className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Reports</p>
+          </button>
+          
+          <button 
+            onClick={() => router.push('/kitchen-owner/sensors')}
+            className={`
+              rounded-2xl p-4 text-center
+              transition-all duration-200 active:scale-95
+              ${isDark ? 'bg-[#1c1c1e] active:bg-[#2c2c2e]' : 'bg-white active:bg-gray-50'}
+              shadow-sm
+            `}
+          >
+            <div className={`
+              w-12 h-12 mx-auto rounded-2xl mb-2
+              flex items-center justify-center
+              bg-gradient-to-br from-purple-500 to-purple-600
+              shadow-lg shadow-purple-500/30
+            `}>
+              <TrendingUp className="h-6 w-6 text-white" />
+            </div>
+            <p className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>History</p>
+          </button>
+          
+          <button 
+            onClick={() => router.push('/kitchen-owner/compliance')}
+            className={`
+              rounded-2xl p-4 text-center
+              transition-all duration-200 active:scale-95
+              ${isDark ? 'bg-[#1c1c1e] active:bg-[#2c2c2e]' : 'bg-white active:bg-gray-50'}
+              shadow-sm
+            `}
+          >
+            <div className={`
+              w-12 h-12 mx-auto rounded-2xl mb-2
+              flex items-center justify-center
+              bg-gradient-to-br from-emerald-500 to-emerald-600
+              shadow-lg shadow-emerald-500/30
+            `}>
+              <Shield className="h-6 w-6 text-white" />
+            </div>
+            <p className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Compliance</p>
           </button>
         </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(showAllSensors ? SENSORS : SENSORS.slice(0, 5)).map(sensor => (
-            <div 
-              key={sensor.id}
-              className={`rounded-xl p-4 border transition-all hover:shadow-sm ${
-                isDark 
-                  ? `bg-[#2d2d2f] ${
-                      sensor.status === 'warning' ? 'border-amber-700' :
-                      sensor.status === 'critical' ? 'border-red-700' :
-                      'border-gray-700'
-                    }`
-                  : `bg-white ${
-                      sensor.status === 'warning' ? 'border-amber-200' :
-                      sensor.status === 'critical' ? 'border-red-200' :
-                      'border-gray-100'
-                    }`
-              }`}
+
+        {/* Sensors Section */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Your Sensors
+            </h2>
+            <button 
+              onClick={() => router.push('/kitchen-owner/sensors')}
+              className="text-sm text-orange-500 font-medium flex items-center gap-0.5 active:opacity-70"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{sensor.icon}</span>
-                  <span className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{sensor.name}</span>
-                </div>
-                {sensor.online ? (
-                  <Wifi className={`h-4 w-4 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
-                ) : (
-                  <WifiOff className="h-4 w-4 text-gray-400" />
-                )}
-              </div>
-              
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className={`text-2xl font-bold ${getStatusColor(sensor.status)}`}>
-                    {formatTemp(sensor.currentTemp)}
-                  </p>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {formatRange(sensor.requiredRange)}
-                  </p>
-                </div>
-                
-                {sensor.status === 'compliant' ? (
-                  <CheckCircle className={`h-5 w-5 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
-                ) : (
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
-                )}
-              </div>
-              
-              {/* Battery - inline */}
-              <div className={`mt-3 flex items-center gap-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                  <div 
-                    className={`h-full rounded-full ${
-                      sensor.battery > 50 ? 'bg-emerald-500' :
-                      sensor.battery > 20 ? 'bg-amber-500' : 'bg-red-500'
-                    }`}
-                    style={{ width: `${sensor.battery}%` }}
-                  />
-                </div>
-                <span className="text-xs">{sensor.battery}%</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Alerts */}
-      <div className={`rounded-xl border overflow-hidden ${
-        isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'
-      }`}>
-        <div className={`px-4 py-3 border-b flex items-center justify-between ${
-          isDark ? 'border-gray-700' : 'border-gray-100'
-        }`}>
-          <h2 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Alerts</h2>
-          <button 
-            onClick={() => router.push('/kitchen-owner/alerts')}
-            className="text-sm text-orange-500 hover:text-orange-400 font-medium"
-          >
-            All
-          </button>
-        </div>
-        
-        <div className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-50'}`}>
-          {alerts.length === 0 ? (
-            <div className="px-4 py-5 text-center">
-              <CheckCircle className={`h-7 w-7 mx-auto mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
-              <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No alerts</p>
-            </div>
-          ) : (
-            alerts.map(alert => (
-              <div key={alert.id} className={`px-4 py-3 flex items-center justify-between transition-colors ${
-                isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
-              }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    isDark
-                      ? alert.severity === 'warning' ? 'bg-amber-900/30' :
-                        alert.severity === 'critical' ? 'bg-red-900/30' : 'bg-blue-900/30'
-                      : alert.severity === 'warning' ? 'bg-amber-100' :
-                        alert.severity === 'critical' ? 'bg-red-100' : 'bg-blue-100'
-                  }`}>
-                    {alert.severity === 'info' ? (
-                      <CheckCircle className={`h-4 w-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                    ) : (
-                      <AlertTriangle className={`h-4 w-4 ${
-                        alert.severity === 'warning' 
-                          ? isDark ? 'text-amber-400' : 'text-amber-600' 
-                          : isDark ? 'text-red-400' : 'text-red-600'
-                      }`} />
-                    )}
-                  </div>
-                  <div>
-                    <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{alert.sensor}</p>
-                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{alert.message}</p>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{alert.time}</p>
-                  {!alert.acknowledged ? (
-                    <button 
-                      onClick={() => handleAcknowledge(alert.id)}
-                      className="text-xs text-orange-500 hover:text-orange-400 font-medium mt-0.5"
-                    >
-                      Acknowledge
-                    </button>
+              See All
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          
+          {/* Sensor Cards - Horizontal scroll on mobile */}
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide">
+            {SENSORS.map(sensor => (
+              <div 
+                key={sensor.id}
+                className={`
+                  flex-shrink-0 w-[160px] snap-start
+                  rounded-2xl p-4
+                  transition-all duration-200
+                  ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}
+                  ${sensor.status === 'warning' 
+                    ? isDark ? 'ring-2 ring-amber-500/50' : 'ring-2 ring-amber-500/30'
+                    : sensor.status === 'critical'
+                      ? isDark ? 'ring-2 ring-red-500/50' : 'ring-2 ring-red-500/30'
+                      : ''
+                  }
+                  shadow-sm
+                `}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-2xl">{sensor.icon}</span>
+                  {sensor.online ? (
+                    <div className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                      <Wifi className={`h-3.5 w-3.5 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                    </div>
                   ) : (
-                    <span className={`text-xs ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                      ✓ Acknowledged
-                    </span>
+                    <WifiOff className="h-3.5 w-3.5 text-gray-400" />
                   )}
                 </div>
+                
+                {/* Temperature */}
+                <p className={`
+                  text-3xl font-bold tracking-tight mb-1
+                  ${sensor.status === 'compliant' 
+                    ? isDark ? 'text-emerald-400' : 'text-emerald-600'
+                    : sensor.status === 'warning'
+                      ? 'text-amber-500'
+                      : 'text-red-500'
+                  }
+                `}>
+                  {formatTemp(sensor.currentTemp)}
+                </p>
+                
+                {/* Name & Range */}
+                <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {sensor.name}
+                </p>
+                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  {formatRange(sensor.requiredRange)}
+                </p>
+                
+                {/* Battery */}
+                <div className="flex items-center gap-2 mt-3">
+                  <div className={`flex-1 h-1 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                    <div 
+                      className={`h-full rounded-full transition-all ${
+                        sensor.battery > 50 ? 'bg-emerald-500' :
+                        sensor.battery > 20 ? 'bg-amber-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${sensor.battery}%` }}
+                    />
+                  </div>
+                  <span className={`text-[10px] font-medium ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {sensor.battery}%
+                  </span>
+                </div>
               </div>
-            ))
-          )}
+            ))}
+          </div>
         </div>
-      </div>
+
+        {/* Alerts Section */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Recent Alerts
+            </h2>
+            <button 
+              onClick={() => router.push('/kitchen-owner/alerts')}
+              className="text-sm text-orange-500 font-medium flex items-center gap-0.5 active:opacity-70"
+            >
+              See All
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          
+          <div className={`rounded-2xl overflow-hidden ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'} shadow-sm`}>
+            {alerts.length === 0 ? (
+              <div className="px-4 py-8 text-center">
+                <CheckCircle className={`h-10 w-10 mx-auto mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No alerts</p>
+              </div>
+            ) : (
+              <div className={`divide-y ${isDark ? 'divide-gray-800' : 'divide-gray-100'}`}>
+                {alerts.map(alert => (
+                  <div 
+                    key={alert.id} 
+                    className={`px-4 py-3.5 flex items-center gap-3 transition-colors active:bg-gray-50 dark:active:bg-gray-800`}
+                  >
+                    {/* Icon */}
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
+                      ${alert.severity === 'warning' 
+                        ? isDark ? 'bg-amber-900/30' : 'bg-amber-100'
+                        : alert.severity === 'critical'
+                          ? isDark ? 'bg-red-900/30' : 'bg-red-100'
+                          : isDark ? 'bg-blue-900/30' : 'bg-blue-100'
+                      }
+                    `}>
+                      {alert.severity === 'info' ? (
+                        <CheckCircle className={`h-5 w-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                      ) : (
+                        <AlertTriangle className={`h-5 w-5 ${
+                          alert.severity === 'warning' 
+                            ? isDark ? 'text-amber-400' : 'text-amber-600'
+                            : isDark ? 'text-red-400' : 'text-red-600'
+                        }`} />
+                      )}
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {alert.sensor}
+                      </p>
+                      <p className={`text-xs truncate ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {alert.message}
+                      </p>
+                    </div>
+                    
+                    {/* Action */}
+                    <div className="flex-shrink-0 text-right">
+                      <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{alert.time}</p>
+                      {!alert.acknowledged ? (
+                        <button 
+                          onClick={() => handleAcknowledge(alert.id)}
+                          className="text-xs text-orange-500 font-medium mt-0.5 active:opacity-70"
+                        >
+                          Acknowledge
+                        </button>
+                      ) : (
+                        <span className={`text-xs ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                          ✓ Done
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Dubai Municipality Badge */}
+        <div className={`
+          rounded-2xl p-4 mb-4
+          ${isDark ? 'bg-emerald-900/20 border border-emerald-800/50' : 'bg-emerald-50 border border-emerald-100'}
+        `}>
+          <div className="flex items-center gap-3">
+            <div className={`
+              w-12 h-12 rounded-xl
+              flex items-center justify-center
+              ${isDark ? 'bg-emerald-900/50' : 'bg-emerald-100'}
+            `}>
+              <Shield className={`h-6 w-6 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+            </div>
+            <div className="flex-1">
+              <p className={`font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                Dubai Municipality Compliant
+              </p>
+              <p className={`text-xs ${isDark ? 'text-emerald-500/70' : 'text-emerald-600/70'}`}>
+                DM-HSD-GU46-KFPA2 Guidelines
+              </p>
+            </div>
+            <CheckCircle className={`h-6 w-6 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+          </div>
+        </div>
+
       </div>
     </div>
   )
