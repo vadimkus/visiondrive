@@ -124,22 +124,17 @@ export default function MobileHeader() {
   return (
     <>
       {/* Mobile Header */}
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className={`
-          md:hidden
-          sticky top-0 z-40
-          px-4 py-3
-          ${isDark 
-            ? 'bg-[#1d1d1f]/95 border-b border-gray-800' 
-            : 'bg-white/95 border-b border-gray-100'
-          }
-          backdrop-blur-xl
-          safe-area-inset-top
-        `}
-      >
+      <header className={`
+        md:hidden
+        sticky top-0 z-40
+        px-4 py-3
+        ${isDark 
+          ? 'bg-[#1d1d1f]/95 border-b border-gray-800' 
+          : 'bg-white/95 border-b border-gray-100'
+        }
+        backdrop-blur-xl
+        safe-area-inset-top
+      `}>
         <div className="flex items-center justify-between">
           {/* Logo & Title */}
           <motion.div 
@@ -176,7 +171,7 @@ export default function MobileHeader() {
             <Menu className={`w-6 h-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
           </motion.button>
         </div>
-      </motion.header>
+      </header>
 
       {/* Full-screen Menu Overlay */}
       <AnimatePresence>

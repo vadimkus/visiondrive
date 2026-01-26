@@ -42,26 +42,16 @@ export default function MobileNav() {
   }
 
   return (
-    <motion.nav 
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
-      transition={{ 
-        type: 'spring',
-        stiffness: 300,
-        damping: 30,
-        delay: 0.2,
-      }}
-      className={`
-        fixed bottom-0 left-0 right-0 z-50 
-        md:hidden
-        safe-area-inset-bottom
-        ${isDark 
-          ? 'bg-[#1d1d1f]/95 border-t border-gray-800' 
-          : 'bg-white/95 border-t border-gray-200'
-        }
-        backdrop-blur-xl
-      `}
-    >
+    <nav className={`
+      fixed bottom-0 left-0 right-0 z-50 
+      md:hidden
+      safe-area-inset-bottom
+      ${isDark 
+        ? 'bg-[#1d1d1f]/95 border-t border-gray-800' 
+        : 'bg-white/95 border-t border-gray-200'
+      }
+      backdrop-blur-xl
+    `}>
       <div className="flex items-center justify-around px-2 py-1">
         {navItems.map((item) => {
           const Icon = item.icon
@@ -170,6 +160,6 @@ export default function MobileNav() {
       
       {/* Home indicator area (for iPhones with notch) */}
       <div className="h-safe-area-inset-bottom" />
-    </motion.nav>
+    </nav>
   )
 }
