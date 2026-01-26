@@ -14,13 +14,19 @@ import {
 
 const certificates = [
   {
+    icon: Shield,
+    title: 'TDRA IoT Services License',
+    description: 'Official TDRA authorization to deliver IoT services in the UAE - our IoT service provider license.',
+    status: 'Active',
+  },
+  {
     icon: Radio,
     title: 'TDRA Type Approval',
     description: 'Telecommunications and Digital Government Regulatory Authority approval for NB-IoT device operation in the UAE.',
     status: 'Active',
   },
   {
-    icon: Shield,
+    icon: FileCheck,
     title: 'DESC ISR Compliance',
     description: 'Dubai Electronic Security Center Information Security Regulation compliance certification.',
     status: 'Active',
@@ -109,13 +115,13 @@ export default function CertificatesPage() {
 
       {/* Current Certificates */}
       <Section className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Active Certifications</h2>
             <p className="text-gray-600">Current regulatory approvals and compliance certifications</p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {certificates.map((cert) => (
               <div
                 key={`cert-${cert.title}`}

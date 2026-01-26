@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Compliance - VisionDrive UAE Data Residency & Security',
-  description: 'VisionDrive compliance with TDRA, DESC ISR, and UAE data residency requirements. Full regulatory alignment for government IoT deployments.',
-  keywords: 'TDRA compliance, DESC ISR, UAE data residency, IoT compliance UAE, data sovereignty, government security',
+  title: 'Smart Kitchen Compliance - Dubai Municipality Food Safety | VisionDrive',
+  description: 'VisionDrive Smart Kitchen compliance with Dubai Municipality food safety regulations, TDRA certification, and UAE data residency. Temperature monitoring for commercial kitchens.',
+  keywords: 'Dubai Municipality compliance, food safety UAE, TDRA certified sensors, temperature monitoring compliance, kitchen food safety, UAE data residency, DM-HSD-GU46-KFPA2',
   openGraph: {
-    title: 'VisionDrive Compliance & Security',
-    description: 'Full regulatory compliance with UAE data residency and security standards.',
+    title: 'Smart Kitchen Food Safety Compliance | VisionDrive UAE',
+    description: 'Dubai Municipality compliant temperature monitoring for commercial kitchens. TDRA certified, 100% UAE data residency.',
     type: 'website',
   },
 }

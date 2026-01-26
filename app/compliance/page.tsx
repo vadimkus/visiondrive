@@ -129,13 +129,21 @@ const temperatureRequirements = [
 ]
 
 const certifications = [
+  { name: 'TDRA IoT License', status: 'Active', icon: Shield },
   { name: 'TDRA Type Approval', status: 'Active', icon: Radio },
   { name: 'DM Food Safety', status: 'Compliant', icon: Thermometer },
-  { name: 'UAE PDPL', status: 'Compliant', icon: Shield },
+  { name: 'UAE PDPL', status: 'Compliant', icon: Lock },
   { name: 'ISO 27001', status: 'Planned 2026', icon: FileCheck },
 ]
 
 const downloadableCertificates = [
+  {
+    name: 'TDRA IoT Services License',
+    description: 'TDRA authorization to deliver IoT services in the UAE - our official IoT service provider license',
+    filename: 'IoT_Certificate_IOT-26-100000007.pdf',
+    icon: Shield,
+    color: 'purple',
+  },
   {
     name: 'TDRA Type Approval Certificate',
     description: 'Official UAE telecommunications regulatory authority approval for our IoT devices',
@@ -489,7 +497,7 @@ export default function CompliancePage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {certifications.map((cert) => (
               <div
                 key={`cert-${cert.name}`}
@@ -517,9 +525,10 @@ export default function CompliancePage() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 gap-6">
               {downloadableCertificates.map((cert) => {
                 const colorClasses = {
+                  purple: { bg: 'bg-purple-50', border: 'border-purple-200', icon: 'text-purple-600', hover: 'hover:border-purple-300 hover:bg-purple-50/50', btn: 'bg-purple-600 hover:bg-purple-700' },
                   blue: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-600', hover: 'hover:border-blue-300 hover:bg-blue-50/50', btn: 'bg-blue-600 hover:bg-blue-700' },
                   orange: { bg: 'bg-orange-50', border: 'border-orange-200', icon: 'text-orange-600', hover: 'hover:border-orange-300 hover:bg-orange-50/50', btn: 'bg-orange-600 hover:bg-orange-700' },
                   green: { bg: 'bg-green-50', border: 'border-green-200', icon: 'text-green-600', hover: 'hover:border-green-300 hover:bg-green-50/50', btn: 'bg-green-600 hover:bg-green-700' },
