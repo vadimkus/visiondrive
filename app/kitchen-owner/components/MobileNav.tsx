@@ -41,17 +41,21 @@ export default function MobileNav() {
   }
 
   return (
-    <nav className={`
-      fixed bottom-0 left-0 right-0 z-50 
-      md:hidden
-      safe-area-inset-bottom
-      ${isDark 
-        ? 'bg-[#1d1d1f]/95 border-t border-gray-800' 
-        : 'bg-white/95 border-t border-gray-200'
-      }
-      backdrop-blur-xl
-    `}>
-      <div className="flex items-center justify-around px-2 py-1">
+    <nav 
+      className={`
+        fixed left-0 right-0 z-50 
+        md:hidden
+        ${isDark 
+          ? 'bg-[#1d1d1f] border-t border-gray-800' 
+          : 'bg-white border-t border-gray-200'
+        }
+      `}
+      style={{
+        bottom: 0,
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
+      <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
@@ -62,7 +66,7 @@ export default function MobileNav() {
               onClick={() => handleNavigation(item.href)}
               className="
                 relative flex flex-col items-center justify-center
-                min-w-[64px] py-2 px-3
+                min-w-[64px] py-1.5 px-3
                 transition-transform duration-150
                 active:scale-90
               "
@@ -93,7 +97,6 @@ export default function MobileNav() {
                     text-[10px] font-bold
                     rounded-full
                     px-1
-                    animate-pulse
                   ">
                     {item.badge}
                   </span>
@@ -129,7 +132,7 @@ export default function MobileNav() {
               
               {/* Active indicator dot */}
               <div className={`
-                absolute -bottom-1
+                absolute -bottom-0.5
                 w-1 h-1 rounded-full
                 bg-orange-500
                 transition-all duration-200
@@ -139,9 +142,6 @@ export default function MobileNav() {
           )
         })}
       </div>
-      
-      {/* Home indicator area (for iPhones with notch) */}
-      <div className="h-safe-area-inset-bottom" />
     </nav>
   )
 }

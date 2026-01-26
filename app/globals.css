@@ -31,6 +31,8 @@
     -moz-osx-font-smoothing: grayscale;
     /* Prevent horizontal scroll on mobile */
     overflow-x: hidden;
+    /* Prevent overscroll bounce that moves fixed elements */
+    overscroll-behavior-y: none;
   }
 
   /* Arabic RTL support */
