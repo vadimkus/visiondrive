@@ -299,14 +299,14 @@ export default function OwnerSensors() {
     return (
       <div className={`p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
         <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
+          {/* Back Button - larger touch target on mobile */}
           <button 
             onClick={() => setSelectedSensor(null)}
-            className={`flex items-center gap-2 mb-4 text-sm font-medium transition-colors ${
-              isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'
+            className={`flex items-center gap-2 mb-4 py-2 -ml-2 pl-2 pr-4 rounded-lg text-sm font-medium transition-colors active:scale-95 ${
+              isDark ? 'text-gray-400 hover:text-white active:bg-gray-800' : 'text-gray-500 hover:text-gray-900 active:bg-gray-100'
             }`}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" />
             Back to Sensors
           </button>
 
@@ -448,8 +448,8 @@ export default function OwnerSensors() {
               </p>
             </div>
             
-            {/* Table Header */}
-            <div className={`grid grid-cols-12 gap-2 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider ${
+            {/* Table Header - Hidden on mobile, shown on tablet+ */}
+            <div className={`hidden sm:grid grid-cols-12 gap-2 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider ${
               isDark ? 'bg-gray-800/50 text-gray-400' : 'bg-gray-50 text-gray-500'
             }`}>
               <div className="col-span-3">Time</div>
@@ -463,75 +463,144 @@ export default function OwnerSensors() {
               {readings.map((reading, idx) => (
                 <div 
                   key={idx}
-                  className={`grid grid-cols-12 gap-2 px-4 py-2 text-xs items-center border-b last:border-b-0 ${
+                  className={`px-4 py-3 sm:py-2 border-b last:border-b-0 ${
                     isDark ? 'border-gray-700/50' : 'border-gray-50'
                   } ${getStatusBg(reading.status)}`}
                 >
-                  <div className={`col-span-3 flex items-center gap-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <Clock className="h-3 w-3 opacity-50" />
-                    {reading.time}
-                  </div>
-                  <div className="col-span-3 text-right">
-                    {editingIndex === idx ? (
-                      <div className="flex items-center justify-end gap-1">
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          className={`w-16 px-1.5 py-0.5 text-xs text-right border rounded ${
-                            isDark ? 'bg-[#1a1a1a] border-gray-600 text-white' : 'border-gray-300'
-                          }`}
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveEdit(idx)
-                            if (e.key === 'Escape') { setEditingIndex(null); setEditValue('') }
-                          }}
-                        />
-                        <button 
-                          onClick={() => handleSaveEdit(idx)}
-                          className="p-0.5 text-emerald-500 hover:bg-emerald-500/10 rounded"
-                        >
-                          <Save className="h-3 w-3" />
-                        </button>
-                        <button 
-                          onClick={() => { setEditingIndex(null); setEditValue('') }}
-                          className="p-0.5 text-gray-400 hover:bg-gray-500/10 rounded"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                  {/* Mobile layout - stacked */}
+                  <div className="sm:hidden">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <Clock className="h-3 w-3" />
+                        {reading.time}
                       </div>
-                    ) : (
-                      <span 
-                        className={`font-semibold ${getStatusColor(reading.status)} ${
-                          manualEditEnabled ? 'cursor-pointer hover:underline' : ''
-                        }`}
-                        onClick={() => manualEditEnabled && handleStartEdit(idx, reading.temp)}
-                      >
-                        {reading.temp.toFixed(1)}°C
+                      {reading.status === 'compliant' ? (
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
+                          <CheckCircle className="h-3 w-3" />
+                          OK
+                        </span>
+                      ) : reading.status === 'warning' ? (
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-medium">
+                          <AlertTriangle className="h-3 w-3" />
+                          Warning
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[10px] font-medium">
+                          <X className="h-3 w-3" />
+                          Critical
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-baseline justify-between">
+                      {editingIndex === idx ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className={`w-20 px-2 py-1 text-base border rounded-lg ${
+                              isDark ? 'bg-[#1a1a1a] border-gray-600 text-white' : 'border-gray-300'
+                            }`}
+                            autoFocus
+                          />
+                          <button 
+                            onClick={() => handleSaveEdit(idx)}
+                            className="p-1.5 text-emerald-500 bg-emerald-500/10 rounded-lg"
+                          >
+                            <Save className="h-4 w-4" />
+                          </button>
+                          <button 
+                            onClick={() => { setEditingIndex(null); setEditValue('') }}
+                            className="p-1.5 text-gray-400 bg-gray-500/10 rounded-lg"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span 
+                          className={`text-xl font-bold ${getStatusColor(reading.status)} ${
+                            manualEditEnabled ? 'cursor-pointer active:opacity-70' : ''
+                          }`}
+                          onClick={() => manualEditEnabled && handleStartEdit(idx, reading.temp)}
+                        >
+                          {reading.temp.toFixed(1)}°C
+                        </span>
+                      )}
+                      <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                        Required: {formatRange(selectedSensor.requiredRange)}
                       </span>
-                    )}
+                    </div>
                   </div>
-                  <div className={`col-span-3 text-center text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                    {formatRange(selectedSensor.requiredRange)}
-                  </div>
-                  <div className="col-span-3 flex justify-center">
-                    {reading.status === 'compliant' ? (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
-                        <CheckCircle className="h-2.5 w-2.5" />
-                        OK
-                      </span>
-                    ) : reading.status === 'warning' ? (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-medium">
-                        <AlertTriangle className="h-2.5 w-2.5" />
-                        !
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[10px] font-medium">
-                        <X className="h-2.5 w-2.5" />
-                        !!
-                      </span>
-                    )}
+                  
+                  {/* Desktop layout - grid */}
+                  <div className={`hidden sm:grid grid-cols-12 gap-2 text-xs items-center`}>
+                    <div className={`col-span-3 flex items-center gap-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <Clock className="h-3 w-3 opacity-50" />
+                      {reading.time}
+                    </div>
+                    <div className="col-span-3 text-right">
+                      {editingIndex === idx ? (
+                        <div className="flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className={`w-16 px-1.5 py-0.5 text-xs text-right border rounded ${
+                              isDark ? 'bg-[#1a1a1a] border-gray-600 text-white' : 'border-gray-300'
+                            }`}
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveEdit(idx)
+                              if (e.key === 'Escape') { setEditingIndex(null); setEditValue('') }
+                            }}
+                          />
+                          <button 
+                            onClick={() => handleSaveEdit(idx)}
+                            className="p-0.5 text-emerald-500 hover:bg-emerald-500/10 rounded"
+                          >
+                            <Save className="h-3 w-3" />
+                          </button>
+                          <button 
+                            onClick={() => { setEditingIndex(null); setEditValue('') }}
+                            className="p-0.5 text-gray-400 hover:bg-gray-500/10 rounded"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span 
+                          className={`font-semibold ${getStatusColor(reading.status)} ${
+                            manualEditEnabled ? 'cursor-pointer hover:underline' : ''
+                          }`}
+                          onClick={() => manualEditEnabled && handleStartEdit(idx, reading.temp)}
+                        >
+                          {reading.temp.toFixed(1)}°C
+                        </span>
+                      )}
+                    </div>
+                    <div className={`col-span-3 text-center text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {formatRange(selectedSensor.requiredRange)}
+                    </div>
+                    <div className="col-span-3 flex justify-center">
+                      {reading.status === 'compliant' ? (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
+                          <CheckCircle className="h-2.5 w-2.5" />
+                          OK
+                        </span>
+                      ) : reading.status === 'warning' ? (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-medium">
+                          <AlertTriangle className="h-2.5 w-2.5" />
+                          !
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[10px] font-medium">
+                          <X className="h-2.5 w-2.5" />
+                          !!
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

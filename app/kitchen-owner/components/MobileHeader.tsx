@@ -56,6 +56,8 @@ export default function MobileHeader() {
     if (pathname?.includes('/compliance')) return 'Compliance'
     if (pathname?.includes('/settings')) return 'Settings'
     if (pathname?.includes('/subscription')) return 'Subscription'
+    if (pathname?.includes('/terms')) return 'Terms'
+    if (pathname?.includes('/privacy')) return 'Privacy'
     if (pathname?.includes('/help')) return 'Help'
     return 'Smart Kitchen'
   }
@@ -104,9 +106,9 @@ export default function MobileHeader() {
         </div>
       </header>
 
-      {/* Full-screen Menu Overlay */}
+      {/* Full-screen Menu Overlay - z-60 to be above bottom nav */}
       <div className={`
-        fixed inset-0 z-50
+        fixed inset-0 z-[60]
         transition-all duration-300 ease-out
         md:hidden
         ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}
