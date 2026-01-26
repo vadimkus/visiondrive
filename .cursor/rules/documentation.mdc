@@ -1,0 +1,42 @@
+---
+description: Read project documentation before making changes
+globs:
+alwaysApply: true
+---
+
+# Documentation First Rule
+
+## Required Reading
+
+Before making any changes to this project, you MUST read the relevant documentation:
+
+1. **Start with**: `/AGENTS.md` - AI agent instructions
+2. **Then read**: `/docs/README.md` - Documentation index
+
+## Documentation Location
+
+All documentation is centralized in `/docs/`:
+
+### Key Documents
+- `docs/PROJECT_STRUCTURE.md` - Project architecture
+- `docs/WEBSITE_STRUCTURE_V2.md` - Website structure
+- `docs/IOT_CERTIFICATE_ADDITION.md` - IoT certificate details
+- `docs/TDRA_COMPLIANCE_SUMMARY.md` - Regulatory compliance
+
+### Module Documentation
+- `smartkitchen/docs/` - Smart Kitchen system
+- `Parking/docs/` - Parking system
+
+## Project Context
+
+VisionDrive is a UAE IoT company:
+- **Smart Kitchen**: Temperature monitoring (Dubai Municipality compliant)
+- **Smart Parking**: IoT parking sensors
+- **Compliance**: TDRA certified, UAE data resident (AWS me-central-1)
+
+## Before Making Changes
+
+1. Read relevant docs in `/docs/`
+2. Check existing code patterns
+3. Update documentation if making significant changes
+4. All new .md files go in `/docs/` folder
