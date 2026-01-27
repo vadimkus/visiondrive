@@ -201,15 +201,15 @@ export default function OwnerDashboard() {
           </div>
         )}
 
-        {/* Greeting */}
+        {/* Greeting - Mobile only (desktop has sidebar with time/date) */}
         <div 
-          className={`mb-5 transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+          className={`mb-5 md:hidden transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
           style={{ transitionDelay: '0ms' }}
         >
           <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
-          <h1 className={`text-2xl md:text-3xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Hello, {OWNER_DATA.name} 👋
           </h1>
         </div>
