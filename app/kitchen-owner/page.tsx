@@ -71,7 +71,7 @@ const SENSORS = [
     id: 'sensor-a4',
     name: 'Display Cooler',
     type: 'refrigerator',
-    icon: '🛒',
+    icon: '🧊',
     currentTemp: 6.2,
     requiredRange: { min: 0, max: 5 },
     status: 'warning',

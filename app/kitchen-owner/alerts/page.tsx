@@ -17,7 +17,7 @@ const ALERTS = [
   {
     id: 'alert-1',
     sensor: 'Display Cooler',
-    sensorIcon: '🛒',
+    sensorIcon: '🧊',
     message: 'Temperature above 5°C threshold',
     details: 'Current: 6.2°C | Required: 0-5°C',
     time: '15 minutes ago',
