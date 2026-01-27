@@ -229,21 +229,21 @@ export default function OwnerDashboard() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
                 {overallStatus === 'good' ? (
-                  <div className="w-10 h-10 bg-white/25 rounded-full flex items-center justify-center">
-                    <CheckCircle className="h-6 w-6" />
+                  <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 text-gray-800" />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 bg-white/25 rounded-full flex items-center justify-center">
-                    <AlertTriangle className="h-6 w-6" />
+                  <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="h-6 w-6 text-gray-800" />
                   </div>
                 )}
                 <div>
-                  <h2 className="text-xl font-semibold">
+                  <h2 className="text-xl font-semibold text-gray-900">
                     {overallStatus === 'good' ? 'All Clear' : 
                      overallStatus === 'warning' ? 'Attention Needed' : 
                      'Action Required'}
                   </h2>
-                  <p className="text-white/90 text-sm">
+                  <p className="text-gray-700 text-sm">
                     {overallStatus === 'good' 
                       ? 'All temperatures in safe range' 
                       : `${warningCount + criticalCount} sensor needs attention`}
