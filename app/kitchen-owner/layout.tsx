@@ -48,13 +48,8 @@ export default function KitchenOwnerLayout({ children }: { children: ReactNode }
               {/* Mobile Header - shown only on mobile */}
               <MobileHeader />
               
-              {/* Main Content - extra padding for bottom nav + safe area */}
-              <main 
-                className="flex-1 overflow-auto md:pb-0 overscroll-none"
-                style={{
-                  paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
-                }}
-              >
+              {/* Main Content */}
+              <main className="flex-1 overflow-auto overscroll-none pb-24 md:pb-0">
                 {children}
               </main>
               
