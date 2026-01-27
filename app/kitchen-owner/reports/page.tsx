@@ -17,7 +17,7 @@ import { generateSampleReportData, downloadReport } from '../../../lib/smart-kit
 const SENSORS = [
   { id: 'sensor-1', name: 'Walk-in Fridge', icon: '🚪', compliance: 98, type: 'Cold Storage', serialNumber: 'WIF-2024-001', modelName: 'Dragino PS-NB-UAE' },
   { id: 'sensor-2', name: 'Main Freezer', icon: '❄️', compliance: 100, type: 'Freezer', serialNumber: 'MFZ-2024-002', modelName: 'Dragino PS-NB-UAE' },
-  { id: 'sensor-3', name: 'Prep Fridge', icon: '🥗', compliance: 95, type: 'Prep Cold Storage', serialNumber: 'PRF-2024-003', modelName: 'Dragino PS-NB-UAE' },
+  { id: 'sensor-3', name: 'Prep Fridge', icon: '🥶', compliance: 95, type: 'Prep Cold Storage', serialNumber: 'PRF-2024-003', modelName: 'Dragino PS-NB-UAE' },
   { id: 'sensor-4', name: 'Display Cooler', icon: '🧊', compliance: 87, type: 'Display Refrigeration', serialNumber: 'DSC-2024-004', modelName: 'Dragino PS-NB-UAE' },
 ]
 
