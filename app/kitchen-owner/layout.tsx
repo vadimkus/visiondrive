@@ -49,7 +49,7 @@ export default function KitchenOwnerLayout({ children }: { children: ReactNode }
               <MobileHeader />
               
               {/* Main Content */}
-              <main className="flex-1 overflow-auto overscroll-none pb-24 md:pb-0">
+              <main className="flex-1 overflow-auto overscroll-none pb-24 md:pb-8">
                 {children}
               </main>
               

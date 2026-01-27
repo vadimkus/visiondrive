@@ -169,7 +169,7 @@ export default function OwnerHelp() {
   const isDark = theme === 'dark'
   
   return (
-    <div className={`p-5 md:p-8 lg:p-10 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+    <div className={`p-5 md:p-8 lg:p-10 pb-12 md:pb-16 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
       <div className="max-w-4xl mx-auto">
         {/* Page Header */}
         <div className="mb-6">

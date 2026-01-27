@@ -180,7 +180,7 @@ export default function OwnerDashboard() {
 
   return (
     <div className={`min-h-full transition-colors duration-300 ${isDark ? 'bg-[#000000]' : 'bg-[#f5f5f7]'}`}>
-      <div className="max-w-2xl mx-auto px-4 py-4 md:px-6 md:py-6 pb-28">
+      <div className="max-w-2xl mx-auto px-4 py-4 md:px-6 md:py-6 pb-28 md:pb-16">
         
         {/* Pull to refresh indicator */}
         {isRefreshing && (

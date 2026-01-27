@@ -157,7 +157,7 @@ export default function PrivacyPage() {
   )
 
   return (
-    <div className={`p-5 md:p-7 lg:p-9 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+    <div className={`p-5 md:p-7 lg:p-9 pb-12 md:pb-16 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
       <div className="max-w-4xl mx-auto">
         {/* Page Header */}
         <div className="mb-6">

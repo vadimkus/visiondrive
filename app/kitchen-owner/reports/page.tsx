@@ -129,7 +129,7 @@ export default function OwnerReports() {
   }
 
   return (
-    <div className={`p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
+    <div className={`p-4 md:p-6 lg:p-8 pb-12 md:pb-16 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
       <div className="max-w-4xl mx-auto">
         {/* Page Header */}
         <div className="mb-4">
