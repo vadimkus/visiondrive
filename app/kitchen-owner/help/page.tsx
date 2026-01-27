@@ -54,7 +54,7 @@ const FAQ_CATEGORIES = [
       },
       {
         question: 'How long do sensor batteries last?',
-        answer: 'Sensor batteries typically last 2-3 years under normal conditions. Battery level is shown in My Equipment. We\'ll alert you when battery is below 20%.',
+        answer: 'Sensor batteries typically last 2-3 years under normal conditions. Battery level is shown in Equipment. We\'ll alert you when battery is below 20%.',
       },
       {
         question: 'Can I add more sensors?',
@@ -112,7 +112,7 @@ const FAQ_CATEGORIES = [
       },
       {
         question: 'Can I export data to Excel?',
-        answer: 'Yes, from My Equipment > select sensor > Export CSV. This provides raw temperature data with timestamps for your own analysis.',
+        answer: 'Yes, from Equipment > select sensor > Export CSV. This provides raw temperature data with timestamps for your own analysis.',
       },
     ],
   },

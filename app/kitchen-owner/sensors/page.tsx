@@ -627,7 +627,7 @@ export default function OwnerSensors() {
         {/* Page Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>My Equipment</h1>
+            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Equipment</h1>
             <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Click equipment to view detailed stats</p>
           </div>
           
