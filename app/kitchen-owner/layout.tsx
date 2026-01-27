@@ -33,23 +33,25 @@ export default function KitchenOwnerLayout({ children }: { children: ReactNode }
     <ThemeProvider>
       <SettingsProvider>
         <AuthGuard>
-          <div className="flex min-h-screen bg-[#f5f5f7] dark:bg-[#1a1a1a] transition-colors duration-300">
+          <div className="flex h-screen overflow-hidden bg-[#f5f5f7] dark:bg-[#1a1a1a] transition-colors duration-300">
             {/* Desktop Sidebar - hidden on mobile */}
-            <div className="hidden md:block">
+            <div className="hidden md:block flex-shrink-0">
               <OwnerSidebar />
             </div>
             
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 h-full">
               {/* Desktop Header - hidden on mobile */}
-              <div className="hidden md:block">
+              <div className="hidden md:block flex-shrink-0">
                 <OwnerHeader />
               </div>
               
               {/* Mobile Header - shown only on mobile */}
-              <MobileHeader />
+              <div className="flex-shrink-0">
+                <MobileHeader />
+              </div>
               
-              {/* Main Content */}
-              <main className="flex-1 overflow-auto overscroll-none pb-24 md:pb-8">
+              {/* Main Content - scrollable area */}
+              <main className="flex-1 overflow-y-auto overscroll-none pb-24 md:pb-8">
                 {children}
               </main>
               
