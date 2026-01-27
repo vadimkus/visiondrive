@@ -112,36 +112,6 @@ export default function OwnerSidebar() {
             {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </p>
         </div>
-
-        {/* Active Sensors Status */}
-        <div className={`mt-3 px-3 py-2.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {SENSORS_DATA.online === SENSORS_DATA.total ? (
-                <Wifi className={`h-4 w-4 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
-              ) : (
-                <WifiOff className={`h-4 w-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-              )}
-              <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                Sensors
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className={`text-sm font-semibold tabular-nums ${
-                SENSORS_DATA.online === SENSORS_DATA.total
-                  ? isDark ? 'text-emerald-400' : 'text-emerald-600'
-                  : isDark ? 'text-amber-400' : 'text-amber-600'
-              }`}>
-                {SENSORS_DATA.online}/{SENSORS_DATA.total}
-              </span>
-              <span className={`w-2 h-2 rounded-full ${
-                SENSORS_DATA.online === SENSORS_DATA.total
-                  ? 'bg-emerald-500'
-                  : 'bg-amber-500 animate-pulse'
-              }`} />
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Main Navigation */}
@@ -150,6 +120,8 @@ export default function OwnerSidebar() {
           {navItems.map((item) => {
             const Icon = item.icon
             const active = isActive(item.href)
+            const isEquipment = item.id === 'sensors'
+            const allOnline = SENSORS_DATA.online === SENSORS_DATA.total
             
             return (
               <button
@@ -163,6 +135,21 @@ export default function OwnerSidebar() {
               >
                 <Icon className={`h-5 w-5 ${active ? 'text-orange-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                 <span className="flex-1 text-left">{item.label}</span>
+                {/* Equipment status indicator */}
+                {isEquipment && (
+                  <div className="flex items-center gap-1.5">
+                    {allOnline ? (
+                      <Wifi className="h-3.5 w-3.5 text-emerald-500" />
+                    ) : (
+                      <WifiOff className="h-3.5 w-3.5 text-amber-500" />
+                    )}
+                    <span className={`text-xs font-semibold tabular-nums ${
+                      allOnline ? 'text-emerald-500' : 'text-amber-500'
+                    }`}>
+                      {SENSORS_DATA.online}/{SENSORS_DATA.total}
+                    </span>
+                  </div>
+                )}
                 {item.badge && item.badge > 0 && (
                   <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-medium rounded-full">
                     {item.badge}
