@@ -16,6 +16,8 @@ import {
   Lock,
   CreditCard,
   ScrollText,
+  Wifi,
+  WifiOff,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
@@ -24,6 +26,12 @@ const OWNER_DATA = {
   email: 'abdul@kitchen.ae',
   kitchen: "Abdul's Kitchen",
   initial: 'A',
+}
+
+// Sensor data - should match dashboard
+const SENSORS_DATA = {
+  total: 5,
+  online: 5,
 }
 
 const navItems = [
@@ -103,6 +111,36 @@ export default function OwnerSidebar() {
           <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </p>
+        </div>
+
+        {/* Active Sensors Status */}
+        <div className={`mt-3 px-3 py-2.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {SENSORS_DATA.online === SENSORS_DATA.total ? (
+                <Wifi className={`h-4 w-4 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
+              ) : (
+                <WifiOff className={`h-4 w-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+              )}
+              <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                Sensors
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={`text-sm font-semibold tabular-nums ${
+                SENSORS_DATA.online === SENSORS_DATA.total
+                  ? isDark ? 'text-emerald-400' : 'text-emerald-600'
+                  : isDark ? 'text-amber-400' : 'text-amber-600'
+              }`}>
+                {SENSORS_DATA.online}/{SENSORS_DATA.total}
+              </span>
+              <span className={`w-2 h-2 rounded-full ${
+                SENSORS_DATA.online === SENSORS_DATA.total
+                  ? 'bg-emerald-500'
+                  : 'bg-amber-500 animate-pulse'
+              }`} />
+            </div>
+          </div>
         </div>
       </div>
 
