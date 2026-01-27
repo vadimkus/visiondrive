@@ -47,17 +47,6 @@ const ALERTS = [
     severity: 'warning',
     acknowledged: true,
   },
-  {
-    id: 'alert-4',
-    sensor: 'Hot Holding',
-    sensorIcon: '🔥',
-    message: 'Temperature stable in safe range',
-    details: 'Current: 68.5°C | Required: ≥60°C',
-    time: '3 days ago',
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    severity: 'info',
-    acknowledged: true,
-  },
 ]
 
 export default function OwnerAlerts() {

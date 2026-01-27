@@ -30,8 +30,8 @@ const OWNER_DATA = {
 
 // Sensor data - should match dashboard
 const SENSORS_DATA = {
-  total: 5,
-  online: 5,
+  total: 4,
+  online: 4,
 }
 
 const navItems = [

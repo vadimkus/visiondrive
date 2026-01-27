@@ -107,21 +107,6 @@ const SENSORS: Sensor[] = [
     model: 'Turbo Air TOM-40',
     serialNumber: 'TAR-2023-90215',
   },
-  {
-    id: 'sensor-a5',
-    name: 'Hot Holding',
-    location: 'Service Area',
-    icon: '🔥',
-    currentTemp: 68.5,
-    requiredRange: { min: 60 },
-    status: 'compliant',
-    lastUpdate: '2 min ago',
-    online: true,
-    battery: 88,
-    signal: 'strong',
-    model: 'Alto-Shaam 500-HW',
-    serialNumber: 'ASH-2024-33467',
-  },
 ]
 
 // Generate mock readings for a sensor

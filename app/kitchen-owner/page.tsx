@@ -79,18 +79,6 @@ const SENSORS = [
     online: true,
     battery: 65,
   },
-  {
-    id: 'sensor-a5',
-    name: 'Hot Holding',
-    type: 'hot_holding',
-    icon: '🔥',
-    currentTemp: 68.5,
-    requiredRange: { min: 60 },
-    status: 'compliant',
-    lastUpdate: '2 min ago',
-    online: true,
-    battery: 88,
-  },
 ]
 
 // Initial alerts data

@@ -164,7 +164,6 @@ const termsData: TermsSection[] = [
       'DEFAULT TEMPERATURE THRESHOLDS (per DM Guidelines):',
       '• Cold Storage (Fridges): 0°C to 5°C',
       '• Freezer Storage: ≤ -18°C',
-      '• Hot Holding: ≥ 60°C',
       '• Danger Zone Alert: 5°C to 60°C (immediate alert)',
       '',
       'ALERT TYPES:',

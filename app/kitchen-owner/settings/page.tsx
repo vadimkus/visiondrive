@@ -41,7 +41,6 @@ const initialEquipment: Equipment[] = [
   { id: 'eq-2', name: 'Main Freezer', icon: '❄️', model: 'Liebherr GGv 5060', serialNumber: 'LBH-2022-78341', sensorId: 'PS-NB-002' },
   { id: 'eq-3', name: 'Prep Fridge', icon: '🔪', model: 'Hoshizaki CR1S-FS', serialNumber: 'HSK-2024-12076', sensorId: 'PS-NB-003' },
   { id: 'eq-4', name: 'Display Cooler', icon: '🛒', model: 'Turbo Air TOM-40', serialNumber: 'TAR-2023-90215', sensorId: 'PS-NB-004' },
-  { id: 'eq-5', name: 'Hot Holding', icon: '🔥', model: 'Alto-Shaam 500-HW', serialNumber: 'ASH-2023-33987', sensorId: 'PS-NB-005' },
 ]
 
 export default function OwnerSettings() {
@@ -64,7 +63,6 @@ export default function OwnerSettings() {
     fridgeMin: 0,
     fridgeMax: 5,
     freezerMax: -18,
-    hotHoldingMin: 60,
   })
 
   // WhatsApp Integration - Support up to 4 numbers
@@ -491,15 +489,6 @@ export default function OwnerSettings() {
                     type="number" 
                     value={thresholds.freezerMax}
                     onChange={(e) => setThresholds({ ...thresholds, freezerMax: Number(e.target.value) })}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={`block text-[10px] mb-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Hot Holding Min</label>
-                  <input 
-                    type="number" 
-                    value={thresholds.hotHoldingMin}
-                    onChange={(e) => setThresholds({ ...thresholds, hotHoldingMin: Number(e.target.value) })}
                     className={inputClass}
                   />
                 </div>

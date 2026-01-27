@@ -23,15 +23,6 @@ const DM_REQUIREMENTS = [
     status: 'compliant',
   },
   {
-    id: 'hot-holding',
-    name: 'Hot Holding',
-    arabicName: 'حفظ ساخن',
-    emoji: '🔥',
-    requirement: '≥ 60°C',
-    description: 'Bain-marie, hot display, warming stations',
-    status: 'compliant',
-  },
-  {
     id: 'danger-zone',
     name: 'Danger Zone',
     arabicName: 'منطقة الخطر',

@@ -19,7 +19,6 @@ const SENSORS = [
   { id: 'sensor-2', name: 'Main Freezer', icon: '❄️', compliance: 100, type: 'Freezer', serialNumber: 'MFZ-2024-002', modelName: 'Dragino PS-NB-UAE' },
   { id: 'sensor-3', name: 'Prep Fridge', icon: '🔪', compliance: 95, type: 'Prep Cold Storage', serialNumber: 'PRF-2024-003', modelName: 'Dragino PS-NB-UAE' },
   { id: 'sensor-4', name: 'Display Cooler', icon: '🛒', compliance: 87, type: 'Display Refrigeration', serialNumber: 'DSC-2024-004', modelName: 'Dragino PS-NB-UAE' },
-  { id: 'sensor-5', name: 'Hot Holding', icon: '🔥', compliance: 99, type: 'Hot Holding Unit', serialNumber: 'HHU-2024-005', modelName: 'Dragino PS-NB-UAE' },
 ]
 
 // Time periods
