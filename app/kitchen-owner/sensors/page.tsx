@@ -81,7 +81,7 @@ const SENSORS: Sensor[] = [
     id: 'sensor-a3',
     name: 'Prep Fridge',
     location: 'Prep Area',
-    icon: '🥶',
+    icon: '🌡️',
     currentTemp: 4.8,
     requiredRange: { min: 0, max: 5 },
     status: 'compliant',

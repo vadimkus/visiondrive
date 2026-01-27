@@ -39,7 +39,7 @@ interface Equipment {
 const initialEquipment: Equipment[] = [
   { id: 'eq-1', name: 'Walk-in Fridge', icon: '🚪', model: 'True TWT-48SD', serialNumber: 'TWI-2023-45892', sensorId: 'PS-NB-001' },
   { id: 'eq-2', name: 'Main Freezer', icon: '❄️', model: 'Liebherr GGv 5060', serialNumber: 'LBH-2022-78341', sensorId: 'PS-NB-002' },
-  { id: 'eq-3', name: 'Prep Fridge', icon: '🥶', model: 'Hoshizaki CR1S-FS', serialNumber: 'HSK-2024-12076', sensorId: 'PS-NB-003' },
+  { id: 'eq-3', name: 'Prep Fridge', icon: '🌡️', model: 'Hoshizaki CR1S-FS', serialNumber: 'HSK-2024-12076', sensorId: 'PS-NB-003' },
   { id: 'eq-4', name: 'Display Cooler', icon: '🧊', model: 'Turbo Air TOM-40', serialNumber: 'TAR-2023-90215', sensorId: 'PS-NB-004' },
 ]
 
