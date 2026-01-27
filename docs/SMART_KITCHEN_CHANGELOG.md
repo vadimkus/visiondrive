@@ -1,5 +1,102 @@
 # Smart Kitchen Portal - Development Changelog
 
+## January 27, 2026
+
+### Kitchen Owner Portal - Major UI/UX Updates
+
+#### Dashboard Status Card Improvements
+
+**Color-Coded Stats (`10bba75`, `0773a3d`)**
+- Stats buttons now change color based on status:
+  - **Compliance**: Green (90%+), Amber (70-89%), Red (<70%)
+  - **Online**: Green (all sensors), Amber (partial), Red (none)
+  - **Alerts**: Green (0), Amber (1-2), Red (3+)
+- Status card header text changed to dark/black for better contrast
+- Icon backgrounds updated to `bg-white/40` for visibility
+
+**Softer Color Palette (`032c744`)**
+- Reduced saturation on warning card (amber-400/500 instead of amber-500/orange-500)
+- Softer gradients with teal undertones for 'good' state
+- Reduced shadow intensity (20% instead of 30%)
+- Better text contrast with white/90
+
+#### Equipment Management Updates
+
+**Sensor Removal (`82a9b82`)**
+- Removed "Hot Holding" sensor from entire portal
+- Updated sensor count from 5 to 4 in sidebar
+- Removed Hot Holding Min threshold from settings
+- Updated all pages: dashboard, sensors, settings, reports, compliance, alerts, terms
+
+**Emoji Updates**
+| Equipment | Old | New | Commit |
+|-----------|-----|-----|--------|
+| Display Cooler | 🛒 | 🧊 | `1b28d15` |
+| Prep Fridge | 🔪 | 🌡️ | `2fb6558` |
+
+**Naming Changes (`f257b65`)**
+- Renamed "My Equipment" to "Equipment" across all pages
+
+#### Sidebar Improvements
+
+**Sensor Status Indicator (`b8782d8`, `fdd2434`)**
+- Moved sensor count to Equipment nav item line
+- Shows wifi icon + count (e.g., "📶 4/4")
+- Green wifi when all online, amber wifi-off when some offline
+
+**Greeting Section (`39a1644`)**
+- Hidden on desktop (sidebar already has time/user info)
+- Still visible on mobile where there's no sidebar
+
+#### Desktop Layout Fixes
+
+**Page Scrolling Fix (`10caabe`)**
+- Changed `min-h-screen` to `h-screen overflow-hidden` on outer container
+- Added `flex-shrink-0` to sidebar and headers
+- Added `h-full` to content wrapper
+- Changed `overflow-auto` to `overflow-y-auto` for explicit vertical scroll
+
+**Page Clipping Fix (`55f0eef`, `fadfe2e`)**
+- Added `pb-12 md:pb-16` bottom padding to all pages:
+  - Settings, Reports, Alerts, Compliance
+  - Sensors, Terms, Subscription
+  - Help, Privacy, Dashboard
+- Layout: Changed `md:pb-0` to `md:pb-8` for scroll room
+
+#### Admin Portal Rework (`b3cd33b`)
+
+**Dashboard Redesign**
+- Apple-like professional design
+- Stats grid: Total Kitchens, Sensors Online, Monthly Revenue, Alerts Today
+- Kitchen overview table with equipment status, compliance, subscription, revenue
+- Right column: Revenue by Plan, Equipment Health, Payment Status alerts
+
+**Sidebar Updates**
+- System status banner showing online sensors and uptime
+- Navigation grouped into Monitor, Analytics, System sections
+- Consolidated footer with theme toggle and user info
+
+**Header Simplification**
+- Dynamic page title
+- Search bar with ⌘K shortcut
+- Connection status and notifications
+- Current time display
+
+#### Mobile UI Improvements
+
+**CSS Transitions (`cff3a4e`)**
+- Replaced Framer Motion with pure CSS transitions (Next.js 16 compatibility)
+- Staggered animations using `transitionDelay`
+- Touch feedback with `active:scale-[0.98]`
+
+**Footer Stability (`fbe690d`)**
+- Fixed footer jumping on iOS Safari
+- Used inline styles for safe area handling
+- Added `overscroll-behavior-y: none` to body
+- Solid backgrounds instead of backdrop-blur
+
+---
+
 ## January 13, 2026
 
 ### PDF Compliance Reports
