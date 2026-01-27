@@ -214,18 +214,24 @@ export default function OwnerDashboard() {
           </h1>
         </div>
 
-        {/* Status Card */}
+        {/* Status Card - Softer, more professional colors */}
         <div 
           className={`
             rounded-3xl p-5 mb-5 
             ${overallStatus === 'good' 
-              ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' 
+              ? isDark 
+                ? 'bg-gradient-to-br from-emerald-600/90 to-teal-700/90' 
+                : 'bg-gradient-to-br from-emerald-400 to-teal-500'
               : overallStatus === 'warning' 
-                ? 'bg-gradient-to-br from-amber-500 to-orange-500' 
-                : 'bg-gradient-to-br from-red-500 to-red-600'
+                ? isDark
+                  ? 'bg-gradient-to-br from-amber-600/80 to-orange-700/80'
+                  : 'bg-gradient-to-br from-amber-400 to-amber-500'
+                : isDark
+                  ? 'bg-gradient-to-br from-red-600/90 to-rose-700/90'
+                  : 'bg-gradient-to-br from-red-400 to-rose-500'
             } 
             text-white shadow-lg
-            ${overallStatus === 'good' ? 'shadow-emerald-500/30' : overallStatus === 'warning' ? 'shadow-orange-500/30' : 'shadow-red-500/30'}
+            ${overallStatus === 'good' ? 'shadow-emerald-500/20' : overallStatus === 'warning' ? 'shadow-amber-500/20' : 'shadow-red-500/20'}
             transition-all duration-500 active:scale-[0.98]
             ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'}
           `}
@@ -235,11 +241,11 @@ export default function OwnerDashboard() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
                 {overallStatus === 'good' ? (
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-white/25 rounded-full flex items-center justify-center">
                     <CheckCircle className="h-6 w-6" />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                  <div className="w-10 h-10 bg-white/25 rounded-full flex items-center justify-center">
                     <AlertTriangle className="h-6 w-6" />
                   </div>
                 )}
@@ -249,7 +255,7 @@ export default function OwnerDashboard() {
                      overallStatus === 'warning' ? 'Attention Needed' : 
                      'Action Required'}
                   </h2>
-                  <p className="text-white/80 text-sm">
+                  <p className="text-white/90 text-sm">
                     {overallStatus === 'good' 
                       ? 'All temperatures in safe range' 
                       : `${warningCount + criticalCount} sensor needs attention`}
@@ -268,10 +274,10 @@ export default function OwnerDashboard() {
             ].map((stat, i) => (
               <div 
                 key={stat.label}
-                className="flex-1 bg-white/15 backdrop-blur rounded-2xl px-4 py-3 text-center"
+                className="flex-1 bg-white/20 rounded-2xl px-4 py-3 text-center"
               >
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-xs text-white/70 mt-0.5">{stat.label}</p>
+                <p className="text-2xl font-bold text-white">{stat.value}</p>
+                <p className="text-xs text-white/80 mt-0.5">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -283,9 +289,9 @@ export default function OwnerDashboard() {
           style={{ transitionDelay: '100ms' }}
         >
           {[
-            { icon: FileText, label: 'Reports', color: 'from-blue-500 to-blue-600', shadow: 'shadow-blue-500/30', path: '/kitchen-owner/reports' },
-            { icon: TrendingUp, label: 'History', color: 'from-purple-500 to-purple-600', shadow: 'shadow-purple-500/30', path: '/kitchen-owner/sensors' },
-            { icon: Shield, label: 'Compliance', color: 'from-emerald-500 to-emerald-600', shadow: 'shadow-emerald-500/30', path: '/kitchen-owner/compliance' },
+            { icon: FileText, label: 'Reports', color: isDark ? 'from-blue-600 to-blue-700' : 'from-blue-400 to-blue-500', shadow: 'shadow-blue-500/20', path: '/kitchen-owner/reports' },
+            { icon: TrendingUp, label: 'History', color: isDark ? 'from-violet-600 to-purple-700' : 'from-violet-400 to-purple-500', shadow: 'shadow-purple-500/20', path: '/kitchen-owner/sensors' },
+            { icon: Shield, label: 'Compliance', color: isDark ? 'from-emerald-600 to-teal-700' : 'from-emerald-400 to-teal-500', shadow: 'shadow-emerald-500/20', path: '/kitchen-owner/compliance' },
           ].map((action) => (
             <button 
               key={action.label}
@@ -301,7 +307,7 @@ export default function OwnerDashboard() {
                 w-12 h-12 mx-auto rounded-2xl mb-2
                 flex items-center justify-center
                 bg-gradient-to-br ${action.color}
-                shadow-lg ${action.shadow}
+                shadow-md ${action.shadow}
               `}>
                 <action.icon className="h-6 w-6 text-white" />
               </div>
