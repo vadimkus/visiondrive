@@ -253,21 +253,49 @@ export default function OwnerDashboard() {
             </div>
           </div>
           
-          {/* Stats Row */}
+          {/* Stats Row - Color coded by status */}
           <div className="flex items-center gap-3 mt-4">
-            {[
-              { value: `${complianceRate}%`, label: 'Compliance' },
-              { value: `${onlineCount}/${SENSORS.length}`, label: 'Online' },
-              { value: unacknowledgedAlerts, label: 'Alerts' },
-            ].map((stat, i) => (
-              <div 
-                key={stat.label}
-                className="flex-1 bg-white/20 rounded-2xl px-4 py-3 text-center"
-              >
-                <p className="text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-xs text-white/80 mt-0.5">{stat.label}</p>
-              </div>
-            ))}
+            {/* Compliance */}
+            <div 
+              className={`flex-1 rounded-2xl px-4 py-3 text-center ${
+                complianceRate >= 90 
+                  ? 'bg-emerald-500/90' 
+                  : complianceRate >= 70 
+                    ? 'bg-amber-500/90' 
+                    : 'bg-red-500/90'
+              }`}
+            >
+              <p className="text-2xl font-bold text-white">{complianceRate}%</p>
+              <p className="text-xs text-white/90 mt-0.5">Compliance</p>
+            </div>
+            
+            {/* Online Sensors */}
+            <div 
+              className={`flex-1 rounded-2xl px-4 py-3 text-center ${
+                onlineCount === SENSORS.length 
+                  ? 'bg-emerald-500/90' 
+                  : onlineCount > 0 
+                    ? 'bg-amber-500/90' 
+                    : 'bg-red-500/90'
+              }`}
+            >
+              <p className="text-2xl font-bold text-white">{onlineCount}/{SENSORS.length}</p>
+              <p className="text-xs text-white/90 mt-0.5">Online</p>
+            </div>
+            
+            {/* Alerts */}
+            <div 
+              className={`flex-1 rounded-2xl px-4 py-3 text-center ${
+                unacknowledgedAlerts === 0 
+                  ? 'bg-emerald-500/90' 
+                  : unacknowledgedAlerts <= 2 
+                    ? 'bg-amber-500/90' 
+                    : 'bg-red-500/90'
+              }`}
+            >
+              <p className="text-2xl font-bold text-white">{unacknowledgedAlerts}</p>
+              <p className="text-xs text-white/90 mt-0.5">Alerts</p>
+            </div>
           </div>
         </div>
 
