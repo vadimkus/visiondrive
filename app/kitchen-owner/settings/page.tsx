@@ -664,7 +664,6 @@ export default function OwnerSettings() {
           <Section title="Advanced" icon={Edit3} isDark={isDark}>
             <ToggleRow 
               label="Manual Temperature Editing" 
-              description="Allow amendments to sensor readings for compliance adjustments"
               enabled={manualEditEnabled} 
               onChange={setManualEditEnabled} 
               isDark={isDark} 
