@@ -275,9 +275,7 @@ export default function OwnerDashboard() {
               className={`flex-1 rounded-2xl px-4 py-3 text-center ${
                 unacknowledgedAlerts === 0 
                   ? 'bg-emerald-500/90' 
-                  : unacknowledgedAlerts <= 2 
-                    ? 'bg-amber-500/90' 
-                    : 'bg-red-500/90'
+                  : 'bg-red-500/90'
               }`}
             >
               <p className="text-2xl font-bold text-white">{unacknowledgedAlerts}</p>
