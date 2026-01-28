@@ -16,7 +16,7 @@ const ACTIVE_SENSORS = 5
 
 const navItems = [
   { id: 'dashboard', label: 'Home', icon: LayoutDashboard, href: '/kitchen-owner' },
-  { id: 'sensors', label: 'Sensors', icon: Thermometer, href: '/kitchen-owner/sensors', sensorCount: ACTIVE_SENSORS },
+  { id: 'equipment', label: 'Equipment', icon: Thermometer, href: '/kitchen-owner/equipment', sensorCount: ACTIVE_SENSORS },
   { id: 'alerts', label: 'Alerts', icon: Bell, href: '/kitchen-owner/alerts', badge: 1 },
   { id: 'reports', label: 'Reports', icon: FileText, href: '/kitchen-owner/reports' },
   { id: 'profile', label: 'Profile', icon: User, href: '/kitchen-owner/settings' },

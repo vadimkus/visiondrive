@@ -36,7 +36,7 @@ const SENSORS_DATA = {
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/kitchen-owner' },
-  { id: 'sensors', label: 'Equipment', icon: Thermometer, href: '/kitchen-owner/sensors' },
+  { id: 'equipment', label: 'Equipment', icon: Thermometer, href: '/kitchen-owner/equipment' },
   { id: 'alerts', label: 'Alerts', icon: Bell, href: '/kitchen-owner/alerts', badge: 1 },
   { id: 'reports', label: 'Reports', icon: FileText, href: '/kitchen-owner/reports' },
   { id: 'compliance', label: 'DM Compliance', icon: Shield, href: '/kitchen-owner/compliance' },
@@ -120,7 +120,7 @@ export default function OwnerSidebar() {
           {navItems.map((item) => {
             const Icon = item.icon
             const active = isActive(item.href)
-            const isEquipment = item.id === 'sensors'
+            const isEquipment = item.id === 'equipment'
             const allOnline = SENSORS_DATA.online === SENSORS_DATA.total
             
             return (

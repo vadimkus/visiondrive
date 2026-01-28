@@ -291,7 +291,7 @@ export default function OwnerDashboard() {
         >
           {[
             { icon: FileText, label: 'Reports', color: isDark ? 'from-blue-600 to-blue-700' : 'from-blue-400 to-blue-500', shadow: 'shadow-blue-500/20', path: '/kitchen-owner/reports' },
-            { icon: TrendingUp, label: 'History', color: isDark ? 'from-violet-600 to-purple-700' : 'from-violet-400 to-purple-500', shadow: 'shadow-purple-500/20', path: '/kitchen-owner/sensors' },
+            { icon: TrendingUp, label: 'History', color: isDark ? 'from-violet-600 to-purple-700' : 'from-violet-400 to-purple-500', shadow: 'shadow-purple-500/20', path: '/kitchen-owner/equipment' },
             { icon: Shield, label: 'Compliance', color: isDark ? 'from-emerald-600 to-teal-700' : 'from-emerald-400 to-teal-500', shadow: 'shadow-emerald-500/20', path: '/kitchen-owner/compliance' },
           ].map((action) => (
             <button 
@@ -327,7 +327,7 @@ export default function OwnerDashboard() {
               Your Sensors
             </h2>
             <button 
-              onClick={() => handleNavigation('/kitchen-owner/sensors')}
+              onClick={() => handleNavigation('/kitchen-owner/equipment')}
               className="text-sm text-orange-500 font-medium flex items-center gap-0.5 active:opacity-70"
             >
               See All

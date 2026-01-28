@@ -75,7 +75,7 @@ export default function MobileHeader() {
 
   const getPageTitle = () => {
     if (pathname === '/kitchen-owner') return 'Dashboard'
-    if (pathname?.includes('/sensors')) return 'My Sensors'
+    if (pathname?.includes('/equipment')) return 'Equipment'
     if (pathname?.includes('/alerts')) return 'Alerts'
     if (pathname?.includes('/reports')) return 'Reports'
     if (pathname?.includes('/compliance')) return 'Compliance'
