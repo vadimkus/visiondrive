@@ -6,10 +6,7 @@ import {
   WifiOff, 
   CheckCircle, 
   AlertTriangle,
-  Battery,
   ChevronRight,
-  Filter,
-  X,
   ArrowLeft,
   Download,
   TrendingUp,
@@ -18,8 +15,9 @@ import {
   Thermometer,
   Edit3,
   Save,
-  Info,
-  Hash,
+  X,
+  Battery,
+  Activity,
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useSettings } from '../context/SettingsContext'
@@ -178,7 +176,7 @@ const generateReadings = (sensor: Sensor, period: string): ReadingEntry[] => {
   return readings
 }
 
-export default function OwnerSensors() {
+export default function EquipmentPage() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const { manualEditEnabled } = useSettings()
@@ -202,16 +200,7 @@ export default function OwnerSensors() {
     }
   }
 
-  const getStatusBg = (status: string) => {
-    switch (status) {
-      case 'compliant': return isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'
-      case 'warning': return isDark ? 'bg-amber-900/20' : 'bg-amber-50'
-      case 'critical': return isDark ? 'bg-red-900/20' : 'bg-red-50'
-      default: return isDark ? 'bg-gray-800' : 'bg-gray-50'
-    }
-  }
-
-  const formatTemp = (temp: number) => `${temp.toFixed(1)}°C`
+  const formatTemp = (temp: number) => `${temp.toFixed(1)}°`
 
   const formatRange = (range: { min?: number; max?: number }) => {
     if (range.min !== undefined && range.max !== undefined) {
@@ -222,6 +211,27 @@ export default function OwnerSensors() {
       return `≤ ${range.max}°C`
     }
     return ''
+  }
+
+  // Calculate temperature position for visual indicator (0-100%)
+  const getTempPosition = (sensor: Sensor) => {
+    const { min, max } = sensor.requiredRange
+    const temp = sensor.currentTemp
+    
+    if (min !== undefined && max !== undefined) {
+      // For fridges: map temp to position within safe zone
+      const safeMin = min - 3
+      const safeMax = max + 3
+      const position = ((temp - safeMin) / (safeMax - safeMin)) * 100
+      return Math.max(0, Math.min(100, position))
+    } else if (max !== undefined) {
+      // For freezers: map from very cold to threshold
+      const safeMin = max - 10
+      const safeMax = max + 5
+      const position = ((temp - safeMin) / (safeMax - safeMin)) * 100
+      return Math.max(0, Math.min(100, position))
+    }
+    return 50
   }
 
   const handleSelectSensor = (sensor: Sensor) => {
@@ -279,95 +289,150 @@ export default function OwnerSensors() {
     critical: readings.filter(r => r.status === 'critical').length,
   } : null
 
-  // Sensor Detail View
+  const onlineCount = SENSORS.filter(s => s.online).length
+  const warningCount = SENSORS.filter(s => s.status === 'warning').length
+  const compliantCount = SENSORS.filter(s => s.status === 'compliant').length
+
+  // Equipment Detail View
   if (selectedSensor) {
     return (
-      <div className={`p-4 md:p-6 lg:p-8 pb-12 md:pb-16 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button - larger touch target on mobile */}
+      <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#000000]' : 'bg-[#f5f5f7]'}`}>
+        <div className="max-w-5xl mx-auto px-8 py-10">
+          {/* Back Navigation */}
           <button 
             onClick={() => setSelectedSensor(null)}
-            className={`flex items-center gap-2 mb-4 py-2 -ml-2 pl-2 pr-4 rounded-lg text-sm font-medium transition-colors active:scale-95 ${
-              isDark ? 'text-gray-400 hover:text-white active:bg-gray-800' : 'text-gray-500 hover:text-gray-900 active:bg-gray-100'
+            className={`group flex items-center gap-2 mb-8 text-base font-medium transition-colors ${
+              isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
             }`}
           >
-            <ArrowLeft className="h-5 w-5" />
-            Back to Sensors
+            <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
+            Equipment
           </button>
 
-          {/* Sensor Header */}
-          <div className={`rounded-xl border p-4 mb-4 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{selectedSensor.icon}</span>
+          {/* Equipment Header Card */}
+          <div className={`rounded-3xl p-8 mb-8 ${
+            isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'
+          }`}>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-5">
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl ${
+                  isDark ? 'bg-[#2c2c2e]' : 'bg-gray-50'
+                }`}>
+                  {selectedSensor.icon}
+                </div>
                 <div>
-                  <h1 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedSensor.name}</h1>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{selectedSensor.location}</p>
+                  <h1 className={`text-3xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {selectedSensor.name}
+                  </h1>
+                  <p className={`text-lg mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {selectedSensor.location}
+                  </p>
+                  <div className="flex items-center gap-4 mt-3">
+                    <span className={`inline-flex items-center gap-1.5 text-sm ${
+                      selectedSensor.online 
+                        ? 'text-emerald-500' 
+                        : isDark ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      {selectedSensor.online ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
+                      {selectedSensor.online ? 'Online' : 'Offline'}
+                    </span>
+                    <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      Updated {selectedSensor.lastUpdate}
+                    </span>
+                  </div>
                 </div>
               </div>
+              
+              {/* Current Temperature */}
               <div className="text-right">
-                <p className={`text-2xl font-bold ${getStatusColor(selectedSensor.status)}`}>
+                <div className={`text-6xl font-light tracking-tight ${getStatusColor(selectedSensor.status)}`}>
                   {formatTemp(selectedSensor.currentTemp)}
-                </p>
-                <p className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                </div>
+                <p className={`text-sm mt-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                   Required: {formatRange(selectedSensor.requiredRange)}
                 </p>
               </div>
             </div>
-            
-            {/* Equipment Info */}
-            {(selectedSensor.model || selectedSensor.serialNumber) && (
-              <div className={`mt-3 pt-3 border-t flex flex-wrap gap-x-6 gap-y-2 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                {selectedSensor.model && (
-                  <div className="flex items-center gap-1.5">
-                    <Info className={`h-3 w-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Equipment:</span>
-                    <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{selectedSensor.model}</span>
+
+            {/* Equipment Details */}
+            <div className={`mt-8 pt-6 border-t grid grid-cols-4 gap-6 ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+              <div>
+                <p className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Equipment Model
+                </p>
+                <p className={`text-sm mt-1 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {selectedSensor.model || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Serial Number
+                </p>
+                <p className={`text-sm mt-1 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {selectedSensor.serialNumber || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Sensor Model
+                </p>
+                <p className={`text-sm mt-1 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Dragino PS-NB-NA
+                </p>
+              </div>
+              <div>
+                <p className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Battery Level
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`flex-1 h-2 rounded-full ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                    <div 
+                      className={`h-full rounded-full transition-all ${
+                        selectedSensor.battery > 50 ? 'bg-emerald-500' :
+                        selectedSensor.battery > 20 ? 'bg-amber-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${selectedSensor.battery}%` }}
+                    />
                   </div>
-                )}
-                {selectedSensor.serialNumber && (
-                  <div className="flex items-center gap-1.5">
-                    <Hash className={`h-3 w-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Serial:</span>
-                    <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{selectedSensor.serialNumber}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <Wifi className={`h-3 w-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                  <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Sensor:</span>
-                  <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Dragino PS-NB-NA</span>
+                  <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {selectedSensor.battery}%
+                  </span>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Edit Mode Banner */}
           {manualEditEnabled && (
-            <div className={`mb-4 p-3 rounded-xl flex items-center gap-3 ${
-              isDark ? 'bg-emerald-900/20 border border-emerald-700' : 'bg-emerald-50 border border-emerald-200'
+            <div className={`mb-6 p-4 rounded-2xl flex items-center gap-4 ${
+              isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50'
             }`}>
-              <Edit3 className="h-4 w-4 text-emerald-500" />
-              <div className="flex-1">
-                <p className={`text-xs font-medium ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
+              <Edit3 className="h-5 w-5 text-emerald-500" />
+              <div>
+                <p className={`font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-800'}`}>
                   Edit Mode Active
                 </p>
-                <p className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                  Click any temperature to adjust readings for compliance
+                <p className={`text-sm ${isDark ? 'text-emerald-400/70' : 'text-emerald-700'}`}>
+                  Click any temperature reading to adjust for compliance
                 </p>
               </div>
             </div>
           )}
 
-          {/* Period Tabs */}
-          <div className={`flex gap-1 p-1 rounded-lg mb-4 ${isDark ? 'bg-[#2d2d2f]' : 'bg-gray-100'}`}>
+          {/* Period Selector */}
+          <div className={`inline-flex p-1 rounded-xl mb-8 ${isDark ? 'bg-[#1c1c1e]' : 'bg-gray-100'}`}>
             {['daily', 'weekly', 'monthly', 'yearly'].map(period => (
               <button
                 key={period}
                 onClick={() => handlePeriodChange(period)}
-                className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
+                className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all capitalize ${
                   selectedPeriod === period
-                    ? 'bg-orange-500 text-white'
-                    : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'
+                    ? isDark 
+                      ? 'bg-white text-gray-900 shadow-sm' 
+                      : 'bg-white text-gray-900 shadow-sm'
+                    : isDark 
+                      ? 'text-gray-400 hover:text-white' 
+                      : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
                 {period}
@@ -375,217 +440,153 @@ export default function OwnerSensors() {
             ))}
           </div>
 
-          {/* Stats Summary */}
+          {/* Stats Cards */}
           {stats && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-              <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Thermometer className={`h-3.5 w-3.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Average</p>
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Thermometer className={`h-5 w-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Average</span>
                 </div>
-                <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.avg.toFixed(1)}°C</p>
+                <p className={`text-3xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {stats.avg.toFixed(1)}°C
+                </p>
               </div>
-              <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <TrendingDown className="h-3.5 w-3.5 text-blue-500" />
-                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Min</p>
+              <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingDown className="h-5 w-5 text-blue-500" />
+                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Minimum</span>
                 </div>
-                <p className="text-lg font-bold text-blue-500">{stats.min.toFixed(1)}°C</p>
+                <p className="text-3xl font-semibold tracking-tight text-blue-500">
+                  {stats.min.toFixed(1)}°C
+                </p>
               </div>
-              <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <TrendingUp className="h-3.5 w-3.5 text-red-500" />
-                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Max</p>
+              <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="h-5 w-5 text-orange-500" />
+                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Maximum</span>
                 </div>
-                <p className="text-lg font-bold text-red-500">{stats.max.toFixed(1)}°C</p>
+                <p className="text-3xl font-semibold tracking-tight text-orange-500">
+                  {stats.max.toFixed(1)}°C
+                </p>
               </div>
-              <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-                  <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Compliance</p>
+              <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="h-5 w-5 text-emerald-500" />
+                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Compliance</span>
                 </div>
-                <p className="text-lg font-bold text-emerald-500">
+                <p className="text-3xl font-semibold tracking-tight text-emerald-500">
                   {Math.round((stats.compliant / readings.length) * 100)}%
                 </p>
               </div>
             </div>
           )}
 
-          {/* Export Button */}
-          <div className="flex justify-end mb-3">
-            <button className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-              isDark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'
-            }`}>
-              <Download className="h-3.5 w-3.5" />
-              Export CSV
-            </button>
-          </div>
-
-          {/* Temperature Log Table */}
-          <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-            <div className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-              <h2 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Temperature Log
-              </h2>
-              <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                {readings.length} readings • {selectedPeriod === 'daily' ? 'Hourly' : selectedPeriod === 'weekly' ? 'Every 6 hours' : selectedPeriod === 'monthly' ? 'Daily' : 'Monthly'} intervals
-                {manualEditEnabled && ' • Click temperature to edit'}
-              </p>
+          {/* Temperature Log */}
+          <div className={`rounded-2xl overflow-hidden ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+            <div className={`px-6 py-5 flex items-center justify-between border-b ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+              <div>
+                <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Temperature Log
+                </h2>
+                <p className={`text-sm mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  {readings.length} readings
+                </p>
+              </div>
+              <button className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                isDark 
+                  ? 'bg-white text-gray-900 hover:bg-gray-100' 
+                  : 'bg-gray-900 text-white hover:bg-gray-800'
+              }`}>
+                <Download className="h-4 w-4" />
+                Export CSV
+              </button>
             </div>
             
-            {/* Table Header - Hidden on mobile, shown on tablet+ */}
-            <div className={`hidden sm:grid grid-cols-12 gap-2 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider ${
-              isDark ? 'bg-gray-800/50 text-gray-400' : 'bg-gray-50 text-gray-500'
+            {/* Table Header */}
+            <div className={`grid grid-cols-12 gap-4 px-6 py-3 text-xs font-medium uppercase tracking-wider ${
+              isDark ? 'bg-[#2c2c2e] text-gray-500' : 'bg-gray-50 text-gray-400'
             }`}>
               <div className="col-span-3">Time</div>
               <div className="col-span-3 text-right">Temperature</div>
-              <div className="col-span-3 text-center">Required</div>
+              <div className="col-span-3 text-center">Required Range</div>
               <div className="col-span-3 text-center">Status</div>
             </div>
 
-            {/* Table Body - Scrollable */}
-            <div className="max-h-[400px] overflow-y-auto">
+            {/* Table Body */}
+            <div className="max-h-[480px] overflow-y-auto">
               {readings.map((reading, idx) => (
                 <div 
                   key={idx}
-                  className={`px-4 py-3 sm:py-2 border-b last:border-b-0 ${
-                    isDark ? 'border-gray-700/50' : 'border-gray-50'
-                  } ${getStatusBg(reading.status)}`}
+                  className={`grid grid-cols-12 gap-4 px-6 py-4 items-center border-b last:border-b-0 transition-colors ${
+                    isDark ? 'border-gray-800/50 hover:bg-[#2c2c2e]/50' : 'border-gray-50 hover:bg-gray-50/50'
+                  }`}
                 >
-                  {/* Mobile layout - stacked */}
-                  <div className="sm:hidden">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                        <Clock className="h-3 w-3" />
-                        {reading.time}
-                      </div>
-                      {reading.status === 'compliant' ? (
-                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
-                          <CheckCircle className="h-3 w-3" />
-                          OK
-                        </span>
-                      ) : reading.status === 'warning' ? (
-                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-medium">
-                          <AlertTriangle className="h-3 w-3" />
-                          Warning
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[10px] font-medium">
-                          <X className="h-3 w-3" />
-                          Critical
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-baseline justify-between">
-                      {editingIndex === idx ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            step="0.1"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            className={`w-20 px-2 py-1 text-base border rounded-lg ${
-                              isDark ? 'bg-[#1a1a1a] border-gray-600 text-white' : 'border-gray-300'
-                            }`}
-                            autoFocus
-                          />
-                          <button 
-                            onClick={() => handleSaveEdit(idx)}
-                            className="p-1.5 text-emerald-500 bg-emerald-500/10 rounded-lg"
-                          >
-                            <Save className="h-4 w-4" />
-                          </button>
-                          <button 
-                            onClick={() => { setEditingIndex(null); setEditValue('') }}
-                            className="p-1.5 text-gray-400 bg-gray-500/10 rounded-lg"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <span 
-                          className={`text-xl font-bold ${getStatusColor(reading.status)} ${
-                            manualEditEnabled ? 'cursor-pointer active:opacity-70' : ''
-                          }`}
-                          onClick={() => manualEditEnabled && handleStartEdit(idx, reading.temp)}
-                        >
-                          {reading.temp.toFixed(1)}°C
-                        </span>
-                      )}
-                      <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                        Required: {formatRange(selectedSensor.requiredRange)}
-                      </span>
-                    </div>
+                  <div className={`col-span-3 flex items-center gap-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <Clock className="h-4 w-4 opacity-40" />
+                    {reading.time}
                   </div>
-                  
-                  {/* Desktop layout - grid */}
-                  <div className={`hidden sm:grid grid-cols-12 gap-2 text-xs items-center`}>
-                    <div className={`col-span-3 flex items-center gap-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                      <Clock className="h-3 w-3 opacity-50" />
-                      {reading.time}
-                    </div>
-                    <div className="col-span-3 text-right">
-                      {editingIndex === idx ? (
-                        <div className="flex items-center justify-end gap-1">
-                          <input
-                            type="number"
-                            step="0.1"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            className={`w-16 px-1.5 py-0.5 text-xs text-right border rounded ${
-                              isDark ? 'bg-[#1a1a1a] border-gray-600 text-white' : 'border-gray-300'
-                            }`}
-                            autoFocus
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleSaveEdit(idx)
-                              if (e.key === 'Escape') { setEditingIndex(null); setEditValue('') }
-                            }}
-                          />
-                          <button 
-                            onClick={() => handleSaveEdit(idx)}
-                            className="p-0.5 text-emerald-500 hover:bg-emerald-500/10 rounded"
-                          >
-                            <Save className="h-3 w-3" />
-                          </button>
-                          <button 
-                            onClick={() => { setEditingIndex(null); setEditValue('') }}
-                            className="p-0.5 text-gray-400 hover:bg-gray-500/10 rounded"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ) : (
-                        <span 
-                          className={`font-semibold ${getStatusColor(reading.status)} ${
-                            manualEditEnabled ? 'cursor-pointer hover:underline' : ''
+                  <div className="col-span-3 text-right">
+                    {editingIndex === idx ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className={`w-20 px-3 py-1.5 text-sm text-right rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            isDark ? 'bg-[#2c2c2e] border-gray-700 text-white' : 'bg-white border-gray-200'
                           }`}
-                          onClick={() => manualEditEnabled && handleStartEdit(idx, reading.temp)}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveEdit(idx)
+                            if (e.key === 'Escape') { setEditingIndex(null); setEditValue('') }
+                          }}
+                        />
+                        <button 
+                          onClick={() => handleSaveEdit(idx)}
+                          className="p-1.5 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors"
                         >
-                          {reading.temp.toFixed(1)}°C
-                        </span>
-                      )}
-                    </div>
-                    <div className={`col-span-3 text-center text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                      {formatRange(selectedSensor.requiredRange)}
-                    </div>
-                    <div className="col-span-3 flex justify-center">
-                      {reading.status === 'compliant' ? (
-                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-medium">
-                          <CheckCircle className="h-2.5 w-2.5" />
-                          OK
-                        </span>
-                      ) : reading.status === 'warning' ? (
-                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-medium">
-                          <AlertTriangle className="h-2.5 w-2.5" />
-                          !
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[10px] font-medium">
-                          <X className="h-2.5 w-2.5" />
-                          !!
-                        </span>
-                      )}
-                    </div>
+                          <Save className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={() => { setEditingIndex(null); setEditValue('') }}
+                          className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-400 hover:bg-gray-100'}`}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <span 
+                        className={`text-sm font-semibold ${getStatusColor(reading.status)} ${
+                          manualEditEnabled ? 'cursor-pointer hover:underline' : ''
+                        }`}
+                        onClick={() => manualEditEnabled && handleStartEdit(idx, reading.temp)}
+                      >
+                        {reading.temp.toFixed(1)}°C
+                      </span>
+                    )}
+                  </div>
+                  <div className={`col-span-3 text-center text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {formatRange(selectedSensor.requiredRange)}
+                  </div>
+                  <div className="col-span-3 flex justify-center">
+                    {reading.status === 'compliant' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-medium">
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        Compliant
+                      </span>
+                    ) : reading.status === 'warning' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-xs font-medium">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        Warning
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-xs font-medium">
+                        <X className="h-3.5 w-3.5" />
+                        Critical
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -593,11 +594,11 @@ export default function OwnerSensors() {
           </div>
 
           {/* DM Notice */}
-          <div className={`mt-4 p-3 rounded-xl border ${
-            isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-100'
+          <div className={`mt-6 p-4 rounded-2xl ${
+            isDark ? 'bg-blue-500/10' : 'bg-blue-50'
           }`}>
-            <p className={`text-[10px] ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
-              <strong>DM Compliance:</strong> Temperature logs retained per DM-HSD-GU46-KFPA2 guidelines. Keep records for 2 years.
+            <p className={`text-sm ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
+              <span className="font-medium">Dubai Municipality Compliance:</span> Temperature logs are retained per DM-HSD-GU46-KFPA2 guidelines. Records are kept for 2 years.
             </p>
           </div>
         </div>
@@ -605,132 +606,227 @@ export default function OwnerSensors() {
     )
   }
 
-  // Sensors List View
+  // Equipment List View - Apple-like Design
   return (
-    <div className={`p-4 md:p-6 lg:p-8 pb-12 md:pb-16 transition-colors duration-300 ${isDark ? 'bg-[#1a1a1a]' : ''}`}>
-      <div className="max-w-4xl mx-auto">
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#000000]' : 'bg-[#f5f5f7]'}`}>
+      <div className="max-w-5xl mx-auto px-8 py-10">
+        
         {/* Page Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Equipment</h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Click equipment to view detailed stats</p>
+        <div className="mb-10">
+          <h1 className={`text-4xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Equipment
+          </h1>
+          <p className={`text-xl mt-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            Monitor your kitchen equipment temperature in real-time.
+          </p>
+        </div>
+
+        {/* Overview Cards */}
+        <div className="grid grid-cols-4 gap-4 mb-10">
+          <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total</span>
+              <Activity className={`h-5 w-5 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+            </div>
+            <p className={`text-4xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {SENSORS.length}
+            </p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>equipment</p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Filter className={`h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-            <select 
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className={`border rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                isDark ? 'bg-[#2d2d2f] border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-700'
-              }`}
-            >
-              <option value="all">All ({SENSORS.length})</option>
-              <option value="compliant">Compliant ({SENSORS.filter(s => s.status === 'compliant').length})</option>
-              <option value="warning">Warning ({SENSORS.filter(s => s.status === 'warning').length})</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Edit Mode Notice */}
-        {manualEditEnabled && (
-          <div className={`mb-4 p-3 rounded-xl flex items-center gap-3 ${
-            isDark ? 'bg-emerald-900/20 border border-emerald-700' : 'bg-emerald-50 border border-emerald-200'
-          }`}>
-            <Edit3 className="h-4 w-4 text-emerald-500" />
-            <p className={`text-xs ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
-              <strong>Edit Mode Active</strong> — Select equipment to adjust readings for compliance
+          <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Online</span>
+              <Wifi className="h-5 w-5 text-emerald-500" />
+            </div>
+            <p className="text-4xl font-semibold tracking-tight text-emerald-500">
+              {onlineCount}
             </p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>connected</p>
           </div>
-        )}
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total</p>
-            <p className={`text-xl font-bold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>{SENSORS.length}</p>
+          
+          <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Compliant</span>
+              <CheckCircle className="h-5 w-5 text-emerald-500" />
+            </div>
+            <p className="text-4xl font-semibold tracking-tight text-emerald-500">
+              {compliantCount}
+            </p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>in safe range</p>
           </div>
-          <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Online</p>
-            <p className="text-xl font-bold text-emerald-500 mt-0.5">{SENSORS.filter(s => s.online).length}</p>
-          </div>
-          <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Warnings</p>
-            <p className="text-xl font-bold text-amber-500 mt-0.5">{SENSORS.filter(s => s.status === 'warning').length}</p>
-          </div>
-          <div className={`rounded-xl border p-3 ${isDark ? 'bg-[#2d2d2f] border-gray-700' : 'bg-white border-gray-100'}`}>
-            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Avg Battery</p>
-            <p className={`text-xl font-bold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>{Math.round(SENSORS.reduce((a, s) => a + s.battery, 0) / SENSORS.length)}%</p>
+          
+          <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white shadow-sm'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Attention</span>
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+            </div>
+            <p className="text-4xl font-semibold tracking-tight text-amber-500">
+              {warningCount}
+            </p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>need attention</p>
           </div>
         </div>
 
-        {/* Sensors List */}
-        <div className="space-y-2">
+        {/* Filter Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <div className={`inline-flex p-1 rounded-xl ${isDark ? 'bg-[#1c1c1e]' : 'bg-gray-100'}`}>
+            {[
+              { value: 'all', label: 'All' },
+              { value: 'compliant', label: 'Compliant' },
+              { value: 'warning', label: 'Attention' },
+            ].map(option => (
+              <button
+                key={option.value}
+                onClick={() => setFilter(option.value)}
+                className={`px-5 py-2 text-sm font-medium rounded-lg transition-all ${
+                  filter === option.value
+                    ? isDark 
+                      ? 'bg-white text-gray-900 shadow-sm' 
+                      : 'bg-white text-gray-900 shadow-sm'
+                    : isDark 
+                      ? 'text-gray-400 hover:text-white' 
+                      : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          
+          {manualEditEnabled && (
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${
+              isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'
+            }`}>
+              <Edit3 className="h-4 w-4 text-emerald-500" />
+              <span className={`text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                Edit Mode Active
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Equipment Grid */}
+        <div className="grid grid-cols-2 gap-4">
           {filteredSensors.map(sensor => (
             <div 
               key={sensor.id}
               onClick={() => handleSelectSensor(sensor)}
-              className={`rounded-xl border p-3 hover:shadow-md transition-all cursor-pointer ${
+              className={`group rounded-2xl p-6 cursor-pointer transition-all duration-200 ${
                 isDark 
-                  ? sensor.status === 'warning' ? 'bg-[#2d2d2f] border-amber-700 hover:border-amber-600' :
-                    sensor.status === 'critical' ? 'bg-[#2d2d2f] border-red-700 hover:border-red-600' :
-                    'bg-[#2d2d2f] border-gray-700 hover:border-gray-600'
-                  : sensor.status === 'warning' ? 'bg-white border-amber-200 hover:border-amber-300' :
-                    sensor.status === 'critical' ? 'bg-white border-red-200 hover:border-red-300' :
-                    'bg-white border-gray-100 hover:border-gray-200'
+                  ? 'bg-[#1c1c1e] hover:bg-[#2c2c2e]' 
+                  : 'bg-white shadow-sm hover:shadow-md'
+              } ${
+                sensor.status === 'warning' 
+                  ? isDark ? 'ring-1 ring-amber-500/30' : 'ring-1 ring-amber-200'
+                  : sensor.status === 'critical'
+                    ? isDark ? 'ring-1 ring-red-500/30' : 'ring-1 ring-red-200'
+                    : ''
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{sensor.icon}</span>
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${
+                    isDark ? 'bg-[#2c2c2e]' : 'bg-gray-50'
+                  }`}>
+                    {sensor.icon}
+                  </div>
+                  
+                  {/* Info */}
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{sensor.name}</h3>
-                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
-                        sensor.online 
-                          ? isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                          : isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {sensor.name}
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {sensor.location}
+                    </p>
+                    
+                    {/* Status indicators */}
+                    <div className="flex items-center gap-3 mt-3">
+                      <span className={`inline-flex items-center gap-1 text-xs font-medium ${
+                        sensor.online ? 'text-emerald-500' : isDark ? 'text-gray-500' : 'text-gray-400'
                       }`}>
-                        {sensor.online ? <Wifi className="h-2.5 w-2.5 inline mr-0.5" /> : <WifiOff className="h-2.5 w-2.5 inline mr-0.5" />}
+                        {sensor.online ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
                         {sensor.online ? 'Online' : 'Offline'}
                       </span>
+                      <span className={`inline-flex items-center gap-1 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                        <Battery className="h-3.5 w-3.5" />
+                        {sensor.battery}%
+                      </span>
                     </div>
-                    <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{sensor.location} • {sensor.lastUpdate}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className={`text-xl font-bold ${getStatusColor(sensor.status)}`}>
-                      {formatTemp(sensor.currentTemp)}
-                    </p>
-                    <p className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{formatRange(sensor.requiredRange)}</p>
+                {/* Temperature */}
+                <div className="text-right">
+                  <div className={`text-3xl font-semibold tracking-tight ${getStatusColor(sensor.status)}`}>
+                    {formatTemp(sensor.currentTemp)}
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className={`flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      <Battery className="h-3.5 w-3.5" />
-                      <span className="text-xs font-medium">{sensor.battery}%</span>
-                    </div>
-                    
-                    {sensor.status === 'compliant' ? (
-                      <CheckCircle className="h-5 w-5 text-emerald-500" />
-                    ) : (
-                      <AlertTriangle className="h-5 w-5 text-amber-500" />
-                    )}
-                    
-                    <ChevronRight className={`h-4 w-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
-                  </div>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {formatRange(sensor.requiredRange)}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Temperature Visual Indicator */}
+              <div className="mt-5">
+                <div className={`relative h-2 rounded-full overflow-hidden ${isDark ? 'bg-[#2c2c2e]' : 'bg-gray-100'}`}>
+                  {/* Safe zone indicator */}
+                  <div 
+                    className="absolute h-full bg-emerald-500/20"
+                    style={{
+                      left: sensor.requiredRange.min !== undefined ? '25%' : '0%',
+                      right: '25%',
+                    }}
+                  />
+                  {/* Current temp marker */}
+                  <div 
+                    className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full shadow-sm transition-all ${
+                      sensor.status === 'compliant' ? 'bg-emerald-500' :
+                      sensor.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'
+                    }`}
+                    style={{ left: `calc(${getTempPosition(sensor)}% - 6px)` }}
+                  />
+                </div>
+              </div>
+              
+              {/* Footer */}
+              <div className={`flex items-center justify-between mt-5 pt-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Updated {sensor.lastUpdate}
+                </span>
+                <div className="flex items-center gap-2">
+                  {sensor.status === 'compliant' ? (
+                    <span className="inline-flex items-center gap-1 text-emerald-500 text-xs font-medium">
+                      <CheckCircle className="h-4 w-4" />
+                      Compliant
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-amber-500 text-xs font-medium">
+                      <AlertTriangle className="h-4 w-4" />
+                      Attention
+                    </span>
+                  )}
+                  <ChevronRight className={`h-4 w-4 transition-transform group-hover:translate-x-1 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Hint */}
-        <p className={`mt-4 text-center text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
-          Tap any equipment to view temperature history{manualEditEnabled && ' and adjust readings'}
-        </p>
+        {/* Empty State */}
+        {filteredSensors.length === 0 && (
+          <div className={`text-center py-16 rounded-2xl ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+            <Thermometer className={`h-12 w-12 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+            <p className={`text-lg font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              No equipment found
+            </p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              Try adjusting your filter settings
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
