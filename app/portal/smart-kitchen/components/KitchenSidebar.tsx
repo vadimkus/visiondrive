@@ -13,7 +13,6 @@ import {
   ChevronLeft,
   Moon,
   Sun,
-  CreditCard,
   Shield,
   Activity,
   Wifi,
@@ -34,12 +33,89 @@ interface NavItem {
   badge?: number
 }
 
+// Reusable NavButton component with Apple-like animations
+function NavButton({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+  isDark,
+  badge,
+}: {
+  icon: React.ElementType
+  label: string
+  active: boolean
+  onClick: () => void
+  isDark: boolean
+  badge?: number
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+        transition-all duration-200 ease-out
+        ${active
+          ? isDark 
+            ? 'bg-orange-500/20 text-white' 
+            : 'bg-orange-50 text-gray-900'
+          : isDark 
+            ? 'text-gray-400 hover:text-white hover:bg-white/5' 
+            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+        }
+        hover:scale-[1.02] active:scale-[0.98]
+      `}
+    >
+      {/* Icon with animation */}
+      <div className={`
+        relative transition-all duration-200
+        ${active ? '' : 'group-hover:scale-110'}
+      `}>
+        <Icon className={`
+          h-[18px] w-[18px] transition-colors duration-200
+          ${active 
+            ? 'text-orange-500' 
+            : isDark 
+              ? 'text-gray-500 group-hover:text-gray-300' 
+              : 'text-gray-400 group-hover:text-gray-600'
+          }
+        `} strokeWidth={1.75} />
+      </div>
+      
+      {/* Label with slide animation */}
+      <span className={`
+        flex-1 text-left transition-all duration-200
+        ${active ? '' : 'group-hover:translate-x-0.5'}
+      `}>
+        {label}
+      </span>
+      
+      {/* Badge */}
+      {badge && badge > 0 && (
+        <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center shadow-sm transition-transform duration-200 group-hover:scale-110">
+          {badge}
+        </span>
+      )}
+      
+      {/* Active indicator bar */}
+      {active && (
+        <div className={`
+          absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full
+          bg-orange-500
+          transition-all duration-300
+        `} />
+      )}
+    </button>
+  )
+}
+
 export default function KitchenSidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const { isDark, toggleTheme } = useTheme()
   const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
     setMounted(true)
@@ -57,6 +133,12 @@ export default function KitchenSidebar() {
       }
     }
     fetchUser()
+  }, [])
+
+  // Live clock
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => clearInterval(timer)
   }, [])
 
   const handleLogout = async () => {
@@ -88,24 +170,45 @@ export default function KitchenSidebar() {
   if (!mounted) return null
 
   return (
-    <aside className={`w-64 flex flex-col h-screen sticky top-0 select-none border-r ${
-      isDark ? 'bg-[#1c1c1e] border-gray-800' : 'bg-white border-gray-200'
+    <aside className={`w-64 flex flex-col h-screen sticky top-0 select-none border-r transition-colors duration-300 ${
+      isDark ? 'bg-[#1d1d1f] border-gray-800' : 'bg-white border-gray-200'
     }`}>
-      {/* Logo */}
-      <div className="px-6 pt-6 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
-            <span className="text-base">🍳</span>
-          </div>
-          <div>
-            <h1 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Smart Kitchen</h1>
-            <p className={`text-[10px] uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Admin Portal</p>
-          </div>
+      {/* Header */}
+      <div className={`p-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+        {/* VisionDrive Branding */}
+        <div className="flex items-center gap-2.5 mb-3">
+          <img 
+            src="/images/logo/logo.jpg" 
+            alt="VisionDrive" 
+            className="h-8 w-8 object-contain rounded-lg"
+          />
+          <span className={`text-base font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Vision<span className="text-orange-500">Drive</span>
+          </span>
+        </div>
+        
+        {/* Smart Kitchen Label */}
+        <div className={`px-3 py-2 rounded-xl ${isDark ? 'bg-orange-900/20' : 'bg-orange-50'}`}>
+          <h1 className={`font-medium text-sm ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>Smart Kitchen</h1>
+          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Admin Portal</p>
+        </div>
+        
+        {/* Time */}
+        <div className={`mt-3 px-3 py-2 rounded-xl ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+          <p className={`text-xl font-light tabular-nums ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            <span className={`text-sm ml-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              {currentTime.toLocaleTimeString('en-US', { second: '2-digit' }).slice(-2)}
+            </span>
+          </p>
+          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </p>
         </div>
       </div>
 
       {/* System Status */}
-      <div className={`mx-4 mb-4 p-3 rounded-xl ${isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
+      <div className={`mx-4 my-3 p-3 rounded-xl transition-all duration-200 hover:scale-[1.01] ${isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className={`text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>All Systems Operational</span>
@@ -127,32 +230,18 @@ export default function KitchenSidebar() {
           <p className={`px-3 mb-2 text-[10px] font-medium uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
             Monitor
           </p>
-          <div className="space-y-0.5">
-            {mainNav.map((item) => {
-              const Icon = item.icon
-              const active = isActive(item.path)
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => router.push(item.path)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
-                    active
-                      ? isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'
-                      : isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <Icon className={`h-[18px] w-[18px] ${active ? 'text-orange-500' : ''}`} strokeWidth={1.75} />
-                  <span className="flex-1 text-left font-medium">{item.label}</span>
-                  {item.badge && item.badge > 0 && (
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${
-                      isDark ? 'bg-red-500 text-white' : 'bg-red-500 text-white'
-                    }`}>
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
+          <div className="space-y-1">
+            {mainNav.map((item) => (
+              <NavButton
+                key={item.path}
+                icon={item.icon}
+                label={item.label}
+                active={isActive(item.path)}
+                onClick={() => router.push(item.path)}
+                isDark={isDark}
+                badge={item.badge}
+              />
+            ))}
           </div>
         </div>
 
@@ -161,25 +250,17 @@ export default function KitchenSidebar() {
           <p className={`px-3 mb-2 text-[10px] font-medium uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
             Analytics
           </p>
-          <div className="space-y-0.5">
-            {secondaryNav.map((item) => {
-              const Icon = item.icon
-              const active = isActive(item.path)
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => router.push(item.path)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
-                    active
-                      ? isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'
-                      : isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <Icon className={`h-[18px] w-[18px] ${active ? 'text-orange-500' : ''}`} strokeWidth={1.75} />
-                  <span className="flex-1 text-left font-medium">{item.label}</span>
-                </button>
-              )
-            })}
+          <div className="space-y-1">
+            {secondaryNav.map((item) => (
+              <NavButton
+                key={item.path}
+                icon={item.icon}
+                label={item.label}
+                active={isActive(item.path)}
+                onClick={() => router.push(item.path)}
+                isDark={isDark}
+              />
+            ))}
           </div>
         </div>
 
@@ -188,39 +269,53 @@ export default function KitchenSidebar() {
           <p className={`px-3 mb-2 text-[10px] font-medium uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
             System
           </p>
-          <div className="space-y-0.5">
-            <button
+          <div className="space-y-1">
+            <NavButton
+              icon={Settings}
+              label="Settings"
+              active={pathname?.includes('/settings') || false}
               onClick={() => router.push('/portal/smart-kitchen/settings')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
-                pathname.includes('/settings')
-                  ? isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'
-                  : isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />
-              <span className="flex-1 text-left font-medium">Settings</span>
-            </button>
+              isDark={isDark}
+            />
           </div>
         </div>
       </nav>
 
       {/* Footer */}
-      <div className={`p-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+      <div className={`p-3 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all mb-2 ${
-            isDark ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
-          }`}
+          className={`
+            group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-2
+            transition-all duration-200 ease-out
+            hover:scale-[1.02] active:scale-[0.98]
+            ${isDark 
+              ? 'text-gray-400 hover:text-white hover:bg-white/5' 
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+            }
+          `}
         >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          <span className="font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+          <div className="transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12">
+            {isDark ? (
+              <Sun className="h-4 w-4 text-yellow-400" />
+            ) : (
+              <Moon className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+            )}
+          </div>
+          <span className="transition-transform duration-200 group-hover:translate-x-0.5">
+            {isDark ? 'Light Mode' : 'Dark Mode'}
+          </span>
         </button>
 
         {/* User */}
         {user && (
-          <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white font-semibold text-sm">
+          <div className={`
+            group flex items-center gap-3 px-3 py-2.5 rounded-xl
+            transition-all duration-200
+            ${isDark ? 'bg-gray-800/50 hover:bg-gray-800' : 'bg-gray-50 hover:bg-gray-100'}
+          `}>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white font-semibold text-sm shadow-sm transition-transform duration-200 group-hover:scale-105">
               {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -231,10 +326,14 @@ export default function KitchenSidebar() {
             </div>
             <button
               onClick={handleLogout}
-              className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-red-400 hover:bg-white/5' : 'text-gray-400 hover:text-red-500 hover:bg-gray-100'}`}
-              title="Logout"
+              className={`
+                p-2 rounded-lg transition-all duration-200
+                hover:scale-110 active:scale-95
+                ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}
+              `}
+              title="Sign Out"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className={`h-4 w-4 transition-colors duration-200 ${isDark ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'}`} />
             </button>
           </div>
         )}
@@ -242,12 +341,15 @@ export default function KitchenSidebar() {
         {/* Back Link */}
         <button
           onClick={() => router.push('/portal')}
-          className={`w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-xl text-xs transition-all ${
-            isDark ? 'text-gray-600 hover:text-gray-400' : 'text-gray-400 hover:text-gray-600'
-          }`}
+          className={`
+            group w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-xl text-xs
+            transition-all duration-200
+            hover:scale-[1.01] active:scale-[0.99]
+            ${isDark ? 'text-gray-600 hover:text-gray-400 hover:bg-white/5' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}
+          `}
         >
-          <ChevronLeft className="h-3 w-3" />
-          <span>Back to Main Portal</span>
+          <ChevronLeft className="h-3 w-3 transition-transform duration-200 group-hover:-translate-x-0.5" />
+          <span className="transition-transform duration-200 group-hover:translate-x-0.5">Back to Main Portal</span>
         </button>
       </div>
     </aside>
