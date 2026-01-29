@@ -1,24 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Background with Apple-style rounded corners -->
-  <rect width="512" height="512" rx="108" ry="108" fill="url(#bgGradient)"/>
+  <!-- White background with Apple-style rounded corners -->
+  <rect width="512" height="512" rx="108" ry="108" fill="#ffffff"/>
   
-  <!-- "V" letter - left side -->
+  <!-- "V" letter - black, bold -->
   <path 
-    d="M72 128 L168 384 L264 128 L216 128 L168 280 L120 128 Z" 
-    fill="white"
+    d="M60 120 L170 392 L280 120 L224 120 L170 296 L116 120 Z" 
+    fill="#1a1a1a"
   />
   
-  <!-- "D" letter - right side -->
+  <!-- "D" letter - orange, bold -->
   <path 
-    d="M280 128 L280 384 L360 384 C440 384 440 128 360 128 Z M320 168 L350 168 C400 168 400 344 350 344 L320 344 Z" 
-    fill="white"
+    d="M260 120 L260 392 L350 392 C450 392 450 120 350 120 Z M304 168 L340 168 C400 168 400 344 340 344 L304 344 Z" 
+    fill="#f97316"
   />
   
-  <!-- Gradients -->
-  <defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f97316"/>
-      <stop offset="100%" style="stop-color:#ea580c"/>
-    </linearGradient>
-  </defs>
+  <!-- WiFi/Network signal - dark blue, top right -->
+  <g transform="translate(360, 60)">
+    <!-- Inner arc -->
+    <path d="M40 70 Q60 50 80 70" stroke="#1e3a5f" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <!-- Middle arc -->
+    <path d="M25 50 Q60 20 95 50" stroke="#1e3a5f" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <!-- Outer arc -->
+    <path d="M10 30 Q60 -10 110 30" stroke="#1e3a5f" stroke-width="12" fill="none" stroke-linecap="round"/>
+  </g>
 </svg>
