@@ -77,7 +77,7 @@ const ABDULS_KITCHEN = {
   subscription: {
     plan: 'professional' as const,
     status: 'active' as const,
-    monthlyFee: 299,
+    monthlyFee: 1396, // 4 sensors × 349 AED (Professional tier)
     nextBilling: '2026-02-15',
     startDate: '2026-01-15',
   },
@@ -319,7 +319,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Monthly Fee</span>
                   <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    ${kitchenData.subscription.monthlyFee}
+                    {kitchenData.subscription.monthlyFee.toLocaleString()} AED
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -344,7 +344,7 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-center">
                   <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total MRR</span>
                   <span className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    ${kitchenData.subscription.monthlyFee}
+                    {kitchenData.subscription.monthlyFee.toLocaleString()} AED
                   </span>
                 </div>
               </div>
