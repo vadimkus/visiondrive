@@ -215,10 +215,10 @@ export default function KitchenSidebar() {
         </div>
         <div className={`flex items-center gap-4 mt-2 text-[10px] ${isDark ? 'text-emerald-500/70' : 'text-emerald-600/70'}`}>
           <span className="flex items-center gap-1">
-            <Wifi className="w-3 h-3" /> 27/35 online
+            <Wifi className="w-3 h-3" /> 4/4 online
           </span>
           <span className="flex items-center gap-1">
-            <Activity className="w-3 h-3" /> 99.9% uptime
+            <Activity className="w-3 h-3" /> 100% uptime
           </span>
         </div>
       </div>
