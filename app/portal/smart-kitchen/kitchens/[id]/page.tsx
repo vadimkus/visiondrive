@@ -88,6 +88,124 @@ interface KitchenDetails {
 
 type TabType = 'overview' | 'equipment' | 'owners'
 
+// Mock data for Abdul's Kitchen (demo)
+const MOCK_KITCHEN: KitchenDetails = {
+  id: 'kitchen-abdul-001',
+  name: "Abdul's Kitchen",
+  address: 'Marina Walk',
+  emirate: 'Dubai Marina',
+  tradeLicense: 'TL-2025-123456',
+  dmPermitNumber: 'DM-FK-2025-7890',
+  contactName: 'Abdul Rahman',
+  contactPhone: '+971-50-123-4567',
+  contactEmail: 'abdul@kitchen.ae',
+  sensorCount: 4,
+  ownerCount: 1,
+  activeAlerts: 1,
+  avgTemperature: 2.4,
+  minTemperature: -19.5,
+  maxTemperature: 6.2,
+  status: 'warning',
+  equipment: [
+    {
+      id: 'sensor-a1',
+      name: 'Walk-in Fridge',
+      type: 'COLD_ROOM',
+      serialNumber: 'WF-2025-001',
+      brand: 'Carrier',
+      model: 'ColdMaster Pro',
+      sensorDevEui: 'A84041F5318254E1',
+      minTemp: 0,
+      maxTemp: 5,
+      isFreezer: false,
+      location: 'Back Storage',
+      status: 'ACTIVE',
+      lastReading: 3.2,
+      lastReadingAt: new Date().toISOString(),
+      batteryLevel: 85,
+      signalStrength: -75,
+      installDate: '2026-01-15',
+      createdAt: '2026-01-15T10:00:00Z'
+    },
+    {
+      id: 'sensor-a2',
+      name: 'Main Freezer',
+      type: 'FREEZER',
+      serialNumber: 'MF-2025-002',
+      brand: 'Liebherr',
+      model: 'ProFreeze 500',
+      sensorDevEui: 'A84041F5318254E2',
+      minTemp: -25,
+      maxTemp: -18,
+      isFreezer: true,
+      location: 'Back Storage',
+      status: 'ACTIVE',
+      lastReading: -19.5,
+      lastReadingAt: new Date().toISOString(),
+      batteryLevel: 92,
+      signalStrength: -68,
+      installDate: '2026-01-15',
+      createdAt: '2026-01-15T10:00:00Z'
+    },
+    {
+      id: 'sensor-a3',
+      name: 'Prep Fridge',
+      type: 'FRIDGE',
+      serialNumber: 'PF-2025-003',
+      brand: 'True',
+      model: 'T-49',
+      sensorDevEui: 'A84041F5318254E3',
+      minTemp: 0,
+      maxTemp: 5,
+      isFreezer: false,
+      location: 'Prep Area',
+      status: 'ACTIVE',
+      lastReading: 4.8,
+      lastReadingAt: new Date().toISOString(),
+      batteryLevel: 78,
+      signalStrength: -72,
+      installDate: '2026-01-15',
+      createdAt: '2026-01-15T10:00:00Z'
+    },
+    {
+      id: 'sensor-a4',
+      name: 'Display Cooler',
+      type: 'DISPLAY_FRIDGE',
+      serialNumber: 'DC-2025-004',
+      brand: 'Turbo Air',
+      model: 'TGM-48R',
+      sensorDevEui: 'A84041F5318254E4',
+      minTemp: 0,
+      maxTemp: 5,
+      isFreezer: false,
+      location: 'Front Counter',
+      status: 'MAINTENANCE',
+      lastReading: 6.2,
+      lastReadingAt: new Date().toISOString(),
+      batteryLevel: 65,
+      signalStrength: -80,
+      installDate: '2026-01-15',
+      createdAt: '2026-01-15T10:00:00Z'
+    }
+  ],
+  owners: [
+    {
+      id: 'owner-1',
+      name: 'Abdul Rahman',
+      email: 'abdul@kitchen.ae',
+      phone: '+971-50-123-4567',
+      isPrimary: true,
+      canManage: true,
+      canViewReports: true,
+      notifyEmail: true,
+      notifyWhatsApp: true,
+      notifyOnAlert: true,
+      createdAt: '2026-01-15T10:00:00Z'
+    }
+  ],
+  createdAt: '2026-01-15T10:00:00Z'
+}
+
 const equipmentTypes = [
   { value: 'FRIDGE', label: 'Fridge' },
   { value: 'FREEZER', label: 'Freezer' },
@@ -148,6 +266,13 @@ export default function KitchenDetailPage() {
     setIsLoading(true)
     setError(null)
     try {
+      // Use mock data for demo kitchen
+      if (kitchenId === 'kitchen-abdul-001') {
+        setKitchen(MOCK_KITCHEN)
+        setIsLoading(false)
+        return
+      }
+      
       const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}`)
       const data = await response.json()
       
