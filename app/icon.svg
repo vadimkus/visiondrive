@@ -2,14 +2,17 @@
   <!-- Background with Apple-style rounded corners -->
   <rect width="512" height="512" rx="108" ry="108" fill="url(#bgGradient)"/>
   
-  <!-- White "V" letter - bold, simple, centered -->
+  <!-- "V" letter - left side -->
   <path 
-    d="M136 128 L256 384 L376 128 L312 128 L256 288 L200 128 Z" 
+    d="M72 128 L168 384 L264 128 L216 128 L168 280 L120 128 Z" 
     fill="white"
   />
   
-  <!-- Subtle connection dot (represents IoT/connectivity) -->
-  <circle cx="256" cy="400" r="20" fill="white" opacity="0.9"/>
+  <!-- "D" letter - right side -->
+  <path 
+    d="M280 128 L280 384 L360 384 C440 384 440 128 360 128 Z M320 168 L350 168 C400 168 400 344 350 344 L320 344 Z" 
+    fill="white"
+  />
   
   <!-- Gradients -->
   <defs>
