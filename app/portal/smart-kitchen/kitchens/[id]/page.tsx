@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { 
   ArrowLeft,
@@ -25,186 +25,25 @@ import {
   Bell,
   FileText,
   Crown,
-  ShieldCheck
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  Key,
+  Save
 } from 'lucide-react'
 import TemperatureChart from '../../components/TemperatureChart'
-
-interface Equipment {
-  id: string
-  name: string
-  type: string
-  serialNumber: string | null
-  brand: string | null
-  model: string | null
-  sensorDevEui: string | null
-  minTemp: number
-  maxTemp: number
-  isFreezer: boolean
-  location: string | null
-  status: string
-  lastReading: number | null
-  lastReadingAt: string | null
-  batteryLevel: number | null
-  signalStrength: number | null
-  installDate: string | null
-  createdAt: string
-}
-
-interface Owner {
-  id: string
-  name: string
-  email: string
-  phone: string | null
-  isPrimary: boolean
-  canManage: boolean
-  canViewReports: boolean
-  notifyEmail: boolean
-  notifyWhatsApp: boolean
-  notifyOnAlert: boolean
-  createdAt: string
-}
-
-interface KitchenDetails {
-  id: string
-  name: string
-  address: string
-  emirate: string
-  tradeLicense: string | null
-  dmPermitNumber: string | null
-  contactName: string | null
-  contactPhone: string | null
-  contactEmail: string | null
-  sensorCount: number
-  ownerCount: number
-  activeAlerts: number
-  avgTemperature: number | null
-  minTemperature: number | null
-  maxTemperature: number | null
-  status: 'normal' | 'warning' | 'critical'
-  equipment: Equipment[]
-  owners: Owner[]
-  createdAt: string
-}
+import { 
+  getKitchen, 
+  upsertOwner, 
+  deleteOwner, 
+  upsertEquipment, 
+  deleteEquipment,
+  type Kitchen,
+  type KitchenOwner,
+  type KitchenEquipment
+} from '@/app/lib/kitchen-data'
 
 type TabType = 'overview' | 'equipment' | 'owners'
-
-// Mock data for Abdul's Kitchen (demo)
-const MOCK_KITCHEN: KitchenDetails = {
-  id: 'kitchen-abdul-001',
-  name: "Abdul's Kitchen",
-  address: 'Marina Walk',
-  emirate: 'Dubai Marina',
-  tradeLicense: 'TL-2025-123456',
-  dmPermitNumber: 'DM-FK-2025-7890',
-  contactName: 'Abdul Rahman',
-  contactPhone: '+971-50-123-4567',
-  contactEmail: 'abdul@kitchen.ae',
-  sensorCount: 4,
-  ownerCount: 1,
-  activeAlerts: 1,
-  avgTemperature: 2.4,
-  minTemperature: -19.5,
-  maxTemperature: 6.2,
-  status: 'warning',
-  equipment: [
-    {
-      id: 'sensor-a1',
-      name: 'Walk-in Fridge',
-      type: 'COLD_ROOM',
-      serialNumber: 'WF-2025-001',
-      brand: 'Carrier',
-      model: 'ColdMaster Pro',
-      sensorDevEui: 'A84041F5318254E1',
-      minTemp: 0,
-      maxTemp: 5,
-      isFreezer: false,
-      location: 'Back Storage',
-      status: 'ACTIVE',
-      lastReading: 3.2,
-      lastReadingAt: new Date().toISOString(),
-      batteryLevel: 85,
-      signalStrength: -75,
-      installDate: '2026-01-15',
-      createdAt: '2026-01-15T10:00:00Z'
-    },
-    {
-      id: 'sensor-a2',
-      name: 'Main Freezer',
-      type: 'FREEZER',
-      serialNumber: 'MF-2025-002',
-      brand: 'Liebherr',
-      model: 'ProFreeze 500',
-      sensorDevEui: 'A84041F5318254E2',
-      minTemp: -25,
-      maxTemp: -18,
-      isFreezer: true,
-      location: 'Back Storage',
-      status: 'ACTIVE',
-      lastReading: -19.5,
-      lastReadingAt: new Date().toISOString(),
-      batteryLevel: 92,
-      signalStrength: -68,
-      installDate: '2026-01-15',
-      createdAt: '2026-01-15T10:00:00Z'
-    },
-    {
-      id: 'sensor-a3',
-      name: 'Prep Fridge',
-      type: 'FRIDGE',
-      serialNumber: 'PF-2025-003',
-      brand: 'True',
-      model: 'T-49',
-      sensorDevEui: 'A84041F5318254E3',
-      minTemp: 0,
-      maxTemp: 5,
-      isFreezer: false,
-      location: 'Prep Area',
-      status: 'ACTIVE',
-      lastReading: 4.8,
-      lastReadingAt: new Date().toISOString(),
-      batteryLevel: 78,
-      signalStrength: -72,
-      installDate: '2026-01-15',
-      createdAt: '2026-01-15T10:00:00Z'
-    },
-    {
-      id: 'sensor-a4',
-      name: 'Display Cooler',
-      type: 'DISPLAY_FRIDGE',
-      serialNumber: 'DC-2025-004',
-      brand: 'Turbo Air',
-      model: 'TGM-48R',
-      sensorDevEui: 'A84041F5318254E4',
-      minTemp: 0,
-      maxTemp: 5,
-      isFreezer: false,
-      location: 'Front Counter',
-      status: 'MAINTENANCE',
-      lastReading: 6.2,
-      lastReadingAt: new Date().toISOString(),
-      batteryLevel: 65,
-      signalStrength: -80,
-      installDate: '2026-01-15',
-      createdAt: '2026-01-15T10:00:00Z'
-    }
-  ],
-  owners: [
-    {
-      id: 'owner-1',
-      name: 'Abdul Rahman',
-      email: 'abdul@kitchen.ae',
-      phone: '+971-50-123-4567',
-      isPrimary: true,
-      canManage: true,
-      canViewReports: true,
-      notifyEmail: true,
-      notifyWhatsApp: true,
-      notifyOnAlert: true,
-      createdAt: '2026-01-15T10:00:00Z'
-    }
-  ],
-  createdAt: '2026-01-15T10:00:00Z'
-}
 
 const equipmentTypes = [
   { value: 'FRIDGE', label: 'Fridge' },
@@ -220,17 +59,19 @@ export default function KitchenDetailPage() {
   const params = useParams()
   const kitchenId = params.id as string
   
-  const [kitchen, setKitchen] = useState<KitchenDetails | null>(null)
+  const [kitchen, setKitchen] = useState<Kitchen | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   
   // Equipment modal state
   const [showEquipmentModal, setShowEquipmentModal] = useState(false)
+  const [editingEquipment, setEditingEquipment] = useState<KitchenEquipment | null>(null)
   const [isSubmittingEquipment, setIsSubmittingEquipment] = useState(false)
   const [equipmentForm, setEquipmentForm] = useState({
     name: '',
-    type: 'FRIDGE',
+    type: 'FRIDGE' as KitchenEquipment['type'],
     serialNumber: '',
     brand: '',
     model: '',
@@ -243,12 +84,16 @@ export default function KitchenDetailPage() {
 
   // Owner modal state
   const [showOwnerModal, setShowOwnerModal] = useState(false)
+  const [editingOwner, setEditingOwner] = useState<KitchenOwner | null>(null)
   const [isSubmittingOwner, setIsSubmittingOwner] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [ownerForm, setOwnerForm] = useState({
     name: '',
     email: '',
     phone: '',
+    whatsApp: '',
     emiratesId: '',
+    password: '',
     isPrimary: false,
     canManage: false,
     canViewReports: true,
@@ -258,72 +103,214 @@ export default function KitchenDetailPage() {
     notifyDailyReport: false
   })
 
-  useEffect(() => {
-    loadKitchenData()
-  }, [kitchenId])
-
-  const loadKitchenData = async () => {
+  const loadKitchenData = useCallback(() => {
     setIsLoading(true)
     setError(null)
-    try {
-      // Use mock data for demo kitchen
-      if (kitchenId === 'kitchen-abdul-001') {
-        setKitchen(MOCK_KITCHEN)
-        setIsLoading(false)
-        return
+    
+    // Use shared data store
+    const data = getKitchen(kitchenId)
+    if (data) {
+      setKitchen(data)
+    } else {
+      setError('Kitchen not found')
+    }
+    setIsLoading(false)
+  }, [kitchenId])
+
+  useEffect(() => {
+    loadKitchenData()
+    
+    // Listen for data updates from other tabs/components
+    const handleDataUpdate = (e: CustomEvent) => {
+      if (e.detail.kitchenId === kitchenId) {
+        setKitchen(e.detail.kitchen)
       }
+    }
+    
+    window.addEventListener('kitchenDataUpdated', handleDataUpdate as EventListener)
+    return () => window.removeEventListener('kitchenDataUpdated', handleDataUpdate as EventListener)
+  }, [kitchenId, loadKitchenData])
+
+  // Clear success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [successMessage])
+
+  const openEditOwner = (owner: KitchenOwner) => {
+    setEditingOwner(owner)
+    setOwnerForm({
+      name: owner.name,
+      email: owner.email,
+      phone: owner.phone || '',
+      whatsApp: owner.whatsApp || '',
+      emiratesId: owner.emiratesId || '',
+      password: owner.password,
+      isPrimary: owner.isPrimary,
+      canManage: owner.canManage,
+      canViewReports: owner.canViewReports,
+      notifyEmail: owner.notifyEmail,
+      notifyWhatsApp: owner.notifyWhatsApp,
+      notifyOnAlert: owner.notifyOnAlert,
+      notifyDailyReport: owner.notifyDailyReport
+    })
+    setShowOwnerModal(true)
+  }
+
+  const openAddOwner = () => {
+    setEditingOwner(null)
+    setOwnerForm({
+      name: '',
+      email: '',
+      phone: '',
+      whatsApp: '',
+      emiratesId: '',
+      password: generatePassword(),
+      isPrimary: false,
+      canManage: false,
+      canViewReports: true,
+      notifyEmail: true,
+      notifyWhatsApp: false,
+      notifyOnAlert: true,
+      notifyDailyReport: false
+    })
+    setShowOwnerModal(true)
+  }
+
+  const openEditEquipment = (equipment: KitchenEquipment) => {
+    setEditingEquipment(equipment)
+    setEquipmentForm({
+      name: equipment.name,
+      type: equipment.type,
+      serialNumber: equipment.serialNumber || '',
+      brand: equipment.brand || '',
+      model: equipment.model || '',
+      sensorDevEui: equipment.sensorDevEui || '',
+      sensorImei: equipment.sensorImei || '',
+      location: equipment.location || '',
+      minTemp: equipment.minTemp,
+      maxTemp: equipment.maxTemp
+    })
+    setShowEquipmentModal(true)
+  }
+
+  const openAddEquipment = () => {
+    setEditingEquipment(null)
+    setEquipmentForm({
+      name: '',
+      type: 'FRIDGE',
+      serialNumber: '',
+      brand: '',
+      model: '',
+      sensorDevEui: '',
+      sensorImei: '',
+      location: '',
+      minTemp: 0,
+      maxTemp: 5
+    })
+    setShowEquipmentModal(true)
+  }
+
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+    let password = ''
+    for (let i = 0; i < 10; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return password
+  }
+
+  const handleSubmitOwner = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmittingOwner(true)
+    setError(null)
+
+    try {
+      const ownerData = {
+        id: editingOwner?.id,
+        name: ownerForm.name,
+        email: ownerForm.email,
+        phone: ownerForm.phone || null,
+        whatsApp: ownerForm.whatsApp || null,
+        emiratesId: ownerForm.emiratesId || null,
+        password: ownerForm.password,
+        isPrimary: ownerForm.isPrimary,
+        canManage: ownerForm.canManage,
+        canViewReports: ownerForm.canViewReports,
+        notifyEmail: ownerForm.notifyEmail,
+        notifyWhatsApp: ownerForm.notifyWhatsApp,
+        notifyOnAlert: ownerForm.notifyOnAlert,
+        notifyDailyReport: ownerForm.notifyDailyReport
+      }
+
+      const result = upsertOwner(kitchenId, ownerData)
       
-      const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}`)
-      const data = await response.json()
-      
-      if (data.success) {
-        setKitchen(data.kitchen)
+      if (result) {
+        setShowOwnerModal(false)
+        setEditingOwner(null)
+        loadKitchenData()
+        setSuccessMessage(editingOwner ? 'Owner updated successfully!' : 'Owner added successfully!')
       } else {
-        setError(data.error || 'Failed to load kitchen')
+        setError('Failed to save owner')
       }
     } catch (err) {
-      console.error('Failed to load kitchen:', err)
-      setError('Failed to connect to server')
+      console.error('Failed to save owner:', err)
+      setError('Failed to save owner')
     } finally {
-      setIsLoading(false)
+      setIsSubmittingOwner(false)
     }
   }
 
-  const handleAddEquipment = async (e: React.FormEvent) => {
+  const handleDeleteOwner = async (ownerId: string) => {
+    if (!confirm('Are you sure you want to remove this owner? They will no longer be able to access the kitchen portal.')) return
+
+    const success = deleteOwner(kitchenId, ownerId)
+    if (success) {
+      loadKitchenData()
+      setSuccessMessage('Owner removed successfully!')
+    } else {
+      setError('Failed to remove owner')
+    }
+  }
+
+  const handleSubmitEquipment = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmittingEquipment(true)
     setError(null)
 
     try {
-      const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}/equipment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(equipmentForm)
-      })
+      const isFreezer = equipmentForm.type === 'FREEZER' || equipmentForm.type === 'BLAST_CHILLER'
+      
+      const equipmentData = {
+        id: editingEquipment?.id,
+        name: equipmentForm.name,
+        type: equipmentForm.type,
+        serialNumber: equipmentForm.serialNumber || null,
+        brand: equipmentForm.brand || null,
+        model: equipmentForm.model || null,
+        sensorDevEui: equipmentForm.sensorDevEui || null,
+        sensorImei: equipmentForm.sensorImei || null,
+        location: equipmentForm.location || null,
+        minTemp: equipmentForm.minTemp,
+        maxTemp: equipmentForm.maxTemp,
+        isFreezer
+      }
 
-      const data = await response.json()
-
-      if (data.success) {
+      const result = upsertEquipment(kitchenId, equipmentData)
+      
+      if (result) {
         setShowEquipmentModal(false)
-        setEquipmentForm({
-          name: '',
-          type: 'FRIDGE',
-          serialNumber: '',
-          brand: '',
-          model: '',
-          sensorDevEui: '',
-          sensorImei: '',
-          location: '',
-          minTemp: 0,
-          maxTemp: 5
-        })
+        setEditingEquipment(null)
         loadKitchenData()
+        setSuccessMessage(editingEquipment ? 'Equipment updated successfully!' : 'Equipment added successfully!')
       } else {
-        setError(data.error || 'Failed to add equipment')
+        setError('Failed to save equipment')
       }
     } catch (err) {
-      console.error('Failed to add equipment:', err)
-      setError('Failed to connect to server')
+      console.error('Failed to save equipment:', err)
+      setError('Failed to save equipment')
     } finally {
       setIsSubmittingEquipment(false)
     }
@@ -332,94 +319,23 @@ export default function KitchenDetailPage() {
   const handleDeleteEquipment = async (equipmentId: string) => {
     if (!confirm('Are you sure you want to delete this equipment?')) return
 
-    try {
-      const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}/equipment/${equipmentId}`, {
-        method: 'DELETE'
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        loadKitchenData()
-      } else {
-        setError(data.error || 'Failed to delete equipment')
-      }
-    } catch (err) {
-      console.error('Failed to delete equipment:', err)
-      setError('Failed to connect to server')
-    }
-  }
-
-  const handleAddOwner = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmittingOwner(true)
-    setError(null)
-
-    try {
-      const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}/owners`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ownerForm)
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setShowOwnerModal(false)
-        setOwnerForm({
-          name: '',
-          email: '',
-          phone: '',
-          emiratesId: '',
-          isPrimary: false,
-          canManage: false,
-          canViewReports: true,
-          notifyEmail: true,
-          notifyWhatsApp: false,
-          notifyOnAlert: true,
-          notifyDailyReport: false
-        })
-        loadKitchenData()
-      } else {
-        setError(data.error || 'Failed to add owner')
-      }
-    } catch (err) {
-      console.error('Failed to add owner:', err)
-      setError('Failed to connect to server')
-    } finally {
-      setIsSubmittingOwner(false)
-    }
-  }
-
-  const handleDeleteOwner = async (ownerId: string) => {
-    if (!confirm('Are you sure you want to remove this owner?')) return
-
-    try {
-      const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}/owners/${ownerId}`, {
-        method: 'DELETE'
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        loadKitchenData()
-      } else {
-        setError(data.error || 'Failed to remove owner')
-      }
-    } catch (err) {
-      console.error('Failed to remove owner:', err)
-      setError('Failed to connect to server')
+    const success = deleteEquipment(kitchenId, equipmentId)
+    if (success) {
+      loadKitchenData()
+      setSuccessMessage('Equipment deleted successfully!')
+    } else {
+      setError('Failed to delete equipment')
     }
   }
 
   // Update temp thresholds when equipment type changes
-  const handleEquipmentTypeChange = (type: string) => {
+  const handleEquipmentTypeChange = (type: KitchenEquipment['type']) => {
     const isFreezer = type === 'FREEZER' || type === 'BLAST_CHILLER'
     setEquipmentForm({
       ...equipmentForm,
       type,
       minTemp: isFreezer ? -25 : 0,
-      maxTemp: isFreezer ? -15 : 5
+      maxTemp: isFreezer ? -18 : 5
     })
   }
 
@@ -453,6 +369,23 @@ export default function KitchenDetailPage() {
     }
   }
 
+  // Calculate status from alerts
+  const kitchenStatus = kitchen.alerts.filter(a => !a.acknowledged).length > 0 
+    ? kitchen.alerts.some(a => a.severity === 'critical' && !a.acknowledged) ? 'critical' : 'warning'
+    : 'normal'
+
+  // Calculate average temperature
+  const activeEquipment = kitchen.equipment.filter(e => e.currentTemp !== null)
+  const avgTemp = activeEquipment.length > 0 
+    ? activeEquipment.reduce((sum, e) => sum + (e.currentTemp || 0), 0) / activeEquipment.length
+    : null
+  const minTemp = activeEquipment.length > 0 
+    ? Math.min(...activeEquipment.map(e => e.currentTemp || 0))
+    : null
+  const maxTemp = activeEquipment.length > 0 
+    ? Math.max(...activeEquipment.map(e => e.currentTemp || 0))
+    : null
+
   return (
     <div className="p-6 space-y-6">
       {/* Back Button & Header */}
@@ -473,12 +406,20 @@ export default function KitchenDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {getStatusBadge(kitchen.status)}
+          {getStatusBadge(kitchenStatus)}
           <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <Settings className="h-5 w-5 text-gray-600" />
           </button>
         </div>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm flex items-center gap-2">
+          <CheckCircle className="h-4 w-4" />
+          {successMessage}
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (
@@ -495,8 +436,8 @@ export default function KitchenDetailPage() {
         <nav className="flex gap-8">
           {[
             { id: 'overview', label: 'Overview', icon: Thermometer },
-            { id: 'equipment', label: 'Equipment', icon: Package, count: kitchen.sensorCount },
-            { id: 'owners', label: 'Owners', icon: Users, count: kitchen.ownerCount }
+            { id: 'equipment', label: 'Equipment', icon: Package, count: kitchen.equipment.length },
+            { id: 'owners', label: 'Owners', icon: Users, count: kitchen.owners.length }
           ].map(tab => (
             <button
               key={tab.id}
@@ -545,7 +486,7 @@ export default function KitchenDetailPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Equipment</p>
-                  <p className="text-2xl font-bold text-gray-900">{kitchen.sensorCount}</p>
+                  <p className="text-2xl font-bold text-gray-900">{kitchen.equipment.length}</p>
                 </div>
                 <Package className="h-8 w-8 text-blue-500" />
               </div>
@@ -555,11 +496,11 @@ export default function KitchenDetailPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Active Alerts</p>
-                  <p className={`text-2xl font-bold ${kitchen.activeAlerts > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                    {kitchen.activeAlerts}
+                  <p className={`text-2xl font-bold ${kitchen.alerts.filter(a => !a.acknowledged).length > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    {kitchen.alerts.filter(a => !a.acknowledged).length}
                   </p>
                 </div>
-                {kitchen.activeAlerts > 0 ? (
+                {kitchen.alerts.filter(a => !a.acknowledged).length > 0 ? (
                   <AlertTriangle className="h-8 w-8 text-amber-500" />
                 ) : (
                   <CheckCircle className="h-8 w-8 text-emerald-500" />
@@ -573,15 +514,15 @@ export default function KitchenDetailPage() {
                   <p className="text-sm text-cyan-700">Temperature Range</p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-bold text-cyan-700">
-                      {kitchen.avgTemperature !== null ? `${kitchen.avgTemperature.toFixed(1)}°C` : '—'}
+                      {avgTemp !== null ? `${avgTemp.toFixed(1)}°C` : '—'}
                     </span>
                     <span className="text-xs text-cyan-600">avg</span>
                   </div>
-                  {kitchen.minTemperature !== null && kitchen.maxTemperature !== null && (
+                  {minTemp !== null && maxTemp !== null && (
                     <div className="flex items-center gap-2 text-xs text-cyan-600 mt-1">
-                      <TrendingDown className="h-3 w-3" /> {kitchen.minTemperature.toFixed(1)}°C
+                      <TrendingDown className="h-3 w-3" /> {minTemp.toFixed(1)}°C
                       <span>-</span>
-                      <TrendingUp className="h-3 w-3" /> {kitchen.maxTemperature.toFixed(1)}°C
+                      <TrendingUp className="h-3 w-3" /> {maxTemp.toFixed(1)}°C
                     </div>
                   )}
                 </div>
@@ -603,7 +544,7 @@ export default function KitchenDetailPage() {
           {/* Add Equipment Button */}
           <div className="flex justify-end">
             <button
-              onClick={() => setShowEquipmentModal(true)}
+              onClick={openAddEquipment}
               className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors"
             >
               <Plus className="h-4 w-4" />
@@ -617,7 +558,7 @@ export default function KitchenDetailPage() {
               <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 mb-4">No equipment added yet</p>
               <button
-                onClick={() => setShowEquipmentModal(true)}
+                onClick={openAddEquipment}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-full hover:bg-orange-600 transition-all"
               >
                 <Plus className="h-4 w-4" />
@@ -637,7 +578,10 @@ export default function KitchenDetailPage() {
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => openEditEquipment(equip)}
+                        className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
                         <Edit2 className="h-4 w-4 text-gray-400" />
                       </button>
                       <button 
@@ -672,15 +616,15 @@ export default function KitchenDetailPage() {
                       <span className="text-gray-500">Safe Range</span>
                       <span className="text-gray-900">{equip.minTemp}°C to {equip.maxTemp}°C</span>
                     </div>
-                    {equip.lastReading !== null && (
+                    {equip.currentTemp !== null && (
                       <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                         <span className="text-gray-500">Current Temp</span>
                         <span className={`text-lg font-bold ${
-                          equip.lastReading > equip.maxTemp || equip.lastReading < equip.minTemp
+                          equip.currentTemp > equip.maxTemp || equip.currentTemp < equip.minTemp
                             ? 'text-red-600'
                             : 'text-emerald-600'
                         }`}>
-                          {equip.lastReading.toFixed(1)}°C
+                          {equip.currentTemp.toFixed(1)}°C
                         </span>
                       </div>
                     )}
@@ -695,9 +639,12 @@ export default function KitchenDetailPage() {
       {activeTab === 'owners' && (
         <div className="space-y-4">
           {/* Add Owner Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-500">
+              Owners can access the Kitchen Owner Portal using their email and password
+            </p>
             <button
-              onClick={() => setShowOwnerModal(true)}
+              onClick={openAddOwner}
               className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors"
             >
               <Plus className="h-4 w-4" />
@@ -711,7 +658,7 @@ export default function KitchenDetailPage() {
               <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 mb-4">No owners added yet</p>
               <button
-                onClick={() => setShowOwnerModal(true)}
+                onClick={openAddOwner}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-full hover:bg-orange-600 transition-all"
               >
                 <Plus className="h-4 w-4" />
@@ -756,19 +703,48 @@ export default function KitchenDetailPage() {
                               {owner.phone}
                             </span>
                           )}
+                          {owner.whatsApp && (
+                            <span className="flex items-center gap-1 text-emerald-600">
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              WhatsApp
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => openEditOwner(owner)}
+                        className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Edit Owner"
+                      >
                         <Edit2 className="h-4 w-4 text-gray-400" />
                       </button>
                       <button 
                         onClick={() => handleDeleteOwner(owner.id)}
                         className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove Owner"
                       >
                         <Trash2 className="h-4 w-4 text-red-400" />
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Login Credentials */}
+                  <div className="mt-4 p-3 bg-gray-50 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Key className="h-4 w-4 text-gray-400" />
+                        <span className="text-xs font-medium text-gray-500">Portal Login</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Last login: {owner.lastLogin ? new Date(owner.lastLogin).toLocaleDateString() : 'Never'}
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-4 text-sm">
+                      <span className="text-gray-600">{owner.email}</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="font-mono text-gray-600">{owner.password}</span>
                     </div>
                   </div>
 
@@ -803,24 +779,28 @@ export default function KitchenDetailPage() {
         </div>
       )}
 
-      {/* Add Equipment Modal */}
+      {/* Add/Edit Equipment Modal */}
       {showEquipmentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Add Equipment</h2>
-                <p className="text-sm text-gray-500 mt-1">Register new equipment with sensor</p>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {editingEquipment ? 'Edit Equipment' : 'Add Equipment'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {editingEquipment ? 'Update equipment details' : 'Register new equipment with sensor'}
+                </p>
               </div>
               <button
-                onClick={() => setShowEquipmentModal(false)}
+                onClick={() => { setShowEquipmentModal(false); setEditingEquipment(null) }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
-            <form onSubmit={handleAddEquipment} className="p-6 space-y-4">
+            <form onSubmit={handleSubmitEquipment} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -840,7 +820,7 @@ export default function KitchenDetailPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                   <select
                     value={equipmentForm.type}
-                    onChange={(e) => handleEquipmentTypeChange(e.target.value)}
+                    onChange={(e) => handleEquipmentTypeChange(e.target.value as KitchenEquipment['type'])}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                   >
                     {equipmentTypes.map(t => (
@@ -955,7 +935,7 @@ export default function KitchenDetailPage() {
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setShowEquipmentModal(false)}
+                  onClick={() => { setShowEquipmentModal(false); setEditingEquipment(null) }}
                   className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
                 >
                   Cancel
@@ -966,9 +946,9 @@ export default function KitchenDetailPage() {
                   className="flex items-center gap-2 px-6 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
                 >
                   {isSubmittingEquipment ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> Adding...</>
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</>
                   ) : (
-                    <><Plus className="h-4 w-4" /> Add Equipment</>
+                    <><Save className="h-4 w-4" /> {editingEquipment ? 'Save Changes' : 'Add Equipment'}</>
                   )}
                 </button>
               </div>
@@ -977,24 +957,28 @@ export default function KitchenDetailPage() {
         </div>
       )}
 
-      {/* Add Owner Modal */}
+      {/* Add/Edit Owner Modal */}
       {showOwnerModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Add Kitchen Owner</h2>
-                <p className="text-sm text-gray-500 mt-1">Owner will receive alerts and can access portal</p>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {editingOwner ? 'Edit Owner' : 'Add Kitchen Owner'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {editingOwner ? 'Update owner details and portal access' : 'Owner will receive alerts and can access portal'}
+                </p>
               </div>
               <button
-                onClick={() => setShowOwnerModal(false)}
+                onClick={() => { setShowOwnerModal(false); setEditingOwner(null) }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
-            <form onSubmit={handleAddOwner} className="p-6 space-y-4">
+            <form onSubmit={handleSubmitOwner} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1038,14 +1022,68 @@ export default function KitchenDetailPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Emirates ID</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
                   <input
-                    type="text"
-                    value={ownerForm.emiratesId}
-                    onChange={(e) => setOwnerForm({ ...ownerForm, emiratesId: e.target.value })}
-                    placeholder="784-XXXX-XXXXXXX-X"
+                    type="tel"
+                    value={ownerForm.whatsApp}
+                    onChange={(e) => setOwnerForm({ ...ownerForm, whatsApp: e.target.value })}
+                    placeholder="+971-50-XXX-XXXX"
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Emirates ID</label>
+                <input
+                  type="text"
+                  value={ownerForm.emiratesId}
+                  onChange={(e) => setOwnerForm({ ...ownerForm, emiratesId: e.target.value })}
+                  placeholder="784-XXXX-XXXXXXX-X"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                />
+              </div>
+
+              {/* Portal Login Credentials */}
+              <div className="p-4 bg-blue-50 rounded-xl space-y-4">
+                <h4 className="text-sm font-medium text-blue-700 flex items-center gap-2">
+                  <Key className="h-4 w-4" />
+                  Kitchen Owner Portal Login
+                </h4>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={ownerForm.password}
+                      onChange={(e) => setOwnerForm({ ...ownerForm, password: e.target.value })}
+                      placeholder="Portal password"
+                      className="w-full px-4 py-2.5 pr-20 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="p-1.5 hover:bg-gray-100 rounded-lg"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOwnerForm({ ...ownerForm, password: generatePassword() })}
+                        className="p-1.5 hover:bg-gray-100 rounded-lg text-xs text-blue-600 font-medium"
+                      >
+                        Generate
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Owner will use this password to login at visiondrive.ae/kitchen-owner
+                  </p>
                 </div>
               </div>
 
@@ -1143,7 +1181,7 @@ export default function KitchenDetailPage() {
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setShowOwnerModal(false)}
+                  onClick={() => { setShowOwnerModal(false); setEditingOwner(null) }}
                   className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
                 >
                   Cancel
@@ -1154,9 +1192,9 @@ export default function KitchenDetailPage() {
                   className="flex items-center gap-2 px-6 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
                 >
                   {isSubmittingOwner ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /> Adding...</>
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</>
                   ) : (
-                    <><Plus className="h-4 w-4" /> Add Owner</>
+                    <><Save className="h-4 w-4" /> {editingOwner ? 'Save Changes' : 'Add Owner'}</>
                   )}
                 </button>
               </div>

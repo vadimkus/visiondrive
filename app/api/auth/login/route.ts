@@ -5,6 +5,17 @@ import { checkRateLimit, getClientIp, loginRateLimiter } from '@/lib/rate-limit'
 // AWS Smart Kitchen API URL (UAE Region)
 const KITCHEN_API_URL = process.env.SMART_KITCHEN_API_URL || 'https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod'
 
+// Demo kitchen owners (synced with admin portal)
+// In production, this would be stored in database
+const DEMO_KITCHEN_OWNERS: Record<string, { password: string; name: string; kitchenId: string; kitchenName: string }> = {
+  'abdul@kitchen.ae': {
+    password: 'demo123',
+    name: 'Abdul Rahman',
+    kitchenId: 'kitchen-abdul-001',
+    kitchenName: "Abdul's Kitchen"
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting - prevent brute force attacks
@@ -33,50 +44,98 @@ export async function POST(request: NextRequest) {
 
     const { email, password, portal } = await request.json()
 
-    // Handle Kitchen portal login via AWS API (UAE data residency)
+    // Handle Kitchen portal login
     if (portal === 'kitchen') {
-      const awsResponse = await fetch(`${KITCHEN_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
+      // First check demo users (for testing without AWS API)
+      const demoUser = DEMO_KITCHEN_OWNERS[email]
+      if (demoUser && demoUser.password === password) {
+        const demoToken = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        
+        const response = NextResponse.json({
+          success: true,
+          user: {
+            id: `owner-${email.split('@')[0]}`,
+            email,
+            name: demoUser.name,
+            role: 'KITCHEN_OWNER',
+            kitchenId: demoUser.kitchenId,
+            kitchenName: demoUser.kitchenName
+          },
+          token: demoToken,
+          portal: 'kitchen',
+          isOwner: true,
+        })
 
-      const awsData = await awsResponse.json()
+        response.cookies.set('authToken', demoToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24,
+        })
 
-      if (!awsResponse.ok || !awsData.success) {
-        return NextResponse.json(
-          { success: false, error: awsData.error || 'Invalid credentials' },
-          { status: 401 }
-        )
+        response.cookies.set('portal', 'kitchen', {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24,
+        })
+
+        response.cookies.set('kitchenId', demoUser.kitchenId, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24,
+        })
+
+        return response
       }
 
-      // Determine if user is kitchen owner or admin
-      const isOwner = awsData.user?.role === 'KITCHEN_OWNER'
-      
-      const response = NextResponse.json({
-        success: true,
-        user: awsData.user,
-        token: awsData.token,
-        portal: 'kitchen',
-        isOwner,
-      })
+      // Try AWS API for non-demo users
+      try {
+        const awsResponse = await fetch(`${KITCHEN_API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        })
 
-      // Set HTTP-only cookie (24-hour session - VD-2026-004)
-      response.cookies.set('authToken', awsData.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24, // 24 hours (security best practice)
-      })
+        const awsData = await awsResponse.json()
 
-      response.cookies.set('portal', 'kitchen', {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24, // 24 hours
-      })
+        if (awsResponse.ok && awsData.success) {
+          const isOwner = awsData.user?.role === 'KITCHEN_OWNER'
+          
+          const response = NextResponse.json({
+            success: true,
+            user: awsData.user,
+            token: awsData.token,
+            portal: 'kitchen',
+            isOwner,
+          })
 
-      return response
+          response.cookies.set('authToken', awsData.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24,
+          })
+
+          response.cookies.set('portal', 'kitchen', {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24,
+          })
+
+          return response
+        }
+      } catch (awsError) {
+        console.log('AWS API unavailable, demo mode only')
+      }
+
+      // If we get here, credentials are invalid
+      return NextResponse.json(
+        { success: false, error: 'Invalid email or password' },
+        { status: 401 }
+      )
     }
 
     if (!email || !password) {
