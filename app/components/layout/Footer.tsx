@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Mail, MapPin, MessageCircle, ChefHat } from 'lucide-react'
+import { Mail, MapPin, MessageCircle } from 'lucide-react'
 import Logo from '../common/Logo'
 import { useLanguage } from '../../contexts/LanguageContext'
 
@@ -11,7 +11,7 @@ const footerTranslations = {
     solutions: 'Solutions',
     company: 'Company',
     contact: 'Contact',
-    description: 'IoT Solutions\nfor Food Safety Compliance',
+    description: 'Enterprise IoT Solutions\nfor UAE Businesses',
     copyright: 'All rights reserved.',
     solutionsLinks: {
       restaurants: 'For Restaurants',
@@ -33,7 +33,7 @@ const footerTranslations = {
     solutions: 'الحلول',
     company: 'الشركة',
     contact: 'اتصل بنا',
-    description: 'حلول إنترنت الأشياء للمطابخ الذكية\nللامتثال لسلامة الغذاء',
+    description: 'حلول إنترنت الأشياء المؤسسية\nللشركات الإماراتية',
     copyright: 'جميع الحقوق محفوظة.',
     solutionsLinks: {
       restaurants: 'للمطاعم',
@@ -99,15 +99,6 @@ export default function Footer() {
                 </span>
               ))}
             </p>
-            
-            {/* Kitchen Owner Portal Quick Link - Goes to login */}
-            <Link 
-              href="/login"
-              className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-orange-50 text-orange-700 text-sm font-medium rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors"
-            >
-              <ChefHat className="h-4 w-4" />
-              Kitchen Owner Portal
-            </Link>
           </div>
 
           {/* Company */}

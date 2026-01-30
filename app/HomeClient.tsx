@@ -5,10 +5,6 @@ import {
   Radio, 
   Zap, 
   Shield, 
-  Cpu,
-  Thermometer,
-  Car,
-  Building2,
   Wifi,
   ChevronRight,
   CheckCircle,
@@ -24,41 +20,6 @@ const stats = [
   { number: '<30s', label: 'Response', icon: Zap },
   { number: '99%+', label: 'Uptime', icon: Shield },
   { number: 'UAE', label: 'Based', icon: Globe },
-]
-
-const solutions = [
-  {
-    icon: Thermometer,
-    title: 'Smart Kitchen',
-    description: 'Temperature monitoring for commercial kitchens. Dubai Municipality compliant.',
-    href: '/solutions#smart-kitchen',
-    color: 'bg-orange-500',
-    badge: 'Live',
-  },
-  {
-    icon: Car,
-    title: 'Smart Parking',
-    description: 'IoT parking sensors for real-time occupancy detection and management.',
-    href: '/solutions#smart-parking',
-    color: 'bg-blue-500',
-    badge: 'Coming Soon',
-  },
-  {
-    icon: Building2,
-    title: 'Smart Building',
-    description: 'Energy monitoring, access control, and facility management solutions.',
-    href: '/solutions#smart-building',
-    color: 'bg-emerald-500',
-    badge: 'Planned',
-  },
-  {
-    icon: Cpu,
-    title: 'Custom IoT',
-    description: 'Tailored IoT solutions for your specific industry requirements.',
-    href: '/contact',
-    color: 'bg-purple-500',
-    badge: 'Contact Us',
-  },
 ]
 
 const capabilities = [
@@ -158,59 +119,8 @@ export default function HomeClient() {
         </div>
       </section>
 
-      {/* Solutions Section */}
-      <section className="py-14 md:py-20 px-5 md:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10 md:mb-14">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 tracking-tight mb-3">
-              Our Solutions
-            </h2>
-            <p className="text-gray-500 text-lg">
-              IoT solutions designed for UAE market requirements
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-            {solutions.map((solution) => (
-              <Link
-                key={solution.title}
-                href={solution.href}
-                className="group p-6 md:p-8 bg-white rounded-3xl border border-gray-100 hover:border-gray-200 hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex items-start justify-between mb-5">
-                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl ${solution.color} flex items-center justify-center`}>
-                    <solution.icon className="h-6 w-6 md:h-7 md:w-7 text-white" />
-                  </div>
-                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                    solution.badge === 'Live' 
-                      ? 'bg-emerald-50 text-emerald-600' 
-                      : solution.badge === 'Coming Soon'
-                        ? 'bg-blue-50 text-blue-600'
-                        : solution.badge === 'Planned'
-                          ? 'bg-gray-100 text-gray-600'
-                          : 'bg-orange-50 text-orange-600'
-                  }`}>
-                    {solution.badge}
-                  </span>
-                </div>
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
-                  {solution.title}
-                </h3>
-                <p className="text-gray-500 leading-relaxed mb-4">
-                  {solution.description}
-                </p>
-                <div className="flex items-center text-orange-500 font-medium text-sm group-hover:gap-2 transition-all">
-                  <span>Learn more</span>
-                  <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Benefits List */}
-      <section className="py-12 md:py-16 px-5 md:px-8 bg-gray-50">
+      <section className="py-12 md:py-16 px-5 md:px-8">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-xl md:text-2xl font-semibold text-gray-900 text-center mb-8">
             Why Choose VisionDrive?
@@ -219,7 +129,7 @@ export default function HomeClient() {
             {benefits.map((benefit) => (
               <div 
                 key={benefit}
-                className="flex items-center gap-4 p-5 bg-white rounded-2xl"
+                className="flex items-center gap-4 p-5 bg-gray-50 rounded-2xl"
               >
                 <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
                   <CheckCircle className="h-5 w-5 text-emerald-500" />
@@ -232,7 +142,7 @@ export default function HomeClient() {
       </section>
 
       {/* Customer Portal CTA */}
-      <section className="py-12 md:py-20 px-5 md:px-8">
+      <section className="py-12 md:py-20 px-5 md:px-8 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <div className="relative overflow-hidden bg-gray-900 rounded-[2rem] p-8 md:p-12">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl" />
@@ -269,43 +179,6 @@ export default function HomeClient() {
                 </Link>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact CTA */}
-      <section className="py-12 md:py-16 px-5 md:px-8 bg-gray-50">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-4 tracking-tight">
-            Let's Build Together
-          </h2>
-          <p className="text-gray-500 mb-8 text-lg">
-            Contact us to discuss your IoT project requirements.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a
-              href="https://wa.me/971559152985"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-gray-200 hover:border-emerald-300 hover:shadow-lg transition-all w-full sm:w-auto"
-            >
-              <span className="text-2xl">💬</span>
-              <div className="text-left">
-                <div className="text-sm text-gray-500">WhatsApp</div>
-                <div className="font-semibold text-gray-900">+971 55 915 2985</div>
-              </div>
-            </a>
-            <a
-              href="mailto:tech@visiondrive.ae"
-              className="flex items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-gray-200 hover:border-orange-300 hover:shadow-lg transition-all w-full sm:w-auto"
-            >
-              <span className="text-2xl">✉️</span>
-              <div className="text-left">
-                <div className="text-sm text-gray-500">Email</div>
-                <div className="font-semibold text-gray-900">tech@visiondrive.ae</div>
-              </div>
-            </a>
           </div>
         </div>
       </section>
