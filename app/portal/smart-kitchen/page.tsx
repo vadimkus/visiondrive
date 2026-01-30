@@ -3,126 +3,102 @@
 import { useState, useEffect } from 'react'
 import { 
   Wifi,
-  CheckCircle2,
   ChevronRight,
   AlertCircle,
-  ArrowUpRight,
-  MoreHorizontal,
   RefreshCw,
   Users,
   Shield,
   Thermometer,
-  Clock,
   MapPin,
-  Calendar,
+  Building2,
+  Plus,
+  Search,
+  AlertTriangle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useTheme } from './context/ThemeContext'
 
-// Shared data - synced with kitchen owner portal
-// This represents the REAL data from Abdul's Kitchen
-const ABDULS_KITCHEN = {
-  id: 'kitchen-abdul-001',
-  name: "Abdul's Kitchen",
-  owner: 'Abdul Rahman',
-  email: 'abdul@kitchen.ae',
-  location: 'Marina Walk, Dubai Marina',
-  since: 'January 2026',
-  sensors: [
-    {
-      id: 'sensor-a1',
-      name: 'Walk-in Fridge',
-      type: 'refrigerator',
-      currentTemp: 3.2,
-      requiredRange: { min: 0, max: 5 },
-      status: 'compliant',
-      lastUpdate: '2 min ago',
-      online: true,
-      battery: 85,
-    },
-    {
-      id: 'sensor-a2',
-      name: 'Main Freezer',
-      type: 'freezer',
-      currentTemp: -19.5,
-      requiredRange: { max: -18 },
-      status: 'compliant',
-      lastUpdate: '1 min ago',
-      online: true,
-      battery: 92,
-    },
-    {
-      id: 'sensor-a3',
-      name: 'Prep Fridge',
-      type: 'refrigerator',
-      currentTemp: 4.8,
-      requiredRange: { min: 0, max: 5 },
-      status: 'compliant',
-      lastUpdate: '3 min ago',
-      online: true,
-      battery: 78,
-    },
-    {
-      id: 'sensor-a4',
-      name: 'Display Cooler',
-      type: 'refrigerator',
-      currentTemp: 6.2,
-      requiredRange: { min: 0, max: 5 },
-      status: 'warning',
-      lastUpdate: '1 min ago',
-      online: true,
-      battery: 65,
-    },
-  ],
-  subscription: {
-    plan: 'professional' as const,
-    status: 'active' as const,
-    monthlyFee: 1396, // 4 sensors × 349 AED (Professional tier)
-    nextBilling: '2026-02-15',
-    startDate: '2026-01-15',
-  },
-  alerts: [
-    {
-      id: 'alert-1',
-      sensor: 'Display Cooler',
-      message: 'Temperature above 5°C threshold',
-      time: '15 min ago',
-      severity: 'warning',
-      acknowledged: false,
-    },
-  ],
+interface Kitchen {
+  id: string
+  name: string
+  address: string
+  emirate: string
+  contactName: string | null
+  contactPhone: string | null
+  sensorCount: number
+  ownerCount: number
+  activeAlerts: number
+  avgTemperature: number | null
+  status: 'normal' | 'warning' | 'critical'
+  createdAt: string
 }
 
-export default function AdminDashboard() {
+export default function KitchenOverview() {
   const { isDark } = useTheme()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [lastRefresh, setLastRefresh] = useState(new Date())
-  const [kitchenData, setKitchenData] = useState(ABDULS_KITCHEN)
+  const [kitchens, setKitchens] = useState<Kitchen[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const handleRefresh = () => {
+  const loadKitchens = async () => {
     setIsLoading(true)
-    setLastRefresh(new Date())
-    // In a real app, this would fetch from API
-    setTimeout(() => setIsLoading(false), 1000)
+    setError(null)
+    try {
+      const response = await fetch('/api/portal/smart-kitchen/kitchens')
+      const data = await response.json()
+      
+      if (data.success) {
+        setKitchens(data.kitchens)
+      } else {
+        setError(data.error || 'Failed to load kitchens')
+      }
+    } catch (err) {
+      console.error('Failed to load kitchens:', err)
+      setError('Failed to connect to server')
+    } finally {
+      setIsLoading(false)
+      setLastRefresh(new Date())
+    }
   }
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
-    const interval = setInterval(() => setLastRefresh(new Date()), 30000)
+    loadKitchens()
+  }, [])
+
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => loadKitchens(), 60000)
     return () => clearInterval(interval)
   }, [])
 
-  // Calculate stats from real data
-  const totalSensors = kitchenData.sensors.length
-  const onlineSensors = kitchenData.sensors.filter(s => s.online).length
-  const compliantSensors = kitchenData.sensors.filter(s => s.status === 'compliant').length
-  const alertCount = kitchenData.sensors.filter(s => s.status === 'warning').length
-  const complianceRate = Math.round((compliantSensors / totalSensors) * 100)
+  const handleRefresh = () => {
+    loadKitchens()
+  }
 
-  const planColors = {
-    starter: isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600',
-    professional: isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-50 text-blue-600',
-    enterprise: isDark ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-50 text-purple-600',
+  // Calculate aggregate stats
+  const totalKitchens = kitchens.length
+  const totalSensors = kitchens.reduce((sum, k) => sum + k.sensorCount, 0)
+  const totalAlerts = kitchens.reduce((sum, k) => sum + k.activeAlerts, 0)
+  const compliantKitchens = kitchens.filter(k => k.status === 'normal').length
+  const complianceRate = totalKitchens > 0 ? Math.round((compliantKitchens / totalKitchens) * 100) : 100
+
+  // Filter kitchens by search
+  const filteredKitchens = kitchens.filter(k => 
+    k.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    k.address.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const statusColors = {
+    normal: isDark ? 'bg-emerald-500' : 'bg-emerald-500',
+    warning: isDark ? 'bg-amber-500' : 'bg-amber-500',
+    critical: isDark ? 'bg-red-500' : 'bg-red-500',
+  }
+
+  const statusText = {
+    normal: 'Compliant',
+    warning: 'Warning',
+    critical: 'Critical',
   }
 
   return (
@@ -133,10 +109,10 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className={`text-2xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Admin Dashboard
+              Kitchen Overview
             </h1>
             <p className={`text-sm mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-              Real-time Kitchen Monitoring
+              Manage and monitor all your kitchens
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -151,6 +127,7 @@ export default function AdminDashboard() {
             </span>
             <button 
               onClick={handleRefresh}
+              disabled={isLoading}
               className={`
                 p-2 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95
                 ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-white hover:bg-gray-50'}
@@ -159,269 +136,197 @@ export default function AdminDashboard() {
             >
               <RefreshCw className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
             </button>
+            <Link
+              href="/portal/smart-kitchen/kitchens"
+              className={`
+                flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all
+                ${isDark ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-[#1d1d1f] hover:bg-[#2d2d2f] text-white'}
+              `}
+            >
+              <Plus className="w-4 h-4" />
+              Add Kitchen
+            </Link>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 mb-8">
           <StatCard
-            label="Active Kitchens"
-            value={1}
-            subtitle="1 monitored"
-            icon={Users}
+            label="Total Kitchens"
+            value={totalKitchens}
+            subtitle={`${totalKitchens} monitored`}
+            icon={Building2}
             iconBg="bg-blue-500"
             isDark={isDark}
           />
           <StatCard
-            label="Sensors Online"
-            value={`${onlineSensors}/${totalSensors}`}
-            subtitle="100% uptime"
-            icon={Wifi}
+            label="Total Sensors"
+            value={totalSensors}
+            subtitle="Active equipment"
+            icon={Thermometer}
             iconBg="bg-emerald-500"
-            trend="up"
             isDark={isDark}
           />
           <StatCard
             label="Compliance Rate"
             value={`${complianceRate}%`}
-            subtitle={`${compliantSensors}/${totalSensors} compliant`}
+            subtitle={`${compliantKitchens}/${totalKitchens} compliant`}
             icon={Shield}
             iconBg={complianceRate === 100 ? 'bg-emerald-500' : 'bg-amber-500'}
             isDark={isDark}
           />
           <StatCard
             label="Active Alerts"
-            value={alertCount}
-            subtitle={alertCount > 0 ? 'Action required' : 'All clear'}
+            value={totalAlerts}
+            subtitle={totalAlerts > 0 ? 'Action required' : 'All clear'}
             icon={AlertCircle}
-            iconBg={alertCount > 0 ? 'bg-amber-500' : 'bg-emerald-500'}
+            iconBg={totalAlerts > 0 ? 'bg-amber-500' : 'bg-emerald-500'}
             isDark={isDark}
           />
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-3 gap-6">
-          
-          {/* Kitchen Details - Takes 2 columns */}
-          <div className={`col-span-2 rounded-2xl ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'} overflow-hidden`}>
-            <div className={`px-6 py-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-100'} flex items-center justify-between`}>
-              <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Kitchen Overview</h2>
-              <Link 
-                href={`/portal/smart-kitchen/kitchens/${kitchenData.id}`}
-                className={`text-sm flex items-center gap-1 transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                View details <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-            
-            {/* Kitchen Info Card */}
-            <div className="p-6">
-              <div className="flex items-start gap-6 mb-6">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl ${isDark ? 'bg-orange-500/20' : 'bg-orange-50'}`}>
-                  🍳
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {kitchenData.name}
-                    </h3>
-                    <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${planColors[kitchenData.subscription.plan]}`}>
-                      {kitchenData.subscription.plan}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-emerald-500">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      Active
-                    </span>
-                  </div>
-                  <div className={`flex items-center gap-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {kitchenData.location}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      Since {kitchenData.since}
-                    </span>
-                  </div>
-                  <div className={`mt-2 text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                    Owner: {kitchenData.owner} ({kitchenData.email})
-                  </div>
-                </div>
-              </div>
+        {/* Search */}
+        <div className="relative mb-6">
+          <Search className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+          <input
+            type="text"
+            placeholder="Search kitchens..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`
+              w-full pl-11 pr-4 py-3 rounded-xl text-sm transition-all
+              ${isDark 
+                ? 'bg-[#1c1c1e] border-gray-800 text-white placeholder-gray-500 focus:ring-orange-500/20 focus:border-orange-500' 
+                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-orange-500/20 focus:border-orange-500'
+              }
+              border focus:outline-none focus:ring-2
+            `}
+          />
+        </div>
 
-              {/* Equipment Grid */}
-              <div className={`border-t pt-6 ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
-                <h4 className={`text-sm font-medium mb-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Equipment Status ({totalSensors} sensors)
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  {kitchenData.sensors.map(sensor => (
-                    <div 
-                      key={sensor.id}
-                      className={`p-4 rounded-xl transition-all duration-200 hover:scale-[1.02] ${
-                        sensor.status === 'warning'
-                          ? isDark ? 'bg-amber-900/20 border border-amber-800/50' : 'bg-amber-50 border border-amber-100'
-                          : isDark ? 'bg-white/5' : 'bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {sensor.name}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          {sensor.online ? (
-                            <Wifi className="w-4 h-4 text-emerald-500" />
-                          ) : (
-                            <Wifi className="w-4 h-4 text-gray-400" />
-                          )}
-                          {sensor.status === 'warning' && (
-                            <AlertCircle className="w-4 h-4 text-amber-500" />
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className={`text-2xl font-semibold ${
-                          sensor.status === 'warning' ? 'text-amber-500' : isDark ? 'text-white' : 'text-gray-900'
-                        }`}>
-                          {sensor.currentTemp}°C
-                        </span>
-                        <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                          {sensor.requiredRange.min !== undefined ? `${sensor.requiredRange.min}-${sensor.requiredRange.max}°C` : `≤${sensor.requiredRange.max}°C`}
-                        </span>
-                      </div>
-                      <div className={`flex items-center justify-between mt-2 text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {sensor.lastUpdate}
-                        </span>
-                        <span>Battery: {sensor.battery}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+        {/* Error Message */}
+        {error && (
+          <div className={`mb-6 p-4 rounded-xl text-sm ${isDark ? 'bg-red-900/20 border border-red-800/50 text-red-400' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+            {error}
+          </div>
+        )}
+
+        {/* Kitchens List */}
+        <div className={`rounded-2xl ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'} overflow-hidden`}>
+          <div className={`px-6 py-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-100'} flex items-center justify-between`}>
+            <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Kitchens ({filteredKitchens.length})
+            </h2>
+            <Link 
+              href="/portal/smart-kitchen/kitchens"
+              className={`text-sm flex items-center gap-1 transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              Manage all <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
 
-          {/* Right Column */}
-          <div className="space-y-6">
-            
-            {/* Subscription Info */}
-            <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
-              <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Subscription</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Plan</span>
-                  <span className={`px-3 py-1 rounded-lg text-sm font-medium ${planColors[kitchenData.subscription.plan]}`}>
-                    Professional
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Monthly Fee</span>
-                  <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {kitchenData.subscription.monthlyFee.toLocaleString()} AED
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Next Billing</span>
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {new Date(kitchenData.subscription.nextBilling).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric', 
-                      year: 'numeric' 
-                    })}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Status</span>
-                  <span className="flex items-center gap-1.5 text-sm text-emerald-500">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Active
-                  </span>
-                </div>
-              </div>
-              <div className={`mt-4 pt-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
-                <div className="flex justify-between items-center">
-                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total MRR</span>
-                  <span className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {kitchenData.subscription.monthlyFee.toLocaleString()} AED
-                  </span>
-                </div>
-              </div>
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className={`text-sm mt-4 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Loading kitchens...</p>
             </div>
-
-            {/* Alerts */}
-            <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
-              <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Active Alerts</h3>
-              {kitchenData.alerts.filter(a => !a.acknowledged).length > 0 ? (
-                <div className="space-y-3">
-                  {kitchenData.alerts.filter(a => !a.acknowledged).map(alert => (
-                    <div 
-                      key={alert.id}
-                      className={`p-4 rounded-xl ${
-                        isDark ? 'bg-amber-900/20 border border-amber-800/50' : 'bg-amber-50 border border-amber-100'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {alert.sensor}
-                          </p>
-                          <p className={`text-sm ${isDark ? 'text-amber-400/80' : 'text-amber-700'}`}>
-                            {alert.message}
-                          </p>
-                          <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                            {alert.time}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <CheckCircle2 className={`w-10 h-10 mx-auto mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-500'}`} />
-                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No active alerts</p>
-                </div>
+          ) : filteredKitchens.length === 0 ? (
+            <div className="text-center py-12">
+              <Building2 className={`h-12 w-12 mx-auto mb-3 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
+              <p className={`mb-4 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                {searchQuery ? 'No kitchens match your search' : 'No kitchens found'}
+              </p>
+              {!searchQuery && (
+                <Link
+                  href="/portal/smart-kitchen/kitchens"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-full hover:bg-orange-600 transition-all"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Your First Kitchen
+                </Link>
               )}
             </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-gray-800">
+              {filteredKitchens.map(kitchen => (
+                <Link key={kitchen.id} href={`/portal/smart-kitchen/kitchens/${kitchen.id}`}>
+                  <div className={`
+                    p-5 transition-all cursor-pointer group
+                    ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}
+                  `}>
+                    <div className="flex items-center gap-4">
+                      {/* Kitchen Icon */}
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isDark ? 'bg-orange-500/20' : 'bg-orange-50'}`}>
+                        🍳
+                      </div>
+                      
+                      {/* Kitchen Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <h3 className={`font-semibold transition-colors ${isDark ? 'text-white group-hover:text-orange-400' : 'text-gray-900 group-hover:text-orange-600'}`}>
+                            {kitchen.name}
+                          </h3>
+                          <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
+                            kitchen.status === 'normal' 
+                              ? isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-700'
+                              : kitchen.status === 'warning'
+                              ? isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-50 text-amber-700'
+                              : isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-700'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${statusColors[kitchen.status]}`} />
+                            {statusText[kitchen.status]}
+                          </span>
+                          {kitchen.activeAlerts > 0 && (
+                            <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'}`}>
+                              <AlertTriangle className="h-3 w-3" />
+                              {kitchen.activeAlerts} alert{kitchen.activeAlerts > 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-sm mt-1 flex items-center gap-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                          <MapPin className="h-3.5 w-3.5" />
+                          {kitchen.address}, {kitchen.emirate}
+                        </p>
+                      </div>
 
-            {/* Compliance Summary */}
-            <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
-              <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Compliance</h3>
-              <div className="flex items-center gap-4 mb-4">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
-                  complianceRate === 100
-                    ? isDark ? 'bg-emerald-900/30' : 'bg-emerald-50'
-                    : isDark ? 'bg-amber-900/30' : 'bg-amber-50'
-                }`}>
-                  <span className={`text-2xl font-bold ${
-                    complianceRate === 100 ? 'text-emerald-500' : 'text-amber-500'
-                  }`}>
-                    {complianceRate}%
-                  </span>
-                </div>
-                <div>
-                  <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {complianceRate === 100 ? 'Fully Compliant' : 'Needs Attention'}
-                  </p>
-                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {compliantSensors} of {totalSensors} sensors in range
-                  </p>
-                </div>
-              </div>
-              <div className={`p-3 rounded-xl flex items-center gap-2 ${
-                isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'
-              }`}>
-                <Shield className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                <span className={`text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                  Dubai Municipality Compliant
-                </span>
-              </div>
+                      {/* Stats */}
+                      <div className="hidden md:flex items-center gap-8">
+                        <div className="text-center">
+                          <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {kitchen.avgTemperature !== null ? `${kitchen.avgTemperature.toFixed(1)}°C` : '—'}
+                          </p>
+                          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Avg Temp</p>
+                        </div>
+                        <div className="text-center">
+                          <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {kitchen.sensorCount}
+                          </p>
+                          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Equipment</p>
+                        </div>
+                        <div className="text-center">
+                          <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {kitchen.ownerCount}
+                          </p>
+                          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Owners</p>
+                        </div>
+                      </div>
+
+                      {/* Arrow */}
+                      <ChevronRight className={`h-5 w-5 flex-shrink-0 transition-colors ${isDark ? 'text-gray-600 group-hover:text-orange-400' : 'text-gray-300 group-hover:text-orange-500'}`} />
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
-            
-          </div>
+          )}
+        </div>
+
+        {/* Dubai Municipality Compliance Badge */}
+        <div className={`mt-6 p-4 rounded-xl flex items-center justify-center gap-3 ${isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
+          <Shield className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+          <span className={`text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+            Dubai Municipality Compliant Temperature Monitoring
+          </span>
         </div>
       </div>
     </div>
@@ -435,7 +340,6 @@ function StatCard({
   subtitle, 
   icon: Icon, 
   iconBg,
-  trend,
   isDark 
 }: { 
   label: string
@@ -443,7 +347,6 @@ function StatCard({
   subtitle?: string
   icon: React.ElementType
   iconBg: string
-  trend?: 'up' | 'down'
   isDark?: boolean
 }) {
   return (
@@ -452,11 +355,6 @@ function StatCard({
         <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
-        {trend && (
-          <div className={`flex items-center gap-1 text-xs font-medium ${trend === 'up' ? 'text-emerald-500' : 'text-red-500'}`}>
-            <ArrowUpRight className="w-3 h-3" />
-          </div>
-        )}
       </div>
       <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</p>
       <div className="flex items-center justify-between mt-1">
