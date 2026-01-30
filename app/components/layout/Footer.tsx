@@ -11,7 +11,7 @@ const footerTranslations = {
     solutions: 'Solutions',
     company: 'Company',
     contact: 'Contact',
-    description: 'Enterprise IoT Solutions\nfor UAE Businesses',
+    description: 'Enterprise IoT Solutions for UAE Businesses',
     copyright: 'All rights reserved.',
     solutionsLinks: {
       restaurants: 'For Restaurants',
@@ -24,8 +24,8 @@ const footerTranslations = {
       faq: 'FAQ',
     },
     legalLinks: {
-      privacy: 'Privacy Policy',
-      terms: 'Terms of Service',
+      privacy: 'Privacy',
+      terms: 'Terms',
       compliance: 'Compliance',
     },
   },
@@ -33,7 +33,7 @@ const footerTranslations = {
     solutions: 'الحلول',
     company: 'الشركة',
     contact: 'اتصل بنا',
-    description: 'حلول إنترنت الأشياء المؤسسية\nللشركات الإماراتية',
+    description: 'حلول إنترنت الأشياء للشركات الإماراتية',
     copyright: 'جميع الحقوق محفوظة.',
     solutionsLinks: {
       restaurants: 'للمطاعم',
@@ -46,8 +46,8 @@ const footerTranslations = {
       faq: 'الأسئلة الشائعة',
     },
     legalLinks: {
-      privacy: 'سياسة الخصوصية',
-      terms: 'شروط الخدمة',
+      privacy: 'الخصوصية',
+      terms: 'الشروط',
       compliance: 'الامتثال',
     },
   },
@@ -77,147 +77,223 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-white border-t border-gray-200">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-6 sm:pb-8">
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
-          {/* Brand */}
-          <div className="col-span-2 lg:col-span-1 text-center sm:text-left">
-            <Link href="/" className="inline-flex items-center space-x-2 mb-4">
-              <Logo className="h-12 w-12" />
-              <div className="flex flex-col items-start">
-                <span className="text-xl font-semibold text-gray-900">
-                  Vision<span className="text-orange-600">Drive</span>
+    <footer className="bg-gray-50 border-t border-gray-200">
+      <div className="mx-auto max-w-7xl px-5 md:px-8 py-10 md:py-12">
+        
+        {/* Mobile: Stacked Layout */}
+        <div className="md:hidden">
+          {/* Brand - Left aligned */}
+          <div className="mb-8">
+            <Link href="/" className="inline-flex items-center gap-2.5 mb-3">
+              <Logo className="h-10 w-10" />
+              <div>
+                <span className="text-lg font-semibold text-gray-900">
+                  Vision<span className="text-orange-500">Drive</span>
                 </span>
-                <span className="text-xs text-gray-500">IoT company 🇦🇪</span>
+                <span className="text-[10px] text-gray-400 block">IoT company 🇦🇪</span>
               </div>
             </Link>
-            <p className="text-sm text-gray-600 max-w-xs mx-auto sm:mx-0" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              {t.description.split('\n').map((line, lineIdx) => (
-                <span key={`desc-${lineIdx}-${line.slice(0, 10)}`}>
-                  {line}
-                  {lineIdx < t.description.split('\n').length - 1 && <br />}
-                </span>
-              ))}
-            </p>
+            <p className="text-sm text-gray-500">{t.description}</p>
           </div>
 
-          {/* Company */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              {t.company}
-            </h3>
-            <ul className="space-y-3">
-              {footerNavigation.company.map((item) => {
-                const isActive = pathname === item.href
-                return (
+          {/* Links Grid - 2 columns */}
+          <div className="grid grid-cols-2 gap-8 mb-8">
+            <div>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                {t.company}
+              </h3>
+              <ul className="space-y-3">
+                {footerNavigation.company.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className={`text-sm py-1 inline-block transition-colors ${
-                        isActive 
-                          ? 'text-orange-600' 
-                          : 'text-gray-700 hover:text-orange-600'
+                      className={`text-sm transition-colors ${
+                        pathname === item.href ? 'text-orange-500' : 'text-gray-600'
                       }`}
                     >
                       {item.name}
                     </Link>
                   </li>
-                )
-              })}
-            </ul>
-          </div>
-
-          {/* Solutions */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-              {t.solutions}
-            </h3>
-            <ul className="space-y-3">
-              {footerNavigation.solutions.map((item) => {
-                const isActive = pathname === item.href.split('#')[0]
-                return (
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                {t.solutions}
+              </h3>
+              <ul className="space-y-3">
+                {footerNavigation.solutions.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className={`text-sm py-1 inline-block transition-colors ${
-                        isActive 
-                          ? 'text-orange-600' 
-                          : 'text-gray-700 hover:text-orange-600'
+                      className={`text-sm transition-colors ${
+                        pathname === item.href.split('#')[0] ? 'text-orange-500' : 'text-gray-600'
                       }`}
                     >
                       {item.name}
                     </Link>
                   </li>
-                )
-              })}
-            </ul>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* Contact */}
-          <div className="col-span-2 sm:col-span-1">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+          <div className="mb-8">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
               {t.contact}
             </h3>
-            <ul className="space-y-3">
-              <li>
+            <div className="space-y-3">
+              <a 
+                href="mailto:tech@visiondrive.ae" 
+                className="flex items-center gap-3 text-sm text-gray-600"
+              >
+                <Mail className="h-4 w-4 text-orange-500" />
+                tech@visiondrive.ae
+              </a>
+              <a 
+                href="https://wa.me/971559152985" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center gap-3 text-sm text-gray-600"
+              >
+                <MessageCircle className="h-4 w-4 text-emerald-500" />
+                +971 55 915 2985
+              </a>
+              <div className="flex items-start gap-3 text-sm text-gray-600">
+                <MapPin className="h-4 w-4 text-red-500 mt-0.5" />
+                <span>Compass Coworking, RAK, UAE</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom */}
+          <div className="pt-6 border-t border-gray-200">
+            <div className="flex justify-center gap-6 mb-4">
+              {footerNavigation.legal.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 text-center">
+              © {new Date().getFullYear()} VisionDrive Technologies FZ-LLC
+            </p>
+          </div>
+        </div>
+
+        {/* Desktop: Grid Layout */}
+        <div className="hidden md:block">
+          <div className="grid grid-cols-4 gap-8 lg:gap-12">
+            {/* Brand */}
+            <div>
+              <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
+                <Logo className="h-11 w-11" />
+                <div>
+                  <span className="text-lg font-semibold text-gray-900">
+                    Vision<span className="text-orange-500">Drive</span>
+                  </span>
+                  <span className="text-[10px] text-gray-400 block">IoT company 🇦🇪</span>
+                </div>
+              </Link>
+              <p className="text-sm text-gray-500 leading-relaxed">{t.description}</p>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                {t.company}
+              </h3>
+              <ul className="space-y-3">
+                {footerNavigation.company.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`text-sm transition-colors hover:text-orange-500 ${
+                        pathname === item.href ? 'text-orange-500' : 'text-gray-600'
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Solutions */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                {t.solutions}
+              </h3>
+              <ul className="space-y-3">
+                {footerNavigation.solutions.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`text-sm transition-colors hover:text-orange-500 ${
+                        pathname === item.href.split('#')[0] ? 'text-orange-500' : 'text-gray-600'
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                {t.contact}
+              </h3>
+              <div className="space-y-3">
                 <a 
                   href="mailto:tech@visiondrive.ae" 
-                  className="flex items-center gap-3 py-2 px-3 -mx-3 rounded-lg text-gray-700 hover:text-orange-600 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 text-sm text-gray-600 hover:text-orange-500 transition-colors"
                 >
-                  <Mail className="h-5 w-5 text-orange-600 flex-shrink-0" />
-                  <span className="text-sm break-all">tech@visiondrive.ae</span>
+                  <Mail className="h-4 w-4 text-orange-500" />
+                  tech@visiondrive.ae
                 </a>
-              </li>
-              <li>
                 <a 
                   href="https://wa.me/971559152985" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="flex items-center gap-3 py-2 px-3 -mx-3 rounded-lg text-gray-700 hover:text-orange-600 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 text-sm text-gray-600 hover:text-orange-500 transition-colors"
                 >
-                  <MessageCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                  <span className="text-sm">+971 55 915 2985</span>
+                  <MessageCircle className="h-4 w-4 text-emerald-500" />
+                  +971 55 915 2985
                 </a>
-              </li>
-              <li className="flex items-start gap-3 py-2 px-3 -mx-3">
-                <MapPin className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-gray-700">
-                  <div>VisionDrive, Compass Coworking,</div>
-                  <div>RAK, UAE</div>
+                <div className="flex items-start gap-3 text-sm text-gray-600">
+                  <MapPin className="h-4 w-4 text-red-500 mt-0.5" />
+                  <span>Compass Coworking, RAK, UAE</span>
                 </div>
-              </li>
-            </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom */}
+          <div className="mt-10 pt-6 border-t border-gray-200 flex items-center justify-between">
+            <p className="text-xs text-gray-400">
+              © {new Date().getFullYear()} VisionDrive Technologies FZ-LLC. {t.copyright}
+            </p>
+            <div className="flex gap-6">
+              {footerNavigation.legal.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Legal Links & Copyright */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 sm:gap-x-6 mb-4">
-            {footerNavigation.legal.map((item, index) => {
-              const isActive = pathname === item.href
-              return (
-                <div key={item.name} className="flex items-center">
-                  <Link
-                    href={item.href}
-                    className={`text-xs sm:text-sm py-1 transition-colors ${
-                      isActive 
-                        ? 'text-orange-600' 
-                        : 'text-gray-500 hover:text-orange-600'
-                    }`}
-                  >
-                    {item.name}
-                  </Link>
-                  {index < footerNavigation.legal.length - 1 && (
-                    <span className="text-gray-300 ml-4 sm:ml-6 hidden sm:inline">|</span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-          <p className="text-xs text-gray-400 text-center safe-area-bottom" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-            © {new Date().getFullYear()} VisionDrive Technologies FZ-LLC. {t.copyright}
-          </p>
-        </div>
       </div>
     </footer>
   )
