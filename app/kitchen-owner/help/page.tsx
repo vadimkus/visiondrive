@@ -42,7 +42,7 @@ const FAQ_CATEGORIES = [
     items: [
       {
         question: 'How do the sensors work?',
-        answer: 'Dragino PS-NB sensors monitor temperature every 5 minutes and transmit data via LoRaWAN to AWS IoT Core. Data is processed in real-time and displayed on your dashboard.',
+        answer: 'Dragino PS-NB sensors monitor temperature every 5 minutes and transmit data via NB-IoT to AWS IoT Core. Data is processed in real-time and displayed on your dashboard.',
       },
       {
         question: 'How often do sensors report data?',

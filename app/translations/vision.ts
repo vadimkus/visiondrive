@@ -40,8 +40,8 @@ export const visionTranslations = {
           specs: ['99.5% accuracy', '5-year battery', 'IP68 rated', 'Zero digging required'],
         },
         {
-          title: 'LoRaWAN + 5G SIM Redundancy',
-          description: 'Dual connectivity ensures 99.9% uptime. LoRaWAN for low-power, 5G for critical updates.',
+          title: 'NB-IoT Connectivity',
+          description: 'Reliable NB-IoT cellular connectivity ensures 99.9% uptime with low power consumption.',
           specs: ['Dual-band', 'Auto-failover', 'Encrypted', '5G ready'],
         },
         {
@@ -194,8 +194,8 @@ export const visionTranslations = {
           specs: ['دقة 99.5%', 'بطارية لمدة 5 سنوات', 'تصنيف IP68', 'لا حفر مطلوب'],
         },
         {
-          title: 'LoRaWAN + احتياطي بطاقة SIM 5G',
-          description: 'الربط المزدوج يضمن وقت تشغيل 99.9%. LoRaWAN للطاقة المنخفضة، 5G للتحديثات الحرجة.',
+          title: 'اتصال NB-IoT',
+          description: 'اتصال خلوي NB-IoT موثوق يضمن وقت تشغيل 99.9% مع استهلاك منخفض للطاقة.',
           specs: ['نطاق مزدوج', 'التبديل التلقائي', 'مشفر', 'جاهز لـ 5G'],
         },
         {

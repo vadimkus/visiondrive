@@ -15,8 +15,8 @@ const technologies = [
     color: 'from-gold-500 to-gold-600',
   },
   {
-    title: 'LoRaWAN + 4G SIM Redundancy',
-    description: 'Dual connectivity ensures 99.9% uptime. LoRaWAN for low-power, 4G for critical updates.',
+    title: 'NB-IoT Connectivity',
+    description: 'Reliable NB-IoT cellular connectivity ensures 99.9% uptime with low power consumption.',
     icon: Wifi,
     specs: ['Dual-band', 'Auto-failover', 'Encrypted'],
     color: 'from-blue-500 to-blue-600',

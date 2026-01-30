@@ -23,7 +23,7 @@ const stats = [
 ]
 
 const capabilities = [
-  { icon: Wifi, label: 'NB-IoT & LoRaWAN' },
+  { icon: Wifi, label: 'NB-IoT Connectivity' },
   { icon: Lock, label: 'UAE Data Residency' },
   { icon: Shield, label: 'TDRA Certified' },
   { icon: BarChart3, label: 'Real-time Analytics' },

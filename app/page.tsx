@@ -4,7 +4,7 @@ import HomeClient from './HomeClient'
 export const metadata: Metadata = {
   title: 'VisionDrive - UAE IoT Solutions | Smart Kitchen, Parking & Building',
   description: 'Enterprise-grade IoT solutions for UAE businesses. Smart Kitchen temperature monitoring, Smart Parking sensors, and custom IoT development. TDRA certified, Dubai Municipality compliant, 100% UAE data residency.',
-  keywords: 'IoT UAE, smart kitchen Dubai, smart parking UAE, IoT solutions Dubai, temperature monitoring, TDRA certified IoT, Dubai Municipality compliance, NB-IoT UAE, LoRaWAN Dubai',
+  keywords: 'IoT UAE, smart kitchen Dubai, smart parking UAE, IoT solutions Dubai, temperature monitoring, TDRA certified IoT, Dubai Municipality compliance, NB-IoT UAE',
   openGraph: {
     title: 'VisionDrive - UAE IoT Solutions',
     description: 'Enterprise-grade IoT solutions for UAE businesses. TDRA certified, Dubai Municipality compliant.',
