@@ -2,20 +2,20 @@ import type { Metadata } from 'next'
 import HomeClient from './HomeClient'
 
 export const metadata: Metadata = {
-  title: 'VisionDrive - Smart Kitchen Temperature Monitoring for UAE',
-  description: 'Real-time temperature monitoring for commercial kitchens. Dubai Municipality compliant food safety sensors. Automated alerts, compliance reporting, and 24/7 monitoring for restaurants, hotels, and food service.',
-  keywords: 'smart kitchen UAE, temperature monitoring Dubai, food safety sensors, Dubai Municipality compliance, commercial kitchen IoT, restaurant temperature monitoring, HACCP compliance UAE',
+  title: 'VisionDrive - UAE IoT Solutions | Smart Kitchen, Parking & Building',
+  description: 'Enterprise-grade IoT solutions for UAE businesses. Smart Kitchen temperature monitoring, Smart Parking sensors, and custom IoT development. TDRA certified, Dubai Municipality compliant, 100% UAE data residency.',
+  keywords: 'IoT UAE, smart kitchen Dubai, smart parking UAE, IoT solutions Dubai, temperature monitoring, TDRA certified IoT, Dubai Municipality compliance, NB-IoT UAE, LoRaWAN Dubai',
   openGraph: {
-    title: 'VisionDrive - Smart Kitchen Temperature Monitoring',
-    description: 'Real-time temperature monitoring for commercial kitchens. Ensure food safety compliance with Dubai Municipality standards.',
+    title: 'VisionDrive - UAE IoT Solutions',
+    description: 'Enterprise-grade IoT solutions for UAE businesses. TDRA certified, Dubai Municipality compliant.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VisionDrive - Smart Kitchen IoT',
-    description: 'Temperature monitoring and food safety compliance for commercial kitchens',
+    title: 'VisionDrive - UAE IoT Company',
+    description: 'Smart IoT solutions for UAE businesses - Kitchen, Parking, Building & Custom',
   },
 }
 
