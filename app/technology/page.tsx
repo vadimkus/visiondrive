@@ -82,9 +82,8 @@ export default function TechnologyPage() {
     <main className="pt-24 bg-white text-gray-900">
       <Section className="py-8 sm:py-12 md:py-14">
         <div className="max-w-5xl mx-auto text-center space-y-4">
-          <p className="text-sm font-semibold tracking-wide text-orange-600 uppercase">Technology</p>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
-            NB-IoT Temperature Sensors for Commercial Kitchens
+          <h1 className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900">
+            NB-IoT Temperature Sensors for <span className="text-orange-500">Commercial Kitchens</span>
           </h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
             Enterprise-grade IoT sensors with UAE data residency, real-time monitoring, 
