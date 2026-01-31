@@ -3,21 +3,11 @@
 import { 
   ArrowRight, 
   Radio, 
-  Zap, 
-  Shield, 
   ChevronRight,
-  CheckCircle,
-  Globe
+  CheckCircle
 } from 'lucide-react'
 import { useLanguage } from './contexts/LanguageContext'
 import Link from 'next/link'
-
-const stats = [
-  { number: '24/7', label: 'Monitoring', icon: Radio },
-  { number: '<30s', label: 'Response', icon: Zap },
-  { number: '99%+', label: 'Uptime', icon: Shield },
-  { number: 'UAE', label: 'Based', icon: Globe },
-]
 
 const benefits = [
   'TDRA Certified IoT Solutions',
@@ -60,25 +50,6 @@ export default function HomeClient() {
               Explore Solutions
               <ArrowRight className="h-5 w-5" />
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-10 md:py-14 px-5 md:px-8 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-4 gap-2 md:gap-6">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="flex justify-center mb-2 md:mb-3">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                    <stat.icon className="h-5 w-5 md:h-6 md:w-6 text-orange-500" />
-                  </div>
-                </div>
-                <div className="text-xl md:text-2xl font-bold text-gray-900">{stat.number}</div>
-                <div className="text-xs md:text-sm text-gray-500">{stat.label}</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
