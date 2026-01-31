@@ -153,18 +153,35 @@ export default function Header() {
               )}
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              className="lg:hidden flex items-center justify-center w-11 h-11 -mr-2 rounded-xl text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
+            {/* Mobile Right Side */}
+            <div className="flex lg:hidden items-center gap-1">
+              <LanguageSelector />
+              <Link
+                href={isLoggedIn ? "/portal/smart-kitchen" : "/login"}
+                className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <User className={`h-5 w-5 ${isLoggedIn ? 'text-orange-500' : 'text-gray-500'}`} />
+              </Link>
+              {isLoggedIn && (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="h-5 w-5 text-gray-500" />
+                </button>
               )}
-            </button>
+              <button
+                type="button"
+                className="flex items-center justify-center w-10 h-10 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
         </nav>
       </header>
@@ -209,35 +226,6 @@ export default function Header() {
                     )
                   })}
                 </nav>
-              </div>
-
-              {/* Bottom Section - Minimal */}
-              <div className="px-8 pb-10 pt-6 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <LanguageSelector />
-                  
-                  <div className="flex items-center gap-3">
-                    {isLoggedIn && (
-                      <button
-                        onClick={() => {
-                          handleLogout()
-                          setMobileMenuOpen(false)
-                        }}
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-500 transition-all active:scale-95"
-                      >
-                        <LogOut className="h-5 w-5" />
-                      </button>
-                    )}
-                    <Link
-                      href={isLoggedIn ? "/portal/smart-kitchen" : "/login"}
-                      className="flex items-center justify-center gap-2 h-12 px-6 bg-gray-900 text-white text-[15px] font-semibold rounded-full transition-all active:scale-95"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <User className="h-4 w-4" />
-                      <span>{isLoggedIn ? 'Dashboard' : 'Login'}</span>
-                    </Link>
-                  </div>
-                </div>
               </div>
             </div>
           </motion.div>
