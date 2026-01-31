@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   LayoutGrid,
   Thermometer,
@@ -31,6 +31,17 @@ interface NavItem {
   label: string
   path: string
   badge?: number
+}
+
+interface Alert {
+  id: string
+  acknowledged: boolean
+}
+
+interface Kitchen {
+  id: string
+  alerts?: Alert[]
+  sensorCount?: number
 }
 
 // Reusable NavButton component with Apple-like animations
@@ -91,7 +102,7 @@ function NavButton({
       </span>
       
       {/* Badge */}
-      {badge && badge > 0 && (
+      {badge !== undefined && badge > 0 && (
         <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center shadow-sm transition-transform duration-200 group-hover:scale-110">
           {badge}
         </span>
@@ -116,6 +127,46 @@ export default function KitchenSidebar() {
   const [user, setUser] = useState<User | null>(null)
   const [mounted, setMounted] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [alertCount, setAlertCount] = useState(0)
+  const [sensorCount, setSensorCount] = useState(0)
+  const [onlineCount, setOnlineCount] = useState(0)
+
+  // Fetch active alerts count from API
+  const fetchAlertCount = useCallback(async () => {
+    try {
+      const response = await fetch('/api/portal/smart-kitchen/kitchens')
+      const data = await response.json()
+      
+      if (data.success && data.kitchens) {
+        let totalAlerts = 0
+        let totalSensors = 0
+        
+        // Fetch details for each kitchen to get alerts
+        await Promise.all(
+          data.kitchens.map(async (k: Kitchen) => {
+            try {
+              const detailResponse = await fetch(`/api/portal/smart-kitchen/kitchens/${k.id}`)
+              const detailData = await detailResponse.json()
+              if (detailData.success && detailData.kitchen) {
+                // Count unacknowledged alerts
+                const activeAlerts = (detailData.kitchen.alerts || []).filter((a: Alert) => !a.acknowledged)
+                totalAlerts += activeAlerts.length
+                totalSensors += detailData.kitchen.equipment?.length || 0
+              }
+            } catch {
+              // Ignore errors for individual kitchens
+            }
+          })
+        )
+        
+        setAlertCount(totalAlerts)
+        setSensorCount(totalSensors)
+        setOnlineCount(totalSensors) // Assume all online for now
+      }
+    } catch {
+      // Ignore errors
+    }
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -133,7 +184,12 @@ export default function KitchenSidebar() {
       }
     }
     fetchUser()
-  }, [])
+    fetchAlertCount()
+    
+    // Refresh alert count every 30 seconds
+    const alertInterval = setInterval(fetchAlertCount, 30000)
+    return () => clearInterval(alertInterval)
+  }, [fetchAlertCount])
 
   // Live clock
   useEffect(() => {
@@ -154,7 +210,7 @@ export default function KitchenSidebar() {
     { icon: LayoutGrid, label: 'Dashboard', path: '/portal/smart-kitchen' },
     { icon: Store, label: 'Kitchens', path: '/portal/smart-kitchen/kitchens' },
     { icon: Thermometer, label: 'Sensors', path: '/portal/smart-kitchen/sensors' },
-    { icon: Bell, label: 'Alerts', path: '/portal/smart-kitchen/alerts', badge: 3 },
+    { icon: Bell, label: 'Alerts', path: '/portal/smart-kitchen/alerts', badge: alertCount },
   ]
 
   const secondaryNav: NavItem[] = [
@@ -208,17 +264,31 @@ export default function KitchenSidebar() {
       </div>
 
       {/* System Status */}
-      <div className={`mx-4 my-3 p-3 rounded-xl transition-all duration-200 hover:scale-[1.01] ${isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
+      <div className={`mx-4 my-3 p-3 rounded-xl transition-all duration-200 hover:scale-[1.01] ${
+        sensorCount === 0 
+          ? isDark ? 'bg-gray-800/50' : 'bg-gray-50'
+          : isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'
+      }`}>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className={`text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>All Systems Operational</span>
+          <div className={`w-2 h-2 rounded-full ${sensorCount === 0 ? 'bg-gray-400' : 'bg-emerald-500 animate-pulse'}`} />
+          <span className={`text-xs font-medium ${
+            sensorCount === 0
+              ? isDark ? 'text-gray-400' : 'text-gray-500'
+              : isDark ? 'text-emerald-400' : 'text-emerald-700'
+          }`}>
+            {sensorCount === 0 ? 'No Sensors Connected' : 'All Systems Operational'}
+          </span>
         </div>
-        <div className={`flex items-center gap-4 mt-2 text-[10px] ${isDark ? 'text-emerald-500/70' : 'text-emerald-600/70'}`}>
+        <div className={`flex items-center gap-4 mt-2 text-[10px] ${
+          sensorCount === 0
+            ? isDark ? 'text-gray-500' : 'text-gray-400'
+            : isDark ? 'text-emerald-500/70' : 'text-emerald-600/70'
+        }`}>
           <span className="flex items-center gap-1">
-            <Wifi className="w-3 h-3" /> 4/4 online
+            <Wifi className="w-3 h-3" /> {onlineCount}/{sensorCount} online
           </span>
           <span className="flex items-center gap-1">
-            <Activity className="w-3 h-3" /> 100% uptime
+            <Activity className="w-3 h-3" /> {sensorCount > 0 ? '100%' : '—'} uptime
           </span>
         </div>
       </div>

@@ -1,167 +1,429 @@
 'use client'
 
-import { useState } from 'react'
-import { Download, Calendar, FileText, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { 
+  Download, 
+  Calendar, 
+  FileText, 
+  MapPin,
+  ChevronDown,
+  Building2,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
+  RefreshCw,
+  FileSpreadsheet,
+  FilePieChart
+} from 'lucide-react'
+import { useTheme } from '../context/ThemeContext'
+
+interface Kitchen {
+  id: string
+  name: string
+  address: string
+  emirate: string
+  sensorCount: number
+  complianceStatus: 'compliant' | 'non_compliant' | 'not_monitored'
+}
+
+interface ReportType {
+  id: string
+  title: string
+  description: string
+  icon: React.ElementType
+  format: 'PDF' | 'CSV' | 'XLSX'
+}
 
 export default function ReportsPage() {
-  const [dateRange, setDateRange] = useState('7d')
+  const { isDark } = useTheme()
+  const [kitchens, setKitchens] = useState<Kitchen[]>([])
+  const [selectedKitchen, setSelectedKitchen] = useState<string>('all')
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'custom'>('30d')
+  const [isLoading, setIsLoading] = useState(true)
+  const [expandedKitchens, setExpandedKitchens] = useState<Set<string>>(new Set())
+  const [isGenerating, setIsGenerating] = useState<string | null>(null)
 
-  const reports = [
-    { 
-      id: 'weekly-summary',
-      title: 'Weekly Temperature Summary',
-      description: 'Average temperatures and alerts for all kitchens',
-      type: 'summary',
-      lastGenerated: '2 hours ago',
-      size: '245 KB'
+  const reportTypes: ReportType[] = [
+    {
+      id: 'compliance',
+      title: 'Compliance Report',
+      description: 'Food safety compliance status for health authority requirements',
+      icon: CheckCircle,
+      format: 'PDF'
     },
-    { 
-      id: 'compliance-report',
-      title: 'Food Safety Compliance Report',
-      description: 'Temperature compliance for health authority requirements',
-      type: 'compliance',
-      lastGenerated: '1 day ago',
-      size: '512 KB'
-    },
-    { 
-      id: 'alert-history',
-      title: 'Alert History Report',
+    {
+      id: 'alerts',
+      title: 'Alert History',
       description: 'Complete log of all temperature alerts and actions taken',
-      type: 'alerts',
-      lastGenerated: '3 hours ago',
-      size: '128 KB'
+      icon: AlertTriangle,
+      format: 'PDF'
     },
+    {
+      id: 'equipment',
+      title: 'Equipment Summary',
+      description: 'List of all registered equipment and their status',
+      icon: FileSpreadsheet,
+      format: 'XLSX'
+    },
+    {
+      id: 'audit',
+      title: 'Audit Trail',
+      description: 'Detailed log of all system activities and changes',
+      icon: FilePieChart,
+      format: 'CSV'
+    }
   ]
 
-  const stats = [
-    { label: 'Avg Temperature', value: '4.5°C', change: -0.3, period: 'vs last week' },
-    { label: 'Total Alerts', value: '12', change: -25, period: 'vs last week' },
-    { label: 'Compliance Rate', value: '98.5%', change: 2.1, period: 'vs last month' },
-    { label: 'Uptime', value: '99.9%', change: 0.1, period: 'vs last month' },
-  ]
+  useEffect(() => {
+    loadKitchens()
+  }, [])
+
+  const loadKitchens = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/portal/smart-kitchen/kitchens')
+      const data = await response.json()
+      
+      if (data.success && data.kitchens) {
+        // Fetch details for each kitchen
+        const kitchensWithDetails = await Promise.all(
+          data.kitchens.map(async (k: { id: string; name: string; address: string; emirate: string }) => {
+            try {
+              const detailResponse = await fetch(`/api/portal/smart-kitchen/kitchens/${k.id}`)
+              const detailData = await detailResponse.json()
+              if (detailData.success && detailData.kitchen) {
+                const sensorCount = detailData.kitchen.equipment?.length || 0
+                return {
+                  ...k,
+                  sensorCount,
+                  complianceStatus: sensorCount === 0 ? 'not_monitored' : 'compliant'
+                }
+              }
+            } catch {
+              // Ignore errors
+            }
+            return { ...k, sensorCount: 0, complianceStatus: 'not_monitored' as const }
+          })
+        )
+        setKitchens(kitchensWithDetails)
+      }
+    } catch (err) {
+      console.error('Failed to load kitchens:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const toggleKitchen = (kitchenId: string) => {
+    setExpandedKitchens(prev => {
+      const next = new Set(prev)
+      if (next.has(kitchenId)) {
+        next.delete(kitchenId)
+      } else {
+        next.add(kitchenId)
+      }
+      return next
+    })
+  }
+
+  const handleGenerateReport = async (kitchenId: string, reportType: string) => {
+    const key = `${kitchenId}-${reportType}`
+    setIsGenerating(key)
+    
+    // Simulate report generation
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // In a real app, this would trigger a download
+    alert(`Report "${reportType}" for ${kitchenId === 'all' ? 'All Locations' : kitchens.find(k => k.id === kitchenId)?.name} would be downloaded here.`)
+    
+    setIsGenerating(null)
+  }
+
+  const totalSensors = kitchens.reduce((sum, k) => sum + k.sensorCount, 0)
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Reports</h1>
-          <p className="text-sm text-gray-500 mt-1">Analytics and compliance reports</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-full p-1">
-            {['24h', '7d', '30d', '90d'].map(range => (
-              <button
-                key={range}
-                onClick={() => setDateRange(range)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
-                  dateRange === range
-                    ? 'bg-[#1d1d1f] text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map(stat => (
-          <div key={stat.label} className="bg-white rounded-2xl p-5 border border-gray-100">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{stat.label}</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-semibold text-gray-900">{stat.value}</span>
-              <span className={`flex items-center text-xs font-medium ${
-                stat.change > 0 ? 'text-emerald-600' : stat.change < 0 ? 'text-red-600' : 'text-gray-500'
-              }`}>
-                {stat.change > 0 ? <TrendingUp className="h-3 w-3 mr-0.5" /> : stat.change < 0 ? <TrendingDown className="h-3 w-3 mr-0.5" /> : null}
-                {stat.change > 0 ? '+' : ''}{stat.change}%
-              </span>
-            </div>
-            <p className="text-xs text-gray-400 mt-1">{stat.period}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Chart Placeholder */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-semibold text-gray-900">Temperature Trends</h2>
-          <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-orange-500" />
-              Main Kitchen
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-blue-500" />
-              Cloud Kitchen A
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-emerald-500" />
-              Restaurant Kitchen
-            </span>
-          </div>
-        </div>
-        
-        {/* Placeholder Chart */}
-        <div className="h-64 bg-gradient-to-b from-gray-50 to-white rounded-xl flex items-center justify-center">
-          <div className="text-center">
-            <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-400">Temperature chart will appear here</p>
-            <p className="text-xs text-gray-400">Connect sensors to see data</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Reports List */}
-      <div>
-        <h2 className="font-semibold text-gray-900 mb-4">Available Reports</h2>
-        <div className="space-y-3">
-          {reports.map(report => (
-            <div
-              key={report.id}
-              className="bg-white rounded-2xl p-5 border border-gray-100 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all"
-            >
-              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
-                <FileText className="h-6 w-6 text-gray-400" />
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900">{report.title}</h3>
-                <p className="text-sm text-gray-500 mt-0.5">{report.description}</p>
-                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {report.lastGenerated}
-                  </span>
-                  <span>{report.size}</span>
-                </div>
-              </div>
-
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#1d1d1f] text-white text-sm font-medium rounded-full hover:bg-[#2d2d2f] transition-all flex-shrink-0">
-                <Download className="h-4 w-4" />
-                Download
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Generate Custom Report */}
-      <div className="mt-8 p-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl border border-orange-100">
-        <div className="flex items-center justify-between">
+    <div className={`min-h-screen ${isDark ? 'bg-[#0a0a0a]' : 'bg-[#f5f5f7]'}`}>
+      <div className="max-w-5xl mx-auto p-6 md:p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="font-semibold text-gray-900">Custom Report</h3>
-            <p className="text-sm text-gray-600 mt-1">Generate a custom report with your specific parameters</p>
+            <h1 className={`text-2xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Reports
+            </h1>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Generate compliance and analytics reports by location
+            </p>
           </div>
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-full hover:bg-orange-600 transition-all">
-            Generate Report
+          <button
+            onClick={loadKitchens}
+            disabled={isLoading}
+            className={`
+              p-2.5 rounded-xl transition-all
+              ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-white hover:bg-gray-50'}
+              ${isLoading ? 'animate-spin' : ''}
+            `}
+          >
+            <RefreshCw className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
         </div>
+
+        {/* Date Range Selector */}
+        <div className={`rounded-2xl p-4 mb-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Calendar className={`w-5 h-5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+              <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Report Period
+              </span>
+            </div>
+            <div className={`flex items-center gap-1 p-1 rounded-full ${isDark ? 'bg-black/30' : 'bg-gray-100'}`}>
+              {(['7d', '30d', '90d'] as const).map(range => (
+                <button
+                  key={range}
+                  onClick={() => setDateRange(range)}
+                  className={`
+                    px-4 py-2 text-sm font-medium rounded-full transition-all
+                    ${dateRange === range
+                      ? isDark 
+                        ? 'bg-white text-black' 
+                        : 'bg-[#1d1d1f] text-white'
+                      : isDark
+                        ? 'text-gray-400 hover:text-white'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }
+                  `}
+                >
+                  {range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : '90 Days'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="text-center py-16">
+            <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className={`text-sm mt-4 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Loading locations...</p>
+          </div>
+        ) : kitchens.length === 0 ? (
+          <EmptyState isDark={isDark} type="no-kitchens" />
+        ) : totalSensors === 0 ? (
+          <EmptyState isDark={isDark} type="no-sensors" />
+        ) : (
+          <>
+            {/* All Locations Report Section */}
+            <div className={`rounded-2xl overflow-hidden mb-4 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+              <button
+                onClick={() => toggleKitchen('all')}
+                className={`
+                  w-full flex items-center justify-between p-5
+                  transition-colors
+                  ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}
+                `}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-orange-500/20' : 'bg-orange-50'}`}>
+                    <Building2 className={`w-6 h-6 ${isDark ? 'text-orange-400' : 'text-orange-500'}`} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      All Locations
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {kitchens.length} location{kitchens.length !== 1 ? 's' : ''} • {totalSensors} sensor{totalSensors !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-5 h-5 transition-transform ${isDark ? 'text-gray-500' : 'text-gray-400'} ${expandedKitchens.has('all') ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {expandedKitchens.has('all') && (
+                <div className={`border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+                  <div className="p-4 grid gap-3 sm:grid-cols-2">
+                    {reportTypes.map(report => (
+                      <ReportCard
+                        key={report.id}
+                        report={report}
+                        isDark={isDark}
+                        isGenerating={isGenerating === `all-${report.id}`}
+                        onGenerate={() => handleGenerateReport('all', report.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Individual Location Reports */}
+            <div className="space-y-3">
+              <p className={`text-xs font-medium uppercase tracking-wider px-1 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+                By Location
+              </p>
+              
+              {kitchens.map(kitchen => (
+                <div 
+                  key={kitchen.id}
+                  className={`rounded-2xl overflow-hidden ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}
+                >
+                  <button
+                    onClick={() => toggleKitchen(kitchen.id)}
+                    className={`
+                      w-full flex items-center justify-between p-5
+                      transition-colors
+                      ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}
+                    `}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isDark ? 'bg-orange-500/20' : 'bg-orange-50'}`}>
+                        🍳
+                      </div>
+                      <div className="text-left">
+                        <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {kitchen.name}
+                        </h3>
+                        <p className={`text-sm flex items-center gap-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                          <MapPin className="w-3.5 h-3.5" />
+                          {kitchen.address}, {kitchen.emirate}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <span className={`
+                        px-3 py-1.5 rounded-full text-xs font-medium
+                        ${kitchen.sensorCount === 0
+                          ? isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'
+                          : isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-700'
+                        }
+                      `}>
+                        {kitchen.sensorCount === 0 ? 'No Sensors' : `${kitchen.sensorCount} Sensor${kitchen.sensorCount !== 1 ? 's' : ''}`}
+                      </span>
+                      <ChevronDown className={`w-5 h-5 transition-transform ${isDark ? 'text-gray-500' : 'text-gray-400'} ${expandedKitchens.has(kitchen.id) ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
+                  
+                  {expandedKitchens.has(kitchen.id) && (
+                    <div className={`border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+                      {kitchen.sensorCount === 0 ? (
+                        <div className={`p-8 text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                          <FileText className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                          <p className="text-sm">No sensors registered for this location.</p>
+                          <p className="text-xs mt-1">Add equipment to generate reports.</p>
+                        </div>
+                      ) : (
+                        <div className="p-4 grid gap-3 sm:grid-cols-2">
+                          {reportTypes.map(report => (
+                            <ReportCard
+                              key={report.id}
+                              report={report}
+                              isDark={isDark}
+                              isGenerating={isGenerating === `${kitchen.id}-${report.id}`}
+                              onGenerate={() => handleGenerateReport(kitchen.id, report.id)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
+    </div>
+  )
+}
+
+// Report Card Component
+function ReportCard({
+  report,
+  isDark,
+  isGenerating,
+  onGenerate
+}: {
+  report: ReportType
+  isDark: boolean
+  isGenerating: boolean
+  onGenerate: () => void
+}) {
+  const Icon = report.icon
+
+  return (
+    <div className={`
+      flex items-center gap-4 p-4 rounded-xl
+      ${isDark ? 'bg-black/20' : 'bg-gray-50'}
+    `}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-white/5' : 'bg-white'}`}>
+        <Icon className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          {report.title}
+        </h4>
+        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+          {report.format}
+        </p>
+      </div>
+      <button
+        onClick={onGenerate}
+        disabled={isGenerating}
+        className={`
+          flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
+          transition-all active:scale-95
+          ${isGenerating
+            ? isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-500'
+            : isDark 
+              ? 'bg-white text-black hover:bg-gray-200' 
+              : 'bg-[#1d1d1f] text-white hover:bg-[#2d2d2f]'
+          }
+        `}
+      >
+        {isGenerating ? (
+          <>
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span>Generating...</span>
+          </>
+        ) : (
+          <>
+            <Download className="w-4 h-4" />
+            <span>Generate</span>
+          </>
+        )}
+      </button>
+    </div>
+  )
+}
+
+// Empty State Component
+function EmptyState({ isDark, type }: { isDark: boolean; type: 'no-kitchens' | 'no-sensors' }) {
+  const config = {
+    'no-kitchens': {
+      icon: Building2,
+      title: 'No Locations Yet',
+      description: 'Add kitchens to start generating reports',
+      iconColor: isDark ? 'text-gray-700' : 'text-gray-300'
+    },
+    'no-sensors': {
+      icon: FileText,
+      title: 'No Sensors Registered',
+      description: 'Add equipment to your kitchens to generate reports',
+      iconColor: isDark ? 'text-amber-500/50' : 'text-amber-300'
+    }
+  }
+
+  const { icon: Icon, title, description, iconColor } = config[type]
+
+  return (
+    <div className={`text-center py-16 rounded-2xl ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+      <Icon className={`w-16 h-16 mx-auto mb-4 ${iconColor}`} />
+      <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+        {title}
+      </h3>
+      <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+        {description}
+      </p>
     </div>
   )
 }
