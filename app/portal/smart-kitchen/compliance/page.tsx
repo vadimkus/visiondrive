@@ -7,45 +7,45 @@ import {
   FileText, 
   Download, 
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  MapPin,
+  ChevronDown,
+  Building2,
+  RefreshCw,
+  Thermometer
 } from 'lucide-react'
+import { useTheme } from '../context/ThemeContext'
 import { 
   EQUIPMENT_CONFIGS, 
-  DANGER_ZONE, 
-  COOKING_TEMPS,
-  checkCompliance,
   formatThresholdRange,
   type EquipmentType 
 } from '../lib/compliance'
 
-interface ComplianceRecord {
-  date: string
-  totalReadings: number
-  compliantReadings: number
-  complianceRate: number
-  violations: number
-  dangerZoneEvents: number
+interface Equipment {
+  id: string
+  name: string
+  type: EquipmentType
+  currentTemp?: number
+  status: string
 }
 
-interface SensorCompliance {
+interface Kitchen {
   id: string
-  location: string
-  kitchenName: string
-  equipmentType: EquipmentType
-  avgTemp: number
-  minTemp: number
-  maxTemp: number
+  name: string
+  address: string
+  emirate: string
+  equipment: Equipment[]
+  sensorCount: number
   complianceRate: number
-  violationCount: number
-  lastViolation?: string
+  violations: number
 }
 
 export default function CompliancePage() {
-  const [dateRange, setDateRange] = useState('7d')
-  const [complianceHistory, setComplianceHistory] = useState<ComplianceRecord[]>([])
-  const [sensorCompliance, setSensorCompliance] = useState<SensorCompliance[]>([])
-  const [overallRate, setOverallRate] = useState(0)
+  const { isDark } = useTheme()
+  const [kitchens, setKitchens] = useState<Kitchen[]>([])
+  const [dateRange, setDateRange] = useState<'24h' | '7d' | '30d' | '90d'>('7d')
   const [isLoading, setIsLoading] = useState(true)
+  const [expandedKitchens, setExpandedKitchens] = useState<Set<string>>(new Set())
   const [isExporting, setIsExporting] = useState(false)
 
   useEffect(() => {
@@ -54,312 +54,288 @@ export default function CompliancePage() {
 
   const loadComplianceData = async () => {
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    // Mock compliance history
-    const history: ComplianceRecord[] = [
-      { date: '2026-01-12', totalReadings: 168, compliantReadings: 142, complianceRate: 84.5, violations: 26, dangerZoneEvents: 3 },
-      { date: '2026-01-11', totalReadings: 168, compliantReadings: 156, complianceRate: 92.8, violations: 12, dangerZoneEvents: 1 },
-      { date: '2026-01-10', totalReadings: 168, compliantReadings: 163, complianceRate: 97.0, violations: 5, dangerZoneEvents: 0 },
-      { date: '2026-01-09', totalReadings: 168, compliantReadings: 160, complianceRate: 95.2, violations: 8, dangerZoneEvents: 0 },
-      { date: '2026-01-08', totalReadings: 168, compliantReadings: 158, complianceRate: 94.0, violations: 10, dangerZoneEvents: 1 },
-      { date: '2026-01-07', totalReadings: 168, compliantReadings: 165, complianceRate: 98.2, violations: 3, dangerZoneEvents: 0 },
-      { date: '2026-01-06', totalReadings: 168, compliantReadings: 161, complianceRate: 95.8, violations: 7, dangerZoneEvents: 0 },
-    ]
-
-    // Mock sensor compliance
-    const sensors: SensorCompliance[] = [
-      { id: 'sensor-001', location: 'Walk-in Fridge', kitchenName: 'Main Kitchen', equipmentType: 'walk_in_cooler', avgTemp: 3.8, minTemp: 2.1, maxTemp: 4.9, complianceRate: 100, violationCount: 0 },
-      { id: 'sensor-002', location: 'Main Freezer', kitchenName: 'Main Kitchen', equipmentType: 'freezer', avgTemp: -19.2, minTemp: -21.5, maxTemp: -17.8, complianceRate: 98.5, violationCount: 2, lastViolation: '2 days ago' },
-      { id: 'sensor-003', location: 'Prep Area Fridge', kitchenName: 'Main Kitchen', equipmentType: 'prep_fridge', avgTemp: 4.8, minTemp: 3.2, maxTemp: 6.1, complianceRate: 85.2, violationCount: 18, lastViolation: 'Today' },
-      { id: 'sensor-004', location: 'Main Cooler', kitchenName: 'Cloud Kitchen A', equipmentType: 'refrigerator', avgTemp: 5.9, minTemp: 4.1, maxTemp: 7.8, complianceRate: 72.4, violationCount: 35, lastViolation: 'Today' },
-      { id: 'sensor-005', location: 'Display Fridge', kitchenName: 'Cloud Kitchen A', equipmentType: 'display_fridge', avgTemp: 7.2, minTemp: 5.5, maxTemp: 9.8, complianceRate: 42.1, violationCount: 68, lastViolation: 'Today' },
-      { id: 'sensor-006', location: 'Cold Storage', kitchenName: 'Restaurant Kitchen', equipmentType: 'walk_in_cooler', avgTemp: 3.2, minTemp: 1.8, maxTemp: 4.5, complianceRate: 100, violationCount: 0 },
-      { id: 'sensor-007', location: 'Hot Bain-Marie', kitchenName: 'Restaurant Kitchen', equipmentType: 'hot_holding', avgTemp: 67.5, minTemp: 62.1, maxTemp: 72.8, complianceRate: 100, violationCount: 0 },
-    ]
-
-    setComplianceHistory(history)
-    setSensorCompliance(sensors)
-    setOverallRate(history.reduce((sum, h) => sum + h.complianceRate, 0) / history.length)
-    setIsLoading(false)
+    try {
+      const response = await fetch('/api/portal/smart-kitchen/kitchens')
+      const data = await response.json()
+      
+      if (data.success && data.kitchens) {
+        // Fetch details for each kitchen
+        const kitchensWithDetails = await Promise.all(
+          data.kitchens.map(async (k: { id: string; name: string; address: string; emirate: string }) => {
+            try {
+              const detailResponse = await fetch(`/api/portal/smart-kitchen/kitchens/${k.id}`)
+              const detailData = await detailResponse.json()
+              if (detailData.success && detailData.kitchen) {
+                const equipment = detailData.kitchen.equipment || []
+                const sensorCount = equipment.length
+                // Calculate compliance based on equipment status
+                const compliantCount = equipment.filter((e: Equipment) => e.status === 'normal' || e.status === 'online').length
+                const complianceRate = sensorCount > 0 ? (compliantCount / sensorCount) * 100 : 0
+                
+                return {
+                  ...k,
+                  equipment,
+                  sensorCount,
+                  complianceRate,
+                  violations: sensorCount - compliantCount
+                }
+              }
+            } catch {
+              // Ignore errors
+            }
+            return { ...k, equipment: [], sensorCount: 0, complianceRate: 0, violations: 0 }
+          })
+        )
+        setKitchens(kitchensWithDetails)
+      }
+    } catch (err) {
+      console.error('Failed to load compliance data:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const getComplianceColor = (rate: number) => {
-    if (rate >= 95) return 'text-emerald-600'
-    if (rate >= 80) return 'text-amber-600'
-    return 'text-red-600'
-  }
-
-  const getComplianceBg = (rate: number) => {
-    if (rate >= 95) return 'bg-emerald-50 border-emerald-200'
-    if (rate >= 80) return 'bg-amber-50 border-amber-200'
-    return 'bg-red-50 border-red-200'
+  const toggleKitchen = (kitchenId: string) => {
+    setExpandedKitchens(prev => {
+      const next = new Set(prev)
+      if (next.has(kitchenId)) {
+        next.delete(kitchenId)
+      } else {
+        next.add(kitchenId)
+      }
+      return next
+    })
   }
 
   const exportToPDF = () => {
     setIsExporting(true)
-    
-    // Use browser's native print which handles pagination correctly
-    // User can select "Save as PDF" in the print dialog
     setTimeout(() => {
       window.print()
       setIsExporting(false)
     }, 100)
   }
 
+  // Calculate totals
+  const totalSensors = kitchens.reduce((sum, k) => sum + k.sensorCount, 0)
+  const totalViolations = kitchens.reduce((sum, k) => sum + k.violations, 0)
+  const overallRate = totalSensors > 0 
+    ? kitchens.reduce((sum, k) => sum + (k.complianceRate * k.sensorCount), 0) / totalSensors 
+    : 0
+  const locationsMonitored = kitchens.filter(k => k.sensorCount > 0).length
+
+  const getComplianceColor = (rate: number, isDark: boolean) => {
+    if (rate >= 95) return isDark ? 'text-emerald-400' : 'text-emerald-600'
+    if (rate >= 80) return isDark ? 'text-amber-400' : 'text-amber-600'
+    return isDark ? 'text-red-400' : 'text-red-600'
+  }
+
+  const getComplianceBadge = (rate: number, isDark: boolean) => {
+    if (rate >= 95) return isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+    if (rate >= 80) return isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-700'
+    return isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'
+  }
+
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Compliance Report</h1>
-          <p className="text-sm text-gray-500 mt-1">Dubai Municipality Food Safety Compliance Dashboard</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-full p-1">
-            {['24h', '7d', '30d', '90d'].map(range => (
-              <button
-                key={range}
-                onClick={() => setDateRange(range)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
-                  dateRange === range
-                    ? 'bg-[#1d1d1f] text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-                <button 
-            onClick={exportToPDF}
-            disabled={isExporting || isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1d1d1f] text-white text-sm font-medium rounded-full hover:bg-[#2d2d2f] transition-all disabled:opacity-50 disabled:cursor-not-allowed print:hidden"
-          >
-            <Download className="h-4 w-4" />
-            Print / Save PDF
-          </button>
-        </div>
-      </div>
-
-      {/* Print Content */}
-      <div className="bg-white print:bg-white">
-      {/* DM Reference Banner */}
-      <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-        <div className="flex items-center gap-3">
-          <FileText className="h-5 w-5 text-blue-600" />
+    <div className={`min-h-screen ${isDark ? 'bg-[#0a0a0a]' : 'bg-[#f5f5f7]'}`}>
+      <div className="max-w-5xl mx-auto p-6 md:p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <p className="text-sm font-medium text-blue-900">Reference: DM-HSD-GU46-KFPA2</p>
-            <p className="text-xs text-blue-700">Technical Guidelines for Occupational Health & Safety in Kitchens (Version 3, 09/05/2024)</p>
+            <h1 className={`text-2xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Compliance
+            </h1>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              Dubai Municipality food safety compliance by location
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={loadComplianceData}
+              disabled={isLoading}
+              className={`
+                p-2.5 rounded-xl transition-all print:hidden
+                ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-white hover:bg-gray-50'}
+                ${isLoading ? 'animate-spin' : ''}
+              `}
+            >
+              <RefreshCw className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+            </button>
+            <button 
+              onClick={exportToPDF}
+              disabled={isExporting || isLoading}
+              className={`
+                flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium
+                transition-all print:hidden
+                ${isDark 
+                  ? 'bg-white text-black hover:bg-gray-200' 
+                  : 'bg-[#1d1d1f] text-white hover:bg-[#2d2d2f]'
+                }
+                disabled:opacity-50 disabled:cursor-not-allowed
+              `}
+            >
+              <Download className="h-4 w-4" />
+              Export PDF
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Overall Compliance Score */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className={`col-span-1 md:col-span-2 rounded-2xl p-6 border ${getComplianceBg(overallRate)}`}>
-          <div className="flex items-center justify-between">
+        {/* DM Reference Banner */}
+        <div className={`mb-6 p-4 rounded-2xl ${isDark ? 'bg-blue-900/20 border border-blue-800/30' : 'bg-blue-50 border border-blue-100'}`}>
+          <div className="flex items-center gap-3">
+            <FileText className={`h-5 w-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             <div>
-              <p className="text-sm text-gray-600 mb-1">Overall Compliance Rate</p>
-              <p className={`text-5xl font-bold ${getComplianceColor(overallRate)}`}>
-                {overallRate.toFixed(1)}%
+              <p className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-blue-900'}`}>Reference: DM-HSD-GU46-KFPA2</p>
+              <p className={`text-xs ${isDark ? 'text-blue-400/70' : 'text-blue-700'}`}>Technical Guidelines for Occupational Health & Safety in Kitchens</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Date Range */}
+        <div className={`rounded-2xl p-4 mb-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+          <div className="flex items-center justify-between">
+            <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Compliance Period
+            </span>
+            <div className={`flex items-center gap-1 p-1 rounded-full ${isDark ? 'bg-black/30' : 'bg-gray-100'}`}>
+              {(['24h', '7d', '30d', '90d'] as const).map(range => (
+                <button
+                  key={range}
+                  onClick={() => setDateRange(range)}
+                  className={`
+                    px-4 py-2 text-sm font-medium rounded-full transition-all
+                    ${dateRange === range
+                      ? isDark 
+                        ? 'bg-white text-black' 
+                        : 'bg-[#1d1d1f] text-white'
+                      : isDark
+                        ? 'text-gray-400 hover:text-white'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }
+                  `}
+                >
+                  {range}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            label="Overall Compliance"
+            value={totalSensors > 0 ? `${overallRate.toFixed(1)}%` : '—'}
+            subtext={totalSensors > 0 ? (overallRate >= 95 ? 'Excellent' : overallRate >= 80 ? 'Good' : 'Needs Attention') : 'No sensors'}
+            icon={overallRate >= 95 ? ShieldCheck : ShieldAlert}
+            iconBg={totalSensors > 0 ? (overallRate >= 95 ? 'bg-emerald-500' : overallRate >= 80 ? 'bg-amber-500' : 'bg-red-500') : 'bg-gray-400'}
+            isDark={isDark}
+          />
+          <StatCard
+            label="Locations Monitored"
+            value={locationsMonitored}
+            subtext={`of ${kitchens.length} total`}
+            icon={Building2}
+            iconBg={locationsMonitored > 0 ? 'bg-blue-500' : 'bg-gray-400'}
+            isDark={isDark}
+          />
+          <StatCard
+            label="Active Sensors"
+            value={totalSensors}
+            subtext="Equipment monitored"
+            icon={Thermometer}
+            iconBg={totalSensors > 0 ? 'bg-orange-500' : 'bg-gray-400'}
+            isDark={isDark}
+          />
+          <StatCard
+            label="Violations"
+            value={totalViolations}
+            subtext={`Last ${dateRange}`}
+            icon={AlertTriangle}
+            iconBg={totalViolations > 0 ? 'bg-red-500' : 'bg-emerald-500'}
+            isDark={isDark}
+          />
+        </div>
+
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="text-center py-16">
+            <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className={`text-sm mt-4 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Loading compliance data...</p>
+          </div>
+        ) : kitchens.length === 0 ? (
+          <EmptyState isDark={isDark} />
+        ) : (
+          <>
+            {/* Location Compliance Cards */}
+            <div className="space-y-3 mb-8">
+              <p className={`text-xs font-medium uppercase tracking-wider px-1 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+                Compliance by Location
               </p>
-              <p className="text-sm text-gray-500 mt-2">Last {dateRange}</p>
+              
+              {kitchens.map(kitchen => (
+                <LocationComplianceCard
+                  key={kitchen.id}
+                  kitchen={kitchen}
+                  isExpanded={expandedKitchens.has(kitchen.id)}
+                  onToggle={() => toggleKitchen(kitchen.id)}
+                  isDark={isDark}
+                  getComplianceColor={getComplianceColor}
+                  getComplianceBadge={getComplianceBadge}
+                />
+              ))}
             </div>
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center ${overallRate >= 95 ? 'bg-emerald-100' : overallRate >= 80 ? 'bg-amber-100' : 'bg-red-100'}`}>
-              {overallRate >= 95 ? (
-                <ShieldCheck className={`h-10 w-10 ${getComplianceColor(overallRate)}`} />
-              ) : (
-                <ShieldAlert className={`h-10 w-10 ${getComplianceColor(overallRate)}`} />
-              )}
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            <p className="text-sm text-gray-600">Total Violations</p>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">
-            {complianceHistory.reduce((sum, h) => sum + h.violations, 0)}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">Last {dateRange}</p>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 border border-gray-100">
-          <div className="flex items-center gap-2 mb-2">
-            <ShieldAlert className="h-4 w-4 text-red-500" />
-            <p className="text-sm text-gray-600">Danger Zone Events</p>
-          </div>
-          <p className="text-3xl font-bold text-red-600">
-            {complianceHistory.reduce((sum, h) => sum + h.dangerZoneEvents, 0)}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">Immediate food safety risk</p>
-        </div>
-      </div>
-
-      {/* Daily Compliance Chart */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 mb-8">
-        <h2 className="font-semibold text-gray-900 mb-4">Daily Compliance Trend</h2>
-        <div className="space-y-3">
-          {complianceHistory.map((record, idx) => (
-            <div key={record.date} className="flex items-center gap-4">
-              <div className="w-24 text-sm text-gray-500">
-                {new Date(record.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-              </div>
-              <div className="flex-1 h-8 bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all ${
-                    record.complianceRate >= 95 ? 'bg-emerald-500' :
-                    record.complianceRate >= 80 ? 'bg-amber-500' : 'bg-red-500'
-                  }`}
-                  style={{ width: `${record.complianceRate}%` }}
+            {/* DM Requirements Reference */}
+            <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+              <h2 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Dubai Municipality Temperature Requirements
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <TempCard 
+                  icon="🧊" 
+                  label="Refrigeration" 
+                  temp="0-5°C" 
+                  subtext="Cold storage"
+                  color="blue"
+                  isDark={isDark}
+                />
+                <TempCard 
+                  icon="❄️" 
+                  label="Freezer" 
+                  temp="≤ -18°C" 
+                  subtext="Frozen foods"
+                  color="indigo"
+                  isDark={isDark}
+                />
+                <TempCard 
+                  icon="🔥" 
+                  label="Hot Holding" 
+                  temp="≥ 60°C" 
+                  subtext="Bain-marie"
+                  color="orange"
+                  isDark={isDark}
+                />
+                <TempCard 
+                  icon="⚠️" 
+                  label="Danger Zone" 
+                  temp="5-60°C" 
+                  subtext="Food unsafe (2hr max)"
+                  color="red"
+                  isDark={isDark}
+                  danger
                 />
               </div>
-              <div className={`w-16 text-right font-medium ${getComplianceColor(record.complianceRate)}`}>
-                {record.complianceRate.toFixed(1)}%
-              </div>
-              {record.dangerZoneEvents > 0 && (
-                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                  ⚠️ {record.dangerZoneEvents}
-                </span>
-              )}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
 
-      {/* Sensor Compliance Table */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 mb-8">
-        <h2 className="font-semibold text-gray-900 mb-4">Sensor Compliance Details</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-left text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                <th className="pb-3 font-medium">Sensor</th>
-                <th className="pb-3 font-medium">Equipment</th>
-                <th className="pb-3 font-medium">Required</th>
-                <th className="pb-3 font-medium text-center">Avg Temp</th>
-                <th className="pb-3 font-medium text-center">Range</th>
-                <th className="pb-3 font-medium text-center">Compliance</th>
-                <th className="pb-3 font-medium text-center">Violations</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {sensorCompliance.map(sensor => {
-                const config = EQUIPMENT_CONFIGS[sensor.equipmentType]
-                return (
-                  <tr key={sensor.id} className="text-sm">
-                    <td className="py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{config.icon}</span>
-                        <div>
-                          <p className="font-medium text-gray-900">{sensor.location}</p>
-                          <p className="text-xs text-gray-500">{sensor.kitchenName}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 text-gray-600">{config.name}</td>
-                    <td className="py-4 text-gray-600">{formatThresholdRange(sensor.equipmentType)}</td>
-                    <td className="py-4 text-center">
-                      <span className={`font-medium ${
-                        checkCompliance(sensor.equipmentType, sensor.avgTemp).status === 'compliant' 
-                          ? 'text-gray-900' : 'text-red-600'
-                      }`}>
-                        {sensor.avgTemp.toFixed(1)}°C
-                      </span>
-                    </td>
-                    <td className="py-4 text-center text-gray-500 text-xs">
-                      {sensor.minTemp.toFixed(1)}° - {sensor.maxTemp.toFixed(1)}°
-                    </td>
-                    <td className="py-4 text-center">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        sensor.complianceRate >= 95 ? 'bg-emerald-100 text-emerald-700' :
-                        sensor.complianceRate >= 80 ? 'bg-amber-100 text-amber-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {sensor.complianceRate.toFixed(1)}%
-                      </span>
-                    </td>
-                    <td className="py-4 text-center">
-                      {sensor.violationCount > 0 ? (
-                        <div>
-                          <p className="font-medium text-red-600">{sensor.violationCount}</p>
-                          <p className="text-xs text-gray-400">{sensor.lastViolation}</p>
-                        </div>
-                      ) : (
-                        <CheckCircle className="h-5 w-5 text-emerald-500 mx-auto" />
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* DM Requirements Reference */}
-      <div className="bg-gray-50 rounded-2xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Dubai Municipality Temperature Requirements</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">🧊</span>
-              <span className="font-medium text-gray-900">Refrigeration</span>
-            </div>
-            <p className="text-2xl font-bold text-blue-600">0-5°C</p>
-            <p className="text-xs text-gray-500 mt-1">Cold storage</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">❄️</span>
-              <span className="font-medium text-gray-900">Freezer</span>
-            </div>
-            <p className="text-2xl font-bold text-indigo-600">≤ -18°C</p>
-            <p className="text-xs text-gray-500 mt-1">Frozen foods</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">🔥</span>
-              <span className="font-medium text-gray-900">Hot Holding</span>
-            </div>
-            <p className="text-2xl font-bold text-orange-600">≥ 60°C</p>
-            <p className="text-xs text-gray-500 mt-1">Bain-marie</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-red-200 bg-red-50">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">⚠️</span>
-              <span className="font-medium text-red-900">Danger Zone</span>
-            </div>
-            <p className="text-2xl font-bold text-red-600">5-60°C</p>
-            <p className="text-xs text-red-600 mt-1">Food unsafe (2hr max)</p>
-          </div>
-        </div>
-      </div>
-      </div>
-      {/* End PDF Export Content */}
-      
       {/* Print Styles */}
       <style>{`
         @media print {
-          /* Hide everything except the report */
-          body > * {
-            visibility: hidden;
-          }
-          
-          /* Hide sidebar, header, and navigation */
-          nav, header, aside, [role="complementary"], [role="navigation"] {
-            display: none !important;
-          }
-          
-          /* Show only the main content area */
-          main, main * {
-            visibility: visible;
-          }
-          
-          /* Position the report at top left */
+          body > * { visibility: hidden; }
+          nav, header, aside, [role="complementary"], [role="navigation"] { display: none !important; }
+          main, main * { visibility: visible; }
           main {
             position: absolute;
             left: 0;
@@ -368,20 +344,8 @@ export default function CompliancePage() {
             padding: 20px !important;
             margin: 0 !important;
           }
-          
-          /* Remove backgrounds for printing */
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          
-          /* Page settings */
-          @page {
-            size: A4;
-            margin: 15mm;
-          }
-          
-          /* Add print header */
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { size: A4; margin: 15mm; }
           main::before {
             content: "VisionDrive Smart Kitchen - Compliance Report";
             display: block;
@@ -391,8 +355,6 @@ export default function CompliancePage() {
             padding-bottom: 5px;
             border-bottom: 1px solid #ccc;
           }
-          
-          /* Add print footer */
           main::after {
             content: "Reference: DM-HSD-GU46-KFPA2 | Dubai Municipality Food Safety Guidelines";
             display: block;
@@ -402,27 +364,237 @@ export default function CompliancePage() {
             padding-top: 10px;
             border-top: 1px solid #ccc;
           }
-          
-          /* Ensure tables don't break across pages awkwardly */
-          table {
-            page-break-inside: avoid;
-          }
-          
-          tr {
-            page-break-inside: avoid;
-          }
-          
-          /* Keep sections together */
-          .rounded-2xl {
-            page-break-inside: avoid;
-          }
-          
-          /* Hide the Export PDF button when printing */
-          button {
-            display: none !important;
-          }
+          table { page-break-inside: avoid; }
+          tr { page-break-inside: avoid; }
+          .rounded-2xl { page-break-inside: avoid; }
+          button { display: none !important; }
         }
       `}</style>
+    </div>
+  )
+}
+
+// Stat Card Component
+function StatCard({ 
+  label, 
+  value, 
+  subtext,
+  icon: Icon, 
+  iconBg,
+  isDark 
+}: { 
+  label: string
+  value: string | number
+  subtext: string
+  icon: React.ElementType
+  iconBg: string
+  isDark: boolean
+}) {
+  return (
+    <div className={`rounded-2xl p-4 ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center`}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</p>
+          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{label}</p>
+        </div>
+      </div>
+      <p className={`text-xs mt-2 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{subtext}</p>
+    </div>
+  )
+}
+
+// Location Compliance Card
+function LocationComplianceCard({
+  kitchen,
+  isExpanded,
+  onToggle,
+  isDark,
+  getComplianceColor,
+  getComplianceBadge
+}: {
+  kitchen: Kitchen
+  isExpanded: boolean
+  onToggle: () => void
+  isDark: boolean
+  getComplianceColor: (rate: number, isDark: boolean) => string
+  getComplianceBadge: (rate: number, isDark: boolean) => string
+}) {
+  const hasEquipment = kitchen.sensorCount > 0
+
+  return (
+    <div className={`rounded-2xl overflow-hidden ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+      {/* Location Header */}
+      <button
+        onClick={onToggle}
+        className={`
+          w-full flex items-center justify-between p-5
+          transition-colors
+          ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}
+        `}
+      >
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isDark ? 'bg-orange-500/20' : 'bg-orange-50'}`}>
+            🍳
+          </div>
+          <div className="text-left">
+            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {kitchen.name}
+            </h3>
+            <p className={`text-sm flex items-center gap-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              <MapPin className="w-3.5 h-3.5" />
+              {kitchen.address}, {kitchen.emirate}
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {hasEquipment ? (
+            <>
+              <div className="text-right mr-2">
+                <p className={`text-lg font-semibold ${getComplianceColor(kitchen.complianceRate, isDark)}`}>
+                  {kitchen.complianceRate.toFixed(0)}%
+                </p>
+                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  {kitchen.sensorCount} sensor{kitchen.sensorCount !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${getComplianceBadge(kitchen.complianceRate, isDark)}`}>
+                {kitchen.complianceRate >= 95 ? 'Compliant' : kitchen.complianceRate >= 80 ? 'Warning' : 'Non-Compliant'}
+              </span>
+            </>
+          ) : (
+            <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+              Not Monitored
+            </span>
+          )}
+          <ChevronDown className={`w-5 h-5 transition-transform ${isDark ? 'text-gray-500' : 'text-gray-400'} ${isExpanded ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+
+      {/* Equipment Details */}
+      {isExpanded && (
+        <div className={`border-t ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
+          {!hasEquipment ? (
+            <div className={`p-8 text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              <Thermometer className="w-10 h-10 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">No equipment registered for this location.</p>
+              <p className="text-xs mt-1">Add sensors to track compliance.</p>
+            </div>
+          ) : (
+            <div className="p-4">
+              <table className="w-full">
+                <thead>
+                  <tr className={`text-left text-xs uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    <th className="pb-3 font-medium">Equipment</th>
+                    <th className="pb-3 font-medium">Type</th>
+                    <th className="pb-3 font-medium text-center">Required</th>
+                    <th className="pb-3 font-medium text-center">Current</th>
+                    <th className="pb-3 font-medium text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className={`divide-y ${isDark ? 'divide-gray-800' : 'divide-gray-100'}`}>
+                  {kitchen.equipment.map((equip: Equipment) => {
+                    const config = EQUIPMENT_CONFIGS[equip.type] || { name: equip.type, icon: '📊' }
+                    const isCompliant = equip.status === 'normal' || equip.status === 'online'
+                    
+                    return (
+                      <tr key={equip.id} className="text-sm">
+                        <td className="py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{config.icon}</span>
+                            <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{equip.name}</span>
+                          </div>
+                        </td>
+                        <td className={`py-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {config.name}
+                        </td>
+                        <td className={`py-3 text-center ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {formatThresholdRange(equip.type)}
+                        </td>
+                        <td className={`py-3 text-center font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {equip.currentTemp !== undefined ? `${equip.currentTemp.toFixed(1)}°C` : '—'}
+                        </td>
+                        <td className="py-3 text-center">
+                          {isCompliant ? (
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
+                              <CheckCircle className="w-3 h-3" />
+                              OK
+                            </span>
+                          ) : (
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'}`}>
+                              <AlertTriangle className="w-3 h-3" />
+                              Alert
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Temperature Requirement Card
+function TempCard({ 
+  icon, 
+  label, 
+  temp, 
+  subtext, 
+  color, 
+  isDark,
+  danger 
+}: { 
+  icon: string
+  label: string
+  temp: string
+  subtext: string
+  color: 'blue' | 'indigo' | 'orange' | 'red'
+  isDark: boolean
+  danger?: boolean
+}) {
+  const colorStyles = {
+    blue: isDark ? 'text-blue-400' : 'text-blue-600',
+    indigo: isDark ? 'text-indigo-400' : 'text-indigo-600',
+    orange: isDark ? 'text-orange-400' : 'text-orange-600',
+    red: isDark ? 'text-red-400' : 'text-red-600'
+  }
+
+  return (
+    <div className={`rounded-xl p-4 ${
+      danger 
+        ? isDark ? 'bg-red-900/20 border border-red-800/30' : 'bg-red-50 border border-red-200'
+        : isDark ? 'bg-black/20' : 'bg-gray-50'
+    }`}>
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xl">{icon}</span>
+        <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{label}</span>
+      </div>
+      <p className={`text-2xl font-bold ${colorStyles[color]}`}>{temp}</p>
+      <p className={`text-xs mt-1 ${danger ? (isDark ? 'text-red-400/70' : 'text-red-600') : (isDark ? 'text-gray-500' : 'text-gray-500')}`}>{subtext}</p>
+    </div>
+  )
+}
+
+// Empty State Component
+function EmptyState({ isDark }: { isDark: boolean }) {
+  return (
+    <div className={`text-center py-16 rounded-2xl ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
+      <Building2 className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
+      <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+        No Locations Yet
+      </h3>
+      <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+        Add kitchens to start tracking compliance
+      </p>
     </div>
   )
 }
