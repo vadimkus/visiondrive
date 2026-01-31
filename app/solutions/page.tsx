@@ -5,17 +5,13 @@ import {
   Thermometer, 
   AlertTriangle, 
   FileCheck, 
-  Zap, 
   Shield, 
   CheckCircle2, 
   Building2,
   ChefHat,
   ArrowRight,
-  Bell,
   BarChart3,
-  Clock,
   Smartphone,
-  Cloud,
   Radio
 } from 'lucide-react'
 import Link from 'next/link'
@@ -134,50 +130,19 @@ const temperatureZones = [
   },
 ]
 
-const stats = [
-  { number: '24/7', label: 'Monitoring', sublabel: 'Never miss an alert' },
-  { number: '<30s', label: 'Alert Latency', sublabel: 'Real-time response' },
-  { number: '5+ yr', label: 'Battery Life', sublabel: 'Low maintenance' },
-]
-
 export default function SolutionsPage() {
   return (
     <main className="pt-[60px] sm:pt-[72px] bg-white text-gray-900">
       {/* Hero Section */}
       <Section className="py-10 sm:py-16 md:py-20">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100 mb-4 sm:mb-6">
-            <ChefHat className="h-4 w-4 text-orange-600 mr-2" />
-            <span className="text-xs sm:text-sm font-semibold text-orange-700">Our Solutions</span>
-          </div>
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 sm:mb-6">
             Smart Kitchen
             <span className="text-orange-600 block sm:inline"> Temperature Monitoring</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-            Enterprise-grade IoT sensors for commercial kitchens. Ensure food safety compliance 
-            with Dubai Municipality standards through real-time monitoring and automated alerts.
+            NB-IoT sensors for commercial kitchens. Ensure food safety compliance with Dubai Municipality standards through real-time monitoring and automated alerts.
           </p>
-        </div>
-      </Section>
-
-      {/* Stats Section */}
-      <Section background="gray" className="py-8 sm:py-12 md:py-16">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 text-center shadow-sm"
-              >
-                <div className="text-2xl sm:text-3xl font-bold text-orange-600 mb-1">
-                  {stat.number}
-                </div>
-                <div className="text-sm sm:text-base font-medium text-gray-900">{stat.label}</div>
-                <div className="text-xs sm:text-sm text-gray-500">{stat.sublabel}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </Section>
 
