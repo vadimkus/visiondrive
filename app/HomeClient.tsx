@@ -34,7 +34,7 @@ export default function HomeClient() {
               className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 mb-4 md:mb-6"
               dir={language === 'ar' ? 'rtl' : 'ltr'}
             >
-              Smart IoT Solutions
+              Smart IoT <span className="text-orange-500">Solutions</span>
             </h1>
             
             <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
@@ -74,11 +74,11 @@ export default function HomeClient() {
       {/* Customer Portal CTA */}
       <section className="py-12 md:py-20 px-5 md:px-8 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <div className="relative overflow-hidden bg-gray-900 rounded-[2rem] p-8 md:p-12">
+          <div className="relative overflow-hidden bg-gray-900 rounded-[2rem] p-8 md:p-12 text-center">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl" />
             
             <div className="relative">
-              <div className="flex items-center gap-2 mb-6">
+              <div className="flex items-center justify-center gap-2 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
                   <Radio className="h-5 w-5 text-orange-400" />
                 </div>
@@ -89,11 +89,11 @@ export default function HomeClient() {
                 Already a Customer?
               </h2>
 
-              <p className="text-gray-400 mb-8 max-w-lg text-lg">
+              <p className="text-gray-400 mb-8 text-lg max-w-lg mx-auto">
                 Access your dashboard to monitor sensors, view alerts, and download compliance reports.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   href="/kitchen-owner"
                   className="flex items-center justify-center gap-2 h-14 px-8 bg-orange-500 text-white text-[17px] font-semibold rounded-2xl hover:bg-orange-600 active:scale-[0.98] transition-all"
