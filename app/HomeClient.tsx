@@ -4,7 +4,6 @@ import {
   ArrowRight, 
   Radio, 
   ChevronRight,
-  CheckCircle,
   Wifi,
   Lock,
   Shield,
@@ -18,13 +17,6 @@ const capabilities = [
   { icon: Lock, label: 'UAE Data Residency' },
   { icon: Shield, label: 'TDRA Certified' },
   { icon: BarChart3, label: 'Real-time Analytics' },
-]
-
-const benefits = [
-  'TDRA Certified IoT Solutions',
-  '100% UAE Data Residency',
-  'Dubai Municipality Compliant',
-  '24/7 Monitoring & Support',
 ]
 
 export default function HomeClient() {
@@ -72,28 +64,6 @@ export default function HomeClient() {
               >
                 <cap.icon className="h-4 w-4 text-gray-500" />
                 <span className="text-sm font-medium text-gray-700">{cap.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits List */}
-      <section className="py-12 md:py-16 px-5 md:px-8">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-xl md:text-2xl font-semibold text-gray-900 text-center mb-8">
-            Why Choose VisionDrive?
-          </h2>
-          <div className="space-y-3">
-            {benefits.map((benefit) => (
-              <div 
-                key={benefit}
-                className="flex items-center gap-4 p-5 bg-gray-50 rounded-2xl"
-              >
-                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="h-5 w-5 text-emerald-500" />
-                </div>
-                <span className="text-[17px] font-medium text-gray-900">{benefit}</span>
               </div>
             ))}
           </div>
