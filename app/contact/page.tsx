@@ -115,13 +115,9 @@ export default function ContactPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <div className="text-center md:text-left">
-              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100 mb-4 sm:mb-6">
-                <ChefHat className="h-4 w-4 text-orange-600 mr-2" />
-                <span className="text-xs sm:text-sm font-semibold text-orange-700">Get In Touch</span>
-              </div>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4 sm:mb-6">
+              <h1 className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 mb-4 sm:mb-6">
                 Start Monitoring
-                <span className="text-orange-600 block sm:inline"> Your Kitchen</span> Today
+                <span className="text-orange-500 block sm:inline"> Your Kitchen</span> Today
               </h1>
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8">
                 Whether you manage a single restaurant or a chain of kitchens, we&apos;re ready to help you 
