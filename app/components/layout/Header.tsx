@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { Menu, X, User, LogOut, ChevronRight } from 'lucide-react'
+import { Menu, X, User, LogOut } from 'lucide-react'
 import { motion as fmMotion, AnimatePresence } from 'framer-motion'
 import Logo from '../common/Logo'
 import LanguageSelector from '../common/LanguageSelector'
@@ -169,7 +169,7 @@ export default function Header() {
         </nav>
       </header>
 
-      {/* Mobile Menu - Full Screen Overlay */}
+      {/* Mobile Menu - Apple Style Full Screen */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -177,99 +177,67 @@ export default function Header() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden fixed inset-0 z-40 bg-white"
+            className="lg:hidden fixed inset-0 z-40 bg-white/95 backdrop-blur-xl"
             style={{ paddingTop: '64px' }}
           >
-            <div className="flex flex-col h-full overflow-y-auto">
+            <div className="flex flex-col h-full">
               
-              {/* Navigation Links */}
-              <div className="flex-1 px-5 py-6">
-                <nav className="space-y-1">
-                  {navItems.map((item) => {
+              {/* Navigation Links - Centered & Large */}
+              <div className="flex-1 flex flex-col justify-center px-8">
+                <nav className="space-y-2">
+                  {navItems.map((item, index) => {
                     const isActive = pathname === item.href
                     return (
-                      <Link
+                      <motion.div
                         key={item.name}
-                        href={item.href}
-                        className={`flex items-center justify-between px-4 py-4 text-[17px] font-medium rounded-2xl transition-all active:scale-[0.98] ${
-                          isActive
-                            ? 'text-orange-600 bg-orange-50'
-                            : 'text-gray-900 hover:bg-gray-50'
-                        }`}
-                        onClick={() => setMobileMenuOpen(false)}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
                       >
-                        {item.name}
-                        <ChevronRight className={`h-5 w-5 ${isActive ? 'text-orange-400' : 'text-gray-300'}`} />
-                      </Link>
+                        <Link
+                          href={item.href}
+                          className={`block py-3 text-[28px] font-semibold tracking-tight transition-colors ${
+                            isActive
+                              ? 'text-orange-500'
+                              : 'text-gray-900 active:text-orange-500'
+                          }`}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                      </motion.div>
                     )
                   })}
                 </nav>
-                
-                {/* Kitchen Owner Portal */}
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <Link
-                    href="/kitchen-owner"
-                    className="flex items-center justify-between px-4 py-4 bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 text-[17px] font-semibold rounded-2xl border border-orange-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">🍳</span>
-                      <span>Kitchen Owner Portal</span>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-orange-400" />
-                  </Link>
-                </div>
               </div>
 
-              {/* Bottom Section */}
-              <div className="border-t border-gray-100 px-5 py-6 bg-gray-50">
-                {/* Contact Cards */}
-                <div className="grid grid-cols-2 gap-3 mb-5">
-                  <a 
-                    href="https://wa.me/971559152985" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-100"
-                  >
-                    <span className="text-2xl">💬</span>
-                    <span className="text-sm font-medium text-gray-900">WhatsApp</span>
-                  </a>
-                  <a 
-                    href="mailto:tech@visiondrive.ae" 
-                    className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-100"
-                  >
-                    <span className="text-2xl">✉️</span>
-                    <span className="text-sm font-medium text-gray-900">Email</span>
-                  </a>
-                </div>
-
-                {/* Language & Login */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <LanguageSelector />
+              {/* Bottom Section - Minimal */}
+              <div className="px-8 pb-10 pt-6 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <LanguageSelector />
+                  
+                  <div className="flex items-center gap-3">
+                    {isLoggedIn && (
+                      <button
+                        onClick={() => {
+                          handleLogout()
+                          setMobileMenuOpen(false)
+                        }}
+                        className="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-500 transition-all active:scale-95"
+                      >
+                        <LogOut className="h-5 w-5" />
+                      </button>
+                    )}
+                    <Link
+                      href={isLoggedIn ? "/portal/smart-kitchen" : "/login"}
+                      className="flex items-center justify-center gap-2 h-12 px-6 bg-gray-900 text-white text-[15px] font-semibold rounded-full transition-all active:scale-95"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="h-4 w-4" />
+                      <span>{isLoggedIn ? 'Dashboard' : 'Login'}</span>
+                    </Link>
                   </div>
-                  <Link
-                    href={isLoggedIn ? "/portal/smart-kitchen" : "/login"}
-                    className="flex items-center justify-center gap-2 h-12 px-6 bg-gray-900 text-white font-semibold rounded-xl transition-all active:scale-[0.98]"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <User className="h-5 w-5" />
-                    <span>{isLoggedIn ? 'Dashboard' : 'Login'}</span>
-                  </Link>
                 </div>
-
-                {isLoggedIn && (
-                  <button
-                    onClick={() => {
-                      handleLogout()
-                      setMobileMenuOpen(false)
-                    }}
-                    className="flex items-center justify-center gap-2 w-full h-12 mt-3 text-red-600 font-medium rounded-xl border border-red-200 bg-white transition-all active:scale-[0.98]"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span>Logout</span>
-                  </button>
-                )}
               </div>
             </div>
           </motion.div>
