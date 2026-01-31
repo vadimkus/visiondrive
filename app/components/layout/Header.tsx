@@ -102,7 +102,7 @@ export default function Header() {
                 <span className="text-[17px] md:text-lg font-semibold text-gray-900 leading-tight">
                   Vision<span className="text-orange-500">Drive</span>
                 </span>
-                <span className="text-[10px] text-gray-400 hidden sm:block">IoT company 🇦🇪</span>
+                <span className="text-[10px] text-gray-400">IoT company 🇦🇪</span>
               </div>
             </Link>
 
