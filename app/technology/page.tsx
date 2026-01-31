@@ -250,16 +250,6 @@ export default function TechnologyPage() {
           </div>
         </div>
       </Section>
-
-      <Section className="py-8 sm:py-12 md:py-14">
-        <div className="max-w-3xl mx-auto text-center space-y-3">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">Ready to get started?</h2>
-          <p className="text-base sm:text-lg text-gray-600">
-            Request a demo to see how our smart kitchen sensors can help your business.
-          </p>
-          <Button href="/contact" size="md">Request a Demo</Button>
-        </div>
-      </Section>
     </main>
   )
 }
