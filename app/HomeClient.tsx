@@ -60,10 +60,12 @@ export default function HomeClient() {
             {capabilities.map((cap) => (
               <div
                 key={cap.label}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-full border border-gray-100"
+                className="group flex items-center gap-2.5 px-5 py-3 bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-gray-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-default"
               >
-                <cap.icon className="h-4 w-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">{cap.label}</span>
+                <div className="w-8 h-8 rounded-xl bg-gray-100 group-hover:bg-orange-50 flex items-center justify-center transition-colors duration-200">
+                  <cap.icon className="h-4 w-4 text-gray-500 group-hover:text-orange-500 transition-colors duration-200" />
+                </div>
+                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-200">{cap.label}</span>
               </div>
             ))}
           </div>
