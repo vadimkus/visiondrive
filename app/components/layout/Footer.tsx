@@ -139,14 +139,14 @@ export default function Footer() {
           </div>
 
           {/* Contact */}
-          <div className="mb-8">
+          <div className="mb-8 text-center">
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
               {t.contact}
             </h3>
             <div className="space-y-3">
               <a 
                 href="mailto:tech@visiondrive.ae" 
-                className="flex items-center gap-3 text-sm text-gray-600"
+                className="flex items-center justify-center gap-3 text-sm text-gray-600"
               >
                 <Mail className="h-4 w-4 text-orange-500" />
                 tech@visiondrive.ae
@@ -155,13 +155,13 @@ export default function Footer() {
                 href="https://wa.me/971559152985" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="flex items-center gap-3 text-sm text-gray-600"
+                className="flex items-center justify-center gap-3 text-sm text-gray-600"
               >
                 <MessageCircle className="h-4 w-4 text-emerald-500" />
                 +971 55 915 2985
               </a>
-              <div className="flex items-start gap-3 text-sm text-gray-600">
-                <MapPin className="h-4 w-4 text-red-500 mt-0.5" />
+              <div className="flex items-center justify-center gap-3 text-sm text-gray-600">
+                <MapPin className="h-4 w-4 text-red-500" />
                 <span>Compass Coworking, RAK, UAE</span>
               </div>
             </div>
