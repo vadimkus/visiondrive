@@ -272,10 +272,6 @@ export default function AlertsPage() {
           </div>
         ) : kitchens.length === 0 ? (
           <EmptyState isDark={isDark} type="no-kitchens" />
-        ) : totalSensors === 0 ? (
-          <EmptyState isDark={isDark} type="no-sensors" />
-        ) : allAlerts.length === 0 ? (
-          <EmptyState isDark={isDark} type="all-clear" />
         ) : (
           <div className="space-y-3">
             {kitchens.map(kitchen => {
@@ -537,38 +533,15 @@ function AlertRow({
 }
 
 // Empty State Component
-function EmptyState({ isDark, type }: { isDark: boolean; type: 'no-kitchens' | 'no-sensors' | 'all-clear' }) {
-  const config = {
-    'no-kitchens': {
-      icon: Building2,
-      title: 'No Locations Yet',
-      description: 'Add kitchens to start monitoring alerts',
-      iconColor: isDark ? 'text-gray-700' : 'text-gray-300'
-    },
-    'no-sensors': {
-      icon: Thermometer,
-      title: 'No Sensors Registered',
-      description: 'Add equipment to your kitchens to receive alerts',
-      iconColor: isDark ? 'text-amber-500/50' : 'text-amber-300'
-    },
-    'all-clear': {
-      icon: Shield,
-      title: 'All Clear',
-      description: 'No alerts to display. All systems operating normally.',
-      iconColor: isDark ? 'text-emerald-500' : 'text-emerald-400'
-    }
-  }
-
-  const { icon: Icon, title, description, iconColor } = config[type]
-
+function EmptyState({ isDark, type }: { isDark: boolean; type: 'no-kitchens' }) {
   return (
     <div className={`text-center py-16 rounded-2xl ${isDark ? 'bg-[#1c1c1e]' : 'bg-white'}`}>
-      <Icon className={`w-16 h-16 mx-auto mb-4 ${iconColor}`} />
+      <Building2 className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
       <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-        {title}
+        No Locations Yet
       </h3>
       <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-        {description}
+        Add kitchens to start monitoring alerts
       </p>
     </div>
   )
