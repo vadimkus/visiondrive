@@ -32,16 +32,87 @@ import {
   Save
 } from 'lucide-react'
 import TemperatureChart from '../../components/TemperatureChart'
-import { 
-  getKitchen, 
-  upsertOwner, 
-  deleteOwner, 
-  upsertEquipment, 
-  deleteEquipment,
-  type Kitchen,
-  type KitchenOwner,
-  type KitchenEquipment
-} from '@/app/lib/kitchen-data'
+
+// Kitchen types matching the API response
+interface KitchenEquipment {
+  id: string
+  name: string
+  type: 'FRIDGE' | 'FREEZER' | 'DISPLAY_FRIDGE' | 'COLD_ROOM' | 'BLAST_CHILLER' | 'OTHER'
+  serialNumber: string | null
+  brand: string | null
+  model: string | null
+  sensorDevEui: string | null
+  sensorImei: string | null
+  minTemp: number
+  maxTemp: number
+  isFreezer: boolean
+  location: string | null
+  status: 'ACTIVE' | 'MAINTENANCE' | 'FAULT' | 'OFFLINE'
+  currentTemp: number | null
+  lastReadingAt: string | null
+  batteryLevel: number | null
+  signalStrength: number | null
+  installDate: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+interface KitchenOwner {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  whatsApp: string | null
+  emiratesId: string | null
+  password: string
+  isPrimary: boolean
+  canManage: boolean
+  canViewReports: boolean
+  notifyEmail: boolean
+  notifyWhatsApp: boolean
+  notifyOnAlert: boolean
+  notifyDailyReport: boolean
+  lastLogin: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+interface KitchenAlert {
+  id: string
+  equipmentId: string
+  equipmentName: string
+  type: 'temperature' | 'battery' | 'offline' | 'maintenance'
+  severity: 'info' | 'warning' | 'critical'
+  message: string
+  acknowledged: boolean
+  acknowledgedBy: string | null
+  acknowledgedAt: string | null
+  createdAt: string
+}
+
+interface Kitchen {
+  id: string
+  name: string
+  address: string
+  emirate: string
+  tradeLicense: string | null
+  dmPermitNumber: string | null
+  contactName: string | null
+  contactPhone: string | null
+  contactEmail: string | null
+  subscription?: {
+    plan: string
+    status: string
+    monthlyFee: number
+    startDate: string
+    nextBillingDate: string
+  }
+  equipment: KitchenEquipment[]
+  owners: KitchenOwner[]
+  alerts: KitchenAlert[]
+  createdAt: string
+  updatedAt: string
+}
 
 type TabType = 'overview' | 'equipment' | 'owners'
 
@@ -103,33 +174,38 @@ export default function KitchenDetailPage() {
     notifyDailyReport: false
   })
 
-  const loadKitchenData = useCallback(() => {
+  // Fetch kitchen data from API
+  const loadKitchenData = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     
-    // Use shared data store
-    const data = getKitchen(kitchenId)
-    if (data) {
-      setKitchen(data)
-    } else {
-      setError('Kitchen not found')
+    try {
+      const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}`)
+      const data = await response.json()
+      
+      if (data.success && data.kitchen) {
+        // Ensure arrays exist
+        const kitchenData: Kitchen = {
+          ...data.kitchen,
+          equipment: data.kitchen.equipment || [],
+          owners: data.kitchen.owners || [],
+          alerts: data.kitchen.alerts || []
+        }
+        setKitchen(kitchenData)
+      } else {
+        setError(data.error || 'Kitchen not found')
+      }
+    } catch (err) {
+      console.error('Failed to load kitchen:', err)
+      setError('Failed to load kitchen data. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [kitchenId])
 
   useEffect(() => {
     loadKitchenData()
-    
-    // Listen for data updates from other tabs/components
-    const handleDataUpdate = (e: CustomEvent) => {
-      if (e.detail.kitchenId === kitchenId) {
-        setKitchen(e.detail.kitchen)
-      }
-    }
-    
-    window.addEventListener('kitchenDataUpdated', handleDataUpdate as EventListener)
-    return () => window.removeEventListener('kitchenDataUpdated', handleDataUpdate as EventListener)
-  }, [kitchenId, loadKitchenData])
+  }, [loadKitchenData])
 
   // Clear success message after 3 seconds
   useEffect(() => {
@@ -245,15 +321,25 @@ export default function KitchenDetailPage() {
         notifyDailyReport: ownerForm.notifyDailyReport
       }
 
-      const result = upsertOwner(kitchenId, ownerData)
+      const url = editingOwner?.id 
+        ? `/api/portal/smart-kitchen/kitchens/${kitchenId}/owners/${editingOwner.id}`
+        : `/api/portal/smart-kitchen/kitchens/${kitchenId}/owners`
       
-      if (result) {
+      const response = await fetch(url, {
+        method: editingOwner?.id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ownerData)
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
         setShowOwnerModal(false)
         setEditingOwner(null)
         loadKitchenData()
         setSuccessMessage(editingOwner ? 'Owner updated successfully!' : 'Owner added successfully!')
       } else {
-        setError('Failed to save owner')
+        setError(data.error || 'Failed to save owner')
       }
     } catch (err) {
       console.error('Failed to save owner:', err)
@@ -266,11 +352,20 @@ export default function KitchenDetailPage() {
   const handleDeleteOwner = async (ownerId: string) => {
     if (!confirm('Are you sure you want to remove this owner? They will no longer be able to access the kitchen portal.')) return
 
-    const success = deleteOwner(kitchenId, ownerId)
-    if (success) {
-      loadKitchenData()
-      setSuccessMessage('Owner removed successfully!')
-    } else {
+    try {
+      const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}/owners/${ownerId}`, {
+        method: 'DELETE'
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        loadKitchenData()
+        setSuccessMessage('Owner removed successfully!')
+      } else {
+        setError(data.error || 'Failed to remove owner')
+      }
+    } catch (err) {
+      console.error('Failed to delete owner:', err)
       setError('Failed to remove owner')
     }
   }
@@ -298,15 +393,25 @@ export default function KitchenDetailPage() {
         isFreezer
       }
 
-      const result = upsertEquipment(kitchenId, equipmentData)
+      const url = editingEquipment?.id 
+        ? `/api/portal/smart-kitchen/kitchens/${kitchenId}/equipment/${editingEquipment.id}`
+        : `/api/portal/smart-kitchen/kitchens/${kitchenId}/equipment`
       
-      if (result) {
+      const response = await fetch(url, {
+        method: editingEquipment?.id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(equipmentData)
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
         setShowEquipmentModal(false)
         setEditingEquipment(null)
         loadKitchenData()
         setSuccessMessage(editingEquipment ? 'Equipment updated successfully!' : 'Equipment added successfully!')
       } else {
-        setError('Failed to save equipment')
+        setError(data.error || 'Failed to save equipment')
       }
     } catch (err) {
       console.error('Failed to save equipment:', err)
@@ -319,11 +424,20 @@ export default function KitchenDetailPage() {
   const handleDeleteEquipment = async (equipmentId: string) => {
     if (!confirm('Are you sure you want to delete this equipment?')) return
 
-    const success = deleteEquipment(kitchenId, equipmentId)
-    if (success) {
-      loadKitchenData()
-      setSuccessMessage('Equipment deleted successfully!')
-    } else {
+    try {
+      const response = await fetch(`/api/portal/smart-kitchen/kitchens/${kitchenId}/equipment/${equipmentId}`, {
+        method: 'DELETE'
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        loadKitchenData()
+        setSuccessMessage('Equipment deleted successfully!')
+      } else {
+        setError(data.error || 'Failed to delete equipment')
+      }
+    } catch (err) {
+      console.error('Failed to delete equipment:', err)
       setError('Failed to delete equipment')
     }
   }
@@ -339,10 +453,42 @@ export default function KitchenDetailPage() {
     })
   }
 
-  if (isLoading || !kitchen) {
+  if (isLoading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
+      <div className="p-6 flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <RefreshCw className="h-8 w-8 text-orange-500 animate-spin" />
+        <p className="text-gray-500">Loading kitchen data...</p>
+      </div>
+    )
+  }
+
+  if (error || !kitchen) {
+    return (
+      <div className="p-6 flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <AlertTriangle className="h-12 w-12 text-amber-500" />
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            {error || 'Kitchen not found'}
+          </h2>
+          <p className="text-gray-500 mb-4">
+            The kitchen data could not be loaded. Please try again.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => router.push('/portal/smart-kitchen')}
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              Back to Dashboard
+            </button>
+            <button
+              onClick={() => loadKitchenData()}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
