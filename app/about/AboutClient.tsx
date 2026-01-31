@@ -290,32 +290,6 @@ export default function AboutClient() {
         </div>
       </Section>
 
-      {/* CTA Section */}
-      <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-            Ready to Ensure Food Safety Compliance?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Let&apos;s discuss how VisionDrive can help your kitchen maintain the highest 
-            standards of food safety with smart temperature monitoring.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="/contact" 
-              className="inline-flex items-center justify-center px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              Contact Us
-            </a>
-            <a 
-              href="/solutions" 
-              className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-900 font-medium rounded-lg border border-gray-300 hover:border-orange-300 hover:text-orange-600 transition-colors"
-            >
-              View Solutions
-            </a>
-          </div>
-        </div>
-      </Section>
     </main>
   )
 }
