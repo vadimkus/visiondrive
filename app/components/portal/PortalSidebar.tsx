@@ -18,8 +18,7 @@ import {
   Settings,
   ScrollText,
   Grid3x3,
-  ChefHat,
-  Car
+  ChefHat
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { LucideIcon } from 'lucide-react'
@@ -135,7 +134,6 @@ export default function PortalSidebar() {
 
   const smartKitchenItems = [
     { icon: ChefHat, label: 'Smart Kitchen', path: '/portal/smart-kitchen', color: 'text-orange-600', bgColor: 'bg-orange-50' },
-    { icon: Car, label: 'Parking', path: '/portal/parking', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
   ]
 
   const financeItems = [
