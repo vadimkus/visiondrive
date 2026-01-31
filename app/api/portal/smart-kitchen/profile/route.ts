@@ -4,10 +4,17 @@ import jwt from 'jsonwebtoken'
 const KITCHEN_JWT_SECRET = process.env.KITCHEN_JWT_SECRET || 'smartkitchen-uae-secret-2026'
 const KITCHEN_API_URL = process.env.SMART_KITCHEN_API_URL || 'https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod'
 
-// Store admin profile in memory (in production, use database)
-let adminProfile = {
-  name: 'Vadim',
-  email: 'vadim@visiondrive.ae',
+// Store profiles in memory (in production, use database)
+const profiles: Record<string, { name: string; email: string }> = {
+  'admin': { name: 'Vadim', email: 'vadim@visiondrive.ae' },
+  'owner': { name: 'Abdul Rahman', email: 'abdul@kitchen.ae' },
+}
+
+// Helper to get profile key from token
+function getProfileKey(token: string): string {
+  if (token.startsWith('admin_')) return 'admin'
+  if (token.startsWith('demo_')) return 'owner'
+  return 'admin' // default
 }
 
 // GET - Fetch current profile
@@ -23,11 +30,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // For demo mode, return the stored admin profile
-    if (token.startsWith('demo_')) {
+    // For demo tokens
+    if (token.startsWith('admin_') || token.startsWith('demo_')) {
+      const key = getProfileKey(token)
       return NextResponse.json({
         success: true,
-        profile: adminProfile,
+        profile: profiles[key],
       })
     }
 
@@ -42,14 +50,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         profile: {
-          name: decoded.name || adminProfile.name,
+          name: decoded.name || profiles['admin'].name,
           email: decoded.email,
         },
       })
     } catch {
       return NextResponse.json({
         success: true,
-        profile: adminProfile,
+        profile: profiles['admin'],
       })
     }
   } catch (error) {
@@ -83,16 +91,17 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Update the admin profile
-    adminProfile = {
+    // Get profile key and update
+    const key = getProfileKey(token)
+    profiles[key] = {
       name: name.trim(),
-      email: email || adminProfile.email,
+      email: email || profiles[key].email,
     }
 
     return NextResponse.json({
       success: true,
       message: 'Profile updated successfully',
-      profile: adminProfile,
+      profile: profiles[key],
     })
   } catch (error) {
     console.error('Profile update error:', error)
@@ -153,7 +162,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For demo mode, simulate password change
-    if (token.startsWith('demo_')) {
+    if (token.startsWith('admin_') || token.startsWith('demo_')) {
       // In a real app, you would update the password in the database
       console.log('Password change requested (demo mode)')
       

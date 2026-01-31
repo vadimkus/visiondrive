@@ -5,6 +5,14 @@ import { checkRateLimit, getClientIp, loginRateLimiter } from '@/lib/rate-limit'
 // AWS Smart Kitchen API URL (UAE Region)
 const KITCHEN_API_URL = process.env.SMART_KITCHEN_API_URL || 'https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod'
 
+// Demo admin account
+const DEMO_ADMIN = {
+  email: 'vadim@visiondrive.ae',
+  password: 'admin123',
+  name: 'Vadim',
+  role: 'ADMIN'
+}
+
 // Demo kitchen owners (synced with admin portal)
 // In production, this would be stored in database
 const DEMO_KITCHEN_OWNERS: Record<string, { password: string; name: string; kitchenId: string; kitchenName: string }> = {
@@ -46,7 +54,41 @@ export async function POST(request: NextRequest) {
 
     // Handle Kitchen portal login
     if (portal === 'kitchen') {
-      // First check demo users (for testing without AWS API)
+      // Check for admin login first
+      if (email === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
+        const adminToken = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        
+        const response = NextResponse.json({
+          success: true,
+          user: {
+            id: 'admin-vadim-001',
+            email: DEMO_ADMIN.email,
+            name: DEMO_ADMIN.name,
+            role: DEMO_ADMIN.role,
+          },
+          token: adminToken,
+          portal: 'kitchen',
+          isOwner: false, // Admin, not owner
+        })
+
+        response.cookies.set('authToken', adminToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24,
+        })
+
+        response.cookies.set('portal', 'kitchen', {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24,
+        })
+
+        return response
+      }
+
+      // Check demo kitchen owners (for testing without AWS API)
       const demoUser = DEMO_KITCHEN_OWNERS[email]
       if (demoUser && demoUser.password === password) {
         const demoToken = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`

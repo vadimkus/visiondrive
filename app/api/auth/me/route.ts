@@ -21,6 +21,37 @@ export async function GET(request: NextRequest) {
 
     // Handle Kitchen portal authentication (AWS-based)
     if (portal === 'kitchen') {
+      // Handle demo admin token
+      if (token.startsWith('admin_')) {
+        return NextResponse.json({
+          success: true,
+          user: {
+            id: 'admin-vadim-001',
+            email: 'vadim@visiondrive.ae',
+            name: 'Vadim',
+            role: 'ADMIN',
+            status: 'ACTIVE',
+            portal: 'kitchen',
+          },
+        })
+      }
+
+      // Handle demo owner token
+      if (token.startsWith('demo_')) {
+        return NextResponse.json({
+          success: true,
+          user: {
+            id: 'owner-abdul-001',
+            email: 'abdul@kitchen.ae',
+            name: 'Abdul Rahman',
+            role: 'KITCHEN_OWNER',
+            status: 'ACTIVE',
+            portal: 'kitchen',
+          },
+        })
+      }
+
+      // Try JWT verification for AWS tokens
       try {
         const decoded = jwt.verify(token, KITCHEN_JWT_SECRET) as {
           userId: string
