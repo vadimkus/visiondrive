@@ -35,8 +35,6 @@ export default function HomeClient() {
               dir={language === 'ar' ? 'rtl' : 'ltr'}
             >
               Smart IoT Solutions
-              <br />
-              <span className="text-orange-500">for the UAE.</span>
             </h1>
             
             <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
