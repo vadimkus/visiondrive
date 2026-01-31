@@ -11,7 +11,7 @@ const footerTranslations = {
     solutions: 'Solutions',
     company: 'Company',
     contact: 'Contact',
-    description: 'Enterprise IoT Solutions for UAE Businesses',
+    description: 'Enterprise NB-IoT Solutions for UAE Businesses',
     copyright: 'All rights reserved.',
     solutionsLinks: {
       restaurants: 'For Restaurants',
@@ -33,7 +33,7 @@ const footerTranslations = {
     solutions: 'الحلول',
     company: 'الشركة',
     contact: 'اتصل بنا',
-    description: 'حلول إنترنت الأشياء للشركات الإماراتية',
+    description: 'حلول NB-IoT للشركات الإماراتية',
     copyright: 'جميع الحقوق محفوظة.',
     solutionsLinks: {
       restaurants: 'للمطاعم',
