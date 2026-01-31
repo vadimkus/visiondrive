@@ -77,7 +77,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
+    <footer className="bg-white border-t border-gray-200">
       <div className="mx-auto max-w-7xl px-5 md:px-8 py-10 md:py-12">
         
         {/* Mobile: Stacked Layout */}
