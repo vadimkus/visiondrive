@@ -98,7 +98,7 @@ export default function Footer() {
 
           {/* Links Grid - 2 columns */}
           <div className="grid grid-cols-2 gap-8 mb-8">
-            <div>
+            <div className="text-center">
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
                 {t.company}
               </h3>
@@ -117,7 +117,7 @@ export default function Footer() {
                 ))}
               </ul>
             </div>
-            <div>
+            <div className="text-center">
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
                 {t.solutions}
               </h3>
