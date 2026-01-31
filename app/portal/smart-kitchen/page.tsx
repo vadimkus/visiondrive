@@ -80,8 +80,12 @@ export default function KitchenOverview() {
   const totalKitchens = kitchens.length
   const totalSensors = kitchens.reduce((sum, k) => sum + k.sensorCount, 0)
   const totalAlerts = kitchens.reduce((sum, k) => sum + k.activeAlerts, 0)
-  const compliantKitchens = kitchens.filter(k => k.status === 'normal').length
-  const complianceRate = totalKitchens > 0 ? Math.round((compliantKitchens / totalKitchens) * 100) : 100
+  // Only count kitchens WITH sensors for compliance - no sensors = not monitored
+  const monitoredKitchens = kitchens.filter(k => k.sensorCount > 0)
+  const compliantKitchens = monitoredKitchens.filter(k => k.status === 'normal').length
+  const complianceRate = monitoredKitchens.length > 0 
+    ? Math.round((compliantKitchens / monitoredKitchens.length) * 100) 
+    : 0 // No sensors = 0% compliance (not monitored)
 
   // Filter kitchens by search
   const filteredKitchens = kitchens.filter(k => 
@@ -169,10 +173,12 @@ export default function KitchenOverview() {
           />
           <StatCard
             label="Compliance Rate"
-            value={`${complianceRate}%`}
-            subtitle={`${compliantKitchens}/${totalKitchens} compliant`}
+            value={totalSensors > 0 ? `${complianceRate}%` : '—'}
+            subtitle={totalSensors > 0 
+              ? `${compliantKitchens}/${monitoredKitchens.length} compliant` 
+              : 'No sensors yet'}
             icon={Shield}
-            iconBg={complianceRate === 100 ? 'bg-emerald-500' : 'bg-amber-500'}
+            iconBg={totalSensors === 0 ? 'bg-gray-400' : complianceRate === 100 ? 'bg-emerald-500' : 'bg-amber-500'}
             isDark={isDark}
           />
           <StatCard
