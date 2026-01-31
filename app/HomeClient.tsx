@@ -25,13 +25,13 @@ export default function HomeClient() {
   return (
     <main className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="pt-20 md:pt-28 pb-12 md:pb-20 px-5 md:px-8">
+      <section className="pt-20 md:pt-24 pb-12 md:pb-14 px-5 md:px-8">
         <div className="max-w-5xl mx-auto">
           
           {/* Main Heading */}
-          <div className="text-center mb-10 md:mb-14">
+          <div className="text-center mb-10 md:mb-10">
             <h1 
-              className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 mb-4 md:mb-6"
+              className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 mb-4 md:mb-5"
               dir={language === 'ar' ? 'rtl' : 'ltr'}
             >
               Smart IoT <span className="text-orange-500">Solutions</span>
@@ -43,7 +43,7 @@ export default function HomeClient() {
           </div>
 
           {/* CTA Button */}
-          <div className="flex justify-center mb-12 md:mb-16">
+          <div className="flex justify-center mb-12 md:mb-10">
             <Link
               href="/solutions"
               className="flex items-center justify-center gap-2 h-14 px-8 bg-orange-500 text-white text-[17px] font-semibold rounded-2xl hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-500/20"
@@ -72,7 +72,7 @@ export default function HomeClient() {
       </section>
 
       {/* Customer Portal CTA */}
-      <section className="py-12 md:py-20 px-5 md:px-8 bg-gray-50">
+      <section className="py-12 md:py-14 px-5 md:px-8 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <div className="relative overflow-hidden bg-gray-900 rounded-[2rem] p-8 md:p-12 text-center">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl" />
