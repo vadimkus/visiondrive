@@ -82,11 +82,11 @@ export default function Footer() {
         
         {/* Mobile: Stacked Layout */}
         <div className="md:hidden">
-          {/* Brand - Left aligned */}
-          <div className="mb-8">
-            <Link href="/" className="inline-flex items-center gap-2.5 mb-3">
+          {/* Brand - Center aligned */}
+          <div className="mb-8 text-center">
+            <Link href="/" className="inline-flex items-center gap-2.5 mb-3 justify-center">
               <Logo className="h-10 w-10" />
-              <div>
+              <div className="text-left">
                 <span className="text-lg font-semibold text-gray-900">
                   Vision<span className="text-orange-500">Drive</span>
                 </span>
