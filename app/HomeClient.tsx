@@ -45,13 +45,6 @@ export default function HomeClient() {
       <section className="pt-20 md:pt-28 pb-12 md:pb-20 px-5 md:px-8">
         <div className="max-w-5xl mx-auto">
           
-          {/* Badge */}
-          <div className="flex justify-center mb-6 md:mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 border border-gray-200">
-              <span className="text-sm font-medium text-gray-700">🇦🇪 UAE IoT Company</span>
-            </div>
-          </div>
-          
           {/* Main Heading */}
           <div className="text-center mb-10 md:mb-14">
             <h1 
@@ -68,20 +61,14 @@ export default function HomeClient() {
             </p>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12 md:mb-16 max-w-md sm:max-w-none mx-auto">
+          {/* CTA Button */}
+          <div className="flex justify-center mb-12 md:mb-16">
             <Link
               href="/solutions"
               className="flex items-center justify-center gap-2 h-14 px-8 bg-orange-500 text-white text-[17px] font-semibold rounded-2xl hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-500/20"
             >
               Explore Solutions
               <ArrowRight className="h-5 w-5" />
-            </Link>
-            <Link
-              href="/contact"
-              className="flex items-center justify-center gap-2 h-14 px-8 bg-gray-100 text-gray-900 text-[17px] font-semibold rounded-2xl hover:bg-gray-200 active:scale-[0.98] transition-all"
-            >
-              Contact Us
             </Link>
           </div>
 
