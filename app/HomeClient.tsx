@@ -5,12 +5,9 @@ import {
   Radio, 
   Zap, 
   Shield, 
-  Wifi,
   ChevronRight,
   CheckCircle,
-  Globe,
-  Lock,
-  BarChart3
+  Globe
 } from 'lucide-react'
 import { useLanguage } from './contexts/LanguageContext'
 import Link from 'next/link'
@@ -20,13 +17,6 @@ const stats = [
   { number: '<30s', label: 'Response', icon: Zap },
   { number: '99%+', label: 'Uptime', icon: Shield },
   { number: 'UAE', label: 'Based', icon: Globe },
-]
-
-const capabilities = [
-  { icon: Wifi, label: 'NB-IoT Connectivity' },
-  { icon: Lock, label: 'UAE Data Residency' },
-  { icon: Shield, label: 'TDRA Certified' },
-  { icon: BarChart3, label: 'Real-time Analytics' },
 ]
 
 const benefits = [
@@ -62,7 +52,7 @@ export default function HomeClient() {
           </div>
 
           {/* CTA Button */}
-          <div className="flex justify-center mb-12 md:mb-16">
+          <div className="flex justify-center">
             <Link
               href="/solutions"
               className="flex items-center justify-center gap-2 h-14 px-8 bg-orange-500 text-white text-[17px] font-semibold rounded-2xl hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-500/20"
@@ -70,19 +60,6 @@ export default function HomeClient() {
               Explore Solutions
               <ArrowRight className="h-5 w-5" />
             </Link>
-          </div>
-
-          {/* Capabilities Pills */}
-          <div className="flex flex-wrap justify-center gap-3 md:gap-4">
-            {capabilities.map((cap) => (
-              <div
-                key={cap.label}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-full border border-gray-100"
-              >
-                <cap.icon className="h-4 w-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">{cap.label}</span>
-              </div>
-            ))}
           </div>
         </div>
       </section>
