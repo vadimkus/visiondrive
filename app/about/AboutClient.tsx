@@ -87,11 +87,7 @@ export default function AboutClient() {
       {/* Hero Section */}
       <Section className="py-12 md:py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100 mb-4">
-            <ChefHat className="h-4 w-4 text-orange-600 mr-2" />
-            <span className="text-sm font-semibold text-orange-700">About VisionDrive</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-6">
+          <h1 className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 mb-6">
             Smart Kitchen IoT for <br className="hidden sm:block" />
             <span className="text-orange-600">Food Safety Compliance</span>
           </h1>
