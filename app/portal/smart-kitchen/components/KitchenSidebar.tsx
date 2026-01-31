@@ -10,7 +10,6 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  ChevronLeft,
   Moon,
   Sun,
   Shield,
@@ -408,19 +407,6 @@ export default function KitchenSidebar() {
           </div>
         )}
 
-        {/* Back Link */}
-        <button
-          onClick={() => router.push('/portal')}
-          className={`
-            group w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-xl text-xs
-            transition-all duration-200
-            hover:scale-[1.01] active:scale-[0.99]
-            ${isDark ? 'text-gray-600 hover:text-gray-400 hover:bg-white/5' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}
-          `}
-        >
-          <ChevronLeft className="h-3 w-3 transition-transform duration-200 group-hover:-translate-x-0.5" />
-          <span className="transition-transform duration-200 group-hover:translate-x-0.5">Back to Main Portal</span>
-        </button>
       </div>
     </aside>
   )
