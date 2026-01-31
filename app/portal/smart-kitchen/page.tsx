@@ -93,16 +93,24 @@ export default function KitchenOverview() {
     k.address.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const statusColors = {
-    normal: isDark ? 'bg-emerald-500' : 'bg-emerald-500',
-    warning: isDark ? 'bg-amber-500' : 'bg-amber-500',
-    critical: isDark ? 'bg-red-500' : 'bg-red-500',
+  const statusColors: Record<string, string> = {
+    normal: 'bg-emerald-500',
+    warning: 'bg-amber-500',
+    critical: 'bg-red-500',
+    not_monitored: 'bg-gray-400',
   }
 
-  const statusText = {
+  const statusText: Record<string, string> = {
     normal: 'Compliant',
     warning: 'Warning',
     critical: 'Critical',
+    not_monitored: 'Not Monitored',
+  }
+
+  // Get effective status - no sensors means not monitored
+  const getKitchenStatus = (kitchen: Kitchen) => {
+    if (kitchen.sensorCount === 0) return 'not_monitored'
+    return kitchen.status
   }
 
   return (
@@ -272,16 +280,21 @@ export default function KitchenOverview() {
                           <h3 className={`font-semibold transition-colors ${isDark ? 'text-white group-hover:text-orange-400' : 'text-gray-900 group-hover:text-orange-600'}`}>
                             {kitchen.name}
                           </h3>
-                          <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            kitchen.status === 'normal' 
-                              ? isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-700'
-                              : kitchen.status === 'warning'
-                              ? isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-50 text-amber-700'
-                              : isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-700'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${statusColors[kitchen.status]}`} />
-                            {statusText[kitchen.status]}
-                          </span>
+                          {(() => {
+                            const status = getKitchenStatus(kitchen)
+                            const statusStyles = {
+                              normal: isDark ? 'bg-emerald-900/30 text-emerald-400' : 'bg-emerald-50 text-emerald-700',
+                              warning: isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-50 text-amber-700',
+                              critical: isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-700',
+                              not_monitored: isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500',
+                            }
+                            return (
+                              <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${statusStyles[status]}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusColors[status]}`} />
+                                {statusText[status]}
+                              </span>
+                            )
+                          })()}
                           {kitchen.activeAlerts > 0 && (
                             <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'}`}>
                               <AlertTriangle className="h-3 w-3" />
