@@ -2,20 +2,16 @@
 
 import Section from '../components/common/Section'
 import { 
-  Wifi, 
-  Code, 
   BarChart3, 
-  Lightbulb, 
   Globe, 
   Server,
   Shield,
   Target,
   Users,
   Thermometer,
-  ChefHat,
   Bell,
   FileCheck,
-  ArrowRight
+  Download
 } from 'lucide-react'
 
 const capabilities = [
@@ -252,6 +248,48 @@ export default function AboutClient() {
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
+                      </a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">TDRA Type Approval</dt>
+                    <dd>
+                      <a 
+                        href="/Certification/TDRA_TYPE_APPROVAL_Certificate.pdf" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-orange-600 hover:text-orange-700 inline-flex items-center gap-1"
+                      >
+                        View Certificate
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">TDRA IoT License</dt>
+                    <dd>
+                      <a 
+                        href="/Certification/IoT_Certificate_IOT-26-100000007.pdf" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-orange-600 hover:text-orange-700 inline-flex items-center gap-1"
+                      >
+                        View License
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Dealer Certificate</dt>
+                    <dd>
+                      <a 
+                        href="/Certification/Dealer_Certificate.pdf" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-orange-600 hover:text-orange-700 inline-flex items-center gap-1"
+                      >
+                        View Certificate
+                        <Download className="h-4 w-4" />
                       </a>
                     </dd>
                   </div>
