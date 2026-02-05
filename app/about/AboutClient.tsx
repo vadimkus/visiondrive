@@ -2,62 +2,12 @@
 
 import Section from '../components/common/Section'
 import { 
-  BarChart3, 
-  Globe, 
-  Server,
   Shield,
   Target,
   Users,
   Thermometer,
-  Bell,
-  FileCheck,
   Download
 } from 'lucide-react'
-
-const capabilities = [
-  {
-    icon: Thermometer,
-    title: 'Temperature Monitoring',
-    description: 'Real-time monitoring of fridges, freezers, and ambient temperatures using NB-IoT sensors with medical-grade accuracy.',
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
-  },
-  {
-    icon: Bell,
-    title: 'Alert Systems',
-    description: 'Instant SMS, email, and push notifications when temperatures enter dangerous zones, ensuring rapid response.',
-    color: 'text-red-600',
-    bg: 'bg-red-50',
-  },
-  {
-    icon: FileCheck,
-    title: 'Compliance Reporting',
-    description: 'Automated Dubai Municipality compliant reports with HACCP documentation ready for health inspections.',
-    color: 'text-green-600',
-    bg: 'bg-green-50',
-  },
-  {
-    icon: BarChart3,
-    title: 'Analytics & Insights',
-    description: 'Historical data analysis, temperature trends, and predictive insights for proactive kitchen management.',
-    color: 'text-purple-600',
-    bg: 'bg-purple-50',
-  },
-  {
-    icon: Server,
-    title: 'UAE Data Residency',
-    description: 'All data hosted in AWS UAE region (me-central-1) for full compliance with local data protection requirements.',
-    color: 'text-orange-600',
-    bg: 'bg-orange-50',
-  },
-  {
-    icon: Globe,
-    title: 'Multi-Location Support',
-    description: 'Manage multiple kitchen locations from a single dashboard with role-based access for staff.',
-    color: 'text-cyan-600',
-    bg: 'bg-cyan-50',
-  },
-]
 
 const values = [
   {
@@ -117,33 +67,6 @@ export default function AboutClient() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* Capabilities Section */}
-      <Section className="py-12 md:py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Capabilities</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Comprehensive smart kitchen solutions for food safety compliance
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {capabilities.map((cap) => (
-              <div 
-                key={cap.title} 
-                className="bg-white rounded-xl p-6 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${cap.bg} mb-4`}>
-                  <cap.icon className={`h-6 w-6 ${cap.color}`} />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{cap.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{cap.description}</p>
-              </div>
-            ))}
           </div>
         </div>
       </Section>
