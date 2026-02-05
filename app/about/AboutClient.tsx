@@ -148,69 +148,6 @@ export default function AboutClient() {
         </div>
       </Section>
 
-      {/* Product Section */}
-      <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Smart Kitchen Platform</h2>
-            <p className="text-lg text-gray-600">
-              Our comprehensive temperature monitoring solution
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">What We Provide</h3>
-                <p className="text-gray-600 mb-4">
-                  Our smart kitchen platform combines NB-IoT temperature sensors with a powerful 
-                  monitoring dashboard to provide real-time visibility into your kitchen&apos;s 
-                  food safety status.
-                </p>
-                <ul className="space-y-2">
-                  {[
-                    'Real-time temperature monitoring',
-                    'NB-IoT sensors with 5+ year battery life',
-                    'Kitchen Owner Portal dashboard',
-                    'Automated compliance reports',
-                    'SMS and email alerts',
-                    'UAE data residency compliant',
-                  ].map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="text-orange-600 mt-1">✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Who We Serve</h3>
-                <div className="space-y-4">
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
-                    <h4 className="font-medium text-gray-900 mb-1">Restaurants & Cafes</h4>
-                    <p className="text-sm text-gray-600">
-                      From QSR chains to fine dining, ensure every fridge and freezer meets food safety standards.
-                    </p>
-                  </div>
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
-                    <h4 className="font-medium text-gray-900 mb-1">Hotels & Catering</h4>
-                    <p className="text-sm text-gray-600">
-                      Monitor multiple kitchens, banquet storage, and cold rooms from a single dashboard.
-                    </p>
-                  </div>
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
-                    <h4 className="font-medium text-gray-900 mb-1">Food Production</h4>
-                    <p className="text-sm text-gray-600">
-                      Central kitchens and food manufacturing with HACCP and ISO 22000 compliance support.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Section>
-
       {/* Company Info Section */}
       <Section className="py-12 md:py-16">
         <div className="max-w-4xl mx-auto">
