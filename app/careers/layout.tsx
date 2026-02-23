@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'Careers at VisionDrive',
     description: 'Join our team building the future of smart parking in the UAE.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

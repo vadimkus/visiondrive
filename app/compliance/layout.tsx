@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'Smart Kitchen Food Safety Compliance | VisionDrive UAE',
     description: 'Dubai Municipality compliant temperature monitoring for commercial kitchens. TDRA certified, 100% UAE data residency.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

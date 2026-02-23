@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     // For demo mode, simulate password change
     if (token.startsWith('admin_') || token.startsWith('demo_')) {
       // In a real app, you would update the password in the database
-      console.log('Password change requested (demo mode)')
+      // Demo mode: password change not persisted
       
       return NextResponse.json({
         success: true,
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
       )
     } catch {
       // If AWS API is unavailable, simulate success for demo
-      console.log('AWS API unavailable, simulating password change')
+      // AWS API unavailable, simulate success for demo
       return NextResponse.json({
         success: true,
         message: 'Password changed successfully',

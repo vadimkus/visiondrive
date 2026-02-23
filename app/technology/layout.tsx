@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive Technology Platform',
     description: 'Enterprise-grade NB-IoT smart parking technology with UAE data residency.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

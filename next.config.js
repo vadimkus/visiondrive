@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   trailingSlash: false,
+  poweredByHeader: false,
+  compress: true,
   images: {
     remotePatterns: [
       {

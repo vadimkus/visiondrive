@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'Smart Parking for Communities',
     description: 'Efficient parking management for residential and commercial complexes.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

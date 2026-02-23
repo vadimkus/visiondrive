@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'Smart Parking for UAE Municipalities',
     description: 'Data-driven parking management for cities and government authorities.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

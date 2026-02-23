@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (portal === 'kitchen') {
       // Check for admin login first
       if (email === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
-        const adminToken = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        const adminToken = `admin_${Date.now()}_${crypto.randomUUID().slice(0, 9)}`
         
         const response = NextResponse.json({
           success: true,
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       // Check demo kitchen owners (for testing without AWS API)
       const demoUser = DEMO_KITCHEN_OWNERS[email]
       if (demoUser && demoUser.password === password) {
-        const demoToken = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        const demoToken = `demo_${Date.now()}_${crypto.randomUUID().slice(0, 9)}`
         
         const response = NextResponse.json({
           success: true,
@@ -169,8 +169,8 @@ export async function POST(request: NextRequest) {
 
           return response
         }
-      } catch (awsError) {
-        console.log('AWS API unavailable, demo mode only')
+      } catch {
+        // AWS API unavailable, fall through to invalid credentials
       }
 
       // If we get here, credentials are invalid

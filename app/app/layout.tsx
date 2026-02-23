@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'ParkSense - Smart Parking App for UAE',
     description: 'Find parking instantly with real-time bay availability and navigation.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

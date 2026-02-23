@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive Privacy Policy',
     description: 'Our commitment to protecting your privacy and data.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

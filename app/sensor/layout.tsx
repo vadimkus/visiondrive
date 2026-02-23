@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive NB-IoT Parking Sensor',
     description: '99% accuracy, 5-year battery life, IP68 protection for smart parking infrastructure.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

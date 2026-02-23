@@ -57,7 +57,7 @@ export default function Error({
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => reset()}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
           >
             <RefreshCw className="w-5 h-5" />
             Try Again
@@ -76,7 +76,7 @@ export default function Error({
           If the problem persists, please{' '}
           <a
             href="mailto:tech@visiondrive.ae"
-            className="text-primary-600 hover:text-primary-700 underline"
+            className="text-orange-500 hover:text-orange-600 underline"
           >
             contact support
           </a>

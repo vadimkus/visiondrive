@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive Mission - Transforming Urban Mobility',
     description: 'Making cities smarter, parking easier, and data-driven decisions accessible.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
+import FAQSchema from '../components/schema/FAQSchema'
+import { faqItems } from './faqData'
 
 export const metadata: Metadata = {
-  title: 'FAQ - VisionDrive Smart Parking Questions',
-  description: 'Frequently asked questions about VisionDrive smart parking solutions. Learn about NB-IoT sensors, installation, pricing, and UAE compliance.',
-  keywords: 'VisionDrive FAQ, smart parking questions, parking sensor FAQ, NB-IoT FAQ, UAE parking solutions questions',
+  title: 'FAQ - Smart Kitchen Temperature Monitoring Questions',
+  description: 'Frequently asked questions about VisionDrive smart kitchen temperature monitoring. Learn about NB-IoT sensors, installation, pricing, and Dubai Municipality compliance.',
+  keywords: 'VisionDrive FAQ, smart kitchen questions, temperature sensor FAQ, NB-IoT FAQ, UAE food safety, Dubai Municipality compliance',
   alternates: { canonical: '/faq' },
   openGraph: {
-    title: 'VisionDrive FAQ',
-    description: 'Answers to common questions about smart parking solutions.',
+    title: 'VisionDrive FAQ - Smart Kitchen Questions',
+    description: 'Answers to common questions about smart kitchen temperature monitoring solutions.',
     type: 'website',
   },
 }
@@ -17,8 +19,11 @@ export default function FAQLayout({
 }: {
   children: React.ReactNode
 }) {
-  return children
+  return (
+    <>
+      <FAQSchema items={faqItems} />
+      {children}
+    </>
+  )
 }
-
-
 

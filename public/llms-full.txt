@@ -1,0 +1,188 @@
+# VisionDrive - Complete Information for LLMs
+
+> VisionDrive Technologies FZ-LLC is a UAE-based IoT company specializing in smart kitchen temperature monitoring for commercial kitchens. The company helps food service businesses maintain food safety compliance with Dubai Municipality standards through intelligent IoT monitoring.
+
+## Company Information
+
+- Legal Name: VisionDrive Technologies FZ-LLC
+- Website: https://visiondrive.ae
+- Industry: IoT / Food Safety Technology
+- Founded: UAE
+- Jurisdiction: Ras Al Khaimah Free Zone, United Arab Emirates
+- Office: Compass Coworking Centre, Ras Al Khaimah, UAE
+- Email: tech@visiondrive.ae
+- Phone: +971 55 915 2985
+- WhatsApp: +971 55 915 2985
+- Business Hours: Monday-Friday, 9:00 AM - 6:00 PM GST
+
+## Mission
+
+Protect public health and help food service businesses maintain food safety standards through intelligent IoT monitoring solutions.
+
+## Products & Services
+
+### 1. Smart Kitchen Temperature Monitoring
+
+Real-time NB-IoT temperature monitoring system designed for UAE commercial kitchens.
+
+**Hardware:**
+- Sensor Model: Dragino S31-NB (NB-IoT Temperature & Humidity Sensor)
+- IoT Module: Quectel BC660K-GL (NB-IoT)
+- Network: Etisalat NB-IoT (UAE)
+- Temperature Range: -40°C to +85°C
+- Accuracy: ±0.3°C (medical-grade)
+- Battery Life: 5+ years
+- Waterproof Rating: IP67
+- Data Update Frequency: Sub-30 second latency
+
+**Monitoring Zones:**
+- Fridge Safe Zone: 0°C to 5°C
+- Freezer Safe Zone: ≤ -18°C
+- Hot Holding: ≥ 60°C
+- Danger Zone (alerts): 5°C to 60°C
+
+**Features:**
+- 24/7 real-time temperature monitoring
+- Instant SMS, email, and push notification alerts
+- Automated compliance report generation
+- Historical temperature trend analysis
+- Multi-location management
+- Dubai Municipality inspection-ready reports
+- HACCP documentation support
+
+### 2. Kitchen Owner Portal
+
+Web-based dashboard for restaurant and kitchen owners:
+- Real-time temperature readings from all sensors
+- Alert management and notification preferences
+- Compliance report generation and export
+- Equipment management
+- Multi-location overview
+- Subscription management
+
+### 3. Smart Parking (Secondary)
+
+IoT parking sensor solutions with real-time occupancy tracking.
+
+## Target Market
+
+**Primary Customers:**
+- Restaurants & Cafes (QSR, fine dining, casual dining)
+- Hotels & Catering (large-scale food operations)
+- Food Production Facilities (central kitchens, manufacturing)
+- Cloud Kitchens / Ghost Kitchens
+- Hospital & School Cafeterias
+
+**Geographic Focus:**
+- United Arab Emirates (primary)
+- Dubai, Abu Dhabi, Sharjah, and other emirates
+
+**Use Cases:**
+- Walk-in cooler monitoring
+- Display fridge monitoring
+- Blast chiller monitoring
+- Freezer room monitoring
+- Hot holding station monitoring
+- Ambient kitchen temperature tracking
+
+## Technology Stack
+
+**Cloud Infrastructure:**
+- Region: AWS Middle East (UAE) - me-central-1 (Abu Dhabi)
+- IoT Platform: AWS IoT Core
+- Database: Amazon DynamoDB
+- Compute: AWS Lambda (Node.js 22.x)
+- Security: AWS WAF, AWS CloudTrail
+- Protocol: MQTT with TLS encryption
+
+**Web Application:**
+- Framework: Next.js (React)
+- Hosting: Vercel
+- Domain: visiondrive.ae
+
+## Certifications & Compliance
+
+**Active Certifications:**
+- TDRA IoT Services License: IOT-26-100000007
+- TDRA Type Approval: EA-2026-1-55656
+- DESC ISR Compliance (Dubai Electronic Security Center)
+- UAE Trade License
+- UAE Personal Data Protection Law (PDPL) Compliant
+
+**Compliance Standards:**
+- Dubai Municipality Food Safety Guidelines (DM-HSD-GU46-KFPA2)
+- HACCP documentation standards
+- ISO 22000 support (for food production)
+- UAE Federal Decree-Law No. 45 of 2021 (Personal Data Protection)
+
+**Planned Certifications:**
+- ISO 27001 (Q2 2026)
+- SOC 2 Type II (Q3 2026)
+
+## Security
+
+- End-to-end encryption: TLS 1.2/1.3 in transit, AES-256 at rest
+- Device token authentication
+- Role-based access control
+- Multi-tenant data isolation
+- Comprehensive audit logging
+- Regular penetration testing
+
+## Data Residency
+
+All customer data is stored exclusively within the UAE:
+- AWS me-central-1 region (Abu Dhabi)
+- Data never leaves UAE jurisdiction
+- Full compliance with UAE data sovereignty requirements
+
+## Data Retention Policy
+
+- Temperature Readings: 2 years
+- Alert History: 2 years
+- Equipment Records: Service Duration
+- Billing Records: 5 years
+- Audit Logs: 2 years
+
+## Key Differentiators
+
+1. **UAE Data Sovereignty**: All data stored in AWS UAE region (me-central-1)
+2. **Dubai Municipality Compliant**: Automated reports meeting DM food safety standards
+3. **TDRA Certified**: Licensed IoT service provider in the UAE
+4. **Medical-Grade Accuracy**: ±0.3°C sensor precision
+5. **5+ Year Battery Life**: Minimal maintenance for busy kitchens
+6. **Sub-30 Second Alerts**: Near-instant danger zone detection
+7. **NB-IoT Connectivity**: Reliable cellular connection, no WiFi dependency
+
+## Frequently Asked Questions
+
+**Q: What technology do VisionDrive temperature sensors use?**
+A: Our sensors use NB-IoT (Narrowband Internet of Things) cellular technology for reliable, low-power communication. They feature medical-grade temperature probes with ±0.3°C accuracy.
+
+**Q: How accurate are the temperature sensors?**
+A: ±0.3°C accuracy, meeting requirements for food safety monitoring in fridges, freezers, and ambient storage.
+
+**Q: What is the battery life?**
+A: 5+ years under normal operating conditions using low-power NB-IoT protocol.
+
+**Q: Is VisionDrive compliant with Dubai Municipality standards?**
+A: Yes, our system meets Dubai Municipality food safety standards with automated compliance reports for health inspections.
+
+**Q: Where is data stored?**
+A: Exclusively in the UAE using AWS Middle East (UAE) Region in Abu Dhabi (me-central-1). Data never leaves UAE jurisdiction.
+
+**Q: Does it support HACCP compliance?**
+A: Yes, continuous temperature monitoring and automated logging for HACCP compliance including timestamps, readings, and excursion records.
+
+**Q: How quickly are temperature changes detected?**
+A: Sub-30 second latency from temperature change to alert notification.
+
+**Q: Are sensors waterproof?**
+A: Yes, IP67 rated - dust-tight and can withstand temporary water immersion.
+
+## Contact
+
+For partnership, pricing, or technical inquiries:
+- Email: tech@visiondrive.ae
+- Phone: +971 55 915 2985
+- WhatsApp: +971 55 915 2985
+- Website: https://visiondrive.ae/contact

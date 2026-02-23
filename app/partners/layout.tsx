@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive Government Partners',
     description: 'Working with UAE authorities to deploy smart parking infrastructure across the Emirates.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

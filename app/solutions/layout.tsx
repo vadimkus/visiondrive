@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive Smart Kitchen Solutions',
     description: 'Temperature monitoring sensors for commercial kitchens with real-time alerts and compliance reporting.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

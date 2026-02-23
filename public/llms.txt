@@ -1,0 +1,35 @@
+# VisionDrive
+
+> VisionDrive Technologies FZ-LLC is a UAE-based IoT company providing smart kitchen temperature monitoring solutions for commercial kitchens, ensuring Dubai Municipality food safety compliance.
+
+## Company
+
+- Name: VisionDrive Technologies FZ-LLC
+- Website: https://visiondrive.ae
+- Location: Ras Al Khaimah Free Zone, United Arab Emirates
+- Email: tech@visiondrive.ae
+- Phone: +971 55 915 2985
+
+## Products
+
+### Smart Kitchen Temperature Monitoring
+Real-time NB-IoT temperature monitoring for commercial kitchens. Sensors with ±0.3°C accuracy, 5+ year battery life, IP67 waterproof. Automated Dubai Municipality compliance reporting, HACCP documentation, and instant danger zone alerts (5°C-60°C).
+
+### Kitchen Owner Portal
+Web dashboard for restaurant owners to monitor temperatures, receive alerts, generate compliance reports, and manage multiple locations.
+
+## Key Pages
+
+- About: https://visiondrive.ae/about
+- Solutions: https://visiondrive.ae/solutions
+- Technology: https://visiondrive.ae/technology
+- Sensor: https://visiondrive.ae/sensor
+- Contact: https://visiondrive.ae/contact
+- FAQ: https://visiondrive.ae/faq
+- Compliance: https://visiondrive.ae/compliance
+- Certificates: https://visiondrive.ae/certificates
+- Data Analytics: https://visiondrive.ae/data-analytics
+
+## Documentation
+
+- Full details: https://visiondrive.ae/llms-full.txt

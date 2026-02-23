@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive Terms of Service',
     description: 'Terms and conditions for using VisionDrive services.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

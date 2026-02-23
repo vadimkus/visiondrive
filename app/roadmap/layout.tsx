@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive Roadmap',
     description: 'Our journey from pilot to production deployment across the UAE.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

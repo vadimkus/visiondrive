@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'VisionDrive Budget & Pricing',
     description: 'Transparent pricing for smart parking deployments.',
     type: 'website',
+    locale: 'en_AE',
+    siteName: 'VisionDrive',
   },
 }
 

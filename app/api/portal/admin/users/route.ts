@@ -7,8 +7,10 @@ import { writeAuditLog } from '@/lib/audit'
 
 function randomPassword(len = 12) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+  const bytes = new Uint8Array(len)
+  crypto.getRandomValues(bytes)
   let out = ''
-  for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)]
+  for (let i = 0; i < len; i++) out += chars[bytes[i] % chars.length]
   return out
 }
 
