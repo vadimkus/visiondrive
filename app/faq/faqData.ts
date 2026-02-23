@@ -1,16 +1,26 @@
 export const faqItems = [
+  // Technology & Sensors
   { question: 'What technology do VisionDrive temperature sensors use?', answer: 'Our sensors use NB-IoT (Narrowband Internet of Things) cellular technology for reliable, low-power communication. They feature medical-grade temperature probes with ±0.3°C accuracy, designed specifically for commercial kitchen environments.' },
   { question: 'How accurate are the temperature sensors?', answer: 'Our sensors achieve ±0.3°C accuracy, meeting the requirements for food safety monitoring. This ensures reliable temperature readings for fridges, freezers, and ambient storage areas.' },
   { question: 'What is the battery life of the sensors?', answer: 'Our NB-IoT sensors are designed for 5+ years of battery life under normal operating conditions. The low-power NB-IoT protocol and intelligent sleep modes minimize energy consumption while maintaining real-time responsiveness.' },
   { question: 'How quickly does the system detect temperature changes?', answer: 'Our system provides sub-30 second latency from temperature change to alert. When a fridge door is left open or a freezer malfunctions, you receive notifications within seconds.' },
   { question: 'What temperature range do the sensors support?', answer: 'Our sensors support a temperature range of -40°C to +85°C, covering freezers (≤-18°C), refrigerators (0-5°C), and hot holding areas (≥60°C). They can monitor any commercial kitchen temperature zone.' },
   { question: 'Are the sensors waterproof?', answer: 'Yes, our sensors are IP67 rated, meaning they are completely dust-tight and can withstand temporary immersion in water.' },
+  // Compliance & Food Safety
   { question: 'Is VisionDrive compliant with Dubai Municipality standards?', answer: 'Yes, our temperature monitoring and reporting system is designed to meet Dubai Municipality food safety standards. Our automated reports include all required temperature logs and can be presented during health inspections.' },
   { question: 'Where is our data stored?', answer: 'All data is stored exclusively in the UAE using AWS Middle East (UAE) Region located in Abu Dhabi (me-central-1). Your data never leaves UAE jurisdiction.' },
   { question: 'Does the system support HACCP compliance?', answer: 'Yes, our system provides continuous temperature monitoring and automated logging required for HACCP (Hazard Analysis Critical Control Points) compliance.' },
+  // Implementation
   { question: 'How long does installation take?', answer: 'Sensor installation is quick and non-invasive. A typical kitchen with 5-10 monitoring points can be set up in 2-4 hours. Sensors are wireless and require no complex infrastructure.' },
   { question: 'Do sensors require wiring or infrastructure?', answer: 'No, our NB-IoT sensors are completely wireless and battery-powered. They communicate directly over cellular networks, so no local gateway infrastructure or WiFi is required.' },
   { question: 'Can I monitor multiple locations?', answer: 'Yes, the Kitchen Owner Portal supports multi-location management. You can view all your kitchens from a single dashboard, compare performance, and receive consolidated reports.' },
+  // Benefits for Kitchen Owners
+  { question: 'How do automatic reports save kitchen owners time?', answer: 'VisionDrive generates daily, weekly, and monthly compliance reports automatically — no manual temperature logging required. Reports are ready for Dubai Municipality inspections on demand, eliminating hours of paperwork each week.' },
+  { question: 'What types of automatic alerts will I receive?', answer: 'You receive instant alerts for temperature excursions, equipment malfunctions, door-left-open events, power failures, and sensor offline status. Alerts arrive via SMS, email, and push notification within seconds so you can act before food is compromised.' },
+  { question: 'How does VisionDrive help reduce food waste and costs?', answer: 'Continuous monitoring catches temperature problems early — before they spoil inventory. Kitchen owners typically see a 15-30% reduction in food waste from prevented spoilage events, and the system identifies inefficient equipment to reduce energy costs by up to 20%.' },
+  { question: 'Can VisionDrive help me pass health inspections more easily?', answer: 'Absolutely. The system maintains a complete, timestamped audit trail of every temperature reading. When inspectors arrive, you can produce professional compliance reports in seconds rather than sifting through manual logs.' },
+  { question: 'What ROI can I expect from VisionDrive?', answer: 'Most kitchen owners recoup their investment within 3-6 months through reduced food waste, lower energy bills, fewer compliance penalties, and saved staff hours. A mid-size restaurant typically saves AED 2,000-5,000 per month compared to manual monitoring.' },
+  // Pricing & Support
   { question: 'How is VisionDrive priced?', answer: 'We offer flexible pricing including sensor hardware with monthly subscription for the monitoring platform. Contact us for a customized quote.' },
   { question: 'How do I get started?', answer: "Contact us at tech@visiondrive.ae or through our website contact form. We'll schedule a consultation to understand your kitchen requirements and provide a tailored proposal." },
 ]

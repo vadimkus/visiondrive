@@ -12,7 +12,8 @@ import {
   ChefHat,
   Bell,
   Mail,
-  ArrowRight
+  ArrowRight,
+  TrendingUp,
 } from 'lucide-react'
 
 type FAQCategory = {
@@ -131,6 +132,45 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'What analytics and reporting do you provide?',
         answer: 'Our Kitchen Owner Portal provides real-time temperature dashboards, historical trends, compliance reports (daily/weekly/monthly), excursion logs, and equipment performance insights. Reports can be exported as PDF or CSV.',
+      },
+    ],
+  },
+  {
+    id: 'benefits',
+    title: 'Benefits for Kitchen Owners',
+    icon: TrendingUp,
+    questions: [
+      {
+        question: 'How do automatic reports save me time?',
+        answer: 'VisionDrive generates daily, weekly, and monthly compliance reports automatically — no manual temperature logging required. Reports are ready for Dubai Municipality inspections on demand, eliminating hours of paperwork each week. Kitchen managers can focus on food quality instead of clipboard checks.',
+      },
+      {
+        question: 'What types of automatic alerts will I receive?',
+        answer: 'You receive instant alerts for temperature excursions (e.g. fridge rising above 5°C), equipment malfunctions, door-left-open events, power failures, and sensor offline status. Alerts arrive via SMS, email, and push notification within seconds so you can act before food is compromised.',
+      },
+      {
+        question: 'How does VisionDrive help reduce food waste and costs?',
+        answer: 'Continuous monitoring catches temperature problems early — before they spoil inventory. Kitchen owners typically see a 15-30% reduction in food waste from prevented spoilage events. The system also identifies inefficient equipment (e.g. a freezer cycling too often), helping reduce energy costs by up to 20%.',
+      },
+      {
+        question: 'Can VisionDrive help me pass health inspections more easily?',
+        answer: 'Absolutely. The system maintains a complete, timestamped audit trail of every temperature reading. When inspectors arrive, you can produce professional compliance reports in seconds rather than sifting through manual logs. Many of our customers report faster, smoother inspections with zero findings.',
+      },
+      {
+        question: 'Do I get notified before a problem becomes critical?',
+        answer: 'Yes. VisionDrive supports multi-tier alerts: a warning notification when temperatures approach your threshold (e.g. fridge at 4°C) and a critical alert when the threshold is breached. This early-warning system gives you time to act — move stock, call a technician — before any food safety issue occurs.',
+      },
+      {
+        question: 'How does the system help with staff accountability?',
+        answer: 'The Kitchen Owner Portal logs which staff member acknowledged each alert and what corrective action was taken. Shift-based reports show whether temperature checks were completed on schedule, giving you full visibility into day-to-day compliance without micromanaging.',
+      },
+      {
+        question: 'What ROI can I expect from VisionDrive?',
+        answer: 'Most kitchen owners recoup their investment within 3-6 months through reduced food waste, lower energy bills, fewer compliance penalties, and saved staff hours. A mid-size restaurant (8-10 sensors) typically saves AED 2,000-5,000 per month compared to manual monitoring processes.',
+      },
+      {
+        question: 'Can I get a consolidated view across all my locations?',
+        answer: 'Yes. The Kitchen Owner Portal aggregates data from every location into a single dashboard. You can compare performance across branches, identify underperforming equipment, and receive one consolidated weekly report covering all your kitchens — perfect for franchise operators and multi-site chains.',
       },
     ],
   },

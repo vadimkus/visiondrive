@@ -8,6 +8,8 @@
 | Document | Description |
 |----------|-------------|
 | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | Project architecture and folder structure |
+| [FEATURES_AND_FUNCTIONALITY.md](FEATURES_AND_FUNCTIONALITY.md) | **Comprehensive feature & functionality documentation** |
+| [CODEBASE_REFERENCE.md](CODEBASE_REFERENCE.md) | **Codebase structure, API routes, libraries** |
 | [WEBSITE_STRUCTURE.md](WEBSITE_STRUCTURE.md) | Website pages and components |
 | [WEBSITE_STRUCTURE_V2.md](WEBSITE_STRUCTURE_V2.md) | Updated website structure |
 | [WEBSITE_SUMMARY.md](WEBSITE_SUMMARY.md) | Website features summary |
@@ -40,12 +42,12 @@
 | Document | Description |
 |----------|-------------|
 | [SMART_KITCHEN_CHANGELOG.md](SMART_KITCHEN_CHANGELOG.md) | Smart Kitchen feature changelog |
-| [BAYS_PAGE_FIXES.md](BAYS_PAGE_FIXES.md) | Parking bays page fixes |
+| [BAYS_PAGE_FIXES.md](BAYS_PAGE_FIXES.md) | Bays page fixes |
 | [NOTES_REORGANIZATION_SUMMARY.md](NOTES_REORGANIZATION_SUMMARY.md) | Notes reorganization |
 | [SENSOR_TESTING_PLAN.md](SENSOR_TESTING_PLAN.md) | Sensor testing procedures |
 | [README_IMAGES.md](README_IMAGES.md) | Image guidelines |
 | [telemetry-component.md](telemetry-component.md) | Telemetry component docs |
-| [2gis-parking-import.md](2gis-parking-import.md) | 2GIS parking data import |
+| [2gis-parking-import.md](2gis-parking-import.md) | 2GIS data import |
 
 ### Action Plan (Section 11)
 
@@ -60,7 +62,7 @@ Implementation documentation aligned with `/notes` → **Section 11 (Action Plan
 | 11.3.1 | [11.3.1-zone-selector-and-demo-seed.md](11.3.1-zone-selector-and-demo-seed.md) | Zone selector + filtering + demo seed |
 | 11.3.2 | [11.3.2-mapbox-portal-map.md](11.3.2-mapbox-portal-map.md) | Mapbox GL JS map rendering |
 | 11.3.3 | [11.3.3-map-interactions-filters-selection.md](11.3.3-map-interactions-filters-selection.md) | Map UX interactions and filters |
-| 11.3.4 | [11.3.4-dubai-pulse-zones-import.md](11.3.4-dubai-pulse-zones-import.md) | Dubai Pulse parking zones import |
+| 11.3.4 | [11.3.4-dubai-pulse-zones-import.md](11.3.4-dubai-pulse-zones-import.md) | Dubai Pulse zones import |
 | 11.3.5 | [11.3.5-map-calibration-sensors.md](11.3.5-map-calibration-sensors.md) | Manual sensor placement calibration |
 | 11.3.6 | [11.3.6-calibration-ux-all-sensors-installed-only.md](11.3.6-calibration-ux-all-sensors-installed-only.md) | Calibration UX improvements |
 | 11.4 | [11.4-hardware-health-alerts.md](11.4-hardware-health-alerts.md) | Hardware health metrics + alerts |
@@ -83,19 +85,13 @@ Temperature monitoring system for commercial kitchens.
 - [smartkitchen/docs/README.md](../smartkitchen/docs/README.md) - Smart Kitchen overview
 - Architecture, API, setup guides, sensor configuration
 
-### Parking (`/Parking/docs/`)
-IoT parking sensor solutions.
-- [Parking/docs/README.md](../Parking/docs/README.md) - Parking system overview
-- AWS setup, API reference, deployment, security
-
 ---
 
 ## Key Information
 
 ### Project Context
 VisionDrive is a UAE-based IoT company providing:
-- **Smart Kitchen**: Dubai Municipality compliant temperature monitoring
-- **Smart Parking**: IoT parking sensor solutions
+- **Smart Kitchen**: Dubai Municipality compliant temperature monitoring for commercial kitchens
 
 ### Compliance
 - TDRA IoT Services License: `IOT-26-100000007`

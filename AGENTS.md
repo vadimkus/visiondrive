@@ -34,7 +34,7 @@ docs/
 │
 ├── # Development
 ├── SMART_KITCHEN_CHANGELOG.md   # Smart Kitchen feature changes
-├── BAYS_PAGE_FIXES.md           # Parking bays page fixes
+├── BAYS_PAGE_FIXES.md           # Bays page fixes
 ├── NOTES_REORGANIZATION_SUMMARY.md
 ├── SENSOR_TESTING_PLAN.md       # Sensor testing procedures
 ├── README_IMAGES.md             # Image guidelines
@@ -59,21 +59,20 @@ docs/
 Some modules have their own documentation:
 
 - `smartkitchen/docs/` - Smart Kitchen specific documentation
-- `Parking/docs/` - Parking system documentation
 
 ## Key Files to Read
 
 1. **For project overview**: `docs/README.md`, `docs/PROJECT_STRUCTURE.md`
-2. **For website changes**: `docs/WEBSITE_STRUCTURE_V2.md`
-3. **For compliance/certificates**: `docs/IOT_CERTIFICATE_ADDITION.md`, `docs/TDRA_COMPLIANCE_SUMMARY.md`
-4. **For Smart Kitchen**: `smartkitchen/docs/README.md`
-5. **For Parking**: `Parking/docs/README.md`
+2. **For features & functionality**: `docs/FEATURES_AND_FUNCTIONALITY.md`
+3. **For codebase structure**: `docs/CODEBASE_REFERENCE.md`
+4. **For website changes**: `docs/WEBSITE_STRUCTURE_V2.md`
+5. **For compliance/certificates**: `docs/IOT_CERTIFICATE_ADDITION.md`, `docs/TDRA_COMPLIANCE_SUMMARY.md`
+6. **For Smart Kitchen**: `smartkitchen/docs/README.md`
 
 ## Project Context
 
 VisionDrive is a UAE-based IoT company providing:
 - **Smart Kitchen**: Temperature monitoring for commercial kitchens (Dubai Municipality compliant)
-- **Smart Parking**: IoT parking sensor solutions
 
 All services are:
 - TDRA certified for UAE operation

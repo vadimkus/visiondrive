@@ -4,6 +4,7 @@ import { sql } from '@/lib/sql'
 import jwt from 'jsonwebtoken'
 
 const KITCHEN_JWT_SECRET = process.env.KITCHEN_JWT_SECRET ?? ''
+const IS_DEV = process.env.NODE_ENV !== 'production'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,8 +21,8 @@ export async function GET(request: NextRequest) {
 
     // Handle Kitchen portal authentication (AWS-based)
     if (portal === 'kitchen') {
-      // Handle demo admin token
-      if (token.startsWith('admin_')) {
+      // Demo tokens only valid in development
+      if (IS_DEV && token.startsWith('admin_')) {
         return NextResponse.json({
           success: true,
           user: {
@@ -35,8 +36,7 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      // Handle demo owner token
-      if (token.startsWith('demo_')) {
+      if (IS_DEV && token.startsWith('demo_')) {
         return NextResponse.json({
           success: true,
           user: {
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      // Try JWT verification for AWS tokens
+      // JWT verification for AWS tokens
       try {
         const decoded = jwt.verify(token, KITCHEN_JWT_SECRET) as {
           userId: string

@@ -25,13 +25,11 @@ All documentation is centralized in `/docs/`:
 
 ### Module Documentation
 - `smartkitchen/docs/` - Smart Kitchen system
-- `Parking/docs/` - Parking system
 
 ## Project Context
 
 VisionDrive is a UAE IoT company:
 - **Smart Kitchen**: Temperature monitoring (Dubai Municipality compliant)
-- **Smart Parking**: IoT parking sensors
 - **Compliance**: TDRA certified, UAE data resident (AWS me-central-1)
 
 ## Before Making Changes

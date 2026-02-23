@@ -3,97 +3,111 @@
 ## Directory Overview
 
 ### Root Level
-- `package.json` - Workspace configuration for monorepo setup
-- `.env.example` - Environment variables template
+- `package.json` - Next.js app, Prisma, dependencies
+- `.env` - Environment variables (DATABASE_URL, JWT_SECRET, etc.)
 - `.gitignore` - Git ignore rules
-- `.editorconfig` - Editor configuration
 - `README.md` - Project overview and mission statement
 - `CONTRIBUTING.md` - Contribution guidelines
 - `LICENSE` - MIT License
+- `middleware.ts` - Auth, route protection
 
-### Frontend (`/frontend`)
-Web application for end-users and commercial partners.
-
-```
-frontend/
-├── src/          # Source code (components, pages, services)
-├── public/       # Static assets (images, icons, etc.)
-└── tests/        # Frontend unit and integration tests
-```
-
-### Backend (`/backend`)
-API server and business logic.
+### Application (`/app`)
+Next.js App Router — web application for visiondrive.ae.
 
 ```
-backend/
-├── api/          # API routes and request handlers
-├── services/     # Business logic services
-├── models/       # Data models and schemas
-├── utils/       # Utility functions and helpers
-└── tests/       # Backend unit and integration tests
+app/
+├── api/                    # API routes (REST)
+│   ├── auth/               # Login, logout, me
+│   ├── portal/             # Portal APIs (smart-kitchen, map, sensors, etc.)
+│   ├── replay/             # Replay upload, run, dead-letters
+│   ├── webhooks/           # Stripe webhooks
+│   └── images/             # Logo, upload
+├── components/             # Shared components
+│   ├── layout/             # Header, Footer, ConditionalLayout
+│   ├── portal/             # PortalSidebar, PortalNavigation
+│   └── common/             # Logo, LanguageSelector
+├── contexts/               # React contexts (LanguageContext)
+├── portal/                 # Operator portal pages
+│   ├── smart-kitchen/      # Kitchen temperature monitoring
+│   ├── admin/              # Admin, tenants, finance, audit
+│   ├── map/                # Map view
+│   ├── alerts/             # Alerts
+│   ├── sensors/           # Sensors list & detail
+│   ├── events/             # Events viewer
+│   ├── replay/             # Replay tools
+│   ├── bays/               # Bays
+│   ├── calibration/        # Calibration
+│   └── reports/            # Reports
+├── kitchen-owner/          # Owner-facing simplified portal
+├── page.tsx                # Home
+├── login/                  # Login (dual portal)
+├── solutions/              # Solutions page
+├── about/                   # About
+├── contact/                # Contact
+└── ...                     # Other public pages
+```
+
+### Shared Libraries (`/lib`)
+Server-side utilities and business logic.
+
+```
+lib/
+├── auth.ts                 # JWT, bcrypt, authenticateUser
+├── sql.ts                  # PostgreSQL client
+├── rate-limit.ts           # Brute-force protection
+├── password-policy.ts      # Password validation
+├── audit.ts                # Audit logging
+├── stripe-webhook.ts       # Stripe verification
+├── smart-kitchen/          # AWS client for Smart Kitchen
+├── portal/                 # Portal session
+└── decoders/               # Sensor payload decoders
+```
+
+### Database (`/prisma`)
+- `schema.prisma` - PostgreSQL schema (users, tenants, sensors, alerts, etc.)
+- `seed.ts` - Seed admin user, logo
+
+### Smart Kitchen (`/smartkitchen`)
+IoT temperature monitoring — AWS-based.
+
+```
+smartkitchen/
+├── docs/                   # ARCHITECTURE, API_REFERENCE, AWS_SETUP, etc.
+├── infrastructure/
+│   └── cdk/lib/            # CDK stacks (IoT, Lambda, API, WAF, CloudTrail)
+└── scripts/                # Provisioning, utilities
 ```
 
 ### Documentation (`/docs`)
-Project documentation.
+- `README.md` - Documentation index
+- `FEATURES_AND_FUNCTIONALITY.md` - All features
+- `CODEBASE_REFERENCE.md` - Code structure, API, libraries
+- `api/` - API documentation
+- `architecture/` - System architecture
 
-```
-docs/
-├── api/          # API endpoint documentation
-├── architecture/ # System architecture documentation
-└── PROJECT_STRUCTURE.md # This file
-```
-
-### Configuration (`/config`)
-Configuration files for different environments.
-
-```
-config/
-└── database.example.json # Database configuration template
-```
+### Public (`/public`)
+- Static assets
+- `Certification/` - TDRA, DM certificates (PDF)
 
 ### Scripts (`/scripts`)
 Utility scripts for development and deployment.
 
-```
-scripts/
-└── [utility scripts]
-```
+## Technology Stack
 
-### Tests (`/tests`)
-End-to-end and integration tests.
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 |
+| Database | PostgreSQL (Prisma) |
+| IoT | AWS Lambda, DynamoDB (Smart Kitchen) |
+| Maps | Mapbox GL JS |
+| Auth | JWT, bcrypt |
 
-```
-tests/
-└── [integration tests]
-```
+## Related Documentation
 
-## Next Steps
-
-1. **Choose Technology Stack**
-   - Frontend framework (React, Vue, Angular)
-   - Backend framework (Node.js/Express, Python/FastAPI, etc.)
-   - Database (PostgreSQL, MongoDB)
-
-2. **Set Up Development Environment**
-   - Install dependencies
-   - Configure environment variables
-   - Set up database
-
-3. **Implement Core Features**
-   - User authentication
-   - Parking space management
-   - Real-time occupancy tracking
-   - Analytics dashboard
-
-4. **Add Testing**
-   - Unit tests
-   - Integration tests
-   - End-to-end tests
-
-5. **Deployment Setup**
-   - CI/CD pipeline
-   - Production configuration
-   - Monitoring and logging
+- [FEATURES_AND_FUNCTIONALITY.md](FEATURES_AND_FUNCTIONALITY.md) - Feature overview
+- [CODEBASE_REFERENCE.md](CODEBASE_REFERENCE.md) - Detailed code reference
 
 
 

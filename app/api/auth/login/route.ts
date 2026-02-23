@@ -2,27 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser } from '@/lib/auth'
 import { checkRateLimit, getClientIp, loginRateLimiter } from '@/lib/rate-limit'
 
-// AWS Smart Kitchen API URL (UAE Region)
 const KITCHEN_API_URL = process.env.SMART_KITCHEN_API_URL || 'https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod'
+const IS_DEV = process.env.NODE_ENV !== 'production'
 
-// Demo admin account
-const DEMO_ADMIN = {
+const DEMO_ADMIN = IS_DEV ? {
   email: 'vadim@visiondrive.ae',
   password: 'admin123',
   name: 'Vadim',
   role: 'ADMIN'
-}
+} : null
 
-// Demo kitchen owners (synced with admin portal)
-// In production, this would be stored in database
-const DEMO_KITCHEN_OWNERS: Record<string, { password: string; name: string; kitchenId: string; kitchenName: string }> = {
+const DEMO_KITCHEN_OWNERS: Record<string, { password: string; name: string; kitchenId: string; kitchenName: string }> = IS_DEV ? {
   'abdul@kitchen.ae': {
     password: 'demo123',
     name: 'Abdul Rahman',
     kitchenId: 'kitchen-abdul-001',
     kitchenName: "Abdul's Kitchen"
   }
-}
+} : {}
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,8 +51,8 @@ export async function POST(request: NextRequest) {
 
     // Handle Kitchen portal login
     if (portal === 'kitchen') {
-      // Check for admin login first
-      if (email === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
+      // Demo accounts only available in development
+      if (DEMO_ADMIN && email === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
         const adminToken = `admin_${Date.now()}_${crypto.randomUUID().slice(0, 9)}`
         
         const response = NextResponse.json({
