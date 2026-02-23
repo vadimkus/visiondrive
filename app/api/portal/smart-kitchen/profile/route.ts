@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         profile: {
-          name: decoded.name || profiles['admin'].name,
+          name: decoded.name || profiles['admin']?.name || 'User',
           email: decoded.email,
         },
       })
@@ -95,7 +95,7 @@ export async function PUT(request: NextRequest) {
     const key = getProfileKey(token)
     profiles[key] = {
       name: name.trim(),
-      email: email || profiles[key].email,
+      email: email || profiles[key]?.email || '',
     }
 
     return NextResponse.json({

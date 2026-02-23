@@ -6,6 +6,7 @@ import Footer from './components/layout/Footer'
 import { LanguageProvider } from './contexts/LanguageContext'
 import ConditionalLayout from './components/layout/ConditionalLayout'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import OrganizationSchema from './components/schema/OrganizationSchema'
 import LocalBusinessSchema from './components/schema/LocalBusinessSchema'
 import WebSiteSchema from './components/schema/WebSiteSchema'
@@ -104,6 +105,7 @@ export default function RootLayout({
           </ConditionalLayout>
         </LanguageProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

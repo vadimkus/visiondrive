@@ -70,6 +70,12 @@ export async function POST(request: NextRequest) {
       RETURNING id, type, name, "mimeType"
     `
     const image = rows?.[0]
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to save image' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,

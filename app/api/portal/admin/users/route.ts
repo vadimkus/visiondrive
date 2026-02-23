@@ -10,7 +10,7 @@ function randomPassword(len = 12) {
   const bytes = new Uint8Array(len)
   crypto.getRandomValues(bytes)
   let out = ''
-  for (let i = 0; i < len; i++) out += chars[bytes[i] % chars.length]
+  for (let i = 0; i < len; i++) out += chars[(bytes[i] ?? 0) % chars.length]
   return out
 }
 
