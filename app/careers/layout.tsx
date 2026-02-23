@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Careers at VisionDrive - Join Our Team in UAE',
-  description: 'Join VisionDrive and work on cutting-edge IoT and AI solutions for smart parking. Open positions for LLM engineers and more in the UAE.',
-  keywords: 'VisionDrive careers, jobs UAE, LLM engineer jobs, AI jobs Dubai, IoT careers, smart parking jobs',
+  title: 'Careers - Join VisionDrive IoT Team in UAE',
+  description: 'Join VisionDrive and work on cutting-edge IoT solutions for smart kitchen food safety monitoring. Open positions in engineering, sales, and operations in the UAE.',
+  keywords: 'VisionDrive careers, jobs UAE, IoT engineer jobs, food safety jobs Dubai, IoT careers, smart kitchen jobs',
   alternates: { canonical: '/careers' },
   openGraph: {
-    title: 'Careers at VisionDrive',
-    description: 'Join our team building the future of smart parking in the UAE.',
+    title: 'Careers - Join VisionDrive IoT Team in UAE',
+    description: 'Join VisionDrive and work on cutting-edge IoT solutions for smart kitchen food safety monitoring. Open positions in engineering, sales, and operations in the UAE.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

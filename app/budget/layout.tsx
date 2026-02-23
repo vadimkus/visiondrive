@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Budget & Pricing - VisionDrive Smart Parking',
-  description: 'VisionDrive smart parking deployment costs and pricing models. Transparent budgeting for NB-IoT sensor deployments in the UAE.',
-  keywords: 'parking sensor pricing, smart parking cost, IoT deployment budget, VisionDrive pricing',
+  title: 'Pricing & Budget - Smart Kitchen Monitoring Solutions',
+  description: 'VisionDrive smart kitchen monitoring costs and flexible pricing. Transparent budgeting for NB-IoT temperature sensor deployments in UAE commercial kitchens.',
+  keywords: 'smart kitchen pricing, temperature monitoring cost, IoT kitchen deployment budget, VisionDrive pricing',
   alternates: { canonical: '/budget' },
   openGraph: {
-    title: 'VisionDrive Budget & Pricing',
-    description: 'Transparent pricing for smart parking deployments.',
+    title: 'Pricing & Budget - Smart Kitchen Monitoring Solutions',
+    description: 'VisionDrive smart kitchen monitoring costs and flexible pricing. Transparent budgeting for NB-IoT temperature sensor deployments in UAE commercial kitchens.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

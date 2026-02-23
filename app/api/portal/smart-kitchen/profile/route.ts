@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 
-const KITCHEN_JWT_SECRET = process.env.KITCHEN_JWT_SECRET || 'smartkitchen-uae-secret-2026'
+const KITCHEN_JWT_SECRET = process.env.KITCHEN_JWT_SECRET ?? ''
 const KITCHEN_API_URL = process.env.SMART_KITCHEN_API_URL || 'https://w7gfk5cka2.execute-api.me-central-1.amazonaws.com/prod'
 
 // Store profiles in memory (in production, use database)

@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Terms of Service - VisionDrive',
-  description: 'VisionDrive and ParkSense terms of service. Legal agreement governing the use of our smart parking platform and services.',
-  keywords: 'terms of service, user agreement, VisionDrive terms, ParkSense terms',
+  description: 'VisionDrive terms of service. Legal agreement governing the use of our smart kitchen monitoring platform and IoT services in the UAE.',
+  keywords: 'terms of service, user agreement, VisionDrive terms, smart kitchen terms',
   alternates: { canonical: '/terms' },
   openGraph: {
-    title: 'VisionDrive Terms of Service',
-    description: 'Terms and conditions for using VisionDrive services.',
+    title: 'Terms of Service - VisionDrive',
+    description: 'VisionDrive terms of service. Legal agreement governing the use of our smart kitchen monitoring platform and IoT services in the UAE.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

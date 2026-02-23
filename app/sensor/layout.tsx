@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'NB-IoT Parking Sensor - VisionDrive Smart Parking',
-  description: 'High-precision NB-IoT parking sensors with 99% accuracy, 5-year battery life, IP68 rating, and dual-mode detection. Perfect for UAE smart city deployments.',
-  keywords: 'NB-IoT parking sensor, smart parking sensor, IoT parking detector, parking bay sensor, wireless parking sensor UAE',
+  title: 'Sensor Technology - Smart Kitchen NB-IoT Temperature Sensors',
+  description: 'NB-IoT temperature sensors with ±0.3°C accuracy, 5+ year battery life, IP67 rating. Real-time kitchen monitoring for UAE commercial food safety.',
+  keywords: 'NB-IoT temperature sensor, smart kitchen sensor, IoT temperature monitor, kitchen food safety sensor, wireless temperature sensor UAE',
   alternates: { canonical: '/sensor' },
   openGraph: {
-    title: 'VisionDrive NB-IoT Parking Sensor',
-    description: '99% accuracy, 5-year battery life, IP68 protection for smart parking infrastructure.',
+    title: 'Sensor Technology - Smart Kitchen NB-IoT Temperature Sensors',
+    description: 'NB-IoT temperature sensors with ±0.3°C accuracy, 5+ year battery life, IP67 rating. Real-time kitchen monitoring for UAE commercial food safety.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Smart Parking for Communities - VisionDrive UAE',
-  description: 'Smart parking solutions for residential communities and commercial complexes. Reduce traffic, enhance security, and optimize parking allocation.',
-  keywords: 'community parking, residential parking, apartment parking, complex parking, visitor parking management',
+  title: 'Community Kitchens - Smart Temperature Monitoring',
+  description: 'Smart kitchen temperature monitoring for community kitchens, shared commercial kitchens, and multi-tenant food facilities. Ensure food safety across all units.',
+  keywords: 'community kitchen monitoring, shared kitchen temperature, multi-tenant food safety, commercial kitchen IoT',
   alternates: { canonical: '/communities' },
   openGraph: {
-    title: 'Smart Parking for Communities',
-    description: 'Efficient parking management for residential and commercial complexes.',
+    title: 'Community Kitchens - Smart Temperature Monitoring',
+    description: 'Smart kitchen temperature monitoring for community kitchens, shared commercial kitchens, and multi-tenant food facilities. Ensure food safety across all units.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

@@ -3,8 +3,7 @@ import { verifyToken } from '@/lib/auth'
 import { sql } from '@/lib/sql'
 import jwt from 'jsonwebtoken'
 
-// Kitchen JWT secret (same as AWS Lambda)
-const KITCHEN_JWT_SECRET = process.env.KITCHEN_JWT_SECRET || 'smartkitchen-uae-secret-2026'
+const KITCHEN_JWT_SECRET = process.env.KITCHEN_JWT_SECRET ?? ''
 
 export async function GET(request: NextRequest) {
   try {

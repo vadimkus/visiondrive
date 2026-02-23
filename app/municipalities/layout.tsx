@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Smart Parking for Municipalities - VisionDrive UAE',
-  description: 'Smart parking solutions for UAE municipalities. Reduce traffic, lower emissions, increase revenue with NB-IoT parking sensors and real-time data.',
-  keywords: 'municipal parking, city parking solution, government parking, traffic reduction, smart city parking UAE',
+  title: 'Municipality Solutions - Dubai Municipality Food Safety Compliance',
+  description: 'Smart kitchen temperature monitoring for UAE municipalities. Help food businesses achieve Dubai Municipality compliance with automated reporting and real-time alerts.',
+  keywords: 'Dubai Municipality compliance, food safety monitoring, municipal kitchen inspection, UAE food regulation, smart kitchen government',
   alternates: { canonical: '/municipalities' },
   openGraph: {
-    title: 'Smart Parking for UAE Municipalities',
-    description: 'Data-driven parking management for cities and government authorities.',
+    title: 'Municipality Solutions - Dubai Municipality Food Safety Compliance',
+    description: 'Smart kitchen temperature monitoring for UAE municipalities. Help food businesses achieve Dubai Municipality compliance with automated reporting and real-time alerts.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',
