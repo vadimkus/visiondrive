@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Our Partners - VisionDrive UAE Government Partnerships',
-  description: 'VisionDrive partners with UAE government entities including RTA, SRTA, Parkin, ITC Abu Dhabi, and TDRA for smart parking infrastructure deployment.',
-  keywords: 'VisionDrive partners, RTA partnership, UAE government parking, SRTA, Parkin, ITC Abu Dhabi, smart city partners',
+  title: 'Our Partners - VisionDrive UAE Partnerships',
+  description: 'VisionDrive partners with UAE government entities and enterprise clients for smart kitchen IoT infrastructure deployment and food safety compliance.',
+  keywords: 'VisionDrive partners, UAE partnerships, IoT partners, smart kitchen partners, food safety compliance partners',
   alternates: { canonical: '/partners' },
   openGraph: {
-    title: 'VisionDrive Government Partners',
-    description: 'Working with UAE authorities to deploy smart parking infrastructure across the Emirates.',
+    title: 'VisionDrive Partners',
+    description: 'Working with UAE entities to deploy smart kitchen IoT infrastructure across the Emirates.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',
@@ -21,6 +21,3 @@ export default function PartnersLayout({
 }) {
   return children
 }
-
-
-

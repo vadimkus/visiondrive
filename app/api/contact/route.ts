@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const CONTACT_EMAIL = 'tech@visiondrive.ae'
-const SMTP_HOST = process.env.SMTP_HOST
-const SMTP_PORT = process.env.SMTP_PORT || '587'
-const SMTP_USER = process.env.SMTP_USER
-const SMTP_PASS = process.env.SMTP_PASS
+const RESEND_API_KEY = process.env.RESEND_API_KEY
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,33 +29,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If SMTP is configured, send via nodemailer-style fetch
-    if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-      // Use AWS SES or SMTP relay
-      const nodemailer = await import('nodemailer')
-      const transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: Number(SMTP_PORT),
-        secure: Number(SMTP_PORT) === 465,
-        auth: { user: SMTP_USER, pass: SMTP_PASS },
+    if (RESEND_API_KEY) {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: 'VisionDrive Contact <onboarding@resend.dev>',
+          to: [CONTACT_EMAIL],
+          reply_to: email,
+          subject: `[VisionDrive Contact] New message from ${name}`,
+          html: `
+            <h2>New Contact Form Submission</h2>
+            <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+            <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+            <p><strong>Message:</strong></p>
+            <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">Sent from visiondrive.ae contact form</p>
+          `,
+        }),
       })
 
-      await transporter.sendMail({
-        from: `"VisionDrive Contact" <${SMTP_USER}>`,
-        to: CONTACT_EMAIL,
-        replyTo: email,
-        subject: `[VisionDrive Contact] New message from ${name}`,
-        text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-        html: `
-          <h2>New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-          <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-          <p><strong>Message:</strong></p>
-          <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
-          <hr>
-          <p style="color: #666; font-size: 12px;">Sent from visiondrive.ae contact form</p>
-        `,
-      })
+      if (!res.ok) {
+        const err = await res.text()
+        console.error('Resend API error:', err)
+        throw new Error('Email delivery failed')
+      }
 
       return NextResponse.json({ success: true, message: 'Message sent successfully' })
     }

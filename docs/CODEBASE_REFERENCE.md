@@ -154,8 +154,7 @@ Browser → Vercel (Next.js) → API Routes
 | **TenantMembership** | User ↔ Tenant, role |
 | **Site** | Physical location |
 | **Zone** | Zone (FREE/PAID/PRIVATE) |
-| **Bay** | Bay |
-| **Sensor** | IoT sensor (PARKING/WEATHER/OTHER) |
+| **Sensor** | IoT sensor (TEMPERATURE/WEATHER/OTHER) |
 | **Gateway** | LoRaWAN gateway |
 | **SensorEvent** | Time-series events (UPLINK/DERIVED/OVERRIDE/HEARTBEAT) |
 | **Alert** | SENSOR_OFFLINE, LOW_BATTERY, etc. |
@@ -180,7 +179,7 @@ Browser → Vercel (Next.js) → API Routes
 - **UserStatus**: ACTIVE, INACTIVE, SUSPENDED
 - **ZoneKind**: FREE, PAID, PRIVATE
 - **AssetStatus**: ACTIVE, INACTIVE, MAINTENANCE, RETIRED
-- **SensorType**: PARKING, WEATHER, OTHER
+- **SensorType**: TEMPERATURE, WEATHER, OTHER
 - **AlertType**: SENSOR_OFFLINE, LOW_BATTERY, POOR_SIGNAL, FLAPPING, DECODE_ERRORS
 - **AlertSeverity**: INFO, WARNING, CRITICAL
 - **AlertStatus**: OPEN, ACKNOWLEDGED, RESOLVED

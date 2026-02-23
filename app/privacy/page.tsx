@@ -7,11 +7,11 @@ import { useState } from 'react'
 const sections = [
   {
     title: '1. Who we are',
-    body: 'VisionDrive Technologies FZ-LLC provides smart parking solutions in the UAE. This notice explains how we handle personal data when you use our apps, platform, sensors, and support channels.',
+    body: 'VisionDrive Technologies FZ-LLC provides smart kitchen IoT solutions in the UAE. This notice explains how we handle personal data when you use our platform, sensors, and support channels.',
   },
   {
     title: '2. Data we collect',
-    body: 'Account and contact details, parking activity (reservations, entries/exits, payments), device and network identifiers, coarse location for availability, and support communications. We avoid collecting precise GPS unless needed to deliver a requested feature.',
+    body: 'Account and contact details, temperature monitoring data (sensor readings, alerts, reports), device and network identifiers, and support communications.',
   },
   {
     title: '3. How we use data',
@@ -23,7 +23,7 @@ const sections = [
   },
   {
     title: '5. Sharing',
-    body: 'Service providers (hosting, payments, messaging, analytics), municipal/parking operators for enforcement and access control, and authorities where required by law. We do not sell personal data.',
+    body: 'Service providers (hosting, payments, messaging, analytics), and authorities where required by law. We do not sell personal data.',
   },
   {
     title: '6. Retention',

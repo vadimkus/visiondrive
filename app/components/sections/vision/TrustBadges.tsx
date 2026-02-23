@@ -9,7 +9,7 @@ const motion = fmMotion as any
 const badges = [
   {
     title: 'RTA Pilot Ready',
-    description: 'Approved for Dubai smart parking initiatives',
+    description: 'Approved for Dubai smart kitchen initiatives',
     icon: Shield,
     color: 'from-blue-500 to-blue-600',
   },

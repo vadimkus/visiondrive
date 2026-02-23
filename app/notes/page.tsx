@@ -805,7 +805,7 @@ export default function NotesPage() {
               VisionDrive Technical Master Plan
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              NB-IoT Smart Parking System | UAE-Compliant Architecture | RTA Pilot-Ready
+              NB-IoT Smart Kitchen System | UAE-Compliant Architecture | TDRA Certified
             </p>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
               Version: 2.0 | Updated: December 27, 2025

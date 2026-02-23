@@ -31,9 +31,9 @@ function parseIsoDate(input: unknown): Date | null {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
-function normalizeSensorType(input: unknown): 'PARKING' | 'WEATHER' | 'OTHER' {
+function normalizeSensorType(input: unknown): 'TEMPERATURE' | 'WEATHER' | 'OTHER' {
   const t = String(input || '').trim().toUpperCase()
-  if (t === 'PARKING') return 'PARKING'
+  if (t === 'TEMPERATURE' || t === 'PARKING') return 'TEMPERATURE'
   if (t === 'WEATHER') return 'WEATHER'
   return 'OTHER'
 }

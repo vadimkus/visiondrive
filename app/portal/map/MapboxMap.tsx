@@ -400,7 +400,7 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
           },
         })
 
-        // Parking Zones (polygons)
+        // Monitoring Zones (polygons)
         map.addSource('zones', {
           type: 'geojson',
           data: zonesGeojson as any,
@@ -529,7 +529,7 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
             .addTo(map)
         })
 
-        // Parking Zones - hover and click handlers
+        // Monitoring Zones - hover and click handlers
         map.on('mouseenter', 'zone-fills', () => (map.getCanvas().style.cursor = 'pointer'))
         map.on('mouseleave', 'zone-fills', () => (map.getCanvas().style.cursor = ''))
         map.on('click', 'zone-fills', (e) => {
@@ -546,7 +546,7 @@ export default function MapboxMap({ meta, items, gateways, zones, showZones, ini
           const zoneCenter = bounds.getCenter()
           
           const p = f.properties || {}
-          const name = String(p.name || 'Parking Zone')
+          const name = String(p.name || 'Zone')
           const kind = String(p.kind || 'PAID')
           const address = String(p.address || '—')
           const source = String(p.source || 'VisionDrive')

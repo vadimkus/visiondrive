@@ -26,15 +26,7 @@ export default function Hero() {
             <span className="text-primary-600">{t.hero.titleHighlight}</span>
           </h1>
           <p className="text-base sm:text-lg text-gray-600 mb-3 sm:mb-5 max-w-2xl mx-auto px-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-            {t.hero.subtitle.includes('ParkSense App') ? (
-              <>
-                {t.hero.subtitle.replace(' - ParkSense App.', '')}
-                {' - '}
-                <span className="underline">ParkSense App</span>.
-              </>
-            ) : (
-              t.hero.subtitle
-            )}
+            {t.hero.subtitle}
           </p>
           <div className="px-4 mb-1 sm:mb-2">
             <Button href="/app" size="lg" className="group w-full sm:w-auto">

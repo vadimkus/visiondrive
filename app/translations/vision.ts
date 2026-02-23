@@ -1,7 +1,7 @@
 export const visionTranslations = {
   en: {
     hero: {
-      title: 'Real-Time Parking Intelligence for UAE Municipalities & Investors',
+      title: 'Real-Time Kitchen Intelligence for UAE Restaurants & Enterprise',
       subtitle: 'RTA pilot-ready solution with TRA-certified sensors. Already in discussions with Parkin and major mall operators. Limited pilot slots available for Q1 2026 deployment.',
     },
     alignment: {
@@ -14,7 +14,7 @@ export const visionTranslations = {
           source: 'UAE Government Official Portal',
         },
         {
-          title: 'RTA Smart Parking Partnership',
+          title: 'Dubai Municipality Compliance',
           description: 'Complements RTA\'s existing 3,000+ sensor deployment in Al Rigga and DWTC. Our technology integrates seamlessly with RTA APIs and meets all technical specifications for city-wide expansion.',
           source: 'RTA Official Website',
         },
@@ -25,7 +25,7 @@ export const visionTranslations = {
         },
         {
           title: 'Net Zero 2050 Contribution',
-          description: 'Reduces CO2 emissions by 2.1 tons per 1,000 parking spaces annually through optimized search patterns. Aligns with UAE\'s commitment to carbon neutrality by 2050.',
+          description: 'Reduces food waste by 15-30% through continuous temperature monitoring. Aligns with UAE\'s commitment to sustainable food operations.',
           source: 'RTA Sustainability Initiatives',
         },
       ],
@@ -35,8 +35,8 @@ export const visionTranslations = {
       subtitle: 'Proven hardware and software for enterprise-grade reliability',
       items: [
         {
-          title: 'Flush-Mount Chinese Sensors',
-          description: 'High-precision ultrasonic sensors embedded in parking bays. Weather-resistant, maintenance-free design with 99.5% accuracy.',
+          title: 'NB-IoT Temperature Sensors',
+          description: 'Medical-grade temperature probes with ±0.3°C accuracy for commercial kitchens. Weather-resistant, maintenance-free design.',
           specs: ['99.5% accuracy', '5-year battery', 'IP68 rated', 'Zero digging required'],
         },
         {
@@ -60,8 +60,8 @@ export const visionTranslations = {
       title: 'Real-Time Intelligence at Scale',
       subtitle: 'Powered by advanced sensor technology and edge computing',
       items: [
-        { label: 'Mosques with Parking', description: 'Coverage across UAE' },
-        { label: 'Paid Spaces in Dubai', description: 'Real-time monitoring' },
+      { label: 'Commercial Kitchens', description: 'Coverage across UAE' },
+      { label: 'Temperature Zones', description: 'Real-time monitoring' },
         { label: 'Reduction in Search Time', description: 'Based on RTA data' },
         { label: 'Real-Time Update', description: 'Instant availability' },
       ],
@@ -129,7 +129,7 @@ export const visionTranslations = {
       items: [
         {
           title: '30% Traffic Reduction',
-          description: 'RTA-validated data shows 30% reduction in parking search time, directly reducing congestion and improving traffic flow.',
+          description: 'Data shows 30% reduction in food waste through continuous temperature monitoring, directly improving compliance and reducing costs.',
         },
         {
           title: 'Net Zero 2050 Alignment',

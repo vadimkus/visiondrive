@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Handle Parking portal authentication (Timescale-based)
+    // Handle portal authentication (Timescale-based)
     const decoded = verifyToken(token)
     if (!decoded) {
       return NextResponse.json(
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
         role: effectiveRole,
         status: user.status,
         tenantId: activeTenantId || user.defaultTenantId || null,
-        portal: 'parking',
+        portal: 'operations',
       },
     })
   } catch (error) {

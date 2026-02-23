@@ -124,7 +124,7 @@ export default function BudgetPage() {
                     </tr>
                     <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">Hardware</td>
-                      <td className="px-6 py-4 text-gray-700">1,000 NB-IoT Parking Sensors (~$70/unit)</td>
+                      <td className="px-6 py-4 text-gray-700">1,000 NB-IoT Temperature Sensors (~$70/unit)</td>
                       <td className="px-6 py-4 text-right text-gray-900">$70,000</td>
                       <td className="px-6 py-4 text-right font-semibold text-gray-900">257,075 AED</td>
                     </tr>

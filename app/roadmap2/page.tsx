@@ -137,7 +137,7 @@ const phases = [
       },
       {
         title: 'Pilot Deployment',
-        items: ['Street parking (open sky)', 'Semi-covered (shaded/roofed)', 'Underground (edge, center, ramps)'],
+        items: ['Restaurants (QSR, fine dining)', 'Hotels & catering kitchens', 'Central kitchens & food production'],
       },
       {
         title: 'Validation Metrics',
@@ -171,9 +171,9 @@ const phases = [
   {
     phase: 'Phase 6',
     period: 'Q2 2026+',
-    title: 'ParkSense Mobile App & Ecosystem',
+    title: 'Kitchen Owner Mobile App & Ecosystem',
     status: 'future',
-    description: 'Launch consumer-facing mobile app with real-time availability, navigation, and unified parking payments.',
+    description: 'Launch owner-facing mobile app with real-time temperature monitoring, alerts, and compliance reports on the go.',
     icon: Smartphone,
     color: 'from-pink-500 to-pink-600',
     milestones: [
@@ -183,7 +183,7 @@ const phases = [
       },
       {
         title: 'Payments Integration',
-        items: ['RTA/Parkin parking payment integration', 'In-app payment processing', 'Parking session management'],
+        items: ['Stripe subscription billing', 'In-app payment processing', 'Multi-location subscription management'],
       },
       {
         title: 'Ecosystem',
@@ -199,7 +199,7 @@ const techStack = [
     icon: Radio,
     color: 'bg-blue-500',
     items: [
-      'NB-IoT parking sensors (99% accuracy)',
+      'NB-IoT temperature sensors (±0.3°C accuracy)',
       'NB-IoT uplink (B1/B3/B5/B8 bands)',
       'MQTT protocol (TLS 8883, QoS 0/1/2)',
       'HEX payload decoding (battery, temp, occupancy)',
@@ -277,8 +277,8 @@ const milestones = [
   },
   {
     date: 'Q1 2026',
-    title: 'ParkSense App Launch',
-    description: 'Consumer mobile app available on App Store & Play Store',
+    title: 'Kitchen Owner App Launch',
+    description: 'Mobile app for kitchen owners available on App Store & Play Store',
     status: 'future',
   },
 ]
@@ -296,7 +296,7 @@ export default function Roadmap2Page() {
           >
             <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase mb-4">Technical Implementation Roadmap</p>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              NB-IoT Smart Parking <br className="hidden sm:block" />
+              NB-IoT Smart Kitchen <br className="hidden sm:block" />
               <span className="text-primary-600">Detailed Deployment Plan</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
@@ -547,7 +547,7 @@ export default function Roadmap2Page() {
               Partner with VisionDrive
             </h2>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
-              Join RTA, municipalities, and enterprises deploying NB-IoT smart parking infrastructure 
+              Join restaurants, hotels, and enterprises deploying NB-IoT smart kitchen infrastructure 
               with full UAE data residency compliance.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

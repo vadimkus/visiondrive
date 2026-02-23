@@ -41,16 +41,6 @@ On January 13, 2026, AWS issued a notification ([AWS_LAMBDA_PLANNED_LIFECYCLE_EV
 | `smartkitchen-alerts` | nodejs20.x | Temperature threshold alerts & notifications |
 | `smartkitchen-analytics` | nodejs20.x | Daily reports and statistics generation |
 
-### Parking Functions (Node.js 18.x) ⚠️
-
-| Function Name | Previous Runtime | Purpose |
-|---------------|------------------|---------|
-| `VisionDrive-Parking-EventProcessor` | nodejs18.x | Process parking sensor events |
-| `VisionDrive-Parking-ApiHandler` | nodejs18.x | REST API for parking management |
-| `VisionDrive-Parking-CustomAuthorizer` | nodejs20.x | IoT MQTT authentication |
-
-> **Note:** Parking functions were running on Node.js 18.x which had already reached EOL, making this upgrade even more critical.
-
 ---
 
 ## Upgrade Actions

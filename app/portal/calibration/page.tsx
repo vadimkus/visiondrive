@@ -332,7 +332,7 @@ export default function CalibrationPage() {
         // ignore (gateways optional)
       }
 
-      // Load parking zones
+      // Load monitoring zones
       try {
         const zonesRes = await fetch(`/api/portal/zones`, { credentials: 'include' })
         const zonesJson = await zonesRes.json()
@@ -530,7 +530,7 @@ export default function CalibrationPage() {
         ;(map.getSource('calib-gateways') as any).setData(gatewaysGeojson as any)
       }
 
-      // Parking Zones
+        // Monitoring Zones
       if (!map.getSource('calib-zones')) {
         map.addSource('calib-zones', { type: 'geojson', data: zonesGeojson as any })
       } else {
@@ -721,7 +721,7 @@ export default function CalibrationPage() {
         })
       }
 
-      // Parking zones - hover and click handlers
+      // Monitoring zones - hover and click handlers
       if (!(map as any).__calibZonesClickBound) {
         const zonePopup = new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
         
@@ -740,7 +740,7 @@ export default function CalibrationPage() {
           const center = bounds.getCenter()
           
           const p = f.properties || {}
-          const name = p.name || 'Parking Zone'
+          const name = p.name || 'Zone'
           const kind = p.kind || 'PAID'
           const address = p.address || '—'
           const source = p.source || 'VisionDrive'
@@ -1209,10 +1209,10 @@ export default function CalibrationPage() {
               className={`inline-flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors border-2 ${
                 showZones ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
-              title="Toggle parking zones"
+              title="Toggle monitoring zones"
             >
               <MapPin className="h-5 w-5 mr-2" />
-              Parking Areas ({zones.length})
+              Zones ({zones.length})
             </button>
           </div>
         </div>

@@ -210,7 +210,7 @@ Kitchen businesses access their data via: **https://www.visiondrive.ae/login**
 All user data stored in **AWS DynamoDB (UAE)** for data residency compliance.
 
 - [x] Configure VisionDrive login to route Kitchen auth to AWS API
-- [x] Add Kitchen/Parking portal selector to login page
+- [x] Add Kitchen portal selector to login page
 - [x] Create admin user (`admin@kitchen.ae` / `Kitchen@2026`)
 - [x] JWT tokens issued from AWS Lambda in UAE
 - [ ] Create customer onboarding flow (invite via email) - FUTURE

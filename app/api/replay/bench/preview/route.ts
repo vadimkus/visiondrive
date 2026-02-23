@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedType =
-      sensorType === 'PARKING' ? 'PARKING' : sensorType === 'WEATHER' ? 'WEATHER' : 'OTHER'
+      sensorType === 'TEMPERATURE' || sensorType === 'PARKING' ? 'TEMPERATURE' : sensorType === 'WEATHER' ? 'WEATHER' : 'OTHER'
 
     const res = decodePayload({ sensorType: normalizedType, rawPayload })
 

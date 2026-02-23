@@ -34,7 +34,6 @@ docs/
 │
 ├── # Development
 ├── SMART_KITCHEN_CHANGELOG.md   # Smart Kitchen feature changes
-├── BAYS_PAGE_FIXES.md           # Bays page fixes
 ├── NOTES_REORGANIZATION_SUMMARY.md
 ├── SENSOR_TESTING_PLAN.md       # Sensor testing procedures
 ├── README_IMAGES.md             # Image guidelines

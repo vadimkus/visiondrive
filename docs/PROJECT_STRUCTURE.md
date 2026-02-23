@@ -35,7 +35,6 @@ app/
 │   ├── sensors/           # Sensors list & detail
 │   ├── events/             # Events viewer
 │   ├── replay/             # Replay tools
-│   ├── bays/               # Bays
 │   ├── calibration/        # Calibration
 │   └── reports/            # Reports
 ├── kitchen-owner/          # Owner-facing simplified portal

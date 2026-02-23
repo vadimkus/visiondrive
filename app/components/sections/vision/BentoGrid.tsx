@@ -8,8 +8,8 @@ const motion = fmMotion as any
 
 const features = [
   {
-    title: 'End the 30-Minute Parking Hunt',
-    description: 'Find available spaces instantly. No more circling blocks.',
+    title: 'End Manual Temperature Logging',
+    description: 'Automated monitoring and compliance reports. No more clipboard checks.',
     icon: Clock,
     color: 'from-gold-500 to-gold-600',
     span: 'col-span-1 md:col-span-2',
@@ -66,7 +66,7 @@ export default function BentoGrid() {
               Why Vision Drive?
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Benefit-driven solutions for the UAE's parking challenges
+              Benefit-driven solutions for the UAE's food safety challenges
             </p>
           </motion.div>
         </div>

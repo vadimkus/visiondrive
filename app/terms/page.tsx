@@ -7,11 +7,11 @@ import { useState } from 'react'
 const sections = [
   {
     title: '1. Acceptance of Terms',
-    body: 'By accessing or using VisionDrive services, including the ParkSense mobile application and smart parking platform, you agree to be bound by these Terms of Service. If you do not agree, you may not use our services.',
+    body: 'By accessing or using VisionDrive services, including the Kitchen Owner Portal and smart kitchen monitoring platform, you agree to be bound by these Terms of Service. If you do not agree, you may not use our services.',
   },
   {
     title: '2. Service Description',
-    body: 'VisionDrive Technologies FZ-LLC provides smart parking solutions in the UAE, including: real-time parking availability, sensor-based occupancy detection, mobile payment processing, parking reservations, and municipal/community parking management. Services are provided "as is" and we reserve the right to modify or discontinue features with reasonable notice.',
+    body: 'VisionDrive Technologies FZ-LLC provides smart kitchen IoT solutions in the UAE, including: real-time temperature monitoring, sensor-based food safety compliance, automated reporting, alert notifications, and commercial kitchen management. Services are provided "as is" and we reserve the right to modify or discontinue features with reasonable notice.',
   },
   {
     title: '3. User Accounts',
@@ -19,23 +19,23 @@ const sections = [
   },
   {
     title: '4. Acceptable Use',
-    body: 'You agree not to: use the service for illegal purposes, interfere with or disrupt the service, attempt unauthorized access to our systems, misuse parking sensors or equipment, share accounts or credentials, create false parking events or reservations, or violate any applicable laws or regulations.',
+    body: 'You agree not to: use the service for illegal purposes, interfere with or disrupt the service, attempt unauthorized access to our systems, misuse sensors or equipment, share accounts or credentials, create false events or records, or violate any applicable laws or regulations.',
   },
   {
-    title: '5. Parking and Payments',
-    body: 'Parking fees are set by the facility operator (municipality, community, or private operator). You agree to pay all applicable fees and charges. Payment is processed through approved payment providers. Refunds are handled according to the operator\'s refund policy. You are responsible for ensuring valid payment methods are on file.',
+    title: '5. Fees and Payments',
+    body: 'Subscription fees are set according to your service plan. You agree to pay all applicable fees and charges. Payment is processed through approved payment providers. Refunds are handled according to VisionDrive\'s refund policy. You are responsible for ensuring valid payment methods are on file.',
   },
   {
-    title: '6. Reservations and Cancellations',
-    body: 'Parking reservations are subject to availability. Cancellation policies vary by operator and will be displayed before booking. Late arrivals or no-shows may result in forfeiture of fees. We are not liable for parking availability or operator-imposed restrictions.',
+    title: '6. Subscriptions and Cancellations',
+    body: 'Service subscriptions are subject to availability and your selected plan. Cancellation policies will be communicated at the time of subscription. Early termination may result in adjusted fees. We are not liable for service interruptions caused by factors outside our control.',
   },
   {
     title: '7. Sensor Technology and Data',
-    body: 'Our NB-IoT sensors monitor parking bay occupancy in real-time. While we strive for accuracy, sensor data is provided "as is" without guarantee. You acknowledge that technical issues, environmental factors, or coverage limitations may affect sensor performance. See our Privacy Policy for how we handle sensor and location data.',
+    body: 'Our NB-IoT sensors monitor temperature in real-time. While we strive for accuracy, sensor data is provided "as is" without guarantee. You acknowledge that technical issues, environmental factors, or coverage limitations may affect sensor performance. See our Privacy Policy for how we handle sensor data.',
   },
   {
     title: '8. Intellectual Property',
-    body: 'All content, features, and functionality of VisionDrive and ParkSense (including but not limited to software, text, graphics, logos, sensor technology) are owned by VisionDrive Technologies FZ-LLC and protected by UAE and international copyright, trademark, and other laws. You may not copy, modify, or reverse-engineer any part of our services.',
+    body: 'All content, features, and functionality of VisionDrive (including but not limited to software, text, graphics, logos, sensor technology) are owned by VisionDrive Technologies FZ-LLC and protected by UAE and international copyright, trademark, and other laws. You may not copy, modify, or reverse-engineer any part of our services.',
   },
   {
     title: '9. Third-Party Services',
@@ -43,7 +43,7 @@ const sections = [
   },
   {
     title: '10. Liability and Disclaimers',
-    body: 'VisionDrive is a technology platform connecting users with parking facilities. We do not own or operate parking facilities. We are not liable for: vehicle damage, theft, or loss while parked; parking violations or fines; operator actions or policies; or acts of God or circumstances beyond our control. Our total liability is limited to the amount you paid in the 12 months preceding the claim.',
+    body: 'VisionDrive is a technology platform providing IoT monitoring services. We are not liable for: food safety incidents resulting from failure to act on alerts; equipment failure beyond sensor hardware; operator actions or policies; or acts of God or circumstances beyond our control. Our total liability is limited to the amount you paid in the 12 months preceding the claim.',
   },
   {
     title: '11. Indemnification',
@@ -107,7 +107,7 @@ export default function TermsPage() {
       <Section className="py-8 sm:py-12 md:py-14">
         <div className="max-w-5xl mx-auto space-y-4">
           <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase">Terms of Service</p>
-          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">VisionDrive & ParkSense Terms of Service</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">VisionDrive Terms of Service</h1>
           <p className="text-base sm:text-lg text-gray-600">
             Effective date: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} — Governed by UAE Law.
           </p>

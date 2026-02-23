@@ -9,7 +9,7 @@ import {
   Clock, 
   TrendingUp, 
   Settings, 
-  ParkingCircle, 
+  CircleDot, 
   Activity, 
   AlertTriangle, 
   ShieldAlert, 
@@ -185,7 +185,7 @@ export default function PortalPageClient() {
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">{zoneLabel}</h1>
             <p className="text-gray-600">
-              {zones.find((z) => String(z.id) === String(zoneId))?.address || 'Overview across all parking zones'} · Welcome, {user?.name || user?.email?.split('@')[0] || 'User'}
+              {zones.find((z) => String(z.id) === String(zoneId))?.address || 'Overview across all zones'} · Welcome, {user?.name || user?.email?.split('@')[0] || 'User'}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -222,7 +222,7 @@ export default function PortalPageClient() {
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-xl border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="p-3 bg-blue-100 rounded-xl">
-                <ParkingCircle className="h-6 w-6 text-blue-600" />
+                <CircleDot className="h-6 w-6 text-blue-600" />
               </div>
             </div>
             <div className="text-sm font-medium text-gray-600 mb-1">Total Bays</div>
@@ -289,7 +289,7 @@ export default function PortalPageClient() {
                     <BarChart3 className="h-6 w-6 text-purple-600" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Parking Analytics</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Sensor Analytics</h2>
                     <p className="text-sm text-gray-600">Events per hour (last 24h)</p>
                   </div>
                 </div>

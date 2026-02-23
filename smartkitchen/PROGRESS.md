@@ -52,7 +52,7 @@
 
 ### Phase 5: Dashboard & Portal ✅ (Jan 12, 2026)
 
-- ✅ Login page with Kitchen/Parking portal selector
+- ✅ Login page with Kitchen portal selector
 - ✅ Kitchen auth routes through AWS API (UAE data residency)
 - ✅ Apple-like portal design with dark sidebar
 - ✅ Kitchen-only navigation

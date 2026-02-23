@@ -8,8 +8,8 @@ const motion = fmMotion as any
 
 const technologies = [
   {
-    title: 'Flush-Mount Chinese Sensors',
-    description: 'High-precision ultrasonic sensors embedded in parking bays. Weather-resistant, maintenance-free design.',
+    title: 'NB-IoT Temperature Sensors',
+    description: 'Medical-grade temperature probes with ±0.3°C accuracy. Weather-resistant, maintenance-free design for commercial kitchens.',
     icon: Radio,
     specs: ['99.5% accuracy', '5-year battery', 'IP68 rated'],
     color: 'from-gold-500 to-gold-600',

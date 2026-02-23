@@ -575,18 +575,18 @@ PUT    /alerts/{id}/acknowledge     Acknowledge alert
 │  │                                                     │   │
 │  │  3. Frontend routes to appropriate backend          │   │
 │  │     ├── Kitchen → AWS API (UAE)                     │   │
-│  │     └── Parking → Vercel API (TimescaleDB)          │   │
+│  │     └── Operations → Vercel API (TimescaleDB)       │   │
 │  │                                                     │   │
 │  │  4. JWT token issued                                │   │
 │  │     ├── Kitchen JWT → SMART_KITCHEN_JWT_SECRET      │   │
-│  │     └── Parking JWT → JWT_SECRET                    │   │
+│  │     └── Operations JWT → JWT_SECRET                 │   │
 │  │                                                     │   │
 │  │  5. Portal cookie set                               │   │
-│  │     └── portal=kitchen or portal=parking            │   │
+│  │     └── portal=kitchen or portal=operations         │   │
 │  │                                                     │   │
 │  │  6. Redirect to dashboard                           │   │
 │  │     ├── Kitchen → /portal/smart-kitchen             │   │
-│  │     └── Parking → /portal                           │   │
+│  │     └── Operations → /portal                        │   │
 │  │                                                     │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
@@ -594,7 +594,7 @@ PUT    /alerts/{id}/acknowledge     Acknowledge alert
 │  ─────────────────────────────────────                      │
 │  1. Read portal cookie                                      │
 │  2. If portal=kitchen → verify with SMART_KITCHEN_JWT_SECRET│
-│  3. If portal=parking → verify with JWT_SECRET              │
+│  3. If portal=operations → verify with JWT_SECRET           │
 │  4. Return user data                                        │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘

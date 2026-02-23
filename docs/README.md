@@ -42,12 +42,10 @@
 | Document | Description |
 |----------|-------------|
 | [SMART_KITCHEN_CHANGELOG.md](SMART_KITCHEN_CHANGELOG.md) | Smart Kitchen feature changelog |
-| [BAYS_PAGE_FIXES.md](BAYS_PAGE_FIXES.md) | Bays page fixes |
 | [NOTES_REORGANIZATION_SUMMARY.md](NOTES_REORGANIZATION_SUMMARY.md) | Notes reorganization |
 | [SENSOR_TESTING_PLAN.md](SENSOR_TESTING_PLAN.md) | Sensor testing procedures |
 | [README_IMAGES.md](README_IMAGES.md) | Image guidelines |
 | [telemetry-component.md](telemetry-component.md) | Telemetry component docs |
-| [2gis-parking-import.md](2gis-parking-import.md) | 2GIS data import |
 
 ### Action Plan (Section 11)
 

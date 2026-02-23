@@ -1,12 +1,12 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Vision - Real-Time Parking Intelligence for UAE Municipalities & Investors | Vision Drive',
-  description: 'RTA pilot-ready smart parking solution with TRA-certified sensors. Already in discussions with Parkin and major mall operators. Limited pilot slots for Q1 2026.',
+  title: 'Vision - Smart Kitchen IoT for UAE Municipalities & Enterprise | VisionDrive',
+  description: 'TDRA-certified smart kitchen temperature monitoring with NB-IoT sensors. Dubai Municipality compliant food safety solution for commercial kitchens across the UAE.',
   alternates: { canonical: '/vision' },
   openGraph: {
-    title: 'Vision - Real-Time Parking Intelligence for UAE Municipalities & Investors',
-    description: 'RTA pilot-ready smart parking solution with TRA-certified sensors. Already in discussions with Parkin and major mall operators.',
+    title: 'Vision - Smart Kitchen IoT for UAE Municipalities & Enterprise',
+    description: 'TDRA-certified smart kitchen temperature monitoring with NB-IoT sensors. Dubai Municipality compliant food safety solution.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',
@@ -20,11 +20,3 @@ export default function VisionLayout({
 }) {
   return children
 }
-
-
-
-
-
-
-
-

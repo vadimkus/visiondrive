@@ -36,8 +36,6 @@
     "build",
     "smartkitchen",
     "smartkitchen/**/*",
-    "Parking",
-    "Parking/**/*",
     "**/cdk/**/*"
   ]
 }

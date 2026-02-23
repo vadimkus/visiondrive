@@ -7,14 +7,14 @@ import PortalSidebar from '../components/portal/PortalSidebar'
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   
-  // Smart Kitchen has its own dedicated layout - skip the parking portal wrapper
+  // Smart Kitchen has its own dedicated layout
   const isKitchenPortal = pathname.startsWith('/portal/smart-kitchen')
   
   if (isKitchenPortal) {
     return <>{children}</>
   }
 
-  // Parking Portal layout: full screen with top navigation and left sidebar
+  // Portal layout: full screen with top navigation and left sidebar
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <PortalSidebar />

@@ -17,7 +17,6 @@ import {
   Gauge,
   Settings,
   ScrollText,
-  Grid3x3,
   ChefHat
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -128,7 +127,6 @@ export default function PortalSidebar() {
 
   const sensorsItems = [
     { icon: Users, label: 'Sensors', path: '/portal/sensors', color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
-    { icon: Grid3x3, label: 'Parking Bays', path: '/portal/bays', color: 'text-emerald-700', bgColor: 'bg-emerald-50', adminOnly: true },
     { icon: Gauge, label: 'Calibration', path: '/portal/calibration', color: 'text-pink-600', bgColor: 'bg-pink-50', adminOnly: true },
   ]
 

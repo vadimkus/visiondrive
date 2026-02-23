@@ -39,7 +39,7 @@ export default function ReplayToolsPage() {
 
   // Decoder bench state
   const [devEui, setDevEui] = useState('ABCDEF0000000001')
-  const [sensorType, setSensorType] = useState<'PARKING' | 'WEATHER' | 'OTHER'>('PARKING')
+  const [sensorType, setSensorType] = useState<'TEMPERATURE' | 'WEATHER' | 'OTHER'>('TEMPERATURE')
   const [rawPayload, setRawPayload] = useState('01 64')
   const [previewLoading, setPreviewLoading] = useState(false)
   const [preview, setPreview] = useState<any>(null)
@@ -229,7 +229,7 @@ export default function ReplayToolsPage() {
                     onChange={(e) => setSensorType(e.target.value as any)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                   >
-                    <option value="PARKING">PARKING</option>
+                    <option value="TEMPERATURE">TEMPERATURE</option>
                     <option value="WEATHER">WEATHER</option>
                     <option value="OTHER">OTHER</option>
                   </select>

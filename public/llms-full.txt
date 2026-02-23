@@ -60,10 +60,6 @@ Web-based dashboard for restaurant and kitchen owners:
 - Multi-location overview
 - Subscription management
 
-### 3. Smart Parking (Secondary)
-
-IoT parking sensor solutions with real-time occupancy tracking.
-
 ## Target Market
 
 **Primary Customers:**

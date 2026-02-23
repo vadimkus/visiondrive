@@ -677,7 +677,7 @@ export default function SettingsPage() {
         <div className="text-center py-12">
           <Shield className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Admin access required</p>
-          <p className="text-sm text-gray-500 mt-1">Only administrators can manage parking zones</p>
+          <p className="text-sm text-gray-500 mt-1">Only administrators can manage zones</p>
         </div>
       )
     }
@@ -685,8 +685,8 @@ export default function SettingsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Parking Zones Management</h2>
-          <p className="text-sm text-gray-600">Import and manage parking zones from GeoJSON sources</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Zones Management</h2>
+          <p className="text-sm text-gray-600">Import and manage monitoring zones from GeoJSON sources</p>
         </div>
 
         {/* Info Banner */}

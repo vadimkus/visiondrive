@@ -24,10 +24,10 @@ export default function CTASection() {
             transition={{ duration: 0.6 }}
           >
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Join the Future of Smart Parking
+            Join the Future of Smart Kitchens
           </h2>
           <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-            Partner with Vision Drive to revolutionize parking in the UAE. 
+            Partner with VisionDrive to revolutionize kitchen food safety in the UAE. 
             Pilot program starting Q1 2026.
           </p>
 

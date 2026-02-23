@@ -58,19 +58,19 @@ const benefits = [
 const vacancies = [
   {
     id: 'senior-llm-engineer',
-    title: 'Senior LLM Engineer - Parking Intelligence',
+    title: 'Senior LLM Engineer - Kitchen Intelligence',
     department: 'AI & Machine Learning',
     location: 'Dubai, UAE (Hybrid)',
     type: 'Full-time',
     posted: '2 days ago',
-    description: `We're looking for a Senior LLM Engineer to lead the development of our AI-powered parking intelligence platform. You'll architect and deploy large language models that transform raw sensor data into actionable insights for cities, operators, and drivers.
+    description: `We're looking for a Senior LLM Engineer to lead the development of our AI-powered kitchen intelligence platform. You'll architect and deploy large language models that transform raw sensor data into actionable insights for kitchen operators and food safety teams.
 
-This is a foundational role where you'll shape how AI understands and predicts parking patterns across the UAE. You'll work directly with our NB-IoT sensor network generating millions of occupancy events daily, building systems that help drivers find parking instantly and help cities plan infrastructure smarter.`,
+This is a foundational role where you'll shape how AI understands and predicts temperature patterns across commercial kitchens in the UAE. You'll work directly with our NB-IoT sensor network generating millions of temperature events daily, building systems that help operators prevent food safety incidents and optimize kitchen operations.`,
     responsibilities: [
-      'Design and implement LLM-based systems for parking demand prediction, anomaly detection, and natural language interfaces for our operator portal',
-      'Build RAG (Retrieval-Augmented Generation) pipelines that combine real-time sensor data with historical patterns to answer complex parking queries',
-      'Develop fine-tuned models for Arabic/English bilingual support in driver-facing applications',
-      'Create evaluation frameworks and benchmarks specific to parking domain tasks (occupancy prediction, ETA estimation, demand forecasting)',
+      'Design and implement LLM-based systems for temperature anomaly detection, predictive maintenance, and natural language interfaces for our kitchen portal',
+      'Build RAG (Retrieval-Augmented Generation) pipelines that combine real-time sensor data with historical patterns to answer complex compliance queries',
+      'Develop fine-tuned models for Arabic/English bilingual support in operator-facing applications',
+      'Create evaluation frameworks and benchmarks specific to food safety domain tasks (temperature prediction, equipment health, compliance forecasting)',
       'Optimize inference latency for real-time applications—sub-100ms response times for in-app recommendations',
       'Collaborate with sensor firmware team to design data schemas that maximize ML utility',
       'Lead technical discussions and mentor junior ML engineers as the team grows',
@@ -101,17 +101,17 @@ This is a foundational role where you'll shape how AI understands and predicts p
     location: 'Abu Dhabi, UAE (Hybrid)',
     type: 'Full-time',
     posted: '5 days ago',
-    description: `Join our AI team to build conversational interfaces that make parking data accessible to everyone. You'll develop the natural language layer that powers our mobile app, operator chatbots, and voice-enabled parking assistance.
+    description: `Join our AI team to build conversational interfaces that make kitchen compliance data accessible to everyone. You'll develop the natural language layer that powers our Kitchen Owner Portal, operator chatbots, and voice-enabled kitchen assistance.
 
-We're creating a future where finding parking is as simple as asking "Where can I park near Dubai Mall for 2 hours?" and getting instant, accurate answers. You'll be at the center of making this vision real—combining our real-time sensor network with cutting-edge NLP to deliver magical user experiences.`,
+We're creating a future where checking kitchen compliance is as simple as asking "Are all my fridges within safe range?" and getting instant, accurate answers. You'll be at the center of making this vision real—combining our real-time sensor network with cutting-edge NLP to deliver magical user experiences.`,
     responsibilities: [
-      'Build and maintain conversational AI systems for the ParkSense mobile app and operator dashboard',
-      'Develop intent classification and entity extraction models for parking-specific queries (locations, durations, vehicle types, accessibility needs)',
-      'Create context-aware dialogue management for multi-turn parking assistance conversations',
-      'Implement semantic search over parking zones, facilities, and real-time availability data',
-      'Build Arabic language support with culturally appropriate responses and UAE-specific location understanding',
+      'Build and maintain conversational AI systems for the Kitchen Owner Portal and operator dashboard',
+      'Develop intent classification and entity extraction models for kitchen-specific queries (temperature zones, equipment, compliance status)',
+      'Create context-aware dialogue management for multi-turn kitchen compliance conversations',
+      'Implement semantic search over kitchen zones, equipment, and real-time temperature data',
+      'Build Arabic language support with culturally appropriate responses and UAE-specific food safety understanding',
       'Design and run user studies to improve conversation quality and task completion rates',
-      'Integrate with external APIs (Google Maps, navigation apps, payment providers) for end-to-end booking flows',
+      'Integrate with external APIs (Dubai Municipality, reporting services) for end-to-end compliance flows',
       'Monitor production conversations for quality, identifying failure modes and improvement opportunities',
     ],
     requirements: [
@@ -129,7 +129,7 @@ We're creating a future where finding parking is as simple as asking "Where can 
       'Background in voice interfaces (ASR, TTS) or multimodal systems',
       'Familiarity with location-based services and geospatial queries',
       'Experience with A/B testing frameworks and experimentation platforms',
-      'Knowledge of UAE geography, landmarks, and local parking terminology',
+      'Knowledge of UAE geography, food safety regulations, and local kitchen industry terminology',
       'Previous work on consumer-facing mobile applications',
     ],
   },
@@ -256,11 +256,11 @@ export default function CareersPage() {
           </p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
             Build the Future of{' '}
-            <span className="text-primary-600">Smart Parking</span>
+            <span className="text-primary-600">Smart Kitchens</span>
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto mb-8">
             Join a team transforming how millions of people park across the UAE. We&apos;re 
-            combining NB-IoT sensors, real-time data, and AI to make parking effortless.
+            combining NB-IoT sensors, real-time data, and AI to make food safety effortless.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
@@ -342,13 +342,13 @@ export default function CareersPage() {
               <div>
                 <Brain className="h-12 w-12 text-primary-600 mb-6" />
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-                  Building AI for Smart Cities
+                  Building AI for Smart Kitchens
                 </h2>
                 <p className="text-gray-600 leading-relaxed mb-6">
                   Our AI team is at the forefront of applying large language models to real-world 
-                  infrastructure challenges. From predicting parking demand to enabling natural 
-                  language interfaces for city operators, we&apos;re creating technology that makes 
-                  urban life better.
+                  food safety challenges. From predicting temperature anomalies to enabling natural 
+                  language interfaces for kitchen operators, we&apos;re creating technology that makes 
+                  commercial kitchens safer.
                 </p>
                 <ul className="space-y-3">
                   {[
@@ -412,7 +412,7 @@ export default function CareersPage() {
             Ready to Join Us?
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            We&apos;re building the infrastructure that will transform how cities manage parking. 
+            We&apos;re building the infrastructure that will transform how kitchens manage food safety. 
             Come help us make it happen.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

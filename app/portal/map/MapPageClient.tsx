@@ -255,10 +255,10 @@ export default function PortalMapPageClient() {
                     ? 'bg-blue-600 text-white hover:bg-blue-700' 
                     : 'bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50'
                 }`}
-                title={`${showZones ? 'Hide' : 'Show'} parking zones on map`}
+                title={`${showZones ? 'Hide' : 'Show'} monitoring zones on map`}
               >
                 <MapPin className="h-5 w-5 mr-2" />
-                Parking Areas ({zones.length})
+                Zones ({zones.length})
               </button>
             </div>
 

@@ -32,7 +32,7 @@ export default function ParticleBackground() {
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
 
-    // Create particles (parking sensors)
+    // Create particles (IoT sensors)
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,

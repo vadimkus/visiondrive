@@ -12,7 +12,7 @@ const stats = [
     icon: MapPin,
     value: 2183,
     suffix: '',
-    label: 'Mosques with Parking',
+    label: 'Commercial Kitchens',
     description: 'Coverage across UAE',
     color: 'from-gold-500 to-gold-600',
   },

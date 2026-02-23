@@ -2,8 +2,8 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Roadmap - VisionDrive Implementation Plan',
-  description: 'VisionDrive development roadmap and implementation timeline. Key milestones from government approvals to production deployment in UAE.',
-  keywords: 'VisionDrive roadmap, development timeline, implementation plan, smart parking rollout, UAE pilot',
+  description: 'VisionDrive development roadmap and implementation timeline. Key milestones from TDRA certification to production deployment in UAE.',
+  keywords: 'VisionDrive roadmap, development timeline, implementation plan, smart kitchen rollout, UAE pilot',
   alternates: { canonical: '/roadmap' },
   openGraph: {
     title: 'VisionDrive Roadmap',
@@ -21,5 +21,3 @@ export default function RoadmapLayout({
 }) {
   return children
 }
-
-

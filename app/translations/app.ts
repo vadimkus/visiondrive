@@ -1,8 +1,8 @@
 export const appTranslations = {
   en: {
     hero: {
-      title: 'Find Parking in Seconds, Not Minutes',
-      subtitle: 'Join 50,000+ Dubai drivers already saving 30% time searching for parking. Real-time availability with 99.5% accuracy from RTA-certified sensors.',
+      title: 'Monitor Kitchen Temps in Real Time',
+      subtitle: 'Join UAE kitchen operators already saving hours on compliance. Real-time temperature monitoring with ±0.3°C accuracy from TDRA-certified sensors.',
       promo: 'First 1,000 Users Get Free Reservations',
       cta: 'Download',
     },
@@ -34,7 +34,7 @@ export const appTranslations = {
         },
         {
           title: 'Save 30% Time',
-          description: 'RTA data shows faster parking discovery',
+          description: 'Data shows faster compliance reporting',
         },
         {
           title: 'Less Stress',

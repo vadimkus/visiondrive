@@ -1,7 +1,7 @@
 export const analyticsTranslations = {
   en: {
     hero: {
-      title: 'Real-Time Parking Intelligence for Smart Cities',
+      title: 'Real-Time Kitchen Intelligence for Smart Food Safety',
       subtitle: 'Data-driven insights that drive revenue, optimize operations, and reduce congestion for shopping malls, municipalities, and real-estate developers.',
       trust: 'Trusted by RTA, 15+ Dubai malls, and Abu Dhabi DMT',
     },

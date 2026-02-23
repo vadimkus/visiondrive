@@ -123,7 +123,7 @@ export default function PortalAdminPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Administrator</h1>
-          <p className="text-gray-600">Manage tenant settings, users, and parking zones</p>
+          <p className="text-gray-600">Manage tenant settings, users, and monitoring zones</p>
         </div>
 
         {/* Master Admin Banner */}
@@ -166,7 +166,7 @@ export default function PortalAdminPage() {
         <div className="mb-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl shadow-sm p-6 border border-green-200">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-1">Looking for Parking Zones?</h3>
+              <h3 className="font-semibold text-gray-900 mb-1">Looking for Monitoring Zones?</h3>
               <p className="text-sm text-gray-600">Manage GeoJSON zone imports and tariffs in Settings</p>
             </div>
             <a
