@@ -1,5 +1,5 @@
 export type DecodeInput = {
-  sensorType: 'PARKING' | 'WEATHER' | 'OTHER'
+  sensorType: 'TEMPERATURE' | 'PARKING' | 'WEATHER' | 'OTHER'
   rawPayload: string
 }
 
@@ -48,7 +48,7 @@ export function decodePayload(input: DecodeInput): DecodeResult {
 
   if (isHex(raw)) {
     const bytes = hexToBytes(raw)
-    if (input.sensorType === 'PARKING') {
+    if (input.sensorType === 'TEMPERATURE' || input.sensorType === 'PARKING') {
       const occupied = bytes[0] === 1
       const batteryPct = typeof bytes[1] === 'number' ? bytes[1] : null
       if (batteryPct !== null && (batteryPct < 0 || batteryPct > 100)) {
