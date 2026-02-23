@@ -16,10 +16,14 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://visiondrive.ae'),
   title: 'VisionDrive - Smart Kitchen Temperature Monitoring for UAE',
   description: 'Real-time temperature monitoring for commercial kitchens. Dubai Municipality compliant food safety sensors with automated alerts and compliance reporting.',
   keywords: 'smart kitchen, temperature monitoring, food safety, Dubai Municipality, commercial kitchen, IoT sensors, HACCP, UAE',
   authors: [{ name: 'Vision Drive Technologies FZ-LLC' }],
+  alternates: {
+    canonical: '/',
+  },
   icons: {
     icon: [
       { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
@@ -40,6 +44,7 @@ export const metadata: Metadata = {
     title: 'VisionDrive - Smart Kitchen Temperature Monitoring',
     description: 'Real-time food safety monitoring for commercial kitchens in the UAE.',
     type: 'website',
+    url: 'https://visiondrive.ae',
   },
 }
 

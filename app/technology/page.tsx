@@ -16,6 +16,7 @@ import {
 export const metadata: Metadata = {
   title: 'Technology - Smart Kitchen Temperature Sensors | VisionDrive',
   description: 'NB-IoT temperature sensors for commercial kitchens. UAE data residency, real-time monitoring, and automated compliance reporting for food safety.',
+  alternates: { canonical: '/technology' },
 }
 
 const stack = [

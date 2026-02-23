@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: 'Smart Parking for Municipalities - VisionDrive UAE',
   description: 'Smart parking solutions for UAE municipalities. Reduce traffic, lower emissions, increase revenue with NB-IoT parking sensors and real-time data.',
   keywords: 'municipal parking, city parking solution, government parking, traffic reduction, smart city parking UAE',
+  alternates: { canonical: '/municipalities' },
   openGraph: {
     title: 'Smart Parking for UAE Municipalities',
     description: 'Data-driven parking management for cities and government authorities.',

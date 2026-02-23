@@ -10,6 +10,7 @@ import { SettingsProvider } from './context/SettingsContext'
 export const metadata = {
   title: "Abdul's Kitchen - VisionDrive Smart Kitchen",
   description: 'Temperature monitoring and food safety compliance dashboard',
+  alternates: { canonical: '/kitchen-owner' },
   viewport: {
     width: 'device-width',
     initialScale: 1,
