@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Loader2,
   Calendar,
   CreditCard,
   MessageSquare,
@@ -15,6 +14,11 @@ import {
   ClipboardList,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { buildTimelineItems, filterTimelineItems, type TimelineFilter } from '@/lib/clinic/timeline'
+import { useClinicLocale } from '@/lib/clinic/clinic-locale'
+import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
+import { ClinicAlert } from '@/components/clinic/ClinicAlert'
+import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
 
 type ProcedureRef = { id: string; name: string } | null
 
@@ -103,10 +107,13 @@ function formatMoney(cents: number, currency: string) {
 
 export default function PatientRecordClient({ patientId }: { patientId: string }) {
   const router = useRouter()
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ar' ? 'ar-AE' : 'en-GB'
   const [patient, setPatient] = useState<PatientRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [tab, setTab] = useState<Tab>('overview')
+  const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('all')
   const [editOpen, setEditOpen] = useState(false)
   const [savingPatient, setSavingPatient] = useState(false)
 
@@ -145,7 +152,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
       try {
         await load()
       } catch {
-        if (!cancelled) setError('Network error')
+        if (!cancelled) setError(t.networkError)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -153,7 +160,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     return () => {
       cancelled = true
     }
-  }, [load])
+  }, [load, t.networkError])
 
   const nextAppointment = useMemo(() => {
     if (!patient) return null
@@ -174,63 +181,19 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
 
   const timelineItems = useMemo(() => {
     if (!patient) return []
-    type Item = { sort: number; label: string; detail: string; meta: string }
-    const items: Item[] = []
-    for (const a of patient.appointments) {
-      items.push({
-        sort: new Date(a.startsAt).getTime(),
-        label: `Appointment · ${a.status}`,
-        detail: a.procedure?.name || a.titleOverride || 'Scheduled visit',
-        meta: new Date(a.startsAt).toLocaleString('en-GB', {
-          weekday: 'short',
-          day: 'numeric',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      })
-    }
-    for (const v of patient.visits) {
-      items.push({
-        sort: new Date(v.visitAt).getTime(),
-        label: `Visit · ${v.status}`,
-        detail: v.procedureSummary || v.chiefComplaint || 'Encounter',
-        meta: new Date(v.visitAt).toLocaleString('en-GB', {
-          weekday: 'short',
-          day: 'numeric',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      })
-    }
-    for (const pmt of patient.payments) {
-      items.push({
-        sort: new Date(pmt.paidAt).getTime(),
-        label: `Payment · ${pmt.status}`,
-        detail: `${formatMoney(pmt.amountCents, pmt.currency)} · ${pmt.method}`,
-        meta: new Date(pmt.paidAt).toLocaleString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        }),
-      })
-    }
-    for (const c of patient.crmActivities) {
-      items.push({
-        sort: new Date(c.occurredAt).getTime(),
-        label: `CRM · ${c.type}`,
-        detail: c.body,
-        meta: new Date(c.occurredAt).toLocaleString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      })
-    }
-    return items.sort((a, b) => b.sort - a.sort)
-  }, [patient])
+    return buildTimelineItems(
+      patient.appointments,
+      patient.visits,
+      patient.payments,
+      patient.crmActivities,
+      dateLocale
+    )
+  }, [patient, dateLocale])
+
+  const filteredTimeline = useMemo(
+    () => filterTimelineItems(timelineItems, timelineFilter),
+    [timelineItems, timelineFilter]
+  )
 
   const savePatient = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -257,26 +220,23 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
       setEditOpen(false)
       await load()
     } catch {
-      setError('Network error')
+      setError(t.networkError)
     } finally {
       setSavingPatient(false)
     }
   }
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-      </div>
-    )
+    return <ClinicSpinner label={t.loading} />
   }
 
   if (error || !patient) {
     return (
       <div className="max-w-lg mx-auto space-y-4">
-        <p className="text-red-600">{error || 'Not found'}</p>
-        <Link href="/clinic/patients" className="text-orange-600 text-sm">
-          ← Patients
+        {error && <ClinicAlert variant="error">{error}</ClinicAlert>}
+        {!error && !patient && <ClinicAlert variant="error">Not found</ClinicAlert>}
+        <Link href="/clinic/patients" className="text-orange-600 text-sm min-h-11 inline-flex items-center">
+          {t.backPatients}
         </Link>
       </div>
     )
@@ -284,17 +244,28 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
 
   const age = ageFromDob(patient.dateOfBirth)
   const tabs: { id: Tab; label: string; icon: typeof Calendar }[] = [
-    { id: 'overview', label: 'Overview', icon: ClipboardList },
-    { id: 'timeline', label: 'Timeline', icon: Clock },
-    { id: 'photos', label: 'Photos', icon: Camera },
-    { id: 'payments', label: 'Payments', icon: CreditCard },
-    { id: 'crm', label: 'CRM', icon: MessageSquare },
+    { id: 'overview', label: t.overview, icon: ClipboardList },
+    { id: 'timeline', label: t.timeline, icon: Clock },
+    { id: 'photos', label: t.photos, icon: Camera },
+    { id: 'payments', label: t.payments, icon: CreditCard },
+    { id: 'crm', label: t.crm, icon: MessageSquare },
+  ]
+
+  const filterChips: { id: TimelineFilter; label: string }[] = [
+    { id: 'all', label: t.timelineAll },
+    { id: 'appointment', label: t.timelineAppointments },
+    { id: 'visit', label: t.timelineVisits },
+    { id: 'payment', label: t.timelinePayments },
+    { id: 'crm', label: t.timelineCrm },
   ]
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-24">
-      <Link href="/clinic/patients" className="text-sm text-orange-600 hover:text-orange-700 inline-block">
-        ← Patients
+      <Link
+        href="/clinic/patients"
+        className="text-sm text-orange-600 hover:text-orange-700 inline-block min-h-11 py-2"
+      >
+        {t.backPatients}
       </Link>
 
       <div className="flex flex-col gap-2">
@@ -304,7 +275,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
         </h1>
         <p className="text-gray-600 text-sm">
           DOB{' '}
-          {new Date(patient.dateOfBirth).toLocaleDateString('en-GB', {
+          {new Date(patient.dateOfBirth).toLocaleDateString(dateLocale, {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
@@ -315,14 +286,14 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
 
       {/* Next actions — tuned for returning patient on iPad */}
       <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-5 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-wide text-orange-800 mb-2">What to do next</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-orange-800 mb-2">{t.whatNext}</p>
         <ul className="space-y-2 text-sm text-orange-950">
           {nextAppointment && (
             <li className="flex gap-2">
-              <Calendar className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" />
+              <Calendar className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" aria-hidden />
               <span>
-                <span className="font-medium">Scheduled: </span>
-                {new Date(nextAppointment.startsAt).toLocaleString('en-GB', {
+                <span className="font-medium">{t.scheduled} </span>
+                {new Date(nextAppointment.startsAt).toLocaleString(dateLocale, {
                   weekday: 'short',
                   day: 'numeric',
                   month: 'short',
@@ -336,24 +307,24 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           )}
           {lastVisitWithPlan?.nextSteps && (
             <li className="flex gap-2">
-              <Clock className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" />
+              <Clock className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" aria-hidden />
               <span>
-                <span className="font-medium">From last visit: </span>
+                <span className="font-medium">{t.fromLastVisit} </span>
                 {lastVisitWithPlan.nextSteps}
               </span>
             </li>
           )}
           {patient.internalNotes && (
             <li className="flex gap-2">
-              <MessageSquare className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" />
+              <MessageSquare className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" aria-hidden />
               <span>
-                <span className="font-medium">Staff notes: </span>
+                <span className="font-medium">{t.staffNotesLabel} </span>
                 {patient.internalNotes}
               </span>
             </li>
           )}
           {!nextAppointment && !lastVisitWithPlan?.nextSteps && !patient.internalNotes && (
-            <li className="text-orange-800/90">No upcoming appointment or follow-up notes on file.</li>
+            <li className="text-orange-800/90">{t.noUpcoming}</li>
           )}
         </ul>
       </div>
@@ -365,13 +336,13 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
             type="button"
             onClick={() => setTab(id)}
             className={clsx(
-              'flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium whitespace-nowrap transition-colors shrink-0',
+              'flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium whitespace-nowrap transition-colors shrink-0 min-h-11',
               tab === id
                 ? 'bg-white text-orange-800 shadow-sm border border-orange-100'
                 : 'text-gray-600 hover:bg-white/70'
             )}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-4 h-4 shrink-0" aria-hidden />
             {label}
           </button>
         ))}
@@ -398,18 +369,45 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
         />
       )}
       {tab === 'timeline' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
-          {timelineItems.length === 0 ? (
-            <p className="p-6 text-sm text-gray-500">No history yet.</p>
-          ) : (
-            timelineItems.map((item, i) => (
-              <div key={`${item.sort}-${i}`} className="p-4 text-sm">
-                <p className="font-medium text-gray-900">{item.label}</p>
-                <p className="text-gray-700 mt-0.5">{item.detail}</p>
-                <p className="text-gray-400 text-xs mt-1">{item.meta}</p>
-              </div>
-            ))
-          )}
+        <div className="space-y-3">
+          <div
+            className="flex flex-wrap gap-2"
+            role="tablist"
+            aria-label={t.timeline}
+          >
+            {filterChips.map(({ id: fid, label: fl }) => (
+              <button
+                key={fid}
+                type="button"
+                role="tab"
+                aria-selected={timelineFilter === fid}
+                onClick={() => setTimelineFilter(fid)}
+                className={clsx(
+                  'min-h-11 px-3 rounded-xl text-sm font-medium border transition-colors',
+                  timelineFilter === fid
+                    ? 'bg-orange-500 text-white border-orange-500'
+                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                )}
+              >
+                {fl}
+              </button>
+            ))}
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+            {timelineItems.length === 0 ? (
+              <ClinicEmptyState title={t.noHistory} className="border-0 shadow-none" />
+            ) : filteredTimeline.length === 0 ? (
+              <p className="p-6 text-sm text-gray-500 text-center">{t.noTimeline}</p>
+            ) : (
+              filteredTimeline.map((item, i) => (
+                <div key={`${item.sort}-${item.kind}-${i}`} className="p-4 text-sm">
+                  <p className="font-medium text-gray-900">{item.label}</p>
+                  <p className="text-gray-700 mt-0.5 whitespace-pre-wrap">{item.detail}</p>
+                  <p className="text-gray-400 text-xs mt-1">{item.meta}</p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
       {tab === 'photos' && <PhotosTab patient={patient} onRefresh={load} />}

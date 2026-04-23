@@ -40,3 +40,26 @@
 **Operational**
 
 - After pull: `npx prisma db push` on the practice database.
+
+---
+
+## Chunk 3 — 2026-04-23
+
+**Shipped**
+
+- **i18n:** English / Arabic for practice shell, patients, appointments calendar, patient record tabs & “what’s next”; `dir="rtl"` + `lang` when Arabic selected; persisted in `localStorage`.
+- **Appointments:** Week **grid** (Mon–Sun), prev/next week, today, tap card → **edit**; `GET` + `PATCH /api/clinic/appointments/[id]`.
+- **Patients:** **Sort** (name A–Z / Z–A / newest), shared loading/error/empty components, `ps` layout-friendly search field (`start`/`end`).
+- **Timeline:** `buildTimelineItems` / `filterTimelineItems` in `lib/clinic/timeline.ts`; filter chips on patient record.
+- **Shared UI:** `ClinicSpinner`, `ClinicAlert`, `ClinicEmptyState`; touch-friendly `min-h-11` patterns; safe-area padding on shell.
+- **Local dev:** root `docker-compose.yml` + `docs/clinic/SETUP_LOCAL.md`; **Vitest** (`npm test`) for `week` + `timeline` helpers.
+- **Docs:** `RUNBOOK.md`, `IRYNA_FLOWS.md`, `DATA_MODEL.md`; `.env.example` Docker URL hint.
+
+**Tests**
+
+- `npm test` — no database required.
+
+**Follow-ups**
+
+- Translate remaining English-only copy (dashboard blurb, forms in Overview/Photos/Payments/CRM, account page).
+- API integration tests (optional) with Docker Postgres + scripted fetch.

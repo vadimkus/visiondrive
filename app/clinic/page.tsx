@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, Users, ListOrdered, Calendar, ArrowRight } from 'lucide-react'
+import { Users, ListOrdered, Calendar, ArrowRight } from 'lucide-react'
+import { useClinicLocale } from '@/lib/clinic/clinic-locale'
+import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 
 type Stats = {
   patientCount: number
@@ -14,6 +16,7 @@ type Stats = {
 
 export default function ClinicDashboardPage() {
   const router = useRouter()
+  const { t } = useClinicLocale()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -44,17 +47,13 @@ export default function ClinicDashboardPage() {
   }, [router])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" aria-hidden />
-      </div>
-    )
+    return <ClinicSpinner label={t.loading} className="min-h-[40vh]" />
   }
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">{t.dashboard}</h1>
         <p className="text-gray-600 mt-1 text-[15px]">
           Overview for your practice. Data is scoped to your organization only.
         </p>
@@ -63,22 +62,22 @@ export default function ClinicDashboardPage() {
       {stats && (
         <div className="grid grid-cols-2 gap-3 md:gap-4">
           <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-5 shadow-sm">
-            <Users className="w-5 h-5 text-orange-500 mb-2" />
+            <Users className="w-5 h-5 text-orange-500 mb-2" aria-hidden />
             <p className="text-2xl font-semibold text-gray-900">{stats.patientCount}</p>
-            <p className="text-sm text-gray-500">Patients</p>
+            <p className="text-sm text-gray-500">{t.patients}</p>
           </div>
           <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-5 shadow-sm">
-            <ListOrdered className="w-5 h-5 text-orange-500 mb-2" />
+            <ListOrdered className="w-5 h-5 text-orange-500 mb-2" aria-hidden />
             <p className="text-2xl font-semibold text-gray-900">{stats.procedureCount}</p>
-            <p className="text-sm text-gray-500">Active procedures</p>
+            <p className="text-sm text-gray-500">{t.procedures}</p>
           </div>
           <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-5 shadow-sm">
-            <Calendar className="w-5 h-5 text-orange-500 mb-2" />
+            <Calendar className="w-5 h-5 text-orange-500 mb-2" aria-hidden />
             <p className="text-2xl font-semibold text-gray-900">{stats.appointmentToday}</p>
             <p className="text-sm text-gray-500">Appointments today</p>
           </div>
           <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-5 shadow-sm">
-            <Calendar className="w-5 h-5 text-orange-500 mb-2" />
+            <Calendar className="w-5 h-5 text-orange-500 mb-2" aria-hidden />
             <p className="text-2xl font-semibold text-gray-900">{stats.appointmentUpcoming}</p>
             <p className="text-sm text-gray-500">Upcoming scheduled</p>
           </div>
@@ -90,16 +89,16 @@ export default function ClinicDashboardPage() {
         <div className="flex flex-col sm:flex-row gap-2">
           <Link
             href="/clinic/patients/new"
-            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600"
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600"
           >
-            New patient
-            <ArrowRight className="w-4 h-4" />
+            {t.addPatient}
+            <ArrowRight className="w-4 h-4 shrink-0 rtl:rotate-180" aria-hidden />
           </Link>
           <Link
             href="/clinic/appointments/new"
-            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50"
           >
-            New appointment
+            {t.newAppointment}
           </Link>
         </div>
       </div>

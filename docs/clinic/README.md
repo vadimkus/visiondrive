@@ -11,6 +11,10 @@ This folder documents the **practice / clinic operations** product: appointments
 | [PLAN.md](./PLAN.md) | Phased roadmap and chunk boundaries |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Schema, tenancy, API conventions, UAE data notes |
 | [CHUNKS.md](./CHUNKS.md) | What shipped in each chunk (living log) |
+| [SETUP_LOCAL.md](./SETUP_LOCAL.md) | Docker Postgres + local `db push` when cloud DB is unavailable |
+| [RUNBOOK.md](./RUNBOOK.md) | Deploy, schema, incidents, backups |
+| [IRYNA_FLOWS.md](./IRYNA_FLOWS.md) | iPad-first staff workflows (EN/AR UI) |
+| [DATA_MODEL.md](./DATA_MODEL.md) | Quick reference to tables and API map |
 
 ## Code entry points
 
@@ -19,6 +23,8 @@ This folder documents the **practice / clinic operations** product: appointments
 | App shell | `app/clinic/` |
 | REST API | `app/api/clinic/` |
 | Session helpers | `lib/clinic/session.ts` |
+| i18n (practice UI) | `lib/clinic/strings.ts`, `lib/clinic/clinic-locale.tsx` |
+| Shared UI | `components/clinic/*` |
 | DB (Prisma) | `prisma/schema.prisma` (`Clinic*` models), `lib/prisma.ts` |
 
 ## Deploy (Vercel)

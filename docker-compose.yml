@@ -1,0 +1,21 @@
+# Local PostgreSQL for VisionDrive / Practice OS when cloud DB is unavailable.
+# Usage:
+#   docker compose up -d
+#   Set in .env: VISIONDRIVE_DATABASE_URL="postgresql://visiondrive:visiondrive@localhost:5432/visiondrive?schema=public"
+#   npx prisma db push && npm run db:seed
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: visiondrive-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: visiondrive
+      POSTGRES_PASSWORD: visiondrive
+      POSTGRES_DB: visiondrive
+    volumes:
+      - visiondrive_pg:/var/lib/postgresql/data
+
+volumes:
+  visiondrive_pg:
