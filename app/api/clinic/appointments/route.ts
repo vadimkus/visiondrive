@@ -22,23 +22,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid from or to datetime' }, { status: 400 })
   }
 
-  const appointments = await prisma.clinicAppointment.findMany({
-    where: {
-      tenantId: session.tenantId,
-      startsAt: { gte: from, lte: to },
-    },
-    orderBy: { startsAt: 'asc' },
-    include: {
-      patient: {
-        select: { id: true, firstName: true, lastName: true },
+  try {
+    const appointments = await prisma.clinicAppointment.findMany({
+      where: {
+        tenantId: session.tenantId,
+        startsAt: { gte: from, lte: to },
       },
-      procedure: {
-        select: { id: true, name: true, defaultDurationMin: true },
+      orderBy: { startsAt: 'asc' },
+      include: {
+        patient: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+        procedure: {
+          select: { id: true, name: true, defaultDurationMin: true },
+        },
       },
-    },
-  })
+    })
 
-  return NextResponse.json({ appointments, range: { from: from.toISOString(), to: to.toISOString() } })
+    return NextResponse.json({
+      appointments,
+      range: { from: from.toISOString(), to: to.toISOString() },
+    })
+  } catch (e) {
+    console.error('GET /api/clinic/appointments', e)
+    const msg = e instanceof Error ? e.message : 'Database error'
+    return NextResponse.json({ error: msg }, { status: 503 })
+  }
 }
 
 export async function POST(request: NextRequest) {

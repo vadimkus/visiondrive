@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
+import { pgRejectUnauthorized, postgresUrlNeedsTls } from '@/lib/db-tls'
 
 // Keep resolution aligned with lib/sql.ts / prisma.config.ts
 const connectionString =
@@ -16,33 +17,14 @@ if (!connectionString) {
   )
 }
 
-const needsSsl =
-  /sslmode=require/i.test(connectionString) ||
-  /tsdb\.cloud\.timescale\.com/i.test(connectionString) ||
-  /timescale/i.test(connectionString) ||
-  /neon\.tech/i.test(connectionString) ||
-  /vercel-storage\.com/i.test(connectionString) ||
-  /supabase\.co/i.test(connectionString)
-
-const isManagedDbProvider =
-  /tsdb\.cloud\.timescale\.com/i.test(connectionString) ||
-  /neon\.tech/i.test(connectionString) ||
-  /supabase\.co/i.test(connectionString) ||
-  /railway\.app/i.test(connectionString) ||
-  /render\.com/i.test(connectionString) ||
-  /elephantsql\.com/i.test(connectionString) ||
-  /cockroachlabs\.cloud/i.test(connectionString) ||
-  /digitalocean\.com/i.test(connectionString) ||
-  /vercel-storage\.com/i.test(connectionString)
-
+const useSsl = postgresUrlNeedsTls(connectionString)
 const isProduction = process.env.NODE_ENV === 'production'
-const forceStrictSsl = process.env.STRICT_SSL_VALIDATION === 'true'
-const shouldValidateCerts = forceStrictSsl || (isProduction && !isManagedDbProvider)
+const rejectUnauthorized = pgRejectUnauthorized(connectionString)
 
 const pool = new Pool({
   connectionString,
   max: isProduction ? 10 : 5,
-  ...(needsSsl ? { ssl: { rejectUnauthorized: shouldValidateCerts } } : {}),
+  ...(useSsl ? { ssl: { rejectUnauthorized } } : {}),
 })
 
 const adapter = new PrismaPg(pool)

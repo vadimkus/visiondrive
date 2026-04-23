@@ -50,7 +50,18 @@ export default function ClinicAppointmentsPage() {
         router.replace('/login')
         return
       }
-      const data = await res.json()
+      let data: { error?: string; appointments?: Appointment[]; range?: { from: string; to: string } }
+      try {
+        data = await res.json()
+      } catch {
+        setError(
+          res.ok
+            ? t.networkError
+            : `Server error (${res.status}). Check the terminal logs.`
+        )
+        setAppointments([])
+        return
+      }
       if (!res.ok) {
         setError(data.error || 'Failed to load')
         setAppointments([])

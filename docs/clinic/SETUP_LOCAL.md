@@ -49,3 +49,4 @@ npm test
 
 - **Port 5432 in use:** change the host port in `docker-compose.yml` (e.g. `5433:5432`) and update the URL accordingly.
 - **SSL:** local Postgres usually does not need `sslmode=require`; omit it for `localhost`.
+- **Timescale / managed TLS in dev:** `lib/db-tls.ts` skips strict cert verification when `NODE_ENV=development` unless `STRICT_SSL_VALIDATION=true`. If you need to verify chains locally, set that env var.
