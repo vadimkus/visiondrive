@@ -685,8 +685,12 @@ async function main() {
 
   // ---------------------------------------------------------------------------
   // Practice console users (optional). Set env vars before `npm run db:seed`.
-  // Passwords must satisfy lib/password-policy (12+ chars, mixed case, etc.).
+  // Passwords must satisfy lib/password-policy unless CLINIC_SEED_ALLOW_WEAK_PASSWORD=true
+  // (development only — never enable in production).
   // ---------------------------------------------------------------------------
+  const allowWeakClinicSeed =
+    process.env.NODE_ENV !== 'production' && process.env.CLINIC_SEED_ALLOW_WEAK_PASSWORD === 'true'
+
   const clinicSeeds: { email: string | undefined; password: string | undefined; name: string }[] = [
     { email: process.env.CLINIC_VADIM_EMAIL, password: process.env.CLINIC_VADIM_PASSWORD, name: 'Vadim' },
     { email: process.env.CLINIC_IRYNA_EMAIL, password: process.env.CLINIC_IRYNA_PASSWORD, name: 'Iryna' },
@@ -696,9 +700,12 @@ async function main() {
     if (!c.email?.trim() || !c.password) continue
     const email = c.email.trim().toLowerCase()
     const pwCheck = validatePassword(c.password)
-    if (!pwCheck.isValid) {
+    if (!pwCheck.isValid && !allowWeakClinicSeed) {
       console.warn(`⚠️  Skipping clinic user ${email}: ${pwCheck.errors.join('; ')}`)
       continue
+    }
+    if (!pwCheck.isValid && allowWeakClinicSeed) {
+      console.warn(`⚠️  Clinic user ${email}: using weak password (CLINIC_SEED_ALLOW_WEAK_PASSWORD) — change after first login`)
     }
     const passwordHash = await bcrypt.hash(c.password, 12)
     const uid = randomUUID()
