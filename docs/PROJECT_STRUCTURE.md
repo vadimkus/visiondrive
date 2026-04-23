@@ -79,7 +79,8 @@ smartkitchen/
 
 ### Documentation (`/docs`)
 - `README.md` - Documentation index
-- `FEATURES_AND_FUNCTIONALITY.md` - All features
+- `clinic/` - Practice OS (plan, architecture, chunk log)
+- `archive/` - Legacy parking / smart-kitchen documentation
 - `CODEBASE_REFERENCE.md` - Code structure, API, libraries
 - `api/` - API documentation
 - `architecture/` - System architecture
@@ -105,7 +106,8 @@ Utility scripts for development and deployment.
 
 ## Related Documentation
 
-- [FEATURES_AND_FUNCTIONALITY.md](FEATURES_AND_FUNCTIONALITY.md) - Feature overview
+- [clinic/README.md](clinic/README.md) - Practice OS overview
+- [archive/smart-kitchen-platform/FEATURES_AND_FUNCTIONALITY.md](archive/smart-kitchen-platform/FEATURES_AND_FUNCTIONALITY.md) - Legacy feature overview
 - [CODEBASE_REFERENCE.md](CODEBASE_REFERENCE.md) - Detailed code reference
 
 

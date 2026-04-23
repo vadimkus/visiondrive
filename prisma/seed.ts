@@ -5,6 +5,7 @@ import path from 'path'
 import { sql } from '../lib/sql'
 import { randomUUID } from 'crypto'
 import { runAlertScan } from '../lib/alerts'
+import { validatePassword } from '../lib/password-policy'
 
 // Seeding uses the direct `sql` client to avoid Prisma runtime/adapter issues in serverless/dev.
 
@@ -681,6 +682,54 @@ async function main() {
   console.log('✅ Ensured admin user exists: admin')
   console.log('✅ Ensured default tenant exists:', tenantSlug)
   console.log('✅ Ensured tenant settings exist')
+
+  // ---------------------------------------------------------------------------
+  // Practice console users (optional). Set env vars before `npm run db:seed`.
+  // Passwords must satisfy lib/password-policy (12+ chars, mixed case, etc.).
+  // ---------------------------------------------------------------------------
+  const clinicSeeds: { email: string | undefined; password: string | undefined; name: string }[] = [
+    { email: process.env.CLINIC_VADIM_EMAIL, password: process.env.CLINIC_VADIM_PASSWORD, name: 'Vadim' },
+    { email: process.env.CLINIC_IRYNA_EMAIL, password: process.env.CLINIC_IRYNA_PASSWORD, name: 'Iryna' },
+  ]
+
+  for (const c of clinicSeeds) {
+    if (!c.email?.trim() || !c.password) continue
+    const email = c.email.trim().toLowerCase()
+    const pwCheck = validatePassword(c.password)
+    if (!pwCheck.isValid) {
+      console.warn(`⚠️  Skipping clinic user ${email}: ${pwCheck.errors.join('; ')}`)
+      continue
+    }
+    const passwordHash = await bcrypt.hash(c.password, 12)
+    const uid = randomUUID()
+    await sql/*sql*/`
+      INSERT INTO users (id, email, "passwordHash", name, role, status, "createdAt", "updatedAt")
+      VALUES (${uid}, ${email}, ${passwordHash}, ${c.name}, 'ADMIN', 'ACTIVE', now(), now())
+      ON CONFLICT (email) DO UPDATE
+        SET "passwordHash" = EXCLUDED."passwordHash",
+            name = EXCLUDED.name,
+            role = EXCLUDED.role,
+            status = EXCLUDED.status,
+            "updatedAt" = now()
+    `
+    await sql/*sql*/`
+      UPDATE users
+      SET "defaultTenantId" = ${ensuredTenantId}, "updatedAt" = now()
+      WHERE email = ${email}
+    `
+    const cmId = randomUUID()
+    await sql/*sql*/`
+      INSERT INTO tenant_memberships (id, "tenantId", "userId", role, status, "createdAt", "updatedAt")
+      SELECT ${cmId}, ${ensuredTenantId}, u.id, 'ADMIN', 'ACTIVE', now(), now()
+      FROM users u
+      WHERE u.email = ${email}
+      ON CONFLICT ("tenantId", "userId") DO UPDATE
+        SET role = EXCLUDED.role,
+            status = EXCLUDED.status,
+            "updatedAt" = now()
+    `
+    console.log('✅ Ensured practice console user:', email)
+  }
 
   // Convert sensor_events into a Timescale hypertable (if Timescale functions are available).
   // This is safe to run multiple times.

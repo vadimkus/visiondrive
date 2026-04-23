@@ -5,7 +5,7 @@ export default function WebSiteSchema() {
     '@id': 'https://visiondrive.ae/#website',
     name: 'VisionDrive',
     url: 'https://visiondrive.ae',
-    description: 'Smart Kitchen Temperature Monitoring for UAE Commercial Kitchens',
+    description: 'VisionDrive — practice operations, made clear. Software for professional teams in the UAE.',
     publisher: {
       '@type': 'Organization',
       name: 'VisionDrive Technologies FZ-LLC',

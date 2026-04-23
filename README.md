@@ -1,12 +1,14 @@
 # Vision Drive Technologies FZ-LLC
 
-## Mission Statement
+## Mission
 
-To revolutionize food safety in the UAE by delivering cutting-edge, data-driven temperature monitoring solutions for commercial kitchens.
+VisionDrive builds **practice operations software** for professional teams in the UAE (appointments, records, inventory, finance — see `docs/clinic/`). The public site and **Practice OS** console live in this Next.js app; legacy IoT / kitchen code remains in-repo but is not the active product direction.
 
 ## Overview
 
-Vision Drive is a Smart Kitchen temperature monitoring platform that leverages IoT sensors and AWS cloud technology to provide Dubai Municipality compliant food safety monitoring for commercial kitchens across the UAE.
+- **Web app:** `app/` — marketing site, `/login` → `/clinic` practice console, legacy `/portal` routes.
+- **Clinic module:** `app/clinic/`, `app/api/clinic/`, Prisma models `Clinic*` in `prisma/schema.prisma`.
+- **Docs:** Start at [docs/clinic/README.md](docs/clinic/README.md). Older parking / kitchen marketing docs are under [docs/archive/](docs/archive/).
 
 ## Project Structure
 
@@ -57,15 +59,14 @@ The Vision Drive website (visiondrive.ae) features a streamlined navigation stru
 - **Data & Analytics**: Demand reports, turnover metrics, violation reports, and business intelligence
 - **About Us**: Mission statement, FZ-LLC compliance, UAE Smart City standards
 
-See [WEBSITE_STRUCTURE_V2.md](docs/WEBSITE_STRUCTURE_V2.md) for complete page structure and [CONTENT_STRATEGY.md](docs/CONTENT_STRATEGY.md) for content guidelines.
-
 ### Documentation
 
 | Document | Description |
 |----------|-------------|
-| [FEATURES_AND_FUNCTIONALITY.md](docs/FEATURES_AND_FUNCTIONALITY.md) | **All features and functionality** |
-| [CODEBASE_REFERENCE.md](docs/CODEBASE_REFERENCE.md) | **Code structure, API routes, libraries** |
+| [docs/clinic/README.md](docs/clinic/README.md) | **Practice OS — plan, architecture, chunks** |
+| [CODEBASE_REFERENCE.md](docs/CODEBASE_REFERENCE.md) | Code structure, API routes, libraries |
 | [docs/README.md](docs/README.md) | Full documentation index |
+| [docs/archive/](docs/archive/) | Legacy parking / smart-kitchen write-ups |
 
 ## IoT Projects
 

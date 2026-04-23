@@ -8,21 +8,18 @@ import { motion as fmMotion, AnimatePresence } from 'framer-motion'
 import Logo from '../common/Logo'
 import LanguageSelector from '../common/LanguageSelector'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { visiondriveSlogan } from '@/lib/brand'
 
 const motion = fmMotion as any
 
 const navigation = {
   en: [
     { name: 'Home', href: '/' },
-    { name: 'Solutions', href: '/solutions' },
-    { name: 'Technology', href: '/technology' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ],
   ar: [
     { name: 'الرئيسية', href: '/' },
-    { name: 'الحلول', href: '/solutions' },
-    { name: 'التكنولوجيا', href: '/technology' },
     { name: 'من نحن', href: '/about' },
     { name: 'اتصل بنا', href: '/contact' },
   ],
@@ -34,6 +31,7 @@ export default function Header() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [dashboardHref, setDashboardHref] = useState('/clinic')
   const [loading, setLoading] = useState(true)
   
   const navItems = navigation[language]
@@ -62,6 +60,16 @@ export default function Header() {
         if (response.status === 401) {
           setIsLoggedIn(false)
         } else if (response.ok) {
+          const data = await response.json()
+          const portal = data?.user?.portal as string | undefined
+          const role = data?.user?.role as string | undefined
+          if (portal === 'clinic') {
+            setDashboardHref('/clinic')
+          } else if (portal === 'kitchen') {
+            setDashboardHref(role === 'KITCHEN_OWNER' ? '/kitchen-owner' : '/portal/smart-kitchen')
+          } else {
+            setDashboardHref('/portal')
+          }
           setIsLoggedIn(true)
         } else {
           setIsLoggedIn(false)
@@ -102,7 +110,9 @@ export default function Header() {
                 <span className="text-[17px] md:text-lg font-semibold text-gray-900 leading-tight">
                   Vision<span className="text-orange-500">Drive</span>
                 </span>
-                <span className="text-[10px] text-gray-400">IoT company 🇦🇪</span>
+                <span className="text-[10px] text-gray-400 leading-snug max-w-[200px] md:max-w-none">
+                  {visiondriveSlogan[language]}
+                </span>
               </div>
             </Link>
 
@@ -138,7 +148,7 @@ export default function Header() {
               </div>
               <LanguageSelector />
               <Link
-                href={isLoggedIn ? "/portal/smart-kitchen" : "/login"}
+                href={isLoggedIn ? dashboardHref : "/login"}
                 aria-label={isLoggedIn ? "Go to dashboard" : "Login"}
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
               >
@@ -159,7 +169,7 @@ export default function Header() {
             <div className="flex lg:hidden items-center gap-1">
               <LanguageSelector />
               <Link
-                href={isLoggedIn ? "/portal/smart-kitchen" : "/login"}
+                href={isLoggedIn ? dashboardHref : "/login"}
                 aria-label={isLoggedIn ? "Go to dashboard" : "Login"}
                 className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors"
               >

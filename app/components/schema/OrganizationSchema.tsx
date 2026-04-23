@@ -5,7 +5,8 @@ export default function OrganizationSchema() {
     name: 'VisionDrive Technologies FZ-LLC',
     url: 'https://visiondrive.ae',
     logo: 'https://visiondrive.ae/favicon/android-chrome-512x512.png',
-    description: 'UAE-based IoT company providing smart kitchen temperature monitoring solutions for commercial kitchens, ensuring Dubai Municipality food safety compliance.',
+    description:
+      'VisionDrive — practice operations, made clear. UAE software for appointments, records, inventory, and finance (Ras Al Khaimah / Dubai).',
     email: 'tech@visiondrive.ae',
     telephone: '+971559152985',
     address: {

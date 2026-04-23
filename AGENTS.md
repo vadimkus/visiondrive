@@ -12,9 +12,12 @@ All project documentation is centralized in the `docs/` directory:
 docs/
 ├── README.md                    # Documentation index and overview
 ├── PROJECT_STRUCTURE.md         # Project architecture and folder structure
-├── WEBSITE_STRUCTURE.md         # Website pages and components
-├── WEBSITE_STRUCTURE_V2.md      # Updated website structure
-├── WEBSITE_SUMMARY.md           # Website features summary
+├── clinic/                      # Practice OS (current product)
+│   ├── README.md
+│   ├── PLAN.md
+│   ├── ARCHITECTURE.md
+│   └── CHUNKS.md
+├── archive/                     # Legacy parking / smart-kitchen docs
 │
 ├── # Compliance & Certificates
 ├── IOT_CERTIFICATE_ADDITION.md  # TDRA IoT Services License details
@@ -33,11 +36,9 @@ docs/
 ├── LAMBDA_RUNTIME_UPGRADE.md    # AWS Lambda configuration
 │
 ├── # Development
-├── SMART_KITCHEN_CHANGELOG.md   # Smart Kitchen feature changes
 ├── NOTES_REORGANIZATION_SUMMARY.md
 ├── SENSOR_TESTING_PLAN.md       # Sensor testing procedures
 ├── README_IMAGES.md             # Image guidelines
-├── CONTENT_STRATEGY.md          # Content and marketing
 │
 ├── # Feature Documentation (11.x series)
 ├── 11-action-plan.md            # Overall action plan
@@ -62,21 +63,14 @@ Some modules have their own documentation:
 ## Key Files to Read
 
 1. **For project overview**: `docs/README.md`, `docs/PROJECT_STRUCTURE.md`
-2. **For features & functionality**: `docs/FEATURES_AND_FUNCTIONALITY.md`
+2. **For practice / clinic product**: `docs/clinic/README.md`, `docs/clinic/PLAN.md`, `docs/clinic/ARCHITECTURE.md`
 3. **For codebase structure**: `docs/CODEBASE_REFERENCE.md`
-4. **For website changes**: `docs/WEBSITE_STRUCTURE_V2.md`
-5. **For compliance/certificates**: `docs/IOT_CERTIFICATE_ADDITION.md`, `docs/TDRA_COMPLIANCE_SUMMARY.md`
-6. **For Smart Kitchen**: `smartkitchen/docs/README.md`
+4. **For compliance/certificates**: `docs/IOT_CERTIFICATE_ADDITION.md`, `docs/TDRA_COMPLIANCE_SUMMARY.md`
+5. **For legacy Smart Kitchen**: `smartkitchen/docs/README.md`, `docs/archive/smart-kitchen-platform/`
 
 ## Project Context
 
-VisionDrive is a UAE-based IoT company providing:
-- **Smart Kitchen**: Temperature monitoring for commercial kitchens (Dubai Municipality compliant)
-
-All services are:
-- TDRA certified for UAE operation
-- UAE data resident (AWS me-central-1)
-- Dubai Municipality compliant (for food safety)
+VisionDrive (FZ-LLC) is building **practice operations software** for the UAE (`/clinic`, `docs/clinic/`). Legacy IoT / kitchen systems remain in the repo and archive for reference; they are not the primary product direction.
 
 ## Before Making Changes
 

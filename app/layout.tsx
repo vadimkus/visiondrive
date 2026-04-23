@@ -22,11 +22,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://visiondrive.ae'),
   title: {
-    default: 'VisionDrive - Smart Kitchen Temperature Monitoring for UAE',
+    default: 'VisionDrive — Practice operations software | Dubai, UAE',
     template: '%s | VisionDrive',
   },
-  description: 'Real-time temperature monitoring for commercial kitchens. Dubai Municipality compliant food safety sensors with automated alerts and compliance reporting.',
-  keywords: 'smart kitchen, temperature monitoring, food safety, Dubai Municipality, commercial kitchen, IoT sensors, HACCP, UAE',
+  description:
+    'Practice operations, made clear. VisionDrive builds practice software in the UAE — appointments, records, media, inventory, and finance. Active development in Dubai.',
+  keywords:
+    'practice management UAE, clinic software Dubai, professional practice software, VisionDrive, healthcare operations UAE, appointment software Dubai',
   authors: [{ name: 'Vision Drive Technologies FZ-LLC' }],
   creator: 'Vision Drive Technologies FZ-LLC',
   publisher: 'Vision Drive Technologies FZ-LLC',
@@ -61,8 +63,9 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'VisionDrive - Smart Kitchen Temperature Monitoring',
-    description: 'Real-time food safety monitoring for commercial kitchens in the UAE. TDRA certified, Dubai Municipality compliant.',
+    title: 'VisionDrive — Practice operations software (UAE)',
+    description:
+      'Practice operations, made clear. Commercial-grade tools for UAE professional practices — calendar to ledger.',
     type: 'website',
     url: 'https://visiondrive.ae',
     siteName: 'VisionDrive',
@@ -72,14 +75,15 @@ export const metadata: Metadata = {
         url: '/favicon/android-chrome-512x512.png',
         width: 512,
         height: 512,
-        alt: 'VisionDrive - Smart Kitchen Temperature Monitoring',
+        alt: 'VisionDrive — Practice operations software',
       },
     ],
   },
   twitter: {
     card: 'summary',
-    title: 'VisionDrive - Smart Kitchen Temperature Monitoring',
-    description: 'Real-time food safety monitoring for UAE commercial kitchens.',
+    title: 'VisionDrive — Practice operations software',
+    description:
+      'Practice operations, made clear. UAE-built software for professional practices — commercial roadmap; founding team in Dubai.',
     images: ['/favicon/android-chrome-512x512.png'],
   },
   other: {

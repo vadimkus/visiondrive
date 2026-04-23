@@ -196,6 +196,18 @@ Browser → Vercel (Next.js) → API Routes
 | POST | `/api/auth/logout` | Logout |
 | GET | `/api/auth/me` | Current user (session check) |
 
+### Practice OS (clinic)
+
+Requires `Cookie: portal=clinic` and valid JWT with `tenantId`. See `docs/clinic/ARCHITECTURE.md`.
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| GET | `/api/clinic/stats` | Dashboard counts |
+| GET, POST | `/api/clinic/patients` | List / create patients |
+| GET, PATCH | `/api/clinic/patients/[id]` | Patient detail / update |
+| GET, POST | `/api/clinic/procedures` | List / create procedure catalog |
+| GET, POST | `/api/clinic/appointments` | List (optional `from`,`to`) / create |
+
 ### Portal – Smart Kitchen (Next.js proxy to AWS)
 
 | Method | Route | Purpose |
@@ -323,7 +335,8 @@ authenticateUser(email, password)  // Returns user or null
 
 ## Related Documentation
 
-- [FEATURES_AND_FUNCTIONALITY.md](FEATURES_AND_FUNCTIONALITY.md) — Feature overview
+- [clinic/README.md](clinic/README.md) — Practice OS (current product)
+- [archive/smart-kitchen-platform/FEATURES_AND_FUNCTIONALITY.md](archive/smart-kitchen-platform/FEATURES_AND_FUNCTIONALITY.md) — Legacy feature overview
 - [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) — Folder structure
 - [api/README.md](api/README.md) — API reference
 - [architecture/README.md](architecture/README.md) — Architecture

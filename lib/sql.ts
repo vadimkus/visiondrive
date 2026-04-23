@@ -31,7 +31,8 @@ const isManagedDbProvider =
   /render\.com/i.test(connectionString) ||                   // Render
   /elephantsql\.com/i.test(connectionString) ||              // ElephantSQL
   /cockroachlabs\.cloud/i.test(connectionString) ||          // CockroachDB Cloud
-  /digitalocean\.com/i.test(connectionString)                // DigitalOcean
+  /digitalocean\.com/i.test(connectionString) ||             // DigitalOcean
+  /vercel-storage\.com/i.test(connectionString)              // Vercel Postgres
 
 // SSL Configuration:
 // - Managed DB providers: Allow their certificates (they use internal CAs)

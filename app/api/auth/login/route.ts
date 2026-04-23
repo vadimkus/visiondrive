@@ -49,6 +49,57 @@ export async function POST(request: NextRequest) {
 
     const { email, password, portal } = await request.json()
 
+    // Clinic / practice console — PostgreSQL users (Vercel Postgres compatible)
+    if (portal === 'clinic') {
+      if (!email || !password) {
+        return NextResponse.json(
+          { success: false, error: 'Email and password are required' },
+          { status: 400 }
+        )
+      }
+
+      const result = await authenticateUser(email, password)
+      if (!result) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Invalid email or password',
+            attemptsRemaining: rateLimit.remaining,
+          },
+          {
+            status: 401,
+            headers: {
+              'X-RateLimit-Limit': String(loginRateLimiter.maxRequests),
+              'X-RateLimit-Remaining': String(rateLimit.remaining),
+              'X-RateLimit-Reset': String(rateLimit.resetAt),
+            },
+          }
+        )
+      }
+
+      const response = NextResponse.json({
+        success: true,
+        user: { ...result.user, portal: 'clinic' },
+        token: result.token,
+        portal: 'clinic',
+      })
+
+      response.cookies.set('authToken', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24,
+      })
+      response.cookies.set('portal', 'clinic', {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24,
+      })
+
+      return response
+    }
+
     // Handle Kitchen portal login
     if (portal === 'kitchen') {
       // Demo accounts only available in development

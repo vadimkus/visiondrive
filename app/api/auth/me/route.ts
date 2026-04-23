@@ -122,6 +122,10 @@ export async function GET(request: NextRequest) {
         ? 'MASTER_ADMIN'
         : (user.membershipStatus === 'ACTIVE' && user.tenantRole ? user.tenantRole : user.role)
 
+    const portalCookie = request.cookies.get('portal')?.value
+    const resolvedPortal =
+      portalCookie === 'clinic' ? 'clinic' : portalCookie === 'kitchen' ? 'kitchen' : 'operations'
+
     return NextResponse.json({
       success: true,
       user: {
@@ -131,7 +135,7 @@ export async function GET(request: NextRequest) {
         role: effectiveRole,
         status: user.status,
         tenantId: activeTenantId || user.defaultTenantId || null,
-        portal: 'operations',
+        portal: resolvedPortal,
       },
     })
   } catch (error) {

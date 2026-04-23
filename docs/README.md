@@ -4,16 +4,21 @@
 
 ## Documentation Index
 
+### Practice OS (current product)
+
+| Document | Description |
+|----------|-------------|
+| [clinic/README.md](clinic/README.md) | **Clinic / practice system — start here** |
+| [clinic/PLAN.md](clinic/PLAN.md) | Phased delivery plan and chunk scope |
+| [clinic/ARCHITECTURE.md](clinic/ARCHITECTURE.md) | Data model, APIs, tenancy, security |
+| [clinic/CHUNKS.md](clinic/CHUNKS.md) | Implementation log (what shipped per chunk) |
+
 ### Project Overview
 | Document | Description |
 |----------|-------------|
 | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | Project architecture and folder structure |
-| [FEATURES_AND_FUNCTIONALITY.md](FEATURES_AND_FUNCTIONALITY.md) | **Comprehensive feature & functionality documentation** |
 | [CODEBASE_REFERENCE.md](CODEBASE_REFERENCE.md) | **Codebase structure, API routes, libraries** |
-| [WEBSITE_STRUCTURE.md](WEBSITE_STRUCTURE.md) | Website pages and components |
-| [WEBSITE_STRUCTURE_V2.md](WEBSITE_STRUCTURE_V2.md) | Updated website structure |
-| [WEBSITE_SUMMARY.md](WEBSITE_SUMMARY.md) | Website features summary |
-| [CONTENT_STRATEGY.md](CONTENT_STRATEGY.md) | Content and marketing strategy |
+| [archive/README.md](archive/README.md) | **Legacy docs** (parking / smart-kitchen era) |
 
 ### Compliance & Certificates
 | Document | Description |
@@ -41,7 +46,7 @@
 ### Development Notes
 | Document | Description |
 |----------|-------------|
-| [SMART_KITCHEN_CHANGELOG.md](SMART_KITCHEN_CHANGELOG.md) | Smart Kitchen feature changelog |
+| [archive/smart-kitchen-platform/SMART_KITCHEN_CHANGELOG.md](archive/smart-kitchen-platform/SMART_KITCHEN_CHANGELOG.md) | Smart Kitchen changelog (archived) |
 | [NOTES_REORGANIZATION_SUMMARY.md](NOTES_REORGANIZATION_SUMMARY.md) | Notes reorganization |
 | [SENSOR_TESTING_PLAN.md](SENSOR_TESTING_PLAN.md) | Sensor testing procedures |
 | [README_IMAGES.md](README_IMAGES.md) | Image guidelines |

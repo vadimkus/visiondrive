@@ -35,7 +35,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          portal: 'kitchen',
+          portal: 'clinic',
         }),
       })
 
@@ -47,12 +47,7 @@ export default function LoginPage() {
         return
       }
 
-      // Redirect based on user role
-      if (data.isOwner) {
-        router.push('/kitchen-owner')
-      } else {
-        router.push('/portal/smart-kitchen')
-      }
+      router.push('/clinic')
       router.refresh()
     } catch (err) {
       console.error('Login error:', err)
@@ -82,8 +77,9 @@ export default function LoginPage() {
           <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 tracking-tight">
             Vision<span className="text-orange-500">Drive</span>
           </h1>
-          <p className="text-base md:text-lg text-gray-500 mt-1">
-            Smart Kitchen
+          <p className="text-base md:text-lg text-gray-500 mt-1">Practice console</p>
+          <p className="text-xs text-gray-400 mt-2 max-w-xs mx-auto leading-snug">
+            Practice operations, made clear
           </p>
         </div>
 
@@ -291,12 +287,10 @@ export default function LoginPage() {
           <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
             <span className="flex items-center gap-1">
               <span>🇦🇪</span>
-              <span>UAE</span>
+              <span>Dubai · UAE</span>
             </span>
             <span className="w-1 h-1 rounded-full bg-gray-300" />
-            <span>TDRA Certified</span>
-            <span className="w-1 h-1 rounded-full bg-gray-300" />
-            <span>DM Compliant</span>
+            <span>VisionDrive Technologies</span>
           </div>
           
           {/* Copyright */}

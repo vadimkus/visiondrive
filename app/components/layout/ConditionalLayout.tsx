@@ -19,13 +19,14 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const pathname = usePathname()
   const isPortal = pathname?.startsWith('/portal')
   const isKitchenOwner = pathname?.startsWith('/kitchen-owner')
+  const isClinic = pathname?.startsWith('/clinic')
   const isLogin = pathname === '/login'
 
   if (!pathname) {
     return <main id="main-content" className="flex-1 min-h-screen">{children}</main>
   }
 
-  if (isPortal || isKitchenOwner || isLogin) {
+  if (isPortal || isKitchenOwner || isClinic || isLogin) {
     return <main id="main-content" className="flex-1 min-h-screen">{children}</main>
   }
 

@@ -36,6 +36,8 @@
     "build",
     "smartkitchen",
     "smartkitchen/**/*",
+    "agent-pnl",
+    "agent-pnl/**/*",
     "**/cdk/**/*"
   ]
 }

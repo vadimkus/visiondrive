@@ -1,0 +1,108 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { getClinicSession } from '@/lib/clinic/session'
+
+export async function GET(request: NextRequest) {
+  const session = getClinicSession(request)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const fromRaw = searchParams.get('from')
+  const toRaw = searchParams.get('to')
+
+  const now = new Date()
+  const from = fromRaw ? new Date(fromRaw) : new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const to = toRaw
+    ? new Date(toRaw)
+    : new Date(from.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+    return NextResponse.json({ error: 'Invalid from or to datetime' }, { status: 400 })
+  }
+
+  const appointments = await prisma.clinicAppointment.findMany({
+    where: {
+      tenantId: session.tenantId,
+      startsAt: { gte: from, lte: to },
+    },
+    orderBy: { startsAt: 'asc' },
+    include: {
+      patient: {
+        select: { id: true, firstName: true, lastName: true },
+      },
+      procedure: {
+        select: { id: true, name: true, defaultDurationMin: true },
+      },
+    },
+  })
+
+  return NextResponse.json({ appointments, range: { from: from.toISOString(), to: to.toISOString() } })
+}
+
+export async function POST(request: NextRequest) {
+  const session = getClinicSession(request)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  let body: Record<string, unknown>
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const patientId = String(body.patientId ?? '').trim()
+  const procedureId = body.procedureId != null ? String(body.procedureId).trim() || null : null
+  const startsAt = body.startsAt != null ? new Date(String(body.startsAt)) : null
+  const endsAtRaw = body.endsAt != null ? new Date(String(body.endsAt)) : null
+  const titleOverride = body.titleOverride != null ? String(body.titleOverride).trim() || null : null
+  const internalNotes = body.internalNotes != null ? String(body.internalNotes).trim() || null : null
+
+  if (!patientId || !startsAt || Number.isNaN(startsAt.getTime())) {
+    return NextResponse.json({ error: 'patientId and valid startsAt are required' }, { status: 400 })
+  }
+
+  const patient = await prisma.clinicPatient.findFirst({
+    where: { id: patientId, tenantId: session.tenantId },
+  })
+  if (!patient) {
+    return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
+  }
+
+  let procedure: { id: string; defaultDurationMin: number } | null = null
+  if (procedureId) {
+    procedure = await prisma.clinicProcedure.findFirst({
+      where: { id: procedureId, tenantId: session.tenantId, active: true },
+      select: { id: true, defaultDurationMin: true },
+    })
+    if (!procedure) {
+      return NextResponse.json({ error: 'Procedure not found or inactive' }, { status: 404 })
+    }
+  }
+
+  let endsAt: Date | null = endsAtRaw && !Number.isNaN(endsAtRaw.getTime()) ? endsAtRaw : null
+  if (!endsAt && procedure) {
+    endsAt = new Date(startsAt.getTime() + procedure.defaultDurationMin * 60 * 1000)
+  }
+
+  const appointment = await prisma.clinicAppointment.create({
+    data: {
+      tenantId: session.tenantId,
+      patientId,
+      procedureId: procedure?.id ?? null,
+      startsAt,
+      endsAt,
+      titleOverride,
+      internalNotes,
+    },
+    include: {
+      patient: { select: { id: true, firstName: true, lastName: true } },
+      procedure: { select: { id: true, name: true } },
+    },
+  })
+
+  return NextResponse.json({ appointment }, { status: 201 })
+}

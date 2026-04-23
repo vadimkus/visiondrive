@@ -87,6 +87,10 @@ model Tenant {
   billingEvents BillingEvent[]
   billingSubscriptions BillingSubscription[]
 
+  clinicPatients     ClinicPatient[]
+  clinicProcedures   ClinicProcedure[]
+  clinicAppointments ClinicAppointment[]
+
   @@map("tenants")
 }
 
@@ -716,6 +720,78 @@ model Image {
 
   @@unique([type, name])
   @@map("images")
+}
+
+// --- Practice / clinic OS (VisionDrive) — tenant-scoped clinical operations ---
+
+enum ClinicAppointmentStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+model ClinicPatient {
+  id             String    @id @default(cuid())
+  tenantId       String
+  firstName      String
+  lastName       String
+  middleName     String?
+  dateOfBirth    DateTime  @db.Date
+  phone          String?
+  email          String?
+  /// Staff-only; never expose on patient-facing PDF exports
+  internalNotes  String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments  ClinicAppointment[]
+
+  @@index([tenantId, lastName, firstName])
+  @@map("clinic_patients")
+}
+
+model ClinicProcedure {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  name               String
+  defaultDurationMin Int      @default(60)
+  basePriceCents     Int      @default(0)
+  currency           String   @default("AED")
+  active             Boolean  @default(true)
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments  ClinicAppointment[]
+
+  @@index([tenantId, active, name])
+  @@map("clinic_procedures")
+}
+
+model ClinicAppointment {
+  id            String                  @id @default(cuid())
+  tenantId      String
+  patientId     String
+  procedureId   String?
+  startsAt      DateTime                @db.Timestamptz(6)
+  endsAt        DateTime?               @db.Timestamptz(6)
+  status        ClinicAppointmentStatus @default(SCHEDULED)
+  titleOverride String?
+  /// Doctor-only appointment / scheduling notes
+  internalNotes String?                 @db.Text
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient   ClinicPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, startsAt])
+  @@index([patientId, startsAt])
+  @@map("clinic_appointments")
 }
 
 // Rate limiting table for brute force protection

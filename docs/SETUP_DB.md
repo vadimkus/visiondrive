@@ -14,6 +14,8 @@ JWT_SECRET="your-secret-key-change-in-production"
 NODE_ENV="development"
 ```
 
+**Practice OS:** when `prisma/schema.prisma` includes `Clinic*` models, run `npx prisma db push` (or `npm run db:push`) against the same database. See `docs/clinic/README.md`.
+
 2. **Install dependencies**:
 ```bash
 npm install

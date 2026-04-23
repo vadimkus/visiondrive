@@ -6,7 +6,8 @@ export default function LocalBusinessSchema() {
     name: 'VisionDrive Technologies FZ-LLC',
     url: 'https://visiondrive.ae',
     image: 'https://visiondrive.ae/favicon/android-chrome-512x512.png',
-    description: 'Smart kitchen temperature monitoring and IoT solutions for UAE commercial kitchens.',
+    description:
+      'VisionDrive — practice operations, made clear. Business software for professional teams across the UAE.',
     telephone: '+971559152985',
     email: 'tech@visiondrive.ae',
     address: {

@@ -5,18 +5,20 @@ import { usePathname } from 'next/navigation'
 import { Mail, MapPin, MessageCircle } from 'lucide-react'
 import Logo from '../common/Logo'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { visiondriveSlogan } from '@/lib/brand'
 
 const footerTranslations = {
   en: {
     solutions: 'Solutions',
     company: 'Company',
     contact: 'Contact',
-    description: 'Enterprise NB-IoT Solutions for UAE Businesses',
+    description:
+      'Practice operations, made clear. Software for professional teams in the UAE — built in Dubai.',
     copyright: 'All rights reserved.',
     solutionsLinks: {
-      restaurants: 'For Restaurants',
-      hotels: 'For Hotels & Catering',
-      technology: 'Technology',
+      restaurants: 'Product overview',
+      hotels: 'Security & data',
+      technology: 'About the platform',
     },
     companyLinks: {
       about: 'About Us',
@@ -33,12 +35,13 @@ const footerTranslations = {
     solutions: 'الحلول',
     company: 'الشركة',
     contact: 'اتصل بنا',
-    description: 'حلول NB-IoT للشركات الإماراتية',
+    description:
+      'وضوح في عمليات الممارسة. برمجيات للفرق المهنية في الإمارات — من دبي.',
     copyright: 'جميع الحقوق محفوظة.',
     solutionsLinks: {
-      restaurants: 'للمطاعم',
-      hotels: 'للفنادق والتموين',
-      technology: 'التكنولوجيا',
+      restaurants: 'نظرة على المنتج',
+      hotels: 'الأمان والبيانات',
+      technology: 'عن المنصة',
     },
     companyLinks: {
       about: 'من نحن',
@@ -60,9 +63,9 @@ export default function Footer() {
   
   const footerNavigation = {
     solutions: [
-      { name: t.solutionsLinks.restaurants, href: '/solutions#restaurants' },
-      { name: t.solutionsLinks.hotels, href: '/solutions#hotels' },
-      { name: t.solutionsLinks.technology, href: '/technology' },
+      { name: t.solutionsLinks.restaurants, href: '/about' },
+      { name: t.solutionsLinks.hotels, href: '/privacy' },
+      { name: t.solutionsLinks.technology, href: '/about' },
     ],
     company: [
       { name: t.companyLinks.about, href: '/about' },
@@ -90,7 +93,9 @@ export default function Footer() {
                 <span className="text-lg font-semibold text-gray-900">
                   Vision<span className="text-orange-500">Drive</span>
                 </span>
-                <span className="text-[10px] text-gray-400 block">IoT company 🇦🇪</span>
+                <span className="text-[10px] text-gray-400 block leading-snug">
+                  {visiondriveSlogan[language]}
+                </span>
               </div>
             </Link>
             <p className="text-sm text-gray-500">{t.description}</p>
@@ -197,7 +202,9 @@ export default function Footer() {
                   <span className="text-lg font-semibold text-gray-900">
                     Vision<span className="text-orange-500">Drive</span>
                   </span>
-                  <span className="text-[10px] text-gray-400 block">IoT company 🇦🇪</span>
+                  <span className="text-[10px] text-gray-400 block leading-snug">
+                  {visiondriveSlogan[language]}
+                </span>
                 </div>
               </Link>
               <p className="text-sm text-gray-500 leading-relaxed">{t.description}</p>
