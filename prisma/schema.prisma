@@ -90,6 +90,10 @@ model Tenant {
   clinicPatients     ClinicPatient[]
   clinicProcedures   ClinicProcedure[]
   clinicAppointments ClinicAppointment[]
+  clinicVisits              ClinicVisit[]
+  clinicPatientMedia      ClinicPatientMedia[]
+  clinicPatientPayments   ClinicPatientPayment[]
+  clinicCrmActivities     ClinicCrmActivity[]
 
   @@map("tenants")
 }
@@ -745,10 +749,15 @@ model ClinicPatient {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments  ClinicAppointment[]
+  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments   ClinicAppointment[]
+  visits         ClinicVisit[]
+  media          ClinicPatientMedia[]
+  payments       ClinicPatientPayment[]
+  crmActivities  ClinicCrmActivity[]
 
   @@index([tenantId, lastName, firstName])
+  @@index([tenantId, phone])
   @@map("clinic_patients")
 }
 
@@ -788,10 +797,137 @@ model ClinicAppointment {
   tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient   ClinicPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
   procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  visits    ClinicVisit[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
   @@map("clinic_appointments")
+}
+
+enum ClinicVisitStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ClinicMediaKind {
+  BEFORE
+  AFTER
+  OTHER
+}
+
+enum ClinicPaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  POS
+  OTHER
+}
+
+enum ClinicPaymentStatus {
+  PAID
+  PENDING
+  REFUNDED
+  VOID
+}
+
+enum ClinicCrmActivityType {
+  NOTE
+  CALL
+  EMAIL
+  WHATSAPP
+  FOLLOW_UP
+  OTHER
+}
+
+/// In-person or telehealth encounter; attach before/after photos and payments.
+model ClinicVisit {
+  id               String            @id @default(cuid())
+  tenantId         String
+  patientId        String
+  appointmentId    String?
+  visitAt          DateTime          @db.Timestamptz(6)
+  status           ClinicVisitStatus @default(COMPLETED)
+  chiefComplaint   String?           @db.Text
+  procedureSummary String?           @db.Text
+  staffNotes       String?           @db.Text
+  /// Planned follow-up / what to do next (shown prominently on patient chart)
+  nextSteps        String?           @db.Text
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment ClinicAppointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  media       ClinicPatientMedia[]
+  payments    ClinicPatientPayment[]
+
+  @@index([tenantId, visitAt])
+  @@index([patientId, visitAt])
+  @@map("clinic_visits")
+}
+
+/// Clinical photo (e.g. before/after). Binary stored in Postgres; cap size in API (~8MB).
+model ClinicPatientMedia {
+  id              String         @id @default(cuid())
+  tenantId        String
+  patientId       String
+  visitId         String?
+  kind            ClinicMediaKind
+  mimeType        String
+  caption         String?
+  data            Bytes
+  createdAt       DateTime       @default(now())
+  createdByUserId String?
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visit   ClinicVisit?  @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, patientId])
+  @@index([visitId])
+  @@map("clinic_patient_media")
+}
+
+model ClinicPatientPayment {
+  id              String              @id @default(cuid())
+  tenantId        String
+  patientId       String
+  visitId         String?
+  amountCents     Int
+  currency        String              @default("AED")
+  method          ClinicPaymentMethod @default(OTHER)
+  status          ClinicPaymentStatus @default(PAID)
+  reference       String?
+  note            String?             @db.Text
+  paidAt          DateTime            @db.Timestamptz(6)
+  createdAt       DateTime            @default(now())
+  createdByUserId String?
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visit   ClinicVisit?  @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, patientId, paidAt])
+  @@map("clinic_patient_payments")
+}
+
+/// CRM / communication log (calls, WhatsApp, internal notes on the relationship).
+model ClinicCrmActivity {
+  id              String                @id @default(cuid())
+  tenantId        String
+  patientId       String
+  type            ClinicCrmActivityType @default(NOTE)
+  body            String                @db.Text
+  occurredAt      DateTime              @db.Timestamptz(6)
+  createdAt       DateTime              @default(now())
+  createdByUserId String?
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, patientId, occurredAt])
+  @@map("clinic_crm_activities")
 }
 
 // Rate limiting table for brute force protection

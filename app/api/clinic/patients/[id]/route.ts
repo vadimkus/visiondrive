@@ -22,19 +22,68 @@ export async function GET(
   }
 
   const { id } = await context.params
+  const mediaSelect = {
+    id: true,
+    kind: true,
+    mimeType: true,
+    caption: true,
+    visitId: true,
+    createdAt: true,
+  } as const
+
   const patient = await prisma.clinicPatient.findFirst({
     where: { id, tenantId: session.tenantId },
     include: {
       appointments: {
         orderBy: { startsAt: 'desc' },
-        take: 20,
+        take: 40,
         select: {
           id: true,
           startsAt: true,
           endsAt: true,
           status: true,
           titleOverride: true,
+          internalNotes: true,
           procedure: { select: { id: true, name: true } },
+        },
+      },
+      visits: {
+        orderBy: { visitAt: 'desc' },
+        take: 40,
+        include: {
+          media: { orderBy: { createdAt: 'asc' }, select: { ...mediaSelect } },
+        },
+      },
+      media: {
+        orderBy: { createdAt: 'desc' },
+        take: 60,
+        select: { ...mediaSelect },
+      },
+      payments: {
+        orderBy: { paidAt: 'desc' },
+        take: 80,
+        select: {
+          id: true,
+          amountCents: true,
+          currency: true,
+          method: true,
+          status: true,
+          reference: true,
+          note: true,
+          paidAt: true,
+          visitId: true,
+          createdAt: true,
+        },
+      },
+      crmActivities: {
+        orderBy: { occurredAt: 'desc' },
+        take: 80,
+        select: {
+          id: true,
+          type: true,
+          body: true,
+          occurredAt: true,
+          createdAt: true,
         },
       },
     },

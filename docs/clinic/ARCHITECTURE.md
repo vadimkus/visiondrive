@@ -4,17 +4,21 @@
 
 - Reuses existing **`Tenant`** row as the **practice / organization** boundary.
 - Clinic users authenticate via `/api/auth/login` with `portal: 'clinic'`; JWT includes **`tenantId`** (`users.defaultTenantId`).
-- Every `Clinic*` row has **`tenantId`**; all queries MUST filter by `session.tenantId`. API handlers use `requireClinicSession(request)`.
+- Every `Clinic*` row has **`tenantId`**; all queries MUST filter by `session.tenantId`. API handlers use **`getClinicSession(request)`** from `lib/clinic/session.ts`.
 
-## Data model (Chunk 1)
+## Data model (Chunk 1–2)
 
 | Model | Purpose |
 |-------|---------|
 | `ClinicPatient` | Demographics + **`internalNotes`** (staff-only; never on patient PDF). |
 | `ClinicProcedure` | Catalog: name, duration, base price, currency (default AED). |
 | `ClinicAppointment` | Scheduled visit intent: patient, optional procedure, start/end, status, **`internalNotes`**. |
+| `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional link to an appointment. |
+| `ClinicPatientMedia` | Before/after/other photos; **`data`** as `Bytes` in Postgres; served via **`GET /api/clinic/media/[id]`** (tenant-scoped). |
+| `ClinicPatientPayment` | Patient-level payments (amount, method, status, optional **`visitId`**). |
+| `ClinicCrmActivity` | CRM timeline: type (call, WhatsApp, note, …), **`body`**, **`occurredAt`**. |
 
-Relationships: `ClinicAppointment` → `ClinicPatient`, optional → `ClinicProcedure`. Cascade deletes are tenant-safe because patient belongs to tenant.
+Relationships: `ClinicAppointment` → `ClinicPatient`, optional → `ClinicProcedure`; **`ClinicVisit`** optionally → `ClinicAppointment`; media and payments optionally → **`ClinicVisit`**. Cascade deletes are tenant-safe because patient belongs to tenant.
 
 ## API conventions
 
@@ -24,7 +28,7 @@ Relationships: `ClinicAppointment` → `ClinicPatient`, optional → `ClinicProc
 
 ## Security notes (UAE / PDPL / health-adjacent)
 
-- Treat **internal notes, DOB, contact details, and appointment notes** as sensitive.
+- Treat **internal notes, DOB, contact details, appointment notes, clinical photos, and payment rows** as sensitive.
 - Production: **TLS**, **httpOnly** session cookie (existing), **least privilege** DB credentials.
 - Prefer **UAE region** Postgres when offering to UAE patients; document subprocessors in privacy policy.
 

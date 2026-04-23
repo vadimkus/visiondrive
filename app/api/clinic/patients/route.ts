@@ -18,9 +18,36 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const q = request.nextUrl.searchParams.get('q')?.trim() ?? ''
+
+  const where: {
+    tenantId: string
+    OR?: Array<Record<string, unknown>>
+  } = { tenantId: session.tenantId }
+
+  if (q.length > 0) {
+    const parts = q.split(/\s+/).filter(Boolean)
+    const orClause: Array<Record<string, unknown>> = [
+      { firstName: { contains: q, mode: 'insensitive' } },
+      { lastName: { contains: q, mode: 'insensitive' } },
+      { phone: { contains: q } },
+      { email: { contains: q, mode: 'insensitive' } },
+    ]
+    if (parts.length >= 2) {
+      orClause.push({
+        AND: [
+          { firstName: { contains: parts[0], mode: 'insensitive' } },
+          { lastName: { contains: parts[parts.length - 1], mode: 'insensitive' } },
+        ],
+      })
+    }
+    where.OR = orClause
+  }
+
   const patients = await prisma.clinicPatient.findMany({
-    where: { tenantId: session.tenantId },
+    where,
     orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    take: q ? 50 : 500,
     select: {
       id: true,
       firstName: true,

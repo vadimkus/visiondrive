@@ -9,6 +9,7 @@ import {
   Calendar,
   LogOut,
   Stethoscope,
+  UserCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { visiondriveSlogan } from '@/lib/brand'
@@ -18,6 +19,7 @@ const nav = [
   { href: '/clinic/patients', label: 'Patients', icon: Users },
   { href: '/clinic/procedures', label: 'Procedures', icon: ListOrdered },
   { href: '/clinic/appointments', label: 'Appointments', icon: Calendar },
+  { href: '/clinic/account', label: 'Account', icon: UserCircle },
 ]
 
 export default function ClinicShell({ children }: { children: React.ReactNode }) {
