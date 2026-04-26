@@ -46,6 +46,8 @@ model User {
   alertEvents        AlertEvent[] @relation("AlertEventActor")
   reportSubscriptions ReportSubscription[] @relation("ReportCreatedBy")
   expenses Expense[] @relation("ExpenseCreatedBy")
+  clinicWebPushSubscriptions ClinicWebPushSubscription[]
+  clinicAppointmentEvents ClinicAppointmentEvent[] @relation("ClinicAppointmentEventActor")
 
   @@map("users")
 }
@@ -94,6 +96,11 @@ model Tenant {
   clinicPatientMedia      ClinicPatientMedia[]
   clinicPatientPayments   ClinicPatientPayment[]
   clinicCrmActivities     ClinicCrmActivity[]
+  clinicStockItems          ClinicStockItem[]
+  clinicStockMovements      ClinicStockMovement[]
+  clinicPurchaseOrders      ClinicPurchaseOrder[]
+  clinicWebPushSubscriptions ClinicWebPushSubscription[]
+  clinicAppointmentEvents ClinicAppointmentEvent[]
 
   @@map("tenants")
 }
@@ -730,9 +737,29 @@ model Image {
 
 enum ClinicAppointmentStatus {
   SCHEDULED
+  CONFIRMED
+  ARRIVED
   CANCELLED
   COMPLETED
   NO_SHOW
+}
+
+enum ClinicAppointmentSource {
+  MANUAL
+  FOLLOW_UP
+  ONLINE
+}
+
+enum ClinicAppointmentEventType {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  RESCHEDULED
+  REMINDER_SENT
+  VISIT_STARTED
+  VISIT_COMPLETED
+  PAYMENT_RECORDED
+  FOLLOW_UP_CREATED
 }
 
 model ClinicPatient {
@@ -746,6 +773,8 @@ model ClinicPatient {
   email          String?
   /// Staff-only; never expose on patient-facing PDF exports
   internalNotes  String?   @db.Text
+  /// Structured intake / history (v1 object: allergies, medications, conditions, social)
+  anamnesisJson  Json?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -766,6 +795,8 @@ model ClinicProcedure {
   tenantId           String
   name               String
   defaultDurationMin Int      @default(60)
+  /// Hidden operational buffer after a procedure (cleanup, prep, travel, rest).
+  bufferAfterMinutes Int      @default(0)
   basePriceCents     Int      @default(0)
   currency           String   @default("AED")
   active             Boolean  @default(true)
@@ -775,6 +806,7 @@ model ClinicProcedure {
 
   tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   appointments  ClinicAppointment[]
+  stockItems    ClinicStockItem[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -788,7 +820,14 @@ model ClinicAppointment {
   startsAt      DateTime                @db.Timestamptz(6)
   endsAt        DateTime?               @db.Timestamptz(6)
   status        ClinicAppointmentStatus @default(SCHEDULED)
+  source        ClinicAppointmentSource @default(MANUAL)
+  /// Hidden occupied time after the appointment. Used for conflict checks, not shown as service duration.
+  bufferAfterMinutes Int                    @default(0)
   titleOverride String?
+  cancelReason  String?                 @db.Text
+  confirmedAt   DateTime?               @db.Timestamptz(6)
+  arrivedAt     DateTime?               @db.Timestamptz(6)
+  completedAt   DateTime?               @db.Timestamptz(6)
   /// Doctor-only appointment / scheduling notes
   internalNotes String?                 @db.Text
   createdAt     DateTime                @default(now())
@@ -798,10 +837,31 @@ model ClinicAppointment {
   patient   ClinicPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
   procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
   visits    ClinicVisit[]
+  events    ClinicAppointmentEvent[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
   @@map("clinic_appointments")
+}
+
+model ClinicAppointmentEvent {
+  id              String                     @id @default(cuid())
+  tenantId        String
+  appointmentId   String
+  type            ClinicAppointmentEventType
+  message         String?                    @db.Text
+  before          Json?
+  after           Json?
+  createdAt       DateTime                   @default(now()) @db.Timestamptz(6)
+  createdByUserId String?
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointment ClinicAppointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  createdBy   User?             @relation("ClinicAppointmentEventActor", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([appointmentId, createdAt])
+  @@map("clinic_appointment_events")
 }
 
 enum ClinicVisitStatus {
@@ -853,6 +913,8 @@ model ClinicVisit {
   staffNotes       String?           @db.Text
   /// Planned follow-up / what to do next (shown prominently on patient chart)
   nextSteps        String?           @db.Text
+  /// Set when procedure-linked inventory auto-consumption has been applied (idempotent).
+  inventoryConsumedAt DateTime?      @db.Timestamptz(6)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
@@ -867,7 +929,7 @@ model ClinicVisit {
   @@map("clinic_visits")
 }
 
-/// Clinical photo (e.g. before/after). Binary stored in Postgres; cap size in API (~8MB).
+/// Clinical photo (e.g. before/after). Stored as Postgres BYTEA and/or Vercel Blob (private pathname).
 model ClinicPatientMedia {
   id              String         @id @default(cuid())
   tenantId        String
@@ -876,7 +938,10 @@ model ClinicPatientMedia {
   kind            ClinicMediaKind
   mimeType        String
   caption         String?
-  data            Bytes
+  /// Legacy / local-dev: raw bytes. Null when `blobPathname` is set.
+  data            Bytes?
+  /// Vercel Blob private pathname (use SDK `get` with token). Null when `data` is set.
+  blobPathname    String?
   createdAt       DateTime       @default(now())
   createdByUserId String?
 
@@ -928,6 +993,129 @@ model ClinicCrmActivity {
 
   @@index([tenantId, patientId, occurredAt])
   @@map("clinic_crm_activities")
+}
+
+enum ClinicStockMovementType {
+  RECEIPT
+  ADJUSTMENT
+  CONSUMPTION
+  RETURN
+}
+
+/// Consumables / retail stock per practice. Movements adjust quantityOnHand.
+model ClinicStockItem {
+  id               String   @id @default(cuid())
+  tenantId         String
+  name             String
+  sku              String?
+  unit             String   @default("unit")
+  quantityOnHand   Int      @default(0)
+  /// Alert when active and quantityOnHand <= reorderPoint (if reorderPoint > 0).
+  reorderPoint     Int      @default(0)
+  active           Boolean  @default(true)
+  notes            String?  @db.Text
+  /// Optional link to a procedure this item is typically consumed for.
+  procedureId      String?
+  /// Scannable code (distinct from sku); optional unique per tenant when set.
+  barcode          String?
+  /// When visit completes with linked procedure, deduct this many units (0 = disabled).
+  consumePerVisit  Int      @default(0)
+  /// Last time a low-stock email/push was sent (24h cooldown).
+  lowStockNotifiedAt DateTime? @db.Timestamptz(6)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  movements ClinicStockMovement[]
+  purchaseOrderLines ClinicPurchaseOrderLine[]
+
+  @@index([tenantId, active, name])
+  @@index([tenantId, procedureId])
+  @@index([tenantId, barcode])
+  @@index([tenantId, sku])
+  @@map("clinic_stock_items")
+}
+
+model ClinicStockMovement {
+  id              String                  @id @default(cuid())
+  tenantId        String
+  stockItemId     String
+  type            ClinicStockMovementType
+  /// Positive adds stock; negative removes (validated so on-hand never below zero).
+  quantityDelta   Int
+  note            String?                 @db.Text
+  reference       String?
+  createdAt       DateTime                @default(now())
+  createdByUserId String?
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stockItem ClinicStockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([stockItemId, createdAt])
+  @@map("clinic_stock_movements")
+}
+
+enum ClinicPurchaseOrderStatus {
+  DRAFT
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+model ClinicPurchaseOrder {
+  id           String                    @id @default(cuid())
+  tenantId     String
+  supplierName String
+  status       ClinicPurchaseOrderStatus @default(DRAFT)
+  reference    String?
+  notes        String?                   @db.Text
+  orderedAt    DateTime                  @default(now()) @db.Timestamptz(6)
+  expectedAt   DateTime?                 @db.Timestamptz(6)
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+
+  tenant Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lines  ClinicPurchaseOrderLine[]
+
+  @@index([tenantId, orderedAt])
+  @@map("clinic_purchase_orders")
+}
+
+model ClinicPurchaseOrderLine {
+  id               String @id @default(cuid())
+  purchaseOrderId  String
+  stockItemId      String
+  quantityOrdered  Int
+  quantityReceived Int    @default(0)
+  unitCostCents    Int?
+
+  purchaseOrder ClinicPurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  stockItem     ClinicStockItem      @relation(fields: [stockItemId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseOrderId])
+  @@index([stockItemId])
+  @@map("clinic_purchase_order_lines")
+}
+
+/// Browser Web Push subscriptions for clinic alerts (low stock). Requires VAPID env on server.
+model ClinicWebPushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  tenantId  String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId, tenantId])
+  @@map("clinic_web_push_subscriptions")
 }
 
 // Rate limiting table for brute force protection

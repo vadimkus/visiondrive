@@ -1,3 +1,4 @@
+import { put } from '@vercel/blob'
 import { NextRequest, NextResponse } from 'next/server'
 import { ClinicMediaKind } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -53,6 +54,8 @@ export async function POST(
     return NextResponse.json({ error: 'Image too large (max 8MB)' }, { status: 413 })
   }
 
+  const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim())
+
   const kindRaw = String(form.get('kind') ?? 'OTHER')
   const kind = parseKind(kindRaw) ?? ClinicMediaKind.OTHER
 
@@ -74,6 +77,21 @@ export async function POST(
   const caption =
     captionRaw != null && String(captionRaw).trim() ? String(captionRaw).trim() : null
 
+  let blobPathname: string | null = null
+  let data: Buffer | null = null
+
+  if (useBlob) {
+    const pathname = `clinic/${session.tenantId}/${patientId}/${Date.now()}`
+    const uploaded = await put(pathname, Buffer.from(ab), {
+      access: 'private',
+      contentType: file.type || 'image/jpeg',
+      addRandomSuffix: true,
+    })
+    blobPathname = uploaded.pathname
+  } else {
+    data = Buffer.from(ab)
+  }
+
   const media = await prisma.clinicPatientMedia.create({
     data: {
       tenantId: session.tenantId,
@@ -82,7 +100,8 @@ export async function POST(
       kind,
       mimeType: file.type || 'image/jpeg',
       caption,
-      data: Buffer.from(ab),
+      ...(data != null ? { data: new Uint8Array(data) } : {}),
+      ...(blobPathname != null ? { blobPathname } : {}),
       createdByUserId: session.userId,
     },
     select: {

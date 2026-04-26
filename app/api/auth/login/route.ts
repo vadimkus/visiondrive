@@ -77,6 +77,17 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      if (!result.user.tenantId) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              'This account is not linked to a practice. Ask an admin to add you to the organization, or run database seed with clinic user env vars.',
+          },
+          { status: 403 }
+        )
+      }
+
       const response = NextResponse.json({
         success: true,
         user: { ...result.user, portal: 'clinic' },

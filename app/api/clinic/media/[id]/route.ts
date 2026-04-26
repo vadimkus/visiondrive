@@ -1,3 +1,4 @@
+import { get } from '@vercel/blob'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
@@ -15,10 +16,29 @@ export async function GET(
 
   const row = await prisma.clinicPatientMedia.findFirst({
     where: { id, tenantId: session.tenantId },
-    select: { mimeType: true, data: true },
+    select: { mimeType: true, data: true, blobPathname: true },
   })
 
   if (!row) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  if (row.blobPathname) {
+    const blob = await get(row.blobPathname, { access: 'private' })
+    if (!blob || blob.statusCode !== 200 || !blob.stream) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    const ct = blob.blob.contentType || row.mimeType
+    return new NextResponse(blob.stream, {
+      headers: {
+        'Content-Type': ct,
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    })
+  }
+
+  if (!row.data) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 

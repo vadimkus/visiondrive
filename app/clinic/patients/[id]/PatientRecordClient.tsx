@@ -12,8 +12,10 @@ import {
   Pencil,
   ChevronUp,
   ClipboardList,
+  FileDown,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
 import { buildTimelineItems, filterTimelineItems, type TimelineFilter } from '@/lib/clinic/timeline'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
@@ -82,6 +84,7 @@ export type PatientRecord = {
   phone: string | null
   email: string | null
   internalNotes: string | null
+  anamnesisJson?: unknown | null
   appointments: AppointmentRow[]
   visits: VisitRow[]
   media: MediaMeta[]
@@ -108,7 +111,7 @@ function formatMoney(cents: number, currency: string) {
 export default function PatientRecordClient({ patientId }: { patientId: string }) {
   const router = useRouter()
   const { locale, t } = useClinicLocale()
-  const dateLocale = locale === 'ar' ? 'ar-AE' : 'en-GB'
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [patient, setPatient] = useState<PatientRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -122,6 +125,10 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const [editPhone, setEditPhone] = useState('')
   const [editEmail, setEditEmail] = useState('')
   const [editInternal, setEditInternal] = useState('')
+  const [editAllergies, setEditAllergies] = useState('')
+  const [editMedications, setEditMedications] = useState('')
+  const [editConditions, setEditConditions] = useState('')
+  const [editSocial, setEditSocial] = useState('')
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/clinic/patients/${patientId}`, { credentials: 'include' })
@@ -131,7 +138,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     }
     const data = await res.json()
     if (!res.ok) {
-      setError(data.error || 'Not found')
+      setError(data.error || t.notFound)
       setPatient(null)
       return
     }
@@ -142,8 +149,13 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     setEditPhone(p.phone ?? '')
     setEditEmail(p.email ?? '')
     setEditInternal(p.internalNotes ?? '')
+    const am = anamnesisFromJson(p.anamnesisJson)
+    setEditAllergies(am.allergies)
+    setEditMedications(am.medications)
+    setEditConditions(am.conditions)
+    setEditSocial(am.social)
     setError('')
-  }, [patientId, router])
+  }, [patientId, router, t.notFound])
 
   useEffect(() => {
     let cancelled = false
@@ -200,6 +212,19 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     if (!patient) return
     setSavingPatient(true)
     try {
+      let anamnesisJson: ReturnType<typeof anamnesisToStorage>
+      try {
+        anamnesisJson = anamnesisToStorage({
+          allergies: editAllergies,
+          medications: editMedications,
+          conditions: editConditions,
+          social: editSocial,
+        })
+      } catch (err) {
+        setError(err instanceof Error ? err.message : t.saveFailed)
+        setSavingPatient(false)
+        return
+      }
       const res = await fetch(`/api/clinic/patients/${patient.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -210,11 +235,12 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           phone: editPhone || null,
           email: editEmail || null,
           internalNotes: editInternal || null,
+          anamnesisJson,
         }),
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Save failed')
+        setError(data.error || t.saveFailed)
         return
       }
       setEditOpen(false)
@@ -234,7 +260,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     return (
       <div className="max-w-lg mx-auto space-y-4">
         {error && <ClinicAlert variant="error">{error}</ClinicAlert>}
-        {!error && !patient && <ClinicAlert variant="error">Not found</ClinicAlert>}
+        {!error && !patient && <ClinicAlert variant="error">{t.notFound}</ClinicAlert>}
         <Link href="/clinic/patients" className="text-orange-600 text-sm min-h-11 inline-flex items-center">
           {t.backPatients}
         </Link>
@@ -274,14 +300,24 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           {patient.middleName ? ` ${patient.middleName}` : ''}
         </h1>
         <p className="text-gray-600 text-sm">
-          DOB{' '}
+          {t.dobLabel}{' '}
           {new Date(patient.dateOfBirth).toLocaleDateString(dateLocale, {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
           })}
-          {age != null ? ` · ${age} years` : ''}
+          {age != null ? ` · ${age} ${t.ageYears}` : ''}
         </p>
+        <a
+          href={`/api/clinic/patients/${patient.id}/summary-pdf`}
+          className="mt-3 inline-flex items-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <FileDown className="w-4 h-4 text-orange-600 shrink-0" aria-hidden />
+          {t.downloadPatientSummaryPdf}
+        </a>
+        <p className="text-xs text-gray-500 mt-2 max-w-xl">{t.patientSummaryPdfHint}</p>
       </div>
 
       {/* Next actions — tuned for returning patient on iPad */}
@@ -301,7 +337,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
                   minute: '2-digit',
                 })}
                 {' — '}
-                {nextAppointment.procedure?.name || nextAppointment.titleOverride || 'Appointment'}
+                {nextAppointment.procedure?.name || nextAppointment.titleOverride || t.appointmentDefault}
               </span>
             </li>
           )}
@@ -363,6 +399,14 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           setEditEmail={setEditEmail}
           editInternal={editInternal}
           setEditInternal={setEditInternal}
+          editAllergies={editAllergies}
+          setEditAllergies={setEditAllergies}
+          editMedications={editMedications}
+          setEditMedications={setEditMedications}
+          editConditions={editConditions}
+          setEditConditions={setEditConditions}
+          editSocial={editSocial}
+          setEditSocial={setEditSocial}
           savePatient={savePatient}
           savingPatient={savingPatient}
           onVisitLogged={load}
@@ -431,6 +475,14 @@ function OverviewTab({
   setEditEmail,
   editInternal,
   setEditInternal,
+  editAllergies,
+  setEditAllergies,
+  editMedications,
+  setEditMedications,
+  editConditions,
+  setEditConditions,
+  editSocial,
+  setEditSocial,
   savePatient,
   savingPatient,
   onVisitLogged,
@@ -448,10 +500,23 @@ function OverviewTab({
   setEditEmail: (v: string) => void
   editInternal: string
   setEditInternal: (v: string) => void
+  editAllergies: string
+  setEditAllergies: (v: string) => void
+  editMedications: string
+  setEditMedications: (v: string) => void
+  editConditions: string
+  setEditConditions: (v: string) => void
+  editSocial: string
+  setEditSocial: (v: string) => void
   savePatient: (e: React.FormEvent) => Promise<void>
   savingPatient: boolean
   onVisitLogged: () => Promise<void>
 }) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const amDisplay = anamnesisFromJson(patient.anamnesisJson)
+  const hasAnamnesis =
+    !!(amDisplay.allergies || amDisplay.medications || amDisplay.conditions || amDisplay.social)
   const [visitAt, setVisitAt] = useState(() => {
     const d = new Date()
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
@@ -484,7 +549,7 @@ function OverviewTab({
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || 'Could not log visit')
+        alert(data.error || t.couldNotLogVisit)
         return
       }
       setChief('')
@@ -501,7 +566,7 @@ function OverviewTab({
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-2 text-sm">
         <div className="flex justify-between items-start gap-3">
-          <p className="font-medium text-gray-900">Contact</p>
+          <p className="font-medium text-gray-900">{t.contact}</p>
           <button
             type="button"
             onClick={() => setEditOpen(!editOpen)}
@@ -509,21 +574,56 @@ function OverviewTab({
           >
             {editOpen ? (
               <>
-                <ChevronUp className="w-4 h-4" /> Close
+                <ChevronUp className="w-4 h-4" /> {t.close}
               </>
             ) : (
               <>
-                <Pencil className="w-4 h-4" /> Edit
+                <Pencil className="w-4 h-4" /> {t.edit}
               </>
             )}
           </button>
         </div>
         <p>
-          <span className="text-gray-500">Phone:</span> {patient.phone || '—'}
+          <span className="text-gray-500">{t.phoneLabel}:</span> {patient.phone || t.emptyValue}
         </p>
         <p>
-          <span className="text-gray-500">Email:</span> {patient.email || '—'}
+          <span className="text-gray-500">{t.emailLabel}:</span> {patient.email || t.emptyValue}
         </p>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3 text-sm">
+        <p className="font-medium text-gray-900">{t.anamnesisHeading}</p>
+        <p className="text-xs text-gray-500">{t.anamnesisHint}</p>
+        {hasAnamnesis ? (
+          <dl className="space-y-2 text-gray-800">
+            {amDisplay.allergies ? (
+              <div>
+                <dt className="text-gray-500 text-xs">{t.anamnesisAllergies}</dt>
+                <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.allergies}</dd>
+              </div>
+            ) : null}
+            {amDisplay.medications ? (
+              <div>
+                <dt className="text-gray-500 text-xs">{t.anamnesisMedications}</dt>
+                <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.medications}</dd>
+              </div>
+            ) : null}
+            {amDisplay.conditions ? (
+              <div>
+                <dt className="text-gray-500 text-xs">{t.anamnesisConditions}</dt>
+                <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.conditions}</dd>
+              </div>
+            ) : null}
+            {amDisplay.social ? (
+              <div>
+                <dt className="text-gray-500 text-xs">{t.anamnesisSocial}</dt>
+                <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.social}</dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : (
+          <p className="text-gray-500">{t.anamnesisNoneOnFile}</p>
+        )}
       </div>
 
       {editOpen && (
@@ -533,7 +633,7 @@ function OverviewTab({
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-600 mb-1">First name</label>
+              <label className="block text-gray-600 mb-1">{t.firstName}</label>
               <input
                 value={editFirst}
                 onChange={(e) => setEditFirst(e.target.value)}
@@ -542,7 +642,7 @@ function OverviewTab({
               />
             </div>
             <div>
-              <label className="block text-gray-600 mb-1">Last name</label>
+              <label className="block text-gray-600 mb-1">{t.lastName}</label>
               <input
                 value={editLast}
                 onChange={(e) => setEditLast(e.target.value)}
@@ -552,7 +652,7 @@ function OverviewTab({
             </div>
           </div>
           <div>
-            <label className="block text-gray-600 mb-1">Phone</label>
+            <label className="block text-gray-600 mb-1">{t.phoneLabel}</label>
             <input
               value={editPhone}
               onChange={(e) => setEditPhone(e.target.value)}
@@ -561,7 +661,7 @@ function OverviewTab({
             />
           </div>
           <div>
-            <label className="block text-gray-600 mb-1">Email</label>
+            <label className="block text-gray-600 mb-1">{t.emailLabel}</label>
             <input
               value={editEmail}
               onChange={(e) => setEditEmail(e.target.value)}
@@ -570,7 +670,7 @@ function OverviewTab({
             />
           </div>
           <div>
-            <label className="block text-gray-600 mb-1">Internal notes (staff)</label>
+            <label className="block text-gray-600 mb-1">{t.internalNotesStaff}</label>
             <textarea
               value={editInternal}
               onChange={(e) => setEditInternal(e.target.value)}
@@ -578,12 +678,51 @@ function OverviewTab({
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
             />
           </div>
+          <div className="border-t border-gray-100 pt-4 space-y-3">
+            <p className="font-medium text-gray-800">{t.anamnesisHeading}</p>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.anamnesisAllergies}</label>
+              <textarea
+                value={editAllergies}
+                onChange={(e) => setEditAllergies(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.anamnesisMedications}</label>
+              <textarea
+                value={editMedications}
+                onChange={(e) => setEditMedications(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.anamnesisConditions}</label>
+              <textarea
+                value={editConditions}
+                onChange={(e) => setEditConditions(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.anamnesisSocial}</label>
+              <textarea
+                value={editSocial}
+                onChange={(e) => setEditSocial(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
+            </div>
+          </div>
           <button
             type="submit"
             disabled={savingPatient}
             className="w-full sm:w-auto px-5 py-3 rounded-xl bg-orange-500 text-white font-semibold disabled:opacity-60"
           >
-            {savingPatient ? 'Saving…' : 'Save patient'}
+            {savingPatient ? t.savingEllipsis : t.savePatient}
           </button>
         </form>
       )}
@@ -592,12 +731,10 @@ function OverviewTab({
         onSubmit={logVisit}
         className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4"
       >
-        <h2 className="text-lg font-semibold text-gray-900">Log a visit</h2>
-        <p className="text-sm text-gray-500">
-          Record what was done today and what follows. Attach before/after photos in the Photos tab.
-        </p>
+        <h2 className="text-lg font-semibold text-gray-900">{t.logVisit}</h2>
+        <p className="text-sm text-gray-500">{t.logVisitHint}</p>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Visit date & time</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.visitDateTime}</label>
           <input
             type="datetime-local"
             value={visitAt}
@@ -606,7 +743,7 @@ function OverviewTab({
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Chief complaint</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.chiefComplaint}</label>
           <textarea
             value={chief}
             onChange={(e) => setChief(e.target.value)}
@@ -615,7 +752,7 @@ function OverviewTab({
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Procedure / summary</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.procedureSummary}</label>
           <textarea
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
@@ -624,7 +761,7 @@ function OverviewTab({
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Next steps (shows in “What to do next”)</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.nextStepsHint}</label>
           <textarea
             value={nextSteps}
             onChange={(e) => setNextSteps(e.target.value)}
@@ -633,7 +770,7 @@ function OverviewTab({
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Staff notes (visit)</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.staffNotesVisit}</label>
           <textarea
             value={staffNotes}
             onChange={(e) => setStaffNotes(e.target.value)}
@@ -646,20 +783,20 @@ function OverviewTab({
           disabled={logging}
           className="w-full py-3.5 rounded-xl bg-gray-900 text-white font-semibold disabled:opacity-60"
         >
-          {logging ? 'Saving…' : 'Save visit'}
+          {logging ? t.savingEllipsis : t.saveVisit}
         </button>
       </form>
 
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Recent appointments</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">{t.recentAppointments}</h2>
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
           {patient.appointments.length === 0 ? (
-            <p className="p-4 text-sm text-gray-500">No appointments yet.</p>
+            <p className="p-4 text-sm text-gray-500">{t.noAppointmentsYet}</p>
           ) : (
             patient.appointments.slice(0, 8).map((a) => (
               <div key={a.id} className="p-4 text-sm">
                 <p className="font-medium text-gray-900">
-                  {new Date(a.startsAt).toLocaleString('en-GB', {
+                  {new Date(a.startsAt).toLocaleString(dateLocale, {
                     weekday: 'short',
                     day: 'numeric',
                     month: 'short',
@@ -668,7 +805,7 @@ function OverviewTab({
                   })}
                 </p>
                 <p className="text-gray-600">
-                  {a.procedure?.name || a.titleOverride || 'Appointment'}
+                  {a.procedure?.name || a.titleOverride || t.appointmentDefault}
                   <span className="text-gray-400"> · {a.status}</span>
                 </p>
               </div>
@@ -687,6 +824,8 @@ function PhotosTab({
   patient: PatientRecord
   onRefresh: () => Promise<void>
 }) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [visitId, setVisitId] = useState<string>('')
   const [kind, setKind] = useState<string>('BEFORE')
   const [uploading, setUploading] = useState(false)
@@ -708,7 +847,7 @@ function PhotosTab({
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || 'Upload failed')
+        alert(data.error || t.uploadFailed)
         return
       }
       await onRefresh()
@@ -724,35 +863,33 @@ function PhotosTab({
         return {
           ...m,
           visitLabel: v
-            ? new Date(v.visitAt).toLocaleDateString('en-GB')
-            : 'Unassigned',
+            ? new Date(v.visitAt).toLocaleDateString(dateLocale)
+            : t.visitUnassigned,
         }
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [patient])
+  }, [patient, dateLocale, t.visitUnassigned])
 
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Camera className="w-5 h-5 text-orange-600" />
-          Add photo (before / after)
+          {t.addPhotoTitle}
         </h2>
-        <p className="text-sm text-gray-500">
-          On iPad, use the camera. Link to a visit if you logged one today.
-        </p>
+        <p className="text-sm text-gray-500">{t.addPhotoHint}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Link to visit</label>
+            <label className="block text-sm text-gray-600 mb-1">{t.linkToVisit}</label>
             <select
               value={visitId}
               onChange={(e) => setVisitId(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
             >
-              <option value="">Not linked</option>
+              <option value="">{t.notLinked}</option>
               {patient.visits.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {new Date(v.visitAt).toLocaleString('en-GB', {
+                  {new Date(v.visitAt).toLocaleString(dateLocale, {
                     day: 'numeric',
                     month: 'short',
                     hour: '2-digit',
@@ -763,22 +900,22 @@ function PhotosTab({
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Type</label>
+            <label className="block text-sm text-gray-600 mb-1">{t.photoType}</label>
             <select
               value={kind}
               onChange={(e) => setKind(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
             >
-              <option value="BEFORE">Before</option>
-              <option value="AFTER">After</option>
-              <option value="OTHER">Other</option>
+              <option value="BEFORE">{t.photoKindBefore}</option>
+              <option value="AFTER">{t.photoKindAfter}</option>
+              <option value="OTHER">{t.photoKindOther}</option>
             </select>
           </div>
         </div>
         <label className="flex flex-col items-center justify-center gap-2 w-full py-10 border-2 border-dashed border-orange-200 rounded-2xl bg-orange-50/50 cursor-pointer hover:bg-orange-50 transition-colors">
           <Camera className="w-8 h-8 text-orange-500" />
           <span className="text-sm font-medium text-orange-800">
-            {uploading ? 'Uploading…' : 'Tap to take or choose photo'}
+            {uploading ? t.uploadingEllipsis : t.tapToChoosePhoto}
           </span>
           <input
             type="file"
@@ -809,7 +946,7 @@ function PhotosTab({
         ))}
       </div>
       {allMedia.length === 0 && (
-        <p className="text-center text-sm text-gray-500 py-8">No photos yet for this patient.</p>
+        <p className="text-center text-sm text-gray-500 py-8">{t.noPhotosYet}</p>
       )}
     </div>
   )
@@ -822,6 +959,8 @@ function PaymentsTab({
   patient: PatientRecord
   onRefresh: () => Promise<void>
 }) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState('CARD')
   const [status, setStatus] = useState('PAID')
@@ -833,7 +972,7 @@ function PaymentsTab({
     e.preventDefault()
     const major = Number.parseFloat(amount)
     if (Number.isNaN(major) || major <= 0) {
-      alert('Enter a valid amount')
+      alert(t.enterValidAmount)
       return
     }
     const amountCents = Math.round(major * 100)
@@ -855,7 +994,7 @@ function PaymentsTab({
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || 'Failed')
+        alert(data.error || t.operationFailed)
         return
       }
       setAmount('')
@@ -869,57 +1008,57 @@ function PaymentsTab({
   return (
     <div className="space-y-6">
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Record payment</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t.recordPayment}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Amount (AED)</label>
+            <label className="block text-sm text-gray-600 mb-1">{t.amountAed}</label>
             <input
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               inputMode="decimal"
-              placeholder="e.g. 450"
+              placeholder={t.amountPlaceholder}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Method</label>
+            <label className="block text-sm text-gray-600 mb-1">{t.paymentMethod}</label>
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
             >
-              <option value="CARD">Card</option>
-              <option value="CASH">Cash</option>
-              <option value="TRANSFER">Transfer</option>
-              <option value="POS">POS</option>
-              <option value="OTHER">Other</option>
+              <option value="CARD">{t.payMethodCard}</option>
+              <option value="CASH">{t.payMethodCash}</option>
+              <option value="TRANSFER">{t.payMethodTransfer}</option>
+              <option value="POS">{t.payMethodPos}</option>
+              <option value="OTHER">{t.payMethodOther}</option>
             </select>
           </div>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Status</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.paymentStatusLabel}</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
           >
-            <option value="PAID">Paid</option>
-            <option value="PENDING">Pending</option>
-            <option value="REFUNDED">Refunded</option>
-            <option value="VOID">Void</option>
+            <option value="PAID">{t.payStatusPaid}</option>
+            <option value="PENDING">{t.payStatusPending}</option>
+            <option value="REFUNDED">{t.payStatusRefunded}</option>
+            <option value="VOID">{t.payStatusVoid}</option>
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Link to visit (optional)</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.linkToVisitOptional}</label>
           <select
             value={visitId}
             onChange={(e) => setVisitId(e.target.value)}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
           >
-            <option value="">—</option>
+            <option value="">{t.emptyValue}</option>
             {patient.visits.map((v) => (
               <option key={v.id} value={v.id}>
-                {new Date(v.visitAt).toLocaleString('en-GB', {
+                {new Date(v.visitAt).toLocaleString(dateLocale, {
                   day: 'numeric',
                   month: 'short',
                   hour: '2-digit',
@@ -930,7 +1069,7 @@ function PaymentsTab({
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Note</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.note}</label>
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -942,13 +1081,13 @@ function PaymentsTab({
           disabled={saving}
           className="w-full py-3 rounded-xl bg-orange-500 text-white font-semibold disabled:opacity-60"
         >
-          {saving ? 'Saving…' : 'Add payment'}
+          {saving ? t.savingEllipsis : t.addPayment}
         </button>
       </form>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
         {patient.payments.length === 0 ? (
-          <p className="p-4 text-sm text-gray-500">No payments recorded.</p>
+          <p className="p-4 text-sm text-gray-500">{t.noPaymentsRecorded}</p>
         ) : (
           patient.payments.map((pmt) => (
             <div key={pmt.id} className="p-4 text-sm flex justify-between gap-4">
@@ -962,7 +1101,7 @@ function PaymentsTab({
                 {pmt.note && <p className="text-gray-500 text-xs mt-1">{pmt.note}</p>}
               </div>
               <p className="text-gray-400 text-xs shrink-0">
-                {new Date(pmt.paidAt).toLocaleDateString('en-GB')}
+                {new Date(pmt.paidAt).toLocaleDateString(dateLocale)}
               </p>
             </div>
           ))
@@ -979,6 +1118,8 @@ function CrmTab({
   patient: PatientRecord
   onRefresh: () => Promise<void>
 }) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [type, setType] = useState('NOTE')
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
@@ -1000,7 +1141,7 @@ function CrmTab({
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || 'Failed')
+        alert(data.error || t.operationFailed)
         return
       }
       setBody('')
@@ -1013,30 +1154,30 @@ function CrmTab({
   return (
     <div className="space-y-6">
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Log interaction</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t.logInteraction}</h2>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Type</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.crmTypeLabel}</label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
           >
-            <option value="NOTE">Note</option>
-            <option value="CALL">Call</option>
-            <option value="WHATSAPP">WhatsApp</option>
-            <option value="EMAIL">Email</option>
-            <option value="FOLLOW_UP">Follow-up</option>
-            <option value="OTHER">Other</option>
+            <option value="NOTE">{t.crmTypeNote}</option>
+            <option value="CALL">{t.crmTypeCall}</option>
+            <option value="WHATSAPP">{t.crmTypeWhatsapp}</option>
+            <option value="EMAIL">{t.crmTypeEmail}</option>
+            <option value="FOLLOW_UP">{t.crmTypeFollowUp}</option>
+            <option value="OTHER">{t.crmTypeOther}</option>
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Details</label>
+          <label className="block text-sm text-gray-600 mb-1">{t.crmDetails}</label>
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={4}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
-            placeholder="What was discussed, next touchpoint, preferences…"
+            placeholder={t.crmDetailsPlaceholder}
           />
         </div>
         <button
@@ -1044,20 +1185,20 @@ function CrmTab({
           disabled={saving || !body.trim()}
           className="w-full py-3 rounded-xl bg-gray-900 text-white font-semibold disabled:opacity-50"
         >
-          {saving ? 'Saving…' : 'Save to CRM'}
+          {saving ? t.savingEllipsis : t.saveToCrm}
         </button>
       </form>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
         {patient.crmActivities.length === 0 ? (
-          <p className="p-4 text-sm text-gray-500">No CRM history yet.</p>
+          <p className="p-4 text-sm text-gray-500">{t.noCrmHistory}</p>
         ) : (
           patient.crmActivities.map((c) => (
             <div key={c.id} className="p-4 text-sm">
               <p className="font-medium text-gray-900">
                 {c.type}{' '}
                 <span className="text-gray-400 font-normal text-xs">
-                  {new Date(c.occurredAt).toLocaleString('en-GB', {
+                  {new Date(c.occurredAt).toLocaleString(dateLocale, {
                     day: 'numeric',
                     month: 'short',
                     hour: '2-digit',

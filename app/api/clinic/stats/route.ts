@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { isClinicStockLow } from '@/lib/clinic/inventory'
 import { getClinicSession } from '@/lib/clinic/session'
 
 export async function GET(request: NextRequest) {
@@ -15,30 +16,38 @@ export async function GET(request: NextRequest) {
   endOfDay.setDate(endOfDay.getDate() + 1)
 
   try {
-    const [patientCount, procedureCount, appointmentToday, appointmentUpcoming] = await Promise.all([
-      prisma.clinicPatient.count({ where: { tenantId } }),
-      prisma.clinicProcedure.count({ where: { tenantId, active: true } }),
-      prisma.clinicAppointment.count({
-        where: {
-          tenantId,
-          startsAt: { gte: startOfDay, lt: endOfDay },
-          status: { not: 'CANCELLED' },
-        },
-      }),
-      prisma.clinicAppointment.count({
-        where: {
-          tenantId,
-          startsAt: { gte: new Date() },
-          status: 'SCHEDULED',
-        },
-      }),
-    ])
+    const [patientCount, procedureCount, appointmentToday, appointmentUpcoming, stockItems] =
+      await Promise.all([
+        prisma.clinicPatient.count({ where: { tenantId } }),
+        prisma.clinicProcedure.count({ where: { tenantId, active: true } }),
+        prisma.clinicAppointment.count({
+          where: {
+            tenantId,
+            startsAt: { gte: startOfDay, lt: endOfDay },
+            status: { in: ['SCHEDULED', 'CONFIRMED', 'ARRIVED', 'COMPLETED'] },
+          },
+        }),
+        prisma.clinicAppointment.count({
+          where: {
+            tenantId,
+            startsAt: { gte: new Date() },
+            status: { in: ['SCHEDULED', 'CONFIRMED'] },
+          },
+        }),
+        prisma.clinicStockItem.findMany({
+          where: { tenantId, active: true },
+          select: { quantityOnHand: true, reorderPoint: true, active: true },
+        }),
+      ])
+
+    const lowStockCount = stockItems.filter((i) => isClinicStockLow(i)).length
 
     return NextResponse.json({
       patientCount,
       procedureCount,
       appointmentToday,
       appointmentUpcoming,
+      lowStockCount,
     })
   } catch (e) {
     console.error('GET /api/clinic/stats', e)

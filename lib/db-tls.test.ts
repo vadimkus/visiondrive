@@ -1,5 +1,9 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { pgRejectUnauthorized, postgresUrlNeedsTls } from '@/lib/db-tls'
+import {
+  pgRejectUnauthorized,
+  postgresUrlForNodePgWhenRelaxedTls,
+  postgresUrlNeedsTls,
+} from '@/lib/db-tls'
 
 describe('postgresUrlNeedsTls', () => {
   it('is true for Timescale host', () => {
@@ -34,5 +38,34 @@ describe('pgRejectUnauthorized', () => {
     vi.stubEnv('NODE_ENV', 'production')
     vi.stubEnv('STRICT_SSL_VALIDATION', '')
     expect(pgRejectUnauthorized(url)).toBe(false)
+  })
+})
+
+describe('postgresUrlForNodePgWhenRelaxedTls', () => {
+  const url = 'postgres://u:p@foo.tsdb.cloud.timescale.com:123/db?sslmode=require'
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('strips sslmode in development when TLS is relaxed', () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    vi.stubEnv('STRICT_SSL_VALIDATION', '')
+    expect(postgresUrlForNodePgWhenRelaxedTls(url)).toBe(
+      'postgres://u:p@foo.tsdb.cloud.timescale.com:123/db'
+    )
+  })
+
+  it('does not strip when STRICT_SSL_VALIDATION', () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    vi.stubEnv('STRICT_SSL_VALIDATION', 'true')
+    expect(postgresUrlForNodePgWhenRelaxedTls(url)).toBe(url)
+  })
+
+  it('is stable when sslmode already removed', () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    vi.stubEnv('STRICT_SSL_VALIDATION', '')
+    const once = postgresUrlForNodePgWhenRelaxedTls(url)
+    expect(postgresUrlForNodePgWhenRelaxedTls(once)).toBe(once)
   })
 })

@@ -26,12 +26,12 @@ Principles: **tenant-isolated data**, **doctor-only fields** clearly marked in s
 
 ## Chunk 4 — Anamnesis & patient PDF
 
-- Structured anamnesis (versioned JSON or normalized tables).
-- Server-generated PDF: **minimal** fields only (no internal notes).
+- [x] Structured anamnesis (JSON v1 on `ClinicPatient`).
+- [x] Server-generated PDF: **minimal** fields only (`GET .../summary-pdf`; internal notes and clinical narrative never loaded).
 
 ## Chunk 5 — Inventory
 
-- Stock items, movements, low-stock alerts; link consumption to procedures where possible.
+- [x] Stock items, movements, low-stock alerts; optional link to procedures (`procedureId` on `ClinicStockItem`).
 
 ## Chunk 6 — Finance & analytics
 

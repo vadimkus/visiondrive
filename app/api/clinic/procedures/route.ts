@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
 
   const defaultDurationMin =
     body.defaultDurationMin != null ? Number(body.defaultDurationMin) : 60
+  const bufferAfterMinutes =
+    body.bufferAfterMinutes != null ? Number(body.bufferAfterMinutes) : 0
   const basePriceCents = body.basePriceCents != null ? Number(body.basePriceCents) : 0
   const currency = body.currency != null ? String(body.currency).trim().toUpperCase() || 'AED' : 'AED'
   const active = body.active !== false
@@ -43,6 +45,9 @@ export async function POST(request: NextRequest) {
 
   if (!Number.isFinite(defaultDurationMin) || defaultDurationMin < 5 || defaultDurationMin > 24 * 60) {
     return NextResponse.json({ error: 'defaultDurationMin must be between 5 and 1440' }, { status: 400 })
+  }
+  if (!Number.isFinite(bufferAfterMinutes) || bufferAfterMinutes < 0 || bufferAfterMinutes > 60) {
+    return NextResponse.json({ error: 'bufferAfterMinutes must be between 0 and 60' }, { status: 400 })
   }
   if (!Number.isFinite(basePriceCents) || basePriceCents < 0) {
     return NextResponse.json({ error: 'basePriceCents must be a non-negative number' }, { status: 400 })
@@ -53,6 +58,7 @@ export async function POST(request: NextRequest) {
       tenantId: session.tenantId,
       name,
       defaultDurationMin: Math.round(defaultDurationMin),
+      bufferAfterMinutes: Math.round(bufferAfterMinutes),
       basePriceCents: Math.round(basePriceCents),
       currency: currency.slice(0, 8),
       active,

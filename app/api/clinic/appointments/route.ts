@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ClinicAppointmentEventType, ClinicAppointmentSource } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
+import {
+  findAppointmentConflict,
+  normalizeBufferMinutes,
+  writeAppointmentEvent,
+} from '@/lib/clinic/appointments'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -34,7 +40,12 @@ export async function GET(request: NextRequest) {
           select: { id: true, firstName: true, lastName: true },
         },
         procedure: {
-          select: { id: true, name: true, defaultDurationMin: true },
+          select: { id: true, name: true, defaultDurationMin: true, bufferAfterMinutes: true, basePriceCents: true, currency: true },
+        },
+        visits: {
+          select: { id: true, status: true, visitAt: true },
+          orderBy: { visitAt: 'desc' },
+          take: 1,
         },
       },
     })
@@ -69,6 +80,11 @@ export async function POST(request: NextRequest) {
   const endsAtRaw = body.endsAt != null ? new Date(String(body.endsAt)) : null
   const titleOverride = body.titleOverride != null ? String(body.titleOverride).trim() || null : null
   const internalNotes = body.internalNotes != null ? String(body.internalNotes).trim() || null : null
+  const allowConflictOverride = body.allowConflictOverride === true
+  const sourceRaw = String(body.source ?? ClinicAppointmentSource.MANUAL).trim().toUpperCase()
+  const source = Object.values(ClinicAppointmentSource).includes(sourceRaw as ClinicAppointmentSource)
+    ? (sourceRaw as ClinicAppointmentSource)
+    : ClinicAppointmentSource.MANUAL
 
   if (!patientId || !startsAt || Number.isNaN(startsAt.getTime())) {
     return NextResponse.json({ error: 'patientId and valid startsAt are required' }, { status: 400 })
@@ -81,11 +97,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
   }
 
-  let procedure: { id: string; defaultDurationMin: number } | null = null
+  let procedure: { id: string; defaultDurationMin: number; bufferAfterMinutes: number } | null = null
   if (procedureId) {
     procedure = await prisma.clinicProcedure.findFirst({
       where: { id: procedureId, tenantId: session.tenantId, active: true },
-      select: { id: true, defaultDurationMin: true },
+      select: { id: true, defaultDurationMin: true, bufferAfterMinutes: true },
     })
     if (!procedure) {
       return NextResponse.json({ error: 'Procedure not found or inactive' }, { status: 404 })
@@ -96,22 +112,68 @@ export async function POST(request: NextRequest) {
   if (!endsAt && procedure) {
     endsAt = new Date(startsAt.getTime() + procedure.defaultDurationMin * 60 * 1000)
   }
+  if (endsAt && endsAt <= startsAt) {
+    return NextResponse.json({ error: 'endsAt must be after startsAt' }, { status: 400 })
+  }
 
-  const appointment = await prisma.clinicAppointment.create({
-    data: {
+  const bufferAfterMinutes = normalizeBufferMinutes(
+    body.bufferAfterMinutes,
+    procedure?.bufferAfterMinutes ?? 0
+  )
+
+  const appointment = await prisma.$transaction(async (tx) => {
+    const conflict = await findAppointmentConflict(tx, {
       tenantId: session.tenantId,
-      patientId,
-      procedureId: procedure?.id ?? null,
       startsAt,
       endsAt,
-      titleOverride,
-      internalNotes,
-    },
-    include: {
-      patient: { select: { id: true, firstName: true, lastName: true } },
-      procedure: { select: { id: true, name: true } },
-    },
+      bufferAfterMinutes,
+    })
+    if (conflict && !allowConflictOverride) {
+      return { conflict }
+    }
+
+    const appointment = await tx.clinicAppointment.create({
+      data: {
+        tenantId: session.tenantId,
+        patientId,
+        procedureId: procedure?.id ?? null,
+        startsAt,
+        endsAt,
+        source,
+        bufferAfterMinutes,
+        titleOverride,
+        internalNotes,
+      },
+      include: {
+        patient: { select: { id: true, firstName: true, lastName: true, phone: true, email: true } },
+        procedure: { select: { id: true, name: true, defaultDurationMin: true, bufferAfterMinutes: true, basePriceCents: true, currency: true } },
+        visits: { select: { id: true, status: true, visitAt: true }, orderBy: { visitAt: 'desc' }, take: 1 },
+      },
+    })
+
+    await writeAppointmentEvent(tx, {
+      tenantId: session.tenantId,
+      appointmentId: appointment.id,
+      type: ClinicAppointmentEventType.CREATED,
+      message: 'Appointment created',
+      after: {
+        startsAt: startsAt.toISOString(),
+        endsAt: endsAt?.toISOString() ?? null,
+        bufferAfterMinutes,
+        source,
+      },
+      createdByUserId: session.userId,
+    })
+
+    return { appointment }
   })
 
-  return NextResponse.json({ appointment }, { status: 201 })
+  if ('conflict' in appointment) {
+    return NextResponse.json(
+      { error: 'Appointment conflicts with an existing booking', conflict: appointment.conflict },
+      { status: 409 }
+    )
+  }
+
+  return NextResponse.json({ appointment: appointment.appointment }, { status: 201 })
 }

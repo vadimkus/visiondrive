@@ -1,20 +1,25 @@
 import 'dotenv/config'
 import postgres from 'postgres'
-import { pgRejectUnauthorized, postgresUrlNeedsTls } from '@/lib/db-tls'
+import {
+  pgRejectUnauthorized,
+  postgresUrlForNodePgWhenRelaxedTls,
+  postgresUrlNeedsTls,
+} from '@/lib/db-tls'
 
 // Shared SQL client (used when Prisma Client adapter is unstable or for lightweight ops).
 // Prefer app-specific override to avoid platform-managed locked vars.
-const connectionString =
+const rawConnectionString =
   process.env.VISIONDRIVE_DATABASE_URL ||
   process.env.PRISMA_DATABASE_URL ||
   process.env.POSTGRES_URL ||
   process.env.DATABASE_URL ||
   ''
 
-if (!connectionString) {
+if (!rawConnectionString) {
   throw new Error('Database URL is missing. Set VISIONDRIVE_DATABASE_URL (preferred) or DATABASE_URL.')
 }
 
+const connectionString = postgresUrlForNodePgWhenRelaxedTls(rawConnectionString)
 const isProduction = process.env.NODE_ENV === 'production'
 const useSsl = postgresUrlNeedsTls(connectionString)
 const rejectUnauthorized = pgRejectUnauthorized(connectionString)

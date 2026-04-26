@@ -47,10 +47,17 @@ export function verifyToken(token: string): { userId: string; email: string; rol
 
 export async function authenticateUser(email: string, password: string) {
   try {
+    const emailNorm = String(email ?? '')
+      .trim()
+      .toLowerCase()
+    if (!emailNorm) {
+      return null
+    }
+
     const rows = await sql/*sql*/`
       SELECT id, email, name, role, status, "passwordHash", "defaultTenantId"
       FROM users
-      WHERE email = ${email}
+      WHERE lower(btrim(email)) = ${emailNorm}
       LIMIT 1
     `
     const user = rows?.[0] || null
@@ -64,13 +71,34 @@ export async function authenticateUser(email: string, password: string) {
       return null
     }
 
-    // Prefer membership role for the user's current/default tenant (tenant-scoped RBAC)
+    // Tenant for JWT: prefer defaultTenantId; otherwise first active membership (fixes clinic
+    // when membership exists but defaultTenantId was never set).
+    let tenantIdForToken: string | null = user.defaultTenantId || null
+    if (!tenantIdForToken) {
+      const fallback = await sql/*sql*/`
+        SELECT "tenantId"
+        FROM tenant_memberships
+        WHERE "userId" = ${user.id} AND status = 'ACTIVE'
+        ORDER BY "createdAt" ASC
+        LIMIT 1
+      `
+      tenantIdForToken = fallback?.[0]?.tenantId ?? null
+      if (tenantIdForToken) {
+        await sql/*sql*/`
+          UPDATE users
+          SET "defaultTenantId" = ${tenantIdForToken}, "updatedAt" = now()
+          WHERE id = ${user.id} AND "defaultTenantId" IS NULL
+        `
+      }
+    }
+
+    // Prefer membership role for that tenant (tenant-scoped RBAC)
     let effectiveRole = user.role
-    if (user.defaultTenantId) {
+    if (tenantIdForToken) {
       const membershipRows = await sql/*sql*/`
         SELECT role, status
         FROM tenant_memberships
-        WHERE "tenantId" = ${user.defaultTenantId} AND "userId" = ${user.id}
+        WHERE "tenantId" = ${tenantIdForToken} AND "userId" = ${user.id}
         LIMIT 1
       `
       const membership = membershipRows?.[0] || null
@@ -79,7 +107,7 @@ export async function authenticateUser(email: string, password: string) {
       }
     }
 
-    const token = generateToken(user.id, user.email, effectiveRole, user.defaultTenantId)
+    const token = generateToken(user.id, user.email, effectiveRole, tenantIdForToken)
 
     return {
       user: {
@@ -87,7 +115,7 @@ export async function authenticateUser(email: string, password: string) {
         email: user.email,
         name: user.name,
         role: effectiveRole,
-        tenantId: user.defaultTenantId || null,
+        tenantId: tenantIdForToken,
       },
       token,
     }
@@ -98,12 +126,21 @@ export async function authenticateUser(email: string, password: string) {
     const errorDetails = error instanceof Error ? error.stack : String(error)
     console.error('Error details:', errorDetails)
     
-    // Check if it's a database connection error
-    if (errorMessage.includes('connect') || errorMessage.includes('ECONNREFUSED') || errorMessage.includes('timeout')) {
-      throw new Error('Database connection failed. Please check your database configuration and ensure DATABASE_URL is set correctly.')
+    // Database / network errors — avoid leaking hostnames to the browser
+    const isDbUnreachable =
+      errorMessage.includes('connect') ||
+      errorMessage.includes('ECONNREFUSED') ||
+      errorMessage.includes('ENOTFOUND') ||
+      errorMessage.includes('getaddrinfo') ||
+      errorMessage.includes('ETIMEDOUT') ||
+      errorMessage.includes('timeout') ||
+      errorMessage.includes('certificate')
+    if (isDbUnreachable) {
+      throw new Error(
+        'Database connection failed. The app cannot reach PostgreSQL (check Vercel env: VISIONDRIVE_DATABASE_URL or DATABASE_URL — hostname may be wrong or the database service was removed).'
+      )
     }
-    
-    // Re-throw with more context
+
     throw new Error(`Authentication failed: ${errorMessage}`)
   }
 }

@@ -696,6 +696,7 @@ async function main() {
     { email: process.env.CLINIC_IRYNA_EMAIL, password: process.env.CLINIC_IRYNA_PASSWORD, name: 'Iryna' },
   ]
 
+  let clinicSeededCount = 0
   for (const c of clinicSeeds) {
     if (!c.email?.trim() || !c.password) continue
     const email = c.email.trim().toLowerCase()
@@ -736,6 +737,13 @@ async function main() {
             "updatedAt" = now()
     `
     console.log('✅ Ensured practice console user:', email)
+    clinicSeededCount += 1
+  }
+
+  if (clinicSeededCount === 0) {
+    console.warn(
+      '⚠️  No practice-console users seeded: set CLINIC_VADIM_EMAIL + CLINIC_VADIM_PASSWORD (and Iryna) before `npm run db:seed`, with passwords meeting lib/password-policy (12+ chars, mixed case, number, special). Dev shortcut: CLINIC_SEED_ALLOW_WEAK_PASSWORD=true. Until then, clinic login: user `admin` / `admin5` (from seed).'
+    )
   }
 
   // Convert sensor_events into a Timescale hypertable (if Timescale functions are available).

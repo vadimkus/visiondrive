@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 
 export default function NewPatientPage() {
   const router = useRouter()
+  const { t } = useClinicLocale()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
@@ -39,13 +41,13 @@ export default function NewPatientPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Save failed')
+        setError(data.error || t.saveFailed)
         return
       }
       router.push(`/clinic/patients/${data.patient.id}`)
       router.refresh()
     } catch {
-      setError('Network error')
+      setError(t.networkError)
     } finally {
       setLoading(false)
     }
@@ -55,9 +57,9 @@ export default function NewPatientPage() {
     <div className="max-w-lg mx-auto space-y-6">
       <div>
         <Link href="/clinic/patients" className="text-sm text-orange-600 hover:text-orange-700">
-          ← Patients
+          {t.backPatients}
         </Link>
-        <h1 className="text-2xl font-semibold text-gray-900 mt-2">New patient</h1>
+        <h1 className="text-2xl font-semibold text-gray-900 mt-2">{t.newPatientTitle}</h1>
       </div>
 
       {error && <div className="p-4 rounded-xl bg-red-50 text-red-700 text-sm">{error}</div>}
@@ -65,7 +67,7 @@ export default function NewPatientPage() {
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 shadow-sm space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.firstName}</label>
             <input
               required
               className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
@@ -74,7 +76,7 @@ export default function NewPatientPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.lastName}</label>
             <input
               required
               className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
@@ -84,7 +86,7 @@ export default function NewPatientPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Middle name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.middleName}</label>
           <input
             className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
             value={form.middleName}
@@ -92,7 +94,7 @@ export default function NewPatientPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date of birth</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.dateOfBirth}</label>
           <input
             required
             type="date"
@@ -102,7 +104,7 @@ export default function NewPatientPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.phoneLabel}</label>
           <input
             type="tel"
             className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
@@ -111,7 +113,7 @@ export default function NewPatientPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.emailLabel}</label>
           <input
             type="email"
             className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
@@ -120,9 +122,7 @@ export default function NewPatientPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Internal notes <span className="text-gray-400 font-normal">(staff only)</span>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.internalNotesStaffOnly}</label>
           <textarea
             rows={3}
             className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
@@ -135,7 +135,7 @@ export default function NewPatientPage() {
           disabled={loading}
           className="w-full py-3 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 disabled:opacity-50"
         >
-          {loading ? 'Saving…' : 'Create patient'}
+          {loading ? t.savingEllipsis : t.createPatient}
         </button>
       </form>
     </div>

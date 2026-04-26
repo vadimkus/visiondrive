@@ -1,22 +1,27 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
-import { pgRejectUnauthorized, postgresUrlNeedsTls } from '@/lib/db-tls'
+import {
+  pgRejectUnauthorized,
+  postgresUrlForNodePgWhenRelaxedTls,
+  postgresUrlNeedsTls,
+} from '@/lib/db-tls'
 
 // Keep resolution aligned with lib/sql.ts / prisma.config.ts
-const connectionString =
+const rawConnectionString =
   process.env.VISIONDRIVE_DATABASE_URL ||
   process.env.PRISMA_DATABASE_URL ||
   process.env.POSTGRES_URL ||
   process.env.DATABASE_URL ||
   ''
 
-if (!connectionString) {
+if (!rawConnectionString) {
   throw new Error(
     'Database URL is missing. Set VISIONDRIVE_DATABASE_URL (preferred) or DATABASE_URL for Prisma.'
   )
 }
 
+const connectionString = postgresUrlForNodePgWhenRelaxedTls(rawConnectionString)
 const useSsl = postgresUrlNeedsTls(connectionString)
 const isProduction = process.env.NODE_ENV === 'production'
 const rejectUnauthorized = pgRejectUnauthorized(connectionString)

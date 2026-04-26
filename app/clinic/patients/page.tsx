@@ -31,7 +31,7 @@ function formatDob(iso: string, locale: string) {
 export default function ClinicPatientsPage() {
   const router = useRouter()
   const { locale, t } = useClinicLocale()
-  const dateLocale = locale === 'ar' ? 'ar-AE' : 'en-GB'
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [query, setQuery] = useState('')
   const [debounced, setDebounced] = useState('')
   const [sort, setSort] = useState<SortMode>('nameAsc')
@@ -58,7 +58,7 @@ export default function ClinicPatientsPage() {
         }
         const data = await res.json()
         if (!res.ok) {
-          setError(data.error || 'Failed to load')
+          setError(data.error || t.failedToLoad)
           return
         }
         if (!cancelled) setPatients(data.patients || [])
@@ -71,7 +71,7 @@ export default function ClinicPatientsPage() {
     return () => {
       cancelled = true
     }
-  }, [debounced, router, t.networkError])
+  }, [debounced, router, t.networkError, t.failedToLoad])
 
   const sorted = useMemo(() => {
     const list = [...patients]

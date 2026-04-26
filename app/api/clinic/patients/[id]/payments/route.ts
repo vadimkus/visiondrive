@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ClinicPaymentMethod, ClinicPaymentStatus } from '@prisma/client'
+import { ClinicAppointmentEventType, ClinicPaymentMethod, ClinicPaymentStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
+import { writeAppointmentEvent } from '@/lib/clinic/appointments'
 
 function parseMethod(v: string): ClinicPaymentMethod | null {
   const u = v.toUpperCase().trim()
@@ -67,42 +68,57 @@ export async function POST(
   const visitId =
     body.visitId != null && String(body.visitId).trim() ? String(body.visitId).trim() : null
 
+  let appointmentId: string | null = null
   if (visitId) {
     const visit = await prisma.clinicVisit.findFirst({
       where: { id: visitId, patientId, tenantId: session.tenantId },
-      select: { id: true },
+      select: { id: true, appointmentId: true },
     })
     if (!visit) {
       return NextResponse.json({ error: 'Visit not found for this patient' }, { status: 400 })
     }
+    appointmentId = visit.appointmentId
   }
 
-  const payment = await prisma.clinicPatientPayment.create({
-    data: {
-      tenantId: session.tenantId,
-      patientId,
-      visitId,
-      amountCents,
-      currency,
-      method,
-      status,
-      reference,
-      note,
-      paidAt,
-      createdByUserId: session.userId,
-    },
-    select: {
-      id: true,
-      amountCents: true,
-      currency: true,
-      method: true,
-      status: true,
-      reference: true,
-      note: true,
-      paidAt: true,
-      visitId: true,
-      createdAt: true,
-    },
+  const payment = await prisma.$transaction(async (tx) => {
+    const payment = await tx.clinicPatientPayment.create({
+      data: {
+        tenantId: session.tenantId,
+        patientId,
+        visitId,
+        amountCents,
+        currency,
+        method,
+        status,
+        reference,
+        note,
+        paidAt,
+        createdByUserId: session.userId,
+      },
+      select: {
+        id: true,
+        amountCents: true,
+        currency: true,
+        method: true,
+        status: true,
+        reference: true,
+        note: true,
+        paidAt: true,
+        visitId: true,
+        createdAt: true,
+      },
+    })
+    if (appointmentId) {
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId,
+        type: ClinicAppointmentEventType.PAYMENT_RECORDED,
+        message: `Payment recorded: ${(amountCents / 100).toFixed(2)} ${currency}`,
+        after: { paymentId: payment.id, amountCents, currency, status },
+        createdByUserId: session.userId,
+      })
+    }
+    return payment
   })
 
   return NextResponse.json({ payment }, { status: 201 })

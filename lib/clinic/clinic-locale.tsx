@@ -27,7 +27,7 @@ const ClinicLocaleContext = createContext<Ctx | null>(null)
 function readStoredLocale(): ClinicLocale {
   if (typeof window === 'undefined') return 'en'
   const v = window.localStorage.getItem(CLINIC_LOCALE_STORAGE)
-  return v === 'ar' ? 'ar' : 'en'
+  return v === 'ru' ? 'ru' : 'en'
 }
 
 export function ClinicLocaleProvider({ children }: { children: ReactNode }) {

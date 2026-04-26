@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { parseAnamnesisPatchBody } from '@/lib/clinic/anamnesis'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function parseDateOnly(isoDate: string): Date | null {
@@ -129,6 +131,7 @@ export async function PATCH(
     phone?: string | null
     email?: string | null
     internalNotes?: string | null
+    anamnesisJson?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
   } = {}
 
   if (body.firstName !== undefined) {
@@ -159,6 +162,14 @@ export async function PATCH(
     data.internalNotes = body.internalNotes == null ? null : String(body.internalNotes).trim() || null
   }
 
+  if (body.anamnesisJson !== undefined) {
+    const parsed = parseAnamnesisPatchBody(body.anamnesisJson)
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 })
+    }
+    data.anamnesisJson = parsed.value === null ? Prisma.DbNull : parsed.value
+  }
+
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
@@ -175,6 +186,7 @@ export async function PATCH(
       phone: true,
       email: true,
       internalNotes: true,
+      anamnesisJson: true,
       updatedAt: true,
     },
   })

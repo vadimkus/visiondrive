@@ -2,7 +2,7 @@
 
 This folder documents the **practice / clinic operations** product: appointments, patients, procedures, and (in later chunks) visits with media, inventory, finance, and patient-safe exports.
 
-**Brand slogan (EN):** *Practice operations, made clear* — defined in `lib/brand.ts` with Arabic counterpart for header/footer.
+**Brand slogan (EN):** *Practice operations, made clear* — defined in `lib/brand.ts` with Russian counterpart for header/footer.
 
 ## Quick links
 
@@ -13,7 +13,7 @@ This folder documents the **practice / clinic operations** product: appointments
 | [CHUNKS.md](./CHUNKS.md) | What shipped in each chunk (living log) |
 | [SETUP_LOCAL.md](./SETUP_LOCAL.md) | Docker Postgres + local `db push` when cloud DB is unavailable |
 | [RUNBOOK.md](./RUNBOOK.md) | Deploy, schema, incidents, backups |
-| [IRYNA_FLOWS.md](./IRYNA_FLOWS.md) | iPad-first staff workflows (EN/AR UI) |
+| [IRYNA_FLOWS.md](./IRYNA_FLOWS.md) | iPad-first staff workflows (EN/RU UI) |
 | [DATA_MODEL.md](./DATA_MODEL.md) | Quick reference to tables and API map |
 
 ## Code entry points

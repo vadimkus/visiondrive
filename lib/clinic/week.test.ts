@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, endOfWeekExclusive, isSameLocalDay, startOfWeekMonday } from '@/lib/clinic/week'
+import {
+  addDays,
+  endOfWeekExclusive,
+  isSameLocalDay,
+  isSameLocalMonth,
+  monthGridFrom,
+  startOfMonth,
+  startOfWeekMonday,
+} from '@/lib/clinic/week'
 
 describe('startOfWeekMonday', () => {
   it('returns Monday for a Wednesday', () => {
@@ -38,5 +46,18 @@ describe('endOfWeekExclusive', () => {
     const start = new Date(2026, 3, 13)
     const end = endOfWeekExclusive(start)
     expect(end.getTime() - start.getTime()).toBe(7 * 24 * 60 * 60 * 1000)
+  })
+})
+
+describe('monthGridFrom', () => {
+  it('returns 42 days starting Monday on/before month start', () => {
+    const anchor = new Date(2026, 3, 15)
+    const grid = monthGridFrom(anchor)
+    expect(grid).toHaveLength(42)
+    expect(grid[0].getDay()).toBe(1)
+    const first = startOfMonth(anchor)
+    expect(grid[0].getTime()).toBeLessThanOrEqual(first.getTime())
+    expect(grid.some((d) => d.getMonth() === 3 && d.getDate() === 1)).toBe(true)
+    expect(grid.filter((d) => isSameLocalMonth(d, anchor))).toHaveLength(30)
   })
 })
