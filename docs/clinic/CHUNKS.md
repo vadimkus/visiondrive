@@ -247,6 +247,22 @@
 
 ---
 
+## Chunk 15 — 2026-04-26 (service-specific availability)
+
+**Shipped**
+
+- **Schema:** `ClinicAvailabilityRule.procedureId` supports optional service-specific working-hour overrides.
+- **Engine:** Slot generation falls back to general rules, but uses procedure-specific rules for a day when they exist.
+- **Scheduling guard:** Manual create/edit, public booking, and follow-up creation now validate against the selected procedure's availability rules.
+- **UI:** `/clinic/appointments/availability` can add/remove service-specific rules and preview slots for a selected service.
+
+**Validation**
+
+- Added focused tests for procedure-specific slot generation and scheduling guard behavior.
+- Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

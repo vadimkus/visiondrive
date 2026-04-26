@@ -13,13 +13,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const rules = await prisma.clinicAvailabilityRule.findMany({
-    where: { tenantId: session.tenantId },
-    orderBy: [{ dayOfWeek: 'asc' }, { startMinutes: 'asc' }],
-  })
+  const [rules, procedures] = await Promise.all([
+    prisma.clinicAvailabilityRule.findMany({
+      where: { tenantId: session.tenantId },
+      orderBy: [{ dayOfWeek: 'asc' }, { startMinutes: 'asc' }],
+    }),
+    prisma.clinicProcedure.findMany({
+      where: { tenantId: session.tenantId },
+      select: {
+        id: true,
+        name: true,
+        active: true,
+        defaultDurationMin: true,
+        bufferAfterMinutes: true,
+      },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    }),
+  ])
 
   return NextResponse.json({
     rules: rules.length > 0 ? rules : defaultAvailabilityRules(),
+    procedures,
     seeded: rules.length === 0,
   })
 }
@@ -42,9 +56,21 @@ export async function PATCH(request: NextRequest) {
   }
 
   const rules = body.rules
-    .slice(0, 21)
+    .slice(0, 70)
     .map((rule) => normalizeAvailabilityRule(rule))
     .filter((rule) => rule.endMinutes > rule.startMinutes)
+  const procedureIds = Array.from(
+    new Set(rules.map((rule) => rule.procedureId).filter((id): id is string => !!id))
+  )
+
+  if (procedureIds.length > 0) {
+    const count = await prisma.clinicProcedure.count({
+      where: { tenantId: session.tenantId, id: { in: procedureIds } },
+    })
+    if (count !== procedureIds.length) {
+      return NextResponse.json({ error: 'Invalid procedure-specific availability rule' }, { status: 400 })
+    }
+  }
 
   await prisma.$transaction(async (tx) => {
     await tx.clinicAvailabilityRule.deleteMany({ where: { tenantId: session.tenantId } })
@@ -52,6 +78,7 @@ export async function PATCH(request: NextRequest) {
       await tx.clinicAvailabilityRule.createMany({
         data: rules.map((rule) => ({
           tenantId: session.tenantId,
+          procedureId: rule.procedureId ?? null,
           dayOfWeek: rule.dayOfWeek,
           startMinutes: rule.startMinutes,
           endMinutes: rule.endMinutes,

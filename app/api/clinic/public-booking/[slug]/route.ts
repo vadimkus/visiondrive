@@ -119,6 +119,7 @@ export async function GET(
       blockedTimes,
       durationMinutes: procedure.defaultDurationMin,
       bufferAfterMinutes: normalizeBufferMinutes(procedure.bufferAfterMinutes),
+      procedureId: procedure.id,
       now,
     }).slice(0, 80)
   }
@@ -183,6 +184,7 @@ export async function POST(
       startsAt,
       endsAt,
       bufferAfterMinutes,
+      procedureId: procedure.id,
     })
     if (conflict) return { conflict }
 

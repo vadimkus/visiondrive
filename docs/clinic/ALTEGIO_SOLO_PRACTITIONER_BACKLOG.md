@@ -33,10 +33,10 @@ Goal: adapt the useful parts of a mature salon/clinic platform for a solo/home p
    - Next improvements: custom booking slug/token, intake questions per service, staff approval workflow, client reschedule/cancel link.
 
 5. Availability rules
-   - Status: shipped first pass (working hours, minimum lead time, fixed slot interval, blocked time, slot preview).
+   - Status: shipped second pass (working hours, minimum lead time, fixed slot interval, blocked time, slot preview, service-specific availability overrides).
    - Adapt from Altegio: fixed/optimal/dynamic slots.
    - Solo version: working hours, minimum lead time, booking interval, disabled days, manually hidden slots.
-   - Next improvements: public booking flow, service-specific availability, dynamic slots, override reason on manual conflict.
+   - Next improvements: dynamic/optimal slot packing, exception calendar templates, availability analytics.
 
 ## Priority 2 — Patient Retention and Revenue
 

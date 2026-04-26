@@ -9,6 +9,7 @@ import {
   dubaiDayOfWeek,
   dubaiMinutesSinceMidnight,
   defaultAvailabilityRules,
+  applicableRulesForDay,
 } from './availability'
 
 type PrismaLike = Prisma.TransactionClient
@@ -43,6 +44,7 @@ export async function findSchedulingConflict(
     startsAt: Date
     endsAt: Date | null
     bufferAfterMinutes: number
+    procedureId?: string | null
     excludeAppointmentId?: string
     now?: Date
   }
@@ -94,7 +96,7 @@ export async function findSchedulingConflict(
   const startMinutes = dubaiMinutesSinceMidnight(params.startsAt)
   const endMinutes = dubaiMinutesSinceMidnight(occupiedUntil)
 
-  const activeRules = rules.filter((rule) => rule.active !== false && rule.dayOfWeek === dayOfWeek)
+  const activeRules = applicableRulesForDay(rules, dayOfWeek, params.procedureId)
   const coveringRule =
     dayKey === occupiedDayKey
       ? activeRules.find(

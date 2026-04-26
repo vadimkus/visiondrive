@@ -10,6 +10,7 @@ export const CLINIC_TIME_ZONE = 'Asia/Dubai'
 
 export type AvailabilityRuleInput = {
   id?: string
+  procedureId?: string | null
   dayOfWeek: number
   startMinutes: number
   endMinutes: number
@@ -39,6 +40,7 @@ type RuleForAvailability = Pick<
   ClinicAvailabilityRule,
   'dayOfWeek' | 'startMinutes' | 'endMinutes'
 > & {
+  procedureId?: string | null
   slotIntervalMinutes?: number
   minLeadMinutes?: number
   active?: boolean
@@ -57,6 +59,7 @@ const weekdayMap: Record<string, number> = {
 export function defaultAvailabilityRules(): AvailabilityRuleInput[] {
   return [1, 2, 3, 4, 5].map((dayOfWeek) => ({
     dayOfWeek,
+    procedureId: null,
     startMinutes: 10 * 60,
     endMinutes: 18 * 60,
     slotIntervalMinutes: 30,
@@ -89,6 +92,7 @@ export function normalizeAvailabilityRule(input: AvailabilityRuleInput): Availab
 
   return {
     ...input,
+    procedureId: input.procedureId?.trim() || null,
     dayOfWeek,
     startMinutes,
     endMinutes,
@@ -97,6 +101,22 @@ export function normalizeAvailabilityRule(input: AvailabilityRuleInput): Availab
     active: input.active !== false,
     label: input.label?.trim() || null,
   }
+}
+
+export function applicableRulesForDay(
+  rules: RuleForAvailability[],
+  dayOfWeek: number,
+  procedureId?: string | null
+) {
+  const dayRules = rules.filter((rule) => rule.dayOfWeek === dayOfWeek)
+  if (procedureId) {
+    const procedureRules = dayRules.filter((rule) => rule.procedureId === procedureId)
+    if (procedureRules.length > 0) {
+      return procedureRules.filter((rule) => rule.active !== false)
+    }
+  }
+
+  return dayRules.filter((rule) => !rule.procedureId && rule.active !== false)
 }
 
 export function minutesToHHMM(minutes: number) {
@@ -169,16 +189,16 @@ export function generateAvailabilitySlots(params: {
   blockedTimes: BlockedTimeForAvailability[]
   durationMinutes: number
   bufferAfterMinutes: number
+  procedureId?: string | null
   now?: Date
 }): AvailabilitySlot[] {
   const now = params.now ?? new Date()
   const result: AvailabilitySlot[] = []
-  const activeRules = params.rules.filter((r) => r.active !== false)
 
   for (const dayKey of eachDubaiDay(params.from, params.to)) {
     const dayStart = dateAtDubaiMinutes(dayKey, 0)
     const dayOfWeek = dubaiDayOfWeek(dayStart)
-    const rules = activeRules.filter((r) => r.dayOfWeek === dayOfWeek)
+    const rules = applicableRulesForDay(params.rules, dayOfWeek, params.procedureId)
 
     for (const rule of rules) {
       const earliest = new Date(now.getTime() + (rule.minLeadMinutes ?? 120) * 60 * 1000)

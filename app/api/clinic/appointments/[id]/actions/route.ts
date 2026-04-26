@@ -337,6 +337,7 @@ export async function POST(
         startsAt,
         endsAt,
         bufferAfterMinutes,
+        procedureId: existing.procedureId,
       })
       if (conflict) return { conflict }
 

@@ -10,6 +10,7 @@ import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 
 type AvailabilityRule = {
   id?: string
+  procedureId?: string | null
   dayOfWeek: number
   startMinutes: number
   endMinutes: number
@@ -30,6 +31,14 @@ type AvailabilitySlot = {
   startsAt: string
   endsAt: string
   occupiedUntil: string
+}
+
+type Procedure = {
+  id: string
+  name: string
+  active: boolean
+  defaultDurationMin: number
+  bufferAfterMinutes: number
 }
 
 const dayNamesEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -54,6 +63,7 @@ function dateTimeLocalValue(date: Date) {
 
 function defaultRows(): AvailabilityRule[] {
   return Array.from({ length: 7 }, (_, i) => ({
+    procedureId: null,
     dayOfWeek: i + 1,
     startMinutes: 10 * 60,
     endMinutes: 18 * 60,
@@ -91,9 +101,20 @@ export default function ClinicAvailabilityPage() {
     activeBlocks: isRu ? 'Закрытые слоты' : 'Blocked time',
     noBlocks: isRu ? 'Нет закрытых слотов.' : 'No blocked time set.',
     saved: isRu ? 'Расписание сохранено.' : 'Working hours saved.',
+    scope: isRu ? 'Для услуги' : 'Applies to',
+    allServices: isRu ? 'Все услуги' : 'All services',
+    addServiceRule: isRu ? 'Добавить правило для услуги' : 'Add service rule',
+    serviceSpecificTitle: isRu ? 'Правила по услугам' : 'Service-specific rules',
+    serviceSpecificHint: isRu
+      ? 'Если для услуги есть правила на день, онлайн-запись и проверки расписания используют их вместо общих часов.'
+      : 'When a service has rules for a day, booking and conflict checks use them instead of general hours.',
+    previewService: isRu ? 'Предпросмотр услуги' : 'Preview service',
+    removeRule: isRu ? 'Удалить правило' : 'Remove rule',
   }
 
   const [rules, setRules] = useState<AvailabilityRule[]>(defaultRows)
+  const [procedures, setProcedures] = useState<Procedure[]>([])
+  const [previewProcedureId, setPreviewProcedureId] = useState('')
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([])
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])
   const [loading, setLoading] = useState(true)
@@ -120,7 +141,7 @@ export default function ClinicAvailabilityPage() {
         fetch('/api/clinic/availability', { credentials: 'include' }),
         fetch('/api/clinic/blocked-times', { credentials: 'include' }),
         fetch(
-          `/api/clinic/availability/slots?from=${encodeURIComponent(previewRange.from.toISOString())}&to=${encodeURIComponent(previewRange.to.toISOString())}&durationMinutes=60`,
+          `/api/clinic/availability/slots?from=${encodeURIComponent(previewRange.from.toISOString())}&to=${encodeURIComponent(previewRange.to.toISOString())}&durationMinutes=60${previewProcedureId ? `&procedureId=${encodeURIComponent(previewProcedureId)}` : ''}`,
           { credentials: 'include' }
         ),
       ])
@@ -136,8 +157,17 @@ export default function ClinicAvailabilityPage() {
         return
       }
       const loadedRules = (availabilityData.rules || []) as AvailabilityRule[]
-      const byDay = new Map(loadedRules.map((rule) => [rule.dayOfWeek, rule]))
-      setRules(defaultRows().map((row) => ({ ...row, ...(byDay.get(row.dayOfWeek) || {}) })))
+      const proceduresData = (availabilityData.procedures || []) as Procedure[]
+      const globalRules = loadedRules.filter((rule) => !rule.procedureId)
+      const byDay = new Map(globalRules.map((rule) => [rule.dayOfWeek, rule]))
+      setRules([
+        ...defaultRows().map((row) => ({ ...row, ...(byDay.get(row.dayOfWeek) || {}) })),
+        ...loadedRules.filter((rule) => !!rule.procedureId),
+      ])
+      setProcedures(proceduresData)
+      if (!previewProcedureId && proceduresData[0]?.id) {
+        setPreviewProcedureId(proceduresData[0].id)
+      }
       setBlockedTimes(blockedData.blockedTimes || [])
       setSlots(slotsData.slots || [])
     } catch {
@@ -145,7 +175,7 @@ export default function ClinicAvailabilityPage() {
     } finally {
       setLoading(false)
     }
-  }, [previewRange.from, previewRange.to, router, t.failedToLoad, t.networkError])
+  }, [previewRange.from, previewRange.to, previewProcedureId, router, t.failedToLoad, t.networkError])
 
   useEffect(() => {
     void load()
@@ -153,6 +183,28 @@ export default function ClinicAvailabilityPage() {
 
   const updateRule = (index: number, patch: Partial<AvailabilityRule>) => {
     setRules((current) => current.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)))
+  }
+
+  const addServiceRule = () => {
+    const procedure = procedures.find((p) => p.active) ?? procedures[0]
+    if (!procedure) return
+    setRules((current) => [
+      ...current,
+      {
+        procedureId: procedure.id,
+        dayOfWeek: 1,
+        startMinutes: 10 * 60,
+        endMinutes: 18 * 60,
+        slotIntervalMinutes: 30,
+        minLeadMinutes: 120,
+        active: true,
+        label: null,
+      },
+    ])
+  }
+
+  const removeRule = (index: number) => {
+    setRules((current) => current.filter((_, i) => i !== index))
   }
 
   const saveRules = async () => {
@@ -255,12 +307,27 @@ export default function ClinicAvailabilityPage() {
       {message && <ClinicAlert variant="success">{message}</ClinicAlert>}
 
       <section className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">{copy.title}</h2>
+        <div className="flex flex-col gap-3 p-4 border-b border-gray-100 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="font-semibold text-gray-900">{copy.title}</h2>
+            <p className="mt-1 text-xs text-gray-500">{copy.serviceSpecificHint}</p>
+          </div>
+          <button
+            type="button"
+            onClick={addServiceRule}
+            disabled={procedures.length === 0}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+          >
+            <Plus className="w-4 h-4" aria-hidden />
+            {copy.addServiceRule}
+          </button>
         </div>
         <div className="divide-y divide-gray-100">
           {rules.map((rule, index) => (
-            <div key={rule.dayOfWeek} className="grid grid-cols-1 lg:grid-cols-[120px_1fr] gap-3 p-4">
+            <div
+              key={`${rule.id ?? 'new'}-${rule.procedureId ?? 'all'}-${rule.dayOfWeek}-${index}`}
+              className="grid grid-cols-1 lg:grid-cols-[140px_1fr] gap-3 p-4"
+            >
               <label className="flex items-center gap-3 font-semibold text-gray-800">
                 <input
                   type="checkbox"
@@ -268,9 +335,38 @@ export default function ClinicAvailabilityPage() {
                   onChange={(e) => updateRule(index, { active: e.target.checked })}
                   className="h-5 w-5 rounded border-gray-300 text-orange-600"
                 />
-                {dayNames[rule.dayOfWeek - 1]}
+                {rule.procedureId ? (
+                  <select
+                    value={rule.dayOfWeek}
+                    onChange={(e) => updateRule(index, { dayOfWeek: Number(e.target.value) })}
+                    className="min-h-10 rounded-xl border border-gray-200 bg-white px-2 text-sm"
+                  >
+                    {dayNames.map((name, dayIndex) => (
+                      <option key={name} value={dayIndex + 1}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  dayNames[rule.dayOfWeek - 1]
+                )}
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-6 xl:grid-cols-[1.3fr_repeat(4,1fr)_auto] gap-3">
+                <label className="text-sm text-gray-600">
+                  <span className="block mb-1">{copy.scope}</span>
+                  <select
+                    value={rule.procedureId ?? ''}
+                    onChange={(e) => updateRule(index, { procedureId: e.target.value || null })}
+                    className="w-full min-h-11 rounded-xl border border-gray-200 px-3 text-gray-900"
+                  >
+                    <option value="">{copy.allServices}</option>
+                    {procedures.map((procedure) => (
+                      <option key={procedure.id} value={procedure.id}>
+                        {procedure.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <label className="text-sm text-gray-600">
                   <span className="block mb-1">{copy.from}</span>
                   <input
@@ -325,6 +421,16 @@ export default function ClinicAvailabilityPage() {
                   <span className="inline-flex min-h-11 items-center rounded-xl bg-gray-50 px-3 text-sm font-medium text-gray-600">
                     {rule.active ? copy.open : copy.closed}
                   </span>
+                  {rule.procedureId && (
+                    <button
+                      type="button"
+                      onClick={() => removeRule(index)}
+                      className="ml-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-red-600 hover:bg-red-50"
+                      aria-label={copy.removeRule}
+                    >
+                      <Trash2 className="w-4 h-4" aria-hidden />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -417,9 +523,26 @@ export default function ClinicAvailabilityPage() {
       </div>
 
       <section className="rounded-2xl bg-white border border-gray-200 p-4 shadow-sm space-y-4">
-        <div className="flex items-center gap-2">
-          <CalendarClock className="w-5 h-5 text-orange-600" aria-hidden />
-          <h2 className="font-semibold text-gray-900">{copy.preview}</h2>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarClock className="w-5 h-5 text-orange-600" aria-hidden />
+            <h2 className="font-semibold text-gray-900">{copy.preview}</h2>
+          </div>
+          <label className="text-sm text-gray-600 md:w-72">
+            <span className="sr-only">{copy.previewService}</span>
+            <select
+              value={previewProcedureId}
+              onChange={(e) => setPreviewProcedureId(e.target.value)}
+              className="w-full min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-gray-900"
+            >
+              <option value="">{copy.allServices}</option>
+              {procedures.map((procedure) => (
+                <option key={procedure.id} value={procedure.id}>
+                  {procedure.name}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         {slots.length === 0 ? (
           <p className="text-sm text-gray-500">{copy.noSlots}</p>

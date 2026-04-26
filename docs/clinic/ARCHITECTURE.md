@@ -14,7 +14,7 @@
 | `ClinicProcedure` | Catalog: name, duration, hidden **`bufferAfterMinutes`** (cleanup/prep/travel), base price, currency (default AED). |
 | `ClinicAppointment` | Scheduled visit intent: patient, optional procedure, start/end, status, source, hidden buffer, lifecycle timestamps, **`internalNotes`**, and optional `overrideReason` for intentional scheduling exceptions. |
 | `ClinicAppointmentEvent` | Appointment change history: create/update/reschedule/status/reminder/visit/payment/follow-up events. |
-| `ClinicAvailabilityRule` | Working-hours and booking cadence per weekday: open/closed, start/end, slot interval, and minimum lead time. |
+| `ClinicAvailabilityRule` | Working-hours and booking cadence per weekday: open/closed, start/end, slot interval, minimum lead time, and optional procedure-specific overrides. |
 | `ClinicBlockedTime` | Manual availability removals for lunch, leave, training, private time, or supplier errands. |
 | `ClinicReminderTemplate` | Tenant-scoped WhatsApp/email/SMS template text for appointment reminders, no-show follow-ups, and rebooking nudges. |
 | `ClinicReminderDelivery` | Reminder schedule and delivery/preparation log; stores scheduled time, rendered body, WhatsApp URL, status, and errors. |
@@ -29,7 +29,7 @@
 
 Relationships: `ClinicAppointment` → `ClinicPatient`, optional → `ClinicProcedure`; **`ClinicVisit`** optionally → `ClinicAppointment`; `ClinicAppointmentEvent` → `ClinicAppointment`; media and payments optionally → **`ClinicVisit`**. Cascade deletes are tenant-safe because patient belongs to tenant.
 
-Availability: `/api/clinic/availability/slots` combines `ClinicAvailabilityRule`, `ClinicBlockedTime`, existing active appointments, service duration, and hidden buffers. It returns candidate slots only; appointment creation still goes through the conflict-safe appointment API.
+Availability: `/api/clinic/availability/slots` combines `ClinicAvailabilityRule`, `ClinicBlockedTime`, existing active appointments, service duration, and hidden buffers. General rules apply to all services; if a procedure has rules for a given day, those service-specific rules override the general day rules. It returns candidate slots only; appointment creation still goes through the conflict-safe appointment API.
 
 Scheduling guard: appointment create/reschedule checks existing appointment occupancy, blocked time, working hours, and minimum lead time. Staff can override a violation only when `allowConflictOverride=true` and a non-empty `overrideReason` is provided; the reason is stored on the appointment and visible in the drawer.
 

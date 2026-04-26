@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
       startsAt,
       endsAt,
       bufferAfterMinutes,
+      procedureId: procedure?.id ?? null,
     })
     if (!overrideAllowed({ conflict, allowConflictOverride, overrideReason })) {
       return { conflict }

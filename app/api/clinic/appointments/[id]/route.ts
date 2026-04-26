@@ -251,6 +251,7 @@ export async function PATCH(
   const nextStartsAt = data.startsAt ?? existing.startsAt
   const nextEndsAt = data.endsAt !== undefined ? data.endsAt : existing.endsAt
   const nextBufferAfterMinutes = data.bufferAfterMinutes ?? existing.bufferAfterMinutes
+  const nextProcedureId = data.procedureId !== undefined ? data.procedureId : existing.procedureId
   if (nextEndsAt && nextEndsAt <= nextStartsAt) {
     return NextResponse.json({ error: 'endsAt must be after startsAt' }, { status: 400 })
   }
@@ -275,6 +276,7 @@ export async function PATCH(
         startsAt: nextStartsAt,
         endsAt: nextEndsAt,
         bufferAfterMinutes: nextBufferAfterMinutes,
+        procedureId: nextProcedureId,
         excludeAppointmentId: id,
       })
       if (!overrideAllowed({ conflict, allowConflictOverride, overrideReason })) {

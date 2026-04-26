@@ -834,6 +834,7 @@ model ClinicProcedure {
   tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   appointments  ClinicAppointment[]
   stockItems    ClinicStockItem[]
+  availabilityRules ClinicAvailabilityRule[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -896,6 +897,8 @@ model ClinicAppointmentEvent {
 model ClinicAvailabilityRule {
   id                  String   @id @default(cuid())
   tenantId            String
+  /// Optional procedure-specific override. Null means general practice availability.
+  procedureId         String?
   /// 1 = Monday, 7 = Sunday. Matches Practice OS week views.
   dayOfWeek           Int
   startMinutes        Int
@@ -907,9 +910,11 @@ model ClinicAvailabilityRule {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, dayOfWeek, active])
+  @@index([tenantId, procedureId, dayOfWeek, active])
   @@map("clinic_availability_rules")
 }
 

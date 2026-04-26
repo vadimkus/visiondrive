@@ -54,6 +54,47 @@ describe('availability helpers', () => {
     ])
   })
 
+  it('uses procedure-specific rules when they exist for that service and day', () => {
+    const from = new Date('2026-04-27T00:00:00.000Z')
+    const to = new Date('2026-04-28T00:00:00.000Z')
+
+    const slots = generateAvailabilitySlots({
+      from,
+      to,
+      rules: [
+        {
+          procedureId: null,
+          dayOfWeek: 1,
+          startMinutes: 10 * 60,
+          endMinutes: 12 * 60,
+          slotIntervalMinutes: 60,
+          minLeadMinutes: 0,
+          active: true,
+        },
+        {
+          procedureId: 'laser',
+          dayOfWeek: 1,
+          startMinutes: 14 * 60,
+          endMinutes: 16 * 60,
+          slotIntervalMinutes: 60,
+          minLeadMinutes: 0,
+          active: true,
+        },
+      ],
+      appointments: [],
+      blockedTimes: [],
+      durationMinutes: 60,
+      bufferAfterMinutes: 0,
+      procedureId: 'laser',
+      now: new Date('2026-04-26T00:00:00.000Z'),
+    })
+
+    expect(slots.map((slot) => slot.startsAt)).toEqual([
+      '2026-04-27T10:00:00.000Z',
+      '2026-04-27T11:00:00.000Z',
+    ])
+  })
+
   it('excludes appointment and blocked-time conflicts including buffers', () => {
     const from = new Date('2026-04-27T00:00:00.000Z')
     const to = new Date('2026-04-28T00:00:00.000Z')

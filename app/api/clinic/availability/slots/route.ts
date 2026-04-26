@@ -96,6 +96,7 @@ export async function GET(request: NextRequest) {
     blockedTimes,
     durationMinutes,
     bufferAfterMinutes,
+    procedureId: procedureId || null,
     now,
   })
 

@@ -79,6 +79,43 @@ describe('scheduling guard', () => {
     expect(conflict?.type).toBe('WORKING_HOURS')
   })
 
+  it('checks procedure-specific availability when a procedure override exists', async () => {
+    const conflict = await findSchedulingConflict(
+      dbMock({
+        rules: [
+          {
+            procedureId: null,
+            dayOfWeek: 1,
+            startMinutes: 10 * 60,
+            endMinutes: 18 * 60,
+            slotIntervalMinutes: 30,
+            minLeadMinutes: 0,
+            active: true,
+          },
+          {
+            procedureId: 'laser',
+            dayOfWeek: 1,
+            startMinutes: 14 * 60,
+            endMinutes: 18 * 60,
+            slotIntervalMinutes: 30,
+            minLeadMinutes: 0,
+            active: true,
+          },
+        ],
+      }),
+      {
+        tenantId: 'tenant-1',
+        startsAt: new Date('2026-04-27T06:00:00.000Z'),
+        endsAt: new Date('2026-04-27T07:00:00.000Z'),
+        bufferAfterMinutes: 0,
+        procedureId: 'laser',
+        now: new Date('2026-04-26T00:00:00.000Z'),
+      }
+    )
+
+    expect(conflict?.type).toBe('WORKING_HOURS')
+  })
+
   it('requires an override reason when a conflict is overridden', () => {
     const conflict = {
       type: 'WORKING_HOURS' as const,
