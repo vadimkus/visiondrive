@@ -210,6 +210,24 @@
 
 ---
 
+## Chunk 13 — 2026-04-26 (client reminders + portal polish)
+
+**Shipped**
+
+- **Schema:** `ClinicReminderTemplate` and `ClinicReminderDelivery` for WhatsApp-first reminders, no-show follow-ups, and rebooking nudges.
+- **Templates:** `/clinic/reminders` lets staff edit reminder templates with variables: `{{firstName}}`, `{{lastName}}`, `{{service}}`, `{{date}}`, `{{time}}`.
+- **Delivery log:** Reminder records store schedule time, rendered body, status, generated WhatsApp URL, and missing-phone errors.
+- **Runner:** `GET/POST /api/clinic/reminders/run` prepares due scheduled reminders; cron can use `CRON_SECRET`.
+- **Appointment drawer:** Send WhatsApp now, schedule 24h reminder, and prepare no-show follow-up from the appointment.
+- **UI polish:** Clinic shell and dashboard now use responsive glass/gradient styling, stronger mobile/iPad touch targets, wider desktop canvas, and clearer primary actions.
+
+**Validation**
+
+- Added focused reminder template/scheduling/WhatsApp URL tests.
+- Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

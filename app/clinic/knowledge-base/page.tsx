@@ -123,12 +123,12 @@ const articlesEn: Article[] = [
     title: 'Use WhatsApp reminders and follow-ups',
     summary: 'Keep reminders simple and personal for a solo practice.',
     steps: [
-      'Open an appointment drawer.',
-      'Use WhatsApp reminder to generate a client-ready message.',
-      'After completion, create a 2, 4, 6, or 8 week follow-up.',
-      'Check appointment history to see what was sent or created.',
+      'Open Reminders to adjust WhatsApp templates for reminders, no-shows, and rebooking.',
+      'Open an appointment drawer to send now or schedule a 24h reminder.',
+      'Use No-show follow-up when a client misses the appointment.',
+      'Check the delivery log and appointment history to see what was prepared.',
     ],
-    link: '/clinic/appointments',
+    link: '/clinic/reminders',
   },
 ]
 
@@ -230,12 +230,12 @@ const articlesRu: Article[] = [
     title: 'WhatsApp напоминания и повторные записи',
     summary: 'Простая персональная коммуникация для соло-практики.',
     steps: [
-      'Откройте карточку записи.',
-      'Используйте WhatsApp напоминание, чтобы подготовить сообщение клиенту.',
-      'После завершения создайте повторную запись через 2, 4, 6 или 8 недель.',
-      'Проверяйте историю записи, чтобы видеть отправленные действия.',
+      'Откройте Напоминания, чтобы настроить шаблоны WhatsApp.',
+      'Откройте карточку записи, чтобы отправить сейчас или запланировать за 24 часа.',
+      'Используйте сообщение после неявки, если клиент пропустил запись.',
+      'Проверяйте журнал отправок и историю записи.',
     ],
-    link: '/clinic/appointments',
+    link: '/clinic/reminders',
   },
 ]
 

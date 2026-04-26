@@ -11,6 +11,7 @@ import {
   CircleDollarSign,
   BookOpen,
   Calendar,
+  Send,
   LogOut,
   Stethoscope,
   UserCircle,
@@ -28,6 +29,7 @@ const nav = [
   { href: '/clinic/purchase-orders', labelKey: 'purchaseOrders' as const, icon: ShoppingCart },
   { href: '/clinic/finance', labelKey: 'finance' as const, icon: CircleDollarSign },
   { href: '/clinic/appointments', labelKey: 'appointments' as const, icon: Calendar },
+  { href: '/clinic/reminders', labelKey: 'reminders' as const, icon: Send },
   { href: '/clinic/knowledge-base', labelKey: 'knowledgeBase' as const, icon: BookOpen },
   { href: '/clinic/account', labelKey: 'account' as const, icon: UserCircle },
 ]
@@ -47,21 +49,21 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
 
   return (
     <div
-      className="min-h-screen bg-[#f5f5f7] flex flex-col md:flex-row pb-[env(safe-area-inset-bottom)]"
+      className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.16),transparent_34rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_42%,#eef2ff_100%)] flex flex-col lg:flex-row pb-[env(safe-area-inset-bottom)]"
       dir="ltr"
       lang={locale}
     >
-      <aside className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-gray-200 bg-white md:min-h-screen md:shadow-[inset_-1px_0_0_rgba(0,0,0,0.04)]">
-        <div className="p-4 flex md:flex-col gap-3 md:gap-6 items-center md:items-stretch justify-between md:justify-start">
+      <aside className="sticky top-0 z-40 shrink-0 border-b border-white/70 bg-white/85 shadow-sm shadow-orange-100/40 backdrop-blur-xl lg:w-64 lg:border-b-0 lg:border-r lg:min-h-screen lg:shadow-[inset_-1px_0_0_rgba(255,255,255,0.55)]">
+        <div className="p-3 sm:p-4 flex lg:flex-col gap-3 lg:gap-6 items-center lg:items-stretch justify-between lg:justify-start">
           <Link
             href="/clinic"
-            className="flex items-center gap-2 md:px-2 min-h-11 min-w-11 md:min-w-0"
+            className="flex items-center gap-2 lg:px-2 min-h-11 min-w-11 lg:min-w-0"
             aria-label={t.dashboard}
           >
-            <div className="w-9 h-9 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
-              <Stethoscope className="w-5 h-5 text-orange-600" aria-hidden />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/20">
+              <Stethoscope className="w-5 h-5 text-white" aria-hidden />
             </div>
-            <div className="hidden md:block min-w-0">
+            <div className="hidden lg:block min-w-0">
               <p className="text-sm font-semibold text-gray-900 leading-tight">{t.practiceOsTitle}</p>
               <p className="text-[11px] text-gray-500 leading-snug">{t.practiceOsBrand}</p>
               <p className="text-[10px] text-gray-400 leading-snug mt-0.5">{slogan}</p>
@@ -69,7 +71,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
           </Link>
 
           <div
-            className="flex items-center gap-1 md:px-2"
+            className="flex items-center gap-1 lg:px-2"
             role="group"
             aria-label={t.language}
           >
@@ -81,8 +83,8 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
                 className={clsx(
                   'min-h-11 min-w-11 px-2 rounded-xl text-xs font-semibold transition-colors',
                   locale === code
-                    ? 'bg-orange-100 text-orange-900'
-                    : 'text-gray-500 hover:bg-gray-50'
+                    ? 'bg-orange-100 text-orange-900 shadow-sm'
+                    : 'text-gray-500 hover:bg-white'
                 )}
                 aria-pressed={locale === code}
               >
@@ -92,7 +94,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
           </div>
 
           <nav
-            className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible pb-1 md:pb-0"
+            className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 scroll-smooth"
             aria-label={t.practiceConsole}
           >
             {nav.map(({ href, labelKey, icon: Icon }) => {
@@ -104,10 +106,10 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
                   key={href}
                   href={href}
                   className={clsx(
-                    'flex items-center gap-2 px-3 py-3 md:py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-colors min-h-11',
+                    'flex items-center gap-2 px-3 py-3 lg:py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition-all min-h-11',
                     active
-                      ? 'bg-orange-50 text-orange-800 shadow-sm ring-1 ring-orange-100/80'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-lg shadow-orange-500/20'
+                      : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'
                   )}
                 >
                   <Icon className="w-4 h-4 shrink-0" aria-hidden />
@@ -116,25 +118,25 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
               )
             })}
           </nav>
-          <div className="flex items-center gap-2 md:flex-col md:mt-auto md:pt-6">
+          <div className="flex items-center gap-2 lg:flex-col lg:mt-auto lg:pt-6">
             <Link
               href="/"
-              className="hidden md:block text-xs text-gray-500 hover:text-orange-600 px-2 py-2 min-h-11"
+              className="hidden lg:block text-xs text-gray-500 hover:text-orange-600 px-2 py-2 min-h-11"
             >
               visiondrive.ae
             </Link>
             <button
               type="button"
               onClick={logout}
-              className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-sm text-gray-600 hover:bg-gray-100 min-h-11"
+              className="flex items-center justify-center gap-2 px-3 py-3 rounded-2xl text-sm text-gray-600 hover:bg-white hover:text-gray-900 min-h-11"
             >
               <LogOut className="w-4 h-4 shrink-0" aria-hidden />
-              <span className="hidden md:inline">{t.signOut}</span>
+              <span className="hidden lg:inline">{t.signOut}</span>
             </button>
           </div>
         </div>
       </aside>
-      <div className="flex-1 min-w-0 p-4 md:p-8">{children}</div>
+      <main className="flex-1 min-w-0 p-3 sm:p-5 lg:p-8">{children}</main>
     </div>
   )
 }

@@ -4,6 +4,9 @@ import {
   ClinicAppointmentSource,
   ClinicAppointmentStatus,
   ClinicCrmActivityType,
+  ClinicReminderChannel,
+  ClinicReminderKind,
+  ClinicReminderStatus,
   ClinicVisitStatus,
 } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -16,26 +19,14 @@ import {
   normalizeBufferMinutes,
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
-
-function phoneForWhatsapp(phone: string | null | undefined) {
-  const digits = String(phone || '').replace(/\D/g, '')
-  return digits ? digits : null
-}
-
-function reminderText(appointment: {
-  startsAt: Date
-  patient: { firstName: string; lastName: string }
-  procedure: { name: string } | null
-  titleOverride: string | null
-}) {
-  const when = appointment.startsAt.toLocaleString('en-GB', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'Asia/Dubai',
-  })
-  const service = appointment.procedure?.name || appointment.titleOverride || 'appointment'
-  return `Hi ${appointment.patient.firstName}, reminder for your ${service} on ${when}. Please reply to confirm.`
-}
+import {
+  DEFAULT_REMINDER_MINUTES_BEFORE,
+  getReminderTemplate,
+  phoneForWhatsapp,
+  reminderScheduledFor,
+  renderReminderTemplate,
+  whatsappUrl,
+} from '@/lib/clinic/reminders'
 
 export async function POST(
   request: NextRequest,
@@ -74,9 +65,30 @@ export async function POST(
   }
 
   if (action === 'send_reminder') {
-    const text = reminderText(existing)
-    const phone = phoneForWhatsapp(existing.patient.phone)
-    await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
+      const template = await getReminderTemplate(
+        tx,
+        session.tenantId,
+        ClinicReminderKind.APPOINTMENT_REMINDER
+      )
+      const text = renderReminderTemplate(template?.body || '', existing)
+      const url = whatsappUrl(existing.patient.phone, text)
+      const delivery = await tx.clinicReminderDelivery.create({
+        data: {
+          tenantId: session.tenantId,
+          appointmentId: id,
+          patientId: existing.patientId,
+          kind: ClinicReminderKind.APPOINTMENT_REMINDER,
+          channel: ClinicReminderChannel.WHATSAPP,
+          status: ClinicReminderStatus.PREPARED,
+          scheduledFor: new Date(),
+          preparedAt: new Date(),
+          body: text,
+          whatsappUrl: url,
+          error: phoneForWhatsapp(existing.patient.phone) ? null : 'Missing WhatsApp phone number',
+          createdByUserId: session.userId,
+        },
+      })
       await tx.clinicCrmActivity.create({
         data: {
           tenantId: session.tenantId,
@@ -90,15 +102,105 @@ export async function POST(
       await writeAppointmentEvent(tx, {
         tenantId: session.tenantId,
         appointmentId: id,
-        type: ClinicAppointmentEventType.REMINDER_SENT,
+        type: ClinicAppointmentEventType.REMINDER_PREPARED,
         message: 'WhatsApp reminder prepared',
-        after: { text },
+        after: { text, reminderDeliveryId: delivery.id },
         createdByUserId: session.userId,
       })
+      return { text, url, delivery }
     })
     return NextResponse.json({
-      reminderText: text,
-      whatsappUrl: phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : null,
+      reminderText: result.text,
+      whatsappUrl: result.url,
+      delivery: result.delivery,
+    })
+  }
+
+  if (action === 'schedule_reminder') {
+    const minutesBefore = Math.max(0, Math.min(14 * 24 * 60, Number(body.minutesBefore || DEFAULT_REMINDER_MINUTES_BEFORE)))
+    const scheduledFor = reminderScheduledFor(existing.startsAt, minutesBefore)
+    const delivery = await prisma.$transaction(async (tx) => {
+      const template = await getReminderTemplate(
+        tx,
+        session.tenantId,
+        ClinicReminderKind.APPOINTMENT_REMINDER
+      )
+      const text = renderReminderTemplate(template?.body || '', existing)
+      const delivery = await tx.clinicReminderDelivery.create({
+        data: {
+          tenantId: session.tenantId,
+          appointmentId: id,
+          patientId: existing.patientId,
+          kind: ClinicReminderKind.APPOINTMENT_REMINDER,
+          channel: ClinicReminderChannel.WHATSAPP,
+          status: ClinicReminderStatus.SCHEDULED,
+          scheduledFor,
+          body: text,
+          createdByUserId: session.userId,
+        },
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: id,
+        type: ClinicAppointmentEventType.REMINDER_SCHEDULED,
+        message: `WhatsApp reminder scheduled ${minutesBefore} minutes before appointment`,
+        after: { reminderDeliveryId: delivery.id, scheduledFor: scheduledFor.toISOString() },
+        createdByUserId: session.userId,
+      })
+      return delivery
+    })
+    return NextResponse.json({ delivery }, { status: 201 })
+  }
+
+  if (action === 'no_show_follow_up') {
+    const result = await prisma.$transaction(async (tx) => {
+      const template = await getReminderTemplate(
+        tx,
+        session.tenantId,
+        ClinicReminderKind.NO_SHOW_FOLLOW_UP
+      )
+      const text = renderReminderTemplate(template?.body || '', existing)
+      const url = whatsappUrl(existing.patient.phone, text)
+      const delivery = await tx.clinicReminderDelivery.create({
+        data: {
+          tenantId: session.tenantId,
+          appointmentId: id,
+          patientId: existing.patientId,
+          kind: ClinicReminderKind.NO_SHOW_FOLLOW_UP,
+          channel: ClinicReminderChannel.WHATSAPP,
+          status: ClinicReminderStatus.PREPARED,
+          scheduledFor: new Date(),
+          preparedAt: new Date(),
+          body: text,
+          whatsappUrl: url,
+          error: phoneForWhatsapp(existing.patient.phone) ? null : 'Missing WhatsApp phone number',
+          createdByUserId: session.userId,
+        },
+      })
+      await tx.clinicCrmActivity.create({
+        data: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          type: ClinicCrmActivityType.WHATSAPP,
+          body: `No-show follow-up prepared: ${text}`,
+          occurredAt: new Date(),
+          createdByUserId: session.userId,
+        },
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: id,
+        type: ClinicAppointmentEventType.NO_SHOW_FOLLOW_UP,
+        message: 'No-show WhatsApp follow-up prepared',
+        after: { text, reminderDeliveryId: delivery.id },
+        createdByUserId: session.userId,
+      })
+      return { text, url, delivery }
+    })
+    return NextResponse.json({
+      reminderText: result.text,
+      whatsappUrl: result.url,
+      delivery: result.delivery,
     })
   }
 

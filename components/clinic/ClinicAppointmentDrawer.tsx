@@ -69,6 +69,16 @@ type Appointment = {
     createdAt: string
     createdBy: { name: string | null; email: string } | null
   }[]
+  reminderDeliveries: {
+    id: string
+    kind: string
+    status: string
+    scheduledFor: string
+    preparedAt: string | null
+    whatsappUrl: string | null
+    error: string | null
+    body: string
+  }[]
 }
 
 function money(cents: number, currency = 'AED') {
@@ -193,7 +203,7 @@ export function ClinicAppointmentDrawer({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || t.saveFailed)
-      if (action === 'send_reminder') {
+      if (action === 'send_reminder' || action === 'no_show_follow_up') {
         if (data.reminderText && typeof navigator !== 'undefined') {
           await navigator.clipboard?.writeText(data.reminderText).catch(() => undefined)
         }
@@ -358,6 +368,12 @@ export function ClinicAppointmentDrawer({
                   <ActionButton busy={busy === 'send_reminder'} onClick={() => runAction('send_reminder')}>
                     {t.whatsappReminder}
                   </ActionButton>
+                  <ActionButton busy={busy === 'schedule_reminder'} onClick={() => runAction('schedule_reminder')}>
+                    {t.scheduleReminder24h}
+                  </ActionButton>
+                  <ActionButton busy={busy === 'no_show_follow_up'} onClick={() => runAction('no_show_follow_up')}>
+                    {t.noShowFollowUp}
+                  </ActionButton>
                   {[2, 4, 6, 8].map((weeks) => (
                     <ActionButton
                       key={weeks}
@@ -368,6 +384,24 @@ export function ClinicAppointmentDrawer({
                     </ActionButton>
                   ))}
                 </div>
+                {appointment.reminderDeliveries.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {appointment.reminderDeliveries.slice(0, 3).map((delivery) => (
+                      <div key={delivery.id} className="rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+                        <p className="font-semibold text-gray-900">
+                          {delivery.kind.replaceAll('_', ' ')} · {delivery.status}
+                        </p>
+                        <p>
+                          {new Date(delivery.scheduledFor).toLocaleString(dateLocale, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
+                        </p>
+                        {delivery.error && <p className="mt-1 text-red-700">{delivery.error}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section className="rounded-2xl border border-gray-200 p-4">

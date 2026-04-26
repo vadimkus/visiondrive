@@ -16,6 +16,8 @@
 | `ClinicAppointmentEvent` | Appointment change history: create/update/reschedule/status/reminder/visit/payment/follow-up events. |
 | `ClinicAvailabilityRule` | Working-hours and booking cadence per weekday: open/closed, start/end, slot interval, and minimum lead time. |
 | `ClinicBlockedTime` | Manual availability removals for lunch, leave, training, private time, or supplier errands. |
+| `ClinicReminderTemplate` | Tenant-scoped WhatsApp/email/SMS template text for appointment reminders, no-show follow-ups, and rebooking nudges. |
+| `ClinicReminderDelivery` | Reminder schedule and delivery/preparation log; stores scheduled time, rendered body, WhatsApp URL, status, and errors. |
 | `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional link to an appointment, **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
 | `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); served via **`GET /api/clinic/media/[id]`** (tenant-scoped). |
 | `ClinicPatientPayment` | Patient-level payments (amount, method, status, optional **`visitId`**). |
@@ -31,6 +33,8 @@ Availability: `/api/clinic/availability/slots` combines `ClinicAvailabilityRule`
 
 Scheduling guard: appointment create/reschedule checks existing appointment occupancy, blocked time, working hours, and minimum lead time. Staff can override a violation only when `allowConflictOverride=true` and a non-empty `overrideReason` is provided; the reason is stored on the appointment and visible in the drawer.
 
+Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send WhatsApp messages. The runner prepares due messages and logs them; staff opens the generated `wa.me` link to send. Future WhatsApp Business API integration can mark deliveries as sent automatically.
+
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.
@@ -38,6 +42,7 @@ Scheduling guard: appointment create/reschedule checks existing appointment occu
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`.
 - **Availability:** `GET/PATCH /api/clinic/availability`, `GET /api/clinic/availability/slots`, `GET/POST /api/clinic/blocked-times`, `DELETE .../blocked-times/[id]`.
+- **Reminders:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`; appointment actions support `send_reminder`, `schedule_reminder`, and `no_show_follow_up`.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).
 - Errors: JSON `{ error: string, code?: string }` with appropriate HTTP status.

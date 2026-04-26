@@ -103,6 +103,8 @@ model Tenant {
   clinicAppointmentEvents ClinicAppointmentEvent[]
   clinicAvailabilityRules ClinicAvailabilityRule[]
   clinicBlockedTimes ClinicBlockedTime[]
+  clinicReminderTemplates ClinicReminderTemplate[]
+  clinicReminderDeliveries ClinicReminderDelivery[]
 
   @@map("tenants")
 }
@@ -757,11 +759,34 @@ enum ClinicAppointmentEventType {
   UPDATED
   STATUS_CHANGED
   RESCHEDULED
+  REMINDER_SCHEDULED
+  REMINDER_PREPARED
   REMINDER_SENT
   VISIT_STARTED
   VISIT_COMPLETED
   PAYMENT_RECORDED
   FOLLOW_UP_CREATED
+  NO_SHOW_FOLLOW_UP
+}
+
+enum ClinicReminderKind {
+  APPOINTMENT_REMINDER
+  NO_SHOW_FOLLOW_UP
+  REBOOKING_FOLLOW_UP
+}
+
+enum ClinicReminderChannel {
+  WHATSAPP
+  EMAIL
+  SMS
+}
+
+enum ClinicReminderStatus {
+  SCHEDULED
+  PREPARED
+  SENT
+  SKIPPED
+  CANCELLED
 }
 
 model ClinicPatient {
@@ -902,6 +927,50 @@ model ClinicBlockedTime {
 
   @@index([tenantId, startsAt])
   @@map("clinic_blocked_times")
+}
+
+model ClinicReminderTemplate {
+  id        String                @id @default(cuid())
+  tenantId  String
+  kind      ClinicReminderKind
+  channel   ClinicReminderChannel @default(WHATSAPP)
+  name      String
+  body      String                @db.Text
+  active    Boolean               @default(true)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, kind, channel])
+  @@index([tenantId, active])
+  @@map("clinic_reminder_templates")
+}
+
+model ClinicReminderDelivery {
+  id              String                @id @default(cuid())
+  tenantId        String
+  appointmentId   String?
+  patientId       String?
+  kind            ClinicReminderKind
+  channel         ClinicReminderChannel @default(WHATSAPP)
+  status          ClinicReminderStatus  @default(SCHEDULED)
+  scheduledFor    DateTime              @db.Timestamptz(6)
+  preparedAt      DateTime?             @db.Timestamptz(6)
+  sentAt          DateTime?             @db.Timestamptz(6)
+  body            String                @db.Text
+  whatsappUrl     String?               @db.Text
+  error           String?               @db.Text
+  createdByUserId String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status, scheduledFor])
+  @@index([appointmentId, createdAt])
+  @@index([patientId, createdAt])
+  @@map("clinic_reminder_deliveries")
 }
 
 enum ClinicVisitStatus {

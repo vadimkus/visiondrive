@@ -21,10 +21,10 @@ Goal: adapt the useful parts of a mature salon/clinic platform for a solo/home p
    - Next improvements: conflict analytics, override reason reporting, optional service-specific buffers.
 
 3. Client reminder system
-   - Status: manual WhatsApp helper started.
+   - Status: shipped first pass (WhatsApp templates, manual prepare/send, 24h schedule, delivery log, daily runner, no-show follow-up).
    - Adapt from Altegio: Notifications and sending scenarios.
    - Solo version: WhatsApp-first, then email/SMS fallback.
-   - Build order: templates, reminder schedule, delivery log, automated daily job, no-show follow-up.
+   - Next improvements: WhatsApp Business API delivery, email fallback, reminder analytics, patient opt-out preferences.
 
 4. Public booking link
    - Status: not built.

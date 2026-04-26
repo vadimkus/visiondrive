@@ -104,7 +104,13 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  return NextResponse.json({ appointment })
+  const reminderDeliveries = await prisma.clinicReminderDelivery.findMany({
+    where: { appointmentId: id, tenantId: session.tenantId },
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+  })
+
+  return NextResponse.json({ appointment: { ...appointment, reminderDeliveries } })
 }
 
 export async function PATCH(
