@@ -12,6 +12,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_procedures` | Service catalog (duration, hidden buffer, price, currency). |
 | `clinic_appointments` | Scheduled slots; richer status; source; optional procedure; hidden buffer; lifecycle timestamps; **internal_notes**. |
 | `clinic_appointment_events` | Appointment audit/change history for reschedules, reminders, visit actions, payments, and follow-ups. |
+| `clinic_availability_rules` | Tenant working-hours rules by weekday: start/end, slot interval, minimum lead time, active/closed day. |
+| `clinic_blocked_times` | Manual private time / lunch / leave blocks that remove availability slots. |
 | `clinic_visits` | Completed encounters; **next_steps** drives “what to do next” on the chart; **inventory_consumed_at** prevents repeated auto-deduct. |
 | `clinic_patient_media` | Before/after images: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime + caption. |
 | `clinic_patient_payments` | Payments; optional `visit_id`. |
@@ -34,6 +36,9 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/POST /api/clinic/appointments` — range query + conflict-safe create.
 - `GET/PATCH /api/clinic/appointments/[id]` — read/update one appointment, including drawer context and event history.
 - `POST /api/clinic/appointments/[id]/actions` — reminder, start/complete visit, and follow-up actions.
+- `GET/PATCH /api/clinic/availability` — read/save working-hour rules.
+- `GET /api/clinic/availability/slots` — generate bookable slots from working hours, blocked time, appointments, service duration, and buffers.
+- `GET/POST /api/clinic/blocked-times`; `DELETE /api/clinic/blocked-times/[id]` — manual private/closed time.
 - `POST /api/clinic/visits`, `PATCH /api/clinic/visits/[id]`.
 - `POST /api/clinic/patients/[id]/media`, `GET /api/clinic/media/[id]`.
 - `POST .../payments`, `POST .../crm`.

@@ -177,6 +177,23 @@
 
 ---
 
+## Chunk 11 — 2026-04-26 (availability + knowledge base)
+
+**Shipped**
+
+- **Schema:** `ClinicAvailabilityRule` for working hours, slot interval, and minimum lead time; `ClinicBlockedTime` for lunch/private/leave/training blocks.
+- **Availability engine:** `lib/clinic/availability.ts` generates bookable slots from working hours, blocked time, existing appointments, service duration, and hidden buffers.
+- **API:** `GET/PATCH /api/clinic/availability`; `GET /api/clinic/availability/slots`; `GET/POST /api/clinic/blocked-times`; `DELETE /api/clinic/blocked-times/[id]`.
+- **UI:** `/clinic/appointments/availability` manages working hours, blocked time, and previews available slots.
+- **Knowledge base:** New `/clinic/knowledge-base` panel tab populated with Practice OS articles in EN/RU: appointments, availability, patients, photos/PDF, inventory, purchase orders, finance, and reminders.
+
+**Validation**
+
+- Added focused availability helper tests.
+- Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

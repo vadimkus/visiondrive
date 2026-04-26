@@ -101,6 +101,8 @@ model Tenant {
   clinicPurchaseOrders      ClinicPurchaseOrder[]
   clinicWebPushSubscriptions ClinicWebPushSubscription[]
   clinicAppointmentEvents ClinicAppointmentEvent[]
+  clinicAvailabilityRules ClinicAvailabilityRule[]
+  clinicBlockedTimes ClinicBlockedTime[]
 
   @@map("tenants")
 }
@@ -862,6 +864,42 @@ model ClinicAppointmentEvent {
   @@index([tenantId, createdAt])
   @@index([appointmentId, createdAt])
   @@map("clinic_appointment_events")
+}
+
+model ClinicAvailabilityRule {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  /// 1 = Monday, 7 = Sunday. Matches Practice OS week views.
+  dayOfWeek           Int
+  startMinutes        Int
+  endMinutes          Int
+  slotIntervalMinutes Int      @default(30)
+  minLeadMinutes      Int      @default(120)
+  active              Boolean  @default(true)
+  label               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, dayOfWeek, active])
+  @@map("clinic_availability_rules")
+}
+
+model ClinicBlockedTime {
+  id              String   @id @default(cuid())
+  tenantId        String
+  startsAt        DateTime @db.Timestamptz(6)
+  endsAt          DateTime @db.Timestamptz(6)
+  reason          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdByUserId String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, startsAt])
+  @@map("clinic_blocked_times")
 }
 
 enum ClinicVisitStatus {

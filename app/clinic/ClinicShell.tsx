@@ -9,6 +9,7 @@ import {
   Package,
   ShoppingCart,
   CircleDollarSign,
+  BookOpen,
   Calendar,
   LogOut,
   Stethoscope,
@@ -27,6 +28,7 @@ const nav = [
   { href: '/clinic/purchase-orders', labelKey: 'purchaseOrders' as const, icon: ShoppingCart },
   { href: '/clinic/finance', labelKey: 'finance' as const, icon: CircleDollarSign },
   { href: '/clinic/appointments', labelKey: 'appointments' as const, icon: Calendar },
+  { href: '/clinic/knowledge-base', labelKey: 'knowledgeBase' as const, icon: BookOpen },
   { href: '/clinic/account', labelKey: 'account' as const, icon: UserCircle },
 ]
 

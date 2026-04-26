@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Calendar, CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { Calendar, CalendarClock, CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import clsx from 'clsx'
 import {
   addDays,
@@ -314,6 +314,13 @@ export default function ClinicAppointmentsPage() {
             >
               <Plus className="w-4 h-4 shrink-0" aria-hidden />
               {t.newAppointment}
+            </Link>
+            <Link
+              href="/clinic/appointments/availability"
+              className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50"
+            >
+              <CalendarClock className="w-4 h-4 shrink-0" aria-hidden />
+              {t.availability}
             </Link>
           </div>
         </div>
