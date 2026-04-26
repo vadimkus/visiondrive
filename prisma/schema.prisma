@@ -826,6 +826,8 @@ model ClinicAppointment {
   /// Hidden occupied time after the appointment. Used for conflict checks, not shown as service duration.
   bufferAfterMinutes Int                    @default(0)
   titleOverride String?
+  /// Required when staff intentionally books through a conflict, blocked time, or outside working hours.
+  overrideReason String?                 @db.Text
   cancelReason  String?                 @db.Text
   confirmedAt   DateTime?               @db.Timestamptz(6)
   arrivedAt     DateTime?               @db.Timestamptz(6)

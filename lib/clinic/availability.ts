@@ -130,6 +130,18 @@ export function dubaiDayOfWeek(date: Date) {
   return weekdayMap[weekday] ?? 1
 }
 
+export function dubaiMinutesSinceMidnight(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: CLINIC_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date)
+  const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? 0)
+  const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? 0)
+  return hour * 60 + minute
+}
+
 export function dateAtDubaiMinutes(dayKey: string, minutes: number) {
   const utcMidnight = new Date(`${dayKey}T00:00:00.000Z`)
   // Dubai is UTC+4 year-round; construct UTC equivalent for a Dubai local time.

@@ -194,6 +194,22 @@
 
 ---
 
+## Chunk 12 — 2026-04-26 (conflict-safe scheduling completion)
+
+**Shipped**
+
+- **Schema:** `ClinicAppointment.overrideReason` stores why staff intentionally booked through a scheduling rule.
+- **Scheduling guard:** Appointment create/reschedule now checks existing appointment overlap, blocked time, working hours, and minimum lead time.
+- **Override rule:** Staff can override only with `allowConflictOverride=true` plus a non-empty reason; otherwise the API returns `409` with conflict details.
+- **UI:** Appointment create/edit pages expose an override checkbox + reason field; the appointment drawer shows stored override reason.
+
+**Validation**
+
+- Added focused tests for blocked-time conflict, outside-hours conflict, and override reason enforcement.
+- Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

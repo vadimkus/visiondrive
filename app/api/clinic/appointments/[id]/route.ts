@@ -4,11 +4,15 @@ import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
 import {
   ACTIVE_APPOINTMENT_STATUSES,
-  findAppointmentConflict,
   normalizeBufferMinutes,
   statusTimestampPatch,
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
+import {
+  findSchedulingConflict,
+  normalizeOverrideReason,
+  overrideAllowed,
+} from '@/lib/clinic/scheduling-guard'
 
 function parseStatus(v: string): ClinicAppointmentStatus | null {
   const u = v.toUpperCase().trim()
@@ -143,10 +147,12 @@ export async function PATCH(
     titleOverride?: string | null
     internalNotes?: string | null
     procedureId?: string | null
+    overrideReason?: string | null
   } = {}
 
   const endsAtProvided = body.endsAt !== undefined
   const allowConflictOverride = body.allowConflictOverride === true
+  const overrideReason = normalizeOverrideReason(body.overrideReason)
 
   if (body.startsAt !== undefined) {
     const d = new Date(String(body.startsAt))
@@ -189,6 +195,9 @@ export async function PATCH(
   if (body.internalNotes !== undefined) {
     data.internalNotes =
       body.internalNotes == null ? null : String(body.internalNotes).trim() || null
+  }
+  if (body.overrideReason !== undefined) {
+    data.overrideReason = overrideReason
   }
 
   if (body.procedureId !== undefined) {
@@ -246,16 +255,27 @@ export async function PATCH(
 
   const result = await prisma.$transaction(async (tx) => {
     const nextStatus = data.status ?? existing.status
-    if (ACTIVE_APPOINTMENT_STATUSES.includes(nextStatus)) {
-      const conflict = await findAppointmentConflict(tx, {
+    const scheduleRelevantChange =
+      data.startsAt !== undefined ||
+      data.endsAt !== undefined ||
+      data.bufferAfterMinutes !== undefined ||
+      data.procedureId !== undefined ||
+      (!ACTIVE_APPOINTMENT_STATUSES.includes(existing.status) &&
+        ACTIVE_APPOINTMENT_STATUSES.includes(nextStatus))
+
+    if (scheduleRelevantChange && ACTIVE_APPOINTMENT_STATUSES.includes(nextStatus)) {
+      const conflict = await findSchedulingConflict(tx, {
         tenantId: session.tenantId,
         startsAt: nextStartsAt,
         endsAt: nextEndsAt,
         bufferAfterMinutes: nextBufferAfterMinutes,
         excludeAppointmentId: id,
       })
-      if (conflict && !allowConflictOverride) {
+      if (!overrideAllowed({ conflict, allowConflictOverride, overrideReason })) {
         return { conflict }
+      }
+      if (conflict) {
+        data.overrideReason = overrideReason
       }
     }
 
@@ -305,6 +325,7 @@ export async function PATCH(
         status: existing.status,
         procedureId: existing.procedureId,
         bufferAfterMinutes: existing.bufferAfterMinutes,
+        overrideReason: existing.overrideReason,
       },
       after: {
         startsAt: appointment.startsAt.toISOString(),
@@ -312,6 +333,7 @@ export async function PATCH(
         status: appointment.status,
         procedureId: appointment.procedureId,
         bufferAfterMinutes: appointment.bufferAfterMinutes,
+        overrideReason: appointment.overrideReason,
       },
       createdByUserId: session.userId,
     })

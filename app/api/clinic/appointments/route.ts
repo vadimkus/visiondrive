@@ -3,10 +3,14 @@ import { ClinicAppointmentEventType, ClinicAppointmentSource } from '@prisma/cli
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
 import {
-  findAppointmentConflict,
   normalizeBufferMinutes,
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
+import {
+  findSchedulingConflict,
+  normalizeOverrideReason,
+  overrideAllowed,
+} from '@/lib/clinic/scheduling-guard'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -81,6 +85,7 @@ export async function POST(request: NextRequest) {
   const titleOverride = body.titleOverride != null ? String(body.titleOverride).trim() || null : null
   const internalNotes = body.internalNotes != null ? String(body.internalNotes).trim() || null : null
   const allowConflictOverride = body.allowConflictOverride === true
+  const overrideReason = normalizeOverrideReason(body.overrideReason)
   const sourceRaw = String(body.source ?? ClinicAppointmentSource.MANUAL).trim().toUpperCase()
   const source = Object.values(ClinicAppointmentSource).includes(sourceRaw as ClinicAppointmentSource)
     ? (sourceRaw as ClinicAppointmentSource)
@@ -122,13 +127,13 @@ export async function POST(request: NextRequest) {
   )
 
   const appointment = await prisma.$transaction(async (tx) => {
-    const conflict = await findAppointmentConflict(tx, {
+    const conflict = await findSchedulingConflict(tx, {
       tenantId: session.tenantId,
       startsAt,
       endsAt,
       bufferAfterMinutes,
     })
-    if (conflict && !allowConflictOverride) {
+    if (!overrideAllowed({ conflict, allowConflictOverride, overrideReason })) {
       return { conflict }
     }
 
@@ -141,6 +146,7 @@ export async function POST(request: NextRequest) {
         endsAt,
         source,
         bufferAfterMinutes,
+        overrideReason: conflict ? overrideReason : null,
         titleOverride,
         internalNotes,
       },
@@ -161,6 +167,8 @@ export async function POST(request: NextRequest) {
         endsAt: endsAt?.toISOString() ?? null,
         bufferAfterMinutes,
         source,
+        overrideReason: conflict ? overrideReason : null,
+        overrideConflictType: conflict?.type ?? null,
       },
       createdByUserId: session.userId,
     })

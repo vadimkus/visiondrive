@@ -10,7 +10,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `users` + `tenant_memberships` | Staff accounts; clinic login uses `users.defaultTenantId` in JWT. |
 | `clinic_patients` | Demographics, contacts, **internal_notes** (staff only), optional **`anamnesis_json`** (v1 JSON: allergies, medications, conditions, social). |
 | `clinic_procedures` | Service catalog (duration, hidden buffer, price, currency). |
-| `clinic_appointments` | Scheduled slots; richer status; source; optional procedure; hidden buffer; lifecycle timestamps; **internal_notes**. |
+| `clinic_appointments` | Scheduled slots; richer status; source; optional procedure; hidden buffer; lifecycle timestamps; **internal_notes**; optional override reason for intentional conflict/out-of-hours bookings. |
 | `clinic_appointment_events` | Appointment audit/change history for reschedules, reminders, visit actions, payments, and follow-ups. |
 | `clinic_availability_rules` | Tenant working-hours rules by weekday: start/end, slot interval, minimum lead time, active/closed day. |
 | `clinic_blocked_times` | Manual private time / lunch / leave blocks that remove availability slots. |
@@ -33,8 +33,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET /api/clinic/inventory/lookup?q=` — scanner lookup by barcode, SKU, or exact item name.
 - `GET/POST /api/clinic/purchase-orders`; `GET/PATCH /api/clinic/purchase-orders/[id]`; `POST /api/clinic/purchase-orders/[id]/receive`.
 - `GET /api/clinic/push/vapid-public`; `POST/DELETE /api/clinic/push/subscribe`.
-- `GET/POST /api/clinic/appointments` — range query + conflict-safe create.
-- `GET/PATCH /api/clinic/appointments/[id]` — read/update one appointment, including drawer context and event history.
+- `GET/POST /api/clinic/appointments` — range query + conflict-safe create; create checks existing appointments, blocked time, working hours, and minimum lead time.
+- `GET/PATCH /api/clinic/appointments/[id]` — read/update one appointment, including drawer context and event history; schedule changes require override reason when they violate scheduling rules.
 - `POST /api/clinic/appointments/[id]/actions` — reminder, start/complete visit, and follow-up actions.
 - `GET/PATCH /api/clinic/availability` — read/save working-hour rules.
 - `GET /api/clinic/availability/slots` — generate bookable slots from working hours, blocked time, appointments, service duration, and buffers.

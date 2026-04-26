@@ -15,10 +15,10 @@ Goal: adapt the useful parts of a mature salon/clinic platform for a solo/home p
    - Next improvements: inline payment form, inline notes editing, better mobile drawer layout.
 
 2. Conflict-safe scheduling and buffers
-   - Status: started.
+   - Status: shipped first pass (appointment conflicts, service buffers, working-hours guard, blocked-time guard, minimum lead time, explicit override reason).
    - Adapt from Altegio: Technical Breaks.
    - Solo version: service duration plus hidden prep/cleanup/travel/rest buffer.
-   - Next improvements: working hours, blocked days, lunch/private time, explicit override reason.
+   - Next improvements: conflict analytics, override reason reporting, optional service-specific buffers.
 
 3. Client reminder system
    - Status: manual WhatsApp helper started.

@@ -43,6 +43,7 @@ type Appointment = {
   titleOverride: string | null
   internalNotes: string | null
   bufferAfterMinutes: number
+  overrideReason: string | null
   cancelReason: string | null
   patient: {
     id: string
@@ -289,6 +290,14 @@ export function ClinicAppointmentDrawer({
                           minute: '2-digit',
                         })}
                       </p>
+                    </div>
+                  )}
+                  {appointment.overrideReason && (
+                    <div className="col-span-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                      <p className="text-amber-900 text-xs font-semibold">
+                        {t.appointmentOverrideReason}
+                      </p>
+                      <p className="mt-1 text-sm text-amber-950">{appointment.overrideReason}</p>
                     </div>
                   )}
                 </div>

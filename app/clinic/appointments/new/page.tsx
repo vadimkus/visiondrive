@@ -8,6 +8,34 @@ import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 
 type Patient = { id: string; firstName: string; lastName: string }
 type Procedure = { id: string; name: string; bufferAfterMinutes: number }
+type SchedulingConflict = {
+  type?: string
+  patientName?: string
+  startsAt?: string
+  reason?: string | null
+  minLeadMinutes?: number
+}
+
+function conflictMessage(t: ReturnType<typeof useClinicLocale>['t'], conflict: SchedulingConflict) {
+  if (conflict.type === 'BLOCKED_TIME') {
+    return t.appointmentConflictBlocked.replace('{reason}', conflict.reason || t.emptyValue)
+  }
+  if (conflict.type === 'WORKING_HOURS') return t.appointmentConflictWorkingHours
+  if (conflict.type === 'LEAD_TIME') {
+    return t.appointmentConflictLeadTime.replace('{minutes}', String(conflict.minLeadMinutes ?? 0))
+  }
+  return t.appointmentConflictWith
+    .replace('{name}', conflict.patientName || '')
+    .replace(
+      '{time}',
+      conflict.startsAt
+        ? new Date(conflict.startsAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : ''
+    )
+}
 
 export default function NewAppointmentPage() {
   const router = useRouter()
@@ -22,6 +50,8 @@ export default function NewAppointmentPage() {
     procedureId: '',
     startsAt: '',
     bufferAfterMinutes: '0',
+    allowConflictOverride: false,
+    overrideReason: '',
     titleOverride: '',
     internalNotes: '',
   })
@@ -71,6 +101,8 @@ export default function NewAppointmentPage() {
           procedureId: form.procedureId || undefined,
           startsAt: startsAt.toISOString(),
           bufferAfterMinutes: parseInt(form.bufferAfterMinutes || '0', 10),
+          allowConflictOverride: form.allowConflictOverride,
+          overrideReason: form.overrideReason || undefined,
           titleOverride: form.titleOverride || undefined,
           internalNotes: form.internalNotes || undefined,
         }),
@@ -78,17 +110,7 @@ export default function NewAppointmentPage() {
       const data = await res.json()
       if (!res.ok) {
         if (res.status === 409 && data.conflict) {
-          setError(
-            t.appointmentConflictWith
-              .replace('{name}', data.conflict.patientName || '')
-              .replace(
-                '{time}',
-                new Date(data.conflict.startsAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
-              )
-          )
+          setError(`${conflictMessage(t, data.conflict)} ${t.appointmentOverrideRequired}`)
         } else {
           setError(data.error || t.saveFailed)
         }
@@ -187,6 +209,25 @@ export default function NewAppointmentPage() {
               value={form.startsAt}
               onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
             />
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+            <label className="flex items-start gap-3 text-sm font-semibold text-amber-950">
+              <input
+                type="checkbox"
+                className="mt-1 h-5 w-5 rounded border-amber-300 text-orange-600"
+                checked={form.allowConflictOverride}
+                onChange={(e) => setForm({ ...form, allowConflictOverride: e.target.checked })}
+              />
+              <span>{t.appointmentAllowOverride}</span>
+            </label>
+            <textarea
+              rows={2}
+              className="w-full rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-gray-900"
+              placeholder={t.appointmentOverrideReasonHint}
+              value={form.overrideReason}
+              onChange={(e) => setForm({ ...form, overrideReason: e.target.value })}
+            />
+            <p className="text-xs text-amber-900">{t.appointmentOverrideReason}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t.titleIfNoProcedure}</label>

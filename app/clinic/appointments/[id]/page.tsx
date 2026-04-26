@@ -15,6 +15,7 @@ type Appointment = {
   titleOverride: string | null
   internalNotes: string | null
   bufferAfterMinutes: number
+  overrideReason: string | null
   patientId: string
   procedureId: string | null
   patient: { id: string; firstName: string; lastName: string }
@@ -22,6 +23,34 @@ type Appointment = {
 }
 
 type Procedure = { id: string; name: string; bufferAfterMinutes: number }
+type SchedulingConflict = {
+  type?: string
+  patientName?: string
+  startsAt?: string
+  reason?: string | null
+  minLeadMinutes?: number
+}
+
+function conflictMessage(t: ReturnType<typeof useClinicLocale>['t'], conflict: SchedulingConflict) {
+  if (conflict.type === 'BLOCKED_TIME') {
+    return t.appointmentConflictBlocked.replace('{reason}', conflict.reason || t.emptyValue)
+  }
+  if (conflict.type === 'WORKING_HOURS') return t.appointmentConflictWorkingHours
+  if (conflict.type === 'LEAD_TIME') {
+    return t.appointmentConflictLeadTime.replace('{minutes}', String(conflict.minLeadMinutes ?? 0))
+  }
+  return t.appointmentConflictWith
+    .replace('{name}', conflict.patientName || '')
+    .replace(
+      '{time}',
+      conflict.startsAt
+        ? new Date(conflict.startsAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : ''
+    )
+}
 
 export default function EditAppointmentPage() {
   const router = useRouter()
@@ -39,6 +68,8 @@ export default function EditAppointmentPage() {
   const [status, setStatus] = useState('SCHEDULED')
   const [procedureId, setProcedureId] = useState('')
   const [bufferAfterMinutes, setBufferAfterMinutes] = useState('0')
+  const [allowConflictOverride, setAllowConflictOverride] = useState(false)
+  const [overrideReason, setOverrideReason] = useState('')
   const [titleOverride, setTitleOverride] = useState('')
   const [internalNotes, setInternalNotes] = useState('')
 
@@ -72,6 +103,7 @@ export default function EditAppointmentPage() {
         setStatus(a.status)
         setProcedureId(a.procedureId ?? '')
         setBufferAfterMinutes(String(a.bufferAfterMinutes ?? 0))
+        setOverrideReason(a.overrideReason ?? '')
         setTitleOverride(a.titleOverride ?? '')
         setInternalNotes(a.internalNotes ?? '')
 
@@ -113,6 +145,8 @@ export default function EditAppointmentPage() {
           status,
           procedureId: procedureId || null,
           bufferAfterMinutes: parseInt(bufferAfterMinutes || '0', 10),
+          allowConflictOverride,
+          overrideReason: overrideReason.trim() || null,
           titleOverride: titleOverride.trim() || null,
           internalNotes: internalNotes.trim() || null,
         }),
@@ -120,17 +154,7 @@ export default function EditAppointmentPage() {
       const data = await res.json()
       if (!res.ok) {
         if (res.status === 409 && data.conflict) {
-          setError(
-            t.appointmentConflictWith
-              .replace('{name}', data.conflict.patientName || '')
-              .replace(
-                '{time}',
-                new Date(data.conflict.startsAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
-              )
-          )
+          setError(`${conflictMessage(t, data.conflict)} ${t.appointmentOverrideRequired}`)
         } else {
           setError(data.error || t.saveFailed)
         }
@@ -234,6 +258,25 @@ export default function EditAppointmentPage() {
             value={bufferAfterMinutes}
             onChange={(e) => setBufferAfterMinutes(e.target.value)}
           />
+        </div>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+          <label className="flex items-start gap-3 text-sm font-semibold text-amber-950">
+            <input
+              type="checkbox"
+              className="mt-1 h-5 w-5 rounded border-amber-300 text-orange-600"
+              checked={allowConflictOverride}
+              onChange={(e) => setAllowConflictOverride(e.target.checked)}
+            />
+            <span>{t.appointmentAllowOverride}</span>
+          </label>
+          <textarea
+            rows={2}
+            className="w-full rounded-xl border border-amber-200 bg-white px-3 py-3 text-gray-900"
+            placeholder={t.appointmentOverrideReasonHint}
+            value={overrideReason}
+            onChange={(e) => setOverrideReason(e.target.value)}
+          />
+          <p className="text-xs text-amber-900">{t.appointmentOverrideReason}</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t.titleIfNoProcedure}</label>
