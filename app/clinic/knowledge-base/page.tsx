@@ -53,6 +53,19 @@ const articlesEn: Article[] = [
     link: '/clinic/appointments/availability',
   },
   {
+    id: 'public-booking',
+    category: 'Appointments',
+    title: 'Share your private booking link',
+    summary: 'Let clients choose a service and available time without exposing the internal panel.',
+    steps: [
+      'Open Dashboard and use Booking link.',
+      'Clients choose a service, pick an available slot, and enter DOB/contact details.',
+      'The booking uses your working hours, blocked time, buffers, and minimum lead time.',
+      'New bookings arrive as online appointments and schedule a 24h WhatsApp reminder.',
+    ],
+    link: '/clinic',
+  },
+  {
     id: 'patients',
     category: 'Patients',
     title: 'Keep the patient record clean and private',
@@ -158,6 +171,19 @@ const articlesRu: Article[] = [
       'Проверьте доступные слоты в превью перед онлайн-записью.',
     ],
     link: '/clinic/appointments/availability',
+  },
+  {
+    id: 'public-booking',
+    category: 'Записи',
+    title: 'Поделитесь приватной ссылкой для записи',
+    summary: 'Клиент выбирает услугу и свободное время без доступа к внутренней панели.',
+    steps: [
+      'Откройте Дашборд и используйте ссылку для записи.',
+      'Клиент выбирает услугу, слот и вводит дату рождения/контакты.',
+      'Запись учитывает рабочие часы, закрытые слоты, буферы и минимальное время до записи.',
+      'Новая запись создаётся как онлайн-запись и планирует WhatsApp-напоминание за 24 часа.',
+    ],
+    link: '/clinic',
   },
   {
     id: 'patients',

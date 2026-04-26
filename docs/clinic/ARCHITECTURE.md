@@ -35,6 +35,8 @@ Scheduling guard: appointment create/reschedule checks existing appointment occu
 
 Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send WhatsApp messages. The runner prepares due messages and logs them; staff opens the generated `wa.me` link to send. Future WhatsApp Business API integration can mark deliveries as sent automatically.
 
+Public booking: `/book/[tenant.slug]` is a private branded link, not a marketplace. It is disabled by default and controlled from the clinic dashboard using `tenant_settings.thresholds.publicBooking.enabled`. When enabled, the public API exposes active services and generated slots only; booking creation stores DOB/contact/consent as a real patient + `ONLINE` appointment and still uses the scheduling guard. No public override is allowed.
+
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.
@@ -43,6 +45,7 @@ Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`.
 - **Availability:** `GET/PATCH /api/clinic/availability`, `GET /api/clinic/availability/slots`, `GET/POST /api/clinic/blocked-times`, `DELETE .../blocked-times/[id]`.
 - **Reminders:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`; appointment actions support `send_reminder`, `schedule_reminder`, and `no_show_follow_up`.
+- **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).
 - Errors: JSON `{ error: string, code?: string }` with appropriate HTTP status.

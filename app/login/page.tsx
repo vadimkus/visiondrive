@@ -269,7 +269,7 @@ export default function LoginPage() {
 
             {/* Contact Link */}
             <p className="text-center text-sm md:text-base text-gray-500">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <a 
                 href="/contact" 
                 className="text-orange-600 hover:text-orange-700 font-semibold transition-colors"

@@ -228,6 +228,25 @@
 
 ---
 
+## Chunk 14 — 2026-04-26 (private public-booking link)
+
+**Shipped**
+
+- **Public route:** `/book/[tenant-slug]` provides a mobile-first private booking page outside the staff panel.
+- **Public API:** `GET/POST /api/clinic/public-booking/[slug]` exposes active services, generated availability slots, and online appointment creation.
+- **On/off control:** public booking is disabled by default and controlled from the dashboard via `tenant_settings.thresholds.publicBooking.enabled`.
+- **Flow:** Client chooses service, picks an available slot, enters name/DOB/contact/notes, accepts consent, and receives confirmation.
+- **Safety:** Booking creation uses the same scheduling guard (appointments, buffers, blocked time, working hours, minimum lead time). No public override is allowed.
+- **Records:** Public bookings create/reuse a patient, create an `ONLINE` appointment, store consent/notes in event/internal notes, and schedule a 24h WhatsApp reminder.
+- **Panel:** Dashboard exposes the private booking link; Knowledge Base explains how to share it.
+
+**Validation**
+
+- Added focused tests for public booking input normalization/validation.
+- No schema change in this chunk.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

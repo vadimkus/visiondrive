@@ -27,10 +27,10 @@ Goal: adapt the useful parts of a mature salon/clinic platform for a solo/home p
    - Next improvements: WhatsApp Business API delivery, email fallback, reminder analytics, patient opt-out preferences.
 
 4. Public booking link
-   - Status: not built.
+   - Status: shipped first pass (private `/book/[slug]` link, staff on/off toggle, service picker, availability slots, DOB/contact/consent intake, online appointment creation, 24h reminder scheduling).
    - Adapt from Altegio: Online booking.
    - Solo version: private branded link, not marketplace. Choose service, time, client details, consent, optional notes.
-   - Build order: availability engine, service picker, intake fields, confirmation screen, appointment creation.
+   - Next improvements: custom booking slug/token, intake questions per service, staff approval workflow, client reschedule/cancel link.
 
 5. Availability rules
    - Status: shipped first pass (working hours, minimum lead time, fixed slot interval, blocked time, slot preview).

@@ -116,7 +116,7 @@ export async function getReminderTemplate(
   const found = await db.clinicReminderTemplate.findUnique({
     where: { tenantId_kind_channel: { tenantId, kind, channel } },
   })
-  if (found) return found
+  if (found) return found.active ? found : null
 
   const seed = defaultReminderTemplates().find((template) => template.kind === kind)
   if (!seed) return null

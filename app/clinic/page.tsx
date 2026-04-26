@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Users, ListOrdered, Calendar, CalendarClock, ArrowRight, Package, Send, Sparkles } from 'lucide-react'
+import { Users, ListOrdered, Calendar, CalendarClock, ArrowRight, Package, Send, Sparkles, Link as LinkIcon } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import clsx from 'clsx'
@@ -14,6 +14,8 @@ type Stats = {
   appointmentToday: number
   appointmentUpcoming: number
   lowStockCount: number
+  bookingUrl: string | null
+  publicBookingEnabled: boolean
 }
 
 export default function ClinicDashboardPage() {
@@ -21,6 +23,8 @@ export default function ClinicDashboardPage() {
   const { t } = useClinicLocale()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [bookingToggleBusy, setBookingToggleBusy] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -51,6 +55,32 @@ export default function ClinicDashboardPage() {
       cancelled = true
     }
   }, [router])
+
+  async function togglePublicBooking() {
+    if (!stats) return
+    setBookingToggleBusy(true)
+    setError('')
+    try {
+      const res = await fetch('/api/clinic/public-booking/settings', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !stats.publicBookingEnabled }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.saveFailed)
+        return
+      }
+      setStats((current) =>
+        current ? { ...current, publicBookingEnabled: data.enabled === true } : current
+      )
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setBookingToggleBusy(false)
+    }
+  }
 
   if (loading) {
     return <ClinicSpinner label={t.loading} className="min-h-[40vh]" />
@@ -88,9 +118,39 @@ export default function ClinicDashboardPage() {
               <Send className="h-4 w-4" aria-hidden />
               {t.reminders}
             </Link>
+            {stats?.bookingUrl && (
+              <Link
+                href={stats.bookingUrl}
+                className="col-span-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50 sm:col-span-1"
+              >
+                <LinkIcon className="h-4 w-4" aria-hidden />
+                {t.publicBookingLink}
+              </Link>
+            )}
+            {stats?.bookingUrl && (
+              <button
+                type="button"
+                onClick={() => void togglePublicBooking()}
+                disabled={bookingToggleBusy}
+                className={clsx(
+                  'col-span-2 inline-flex min-h-11 items-center justify-center rounded-2xl px-4 text-sm font-semibold shadow-sm disabled:opacity-60 sm:col-span-1',
+                  stats.publicBookingEnabled
+                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                    : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                )}
+              >
+                {stats.publicBookingEnabled ? t.publicBookingOn : t.publicBookingOff}
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
@@ -207,6 +267,29 @@ export default function ClinicDashboardPage() {
           >
             {t.reminders}
           </Link>
+          {stats?.bookingUrl && (
+            <Link
+              href={stats.bookingUrl}
+              className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            >
+              {t.publicBookingLink}
+            </Link>
+          )}
+          {stats?.bookingUrl && (
+            <button
+              type="button"
+              onClick={() => void togglePublicBooking()}
+              disabled={bookingToggleBusy}
+              className={clsx(
+                'inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-colors disabled:opacity-60',
+                stats.publicBookingEnabled
+                  ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                  : 'border border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50'
+              )}
+            >
+              {stats.publicBookingEnabled ? t.publicBookingOn : t.publicBookingOff}
+            </button>
+          )}
         </div>
       </div>
 

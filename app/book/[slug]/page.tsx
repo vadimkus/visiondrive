@@ -1,0 +1,433 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { CalendarClock, CheckCircle2, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react'
+import clsx from 'clsx'
+import { CLINIC_LOCALE_STORAGE, type ClinicLocale } from '@/lib/clinic/strings'
+
+type Procedure = {
+  id: string
+  name: string
+  defaultDurationMin: number
+  bufferAfterMinutes: number
+  basePriceCents: number
+  currency: string
+}
+
+type Slot = {
+  startsAt: string
+  endsAt: string
+}
+
+type PublicBookingData = {
+  tenant: { name: string; slug: string }
+  procedures: Procedure[]
+  slots: Slot[]
+}
+
+function money(cents: number, currency: string) {
+  if (!cents) return ''
+  return `${(cents / 100).toFixed(0)} ${currency}`
+}
+
+function readStoredLocale(): ClinicLocale {
+  if (typeof window === 'undefined') return 'en'
+  return window.localStorage.getItem(CLINIC_LOCALE_STORAGE) === 'ru' ? 'ru' : 'en'
+}
+
+const copy = {
+  en: {
+    bookingUnavailable: 'Booking link is not available.',
+    loadFailed: 'Could not load booking link. Please try again.',
+    chooseServiceTime: 'Choose a service and available time.',
+    createFailed: 'Could not create booking. Please choose another time.',
+    createFailedRetry: 'Could not create booking. Please try again.',
+    errors: {},
+    bookingRequested: 'Booking requested',
+    confirmationPrefix: 'Thank you, {name}. Your {service} is reserved for {date}.',
+    confirmationSuffix: 'The practice will confirm if anything needs adjusting.',
+    privateLink: 'Private booking link',
+    bookWith: 'Book with {practice}',
+    fallbackPractice: 'the practice',
+    subtitle:
+      'Choose a service, pick an available time, and leave your details. Your information goes directly to the practice.',
+    secure: 'Private, tenant-scoped booking',
+    chooseService: '1. Choose service',
+    loadingServices: 'Loading services...',
+    min: 'min',
+    buffer: 'buffer',
+    pickTime: '2. Pick time',
+    noSlots: 'No available slots found. Try again later or contact the practice.',
+    yourDetails: '3. Your details',
+    firstName: 'First name',
+    lastName: 'Last name',
+    dateOfBirth: 'Date of birth',
+    phone: 'Phone / WhatsApp',
+    email: 'Email',
+    notes: 'Notes for the practice',
+    notesPlaceholder: 'Anything the practitioner should know before the appointment?',
+    consent: 'I consent to the practice storing my details for booking and patient-record purposes.',
+    requesting: 'Requesting booking...',
+    request: 'Request booking',
+  },
+  ru: {
+    bookingUnavailable: 'Ссылка для записи недоступна.',
+    loadFailed: 'Не удалось загрузить ссылку для записи. Попробуйте снова.',
+    chooseServiceTime: 'Выберите услугу и доступное время.',
+    createFailed: 'Не удалось создать запись. Выберите другое время.',
+    createFailedRetry: 'Не удалось создать запись. Попробуйте снова.',
+    errors: {
+      'Booking link not found': 'Ссылка для записи не найдена.',
+      'Invalid from or to datetime': 'Некорректный период дат.',
+      'Invalid JSON': 'Некорректный запрос.',
+      'firstName and lastName are required': 'Имя и фамилия обязательны.',
+      'dateOfBirth is required': 'Дата рождения обязательна.',
+      'phone or email is required': 'Укажите телефон или email.',
+      'Consent is required': 'Необходимо согласие на обработку данных.',
+      'procedureId and valid startsAt are required': 'Выберите услугу и корректное время.',
+      'Service not found': 'Услуга не найдена.',
+      'This slot is no longer available': 'Этот слот больше недоступен.',
+    },
+    bookingRequested: 'Запрос на запись отправлен',
+    confirmationPrefix: 'Спасибо, {name}. Ваша услуга «{service}» зарезервирована на {date}.',
+    confirmationSuffix: 'Клиника подтвердит запись, если потребуется уточнение.',
+    privateLink: 'Приватная ссылка для записи',
+    bookWith: 'Запись в {practice}',
+    fallbackPractice: 'клинику',
+    subtitle:
+      'Выберите услугу, доступное время и оставьте данные. Информация попадёт напрямую в клинику.',
+    secure: 'Приватная запись в рамках клиники',
+    chooseService: '1. Выберите услугу',
+    loadingServices: 'Загрузка услуг...',
+    min: 'мин',
+    buffer: 'буфер',
+    pickTime: '2. Выберите время',
+    noSlots: 'Доступных слотов нет. Попробуйте позже или свяжитесь с клиникой.',
+    yourDetails: '3. Ваши данные',
+    firstName: 'Имя',
+    lastName: 'Фамилия',
+    dateOfBirth: 'Дата рождения',
+    phone: 'Телефон / WhatsApp',
+    email: 'Email',
+    notes: 'Комментарий для клиники',
+    notesPlaceholder: 'Что специалисту нужно знать перед записью?',
+    consent: 'Я согласен(на), чтобы клиника хранила мои данные для записи и карты пациента.',
+    requesting: 'Отправляем запрос...',
+    request: 'Запросить запись',
+  },
+} as const
+
+function localizedError(message: unknown, locale: ClinicLocale) {
+  if (typeof message !== 'string') return ''
+  if (locale === 'en') return message
+  return copy.ru.errors[message as keyof typeof copy.ru.errors] ?? message
+}
+
+export default function PublicBookingPage() {
+  const params = useParams()
+  const slug = String(params.slug || '')
+  const [locale] = useState<ClinicLocale>(() => readStoredLocale())
+  const c = copy[locale]
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const [data, setData] = useState<PublicBookingData | null>(null)
+  const [procedureId, setProcedureId] = useState('')
+  const [selectedSlot, setSelectedSlot] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [confirmed, setConfirmed] = useState<{
+    startsAt: string
+    service: string
+    patientName: string
+  } | null>(null)
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    dateOfBirth: '',
+    phone: '',
+    email: '',
+    notes: '',
+    consentAccepted: false,
+  })
+
+  const selectedProcedure = useMemo(
+    () => data?.procedures.find((procedure) => procedure.id === procedureId) ?? null,
+    [data?.procedures, procedureId]
+  )
+
+  const load = useCallback(async () => {
+    if (!slug) return
+    setLoading(true)
+    setError('')
+    try {
+      const qs = new URLSearchParams()
+      if (procedureId) qs.set('procedureId', procedureId)
+      const res = await fetch(`/api/clinic/public-booking/${slug}?${qs.toString()}`)
+      const json = await res.json()
+      if (!res.ok) {
+        setError(localizedError(json.error, locale) || c.bookingUnavailable)
+        return
+      }
+      setData(json)
+      if (!procedureId && json.procedures?.[0]?.id) {
+        setProcedureId(json.procedures[0].id)
+      }
+    } catch {
+      setError(c.loadFailed)
+    } finally {
+      setLoading(false)
+    }
+  }, [slug, procedureId, locale, c.bookingUnavailable, c.loadFailed])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  useEffect(() => {
+    setSelectedSlot('')
+  }, [procedureId])
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!procedureId || !selectedSlot) {
+      setError(c.chooseServiceTime)
+      return
+    }
+    setSubmitting(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/clinic/public-booking/${slug}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          procedureId,
+          startsAt: selectedSlot,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setError(localizedError(json.error, locale) || c.createFailed)
+        await load()
+        return
+      }
+      setConfirmed(json.appointment)
+    } catch {
+      setError(c.createFailedRetry)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (confirmed) {
+    return (
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.18),transparent_32rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_45%,#eef2ff_100%)] p-4 sm:p-8">
+        <section className="mx-auto flex min-h-[80vh] max-w-xl items-center">
+          <div className="w-full rounded-[2rem] border border-white/80 bg-white/90 p-6 text-center shadow-2xl shadow-orange-100/60 backdrop-blur md:p-8">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+              <CheckCircle2 className="h-9 w-9 text-emerald-700" aria-hidden />
+            </div>
+            <h1 className="mt-5 text-3xl font-semibold text-gray-950">{c.bookingRequested}</h1>
+            <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              {c.confirmationPrefix
+                .replace('{name}', confirmed.patientName)
+                .replace('{service}', confirmed.service)
+                .replace(
+                  '{date}',
+                  new Date(confirmed.startsAt).toLocaleString(dateLocale, {
+                    dateStyle: 'full',
+                    timeStyle: 'short',
+                  })
+                )}{' '}
+              {c.confirmationSuffix}
+            </p>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.18),transparent_32rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_45%,#eef2ff_100%)] p-4 sm:p-8">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <header className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-xl shadow-orange-100/50 backdrop-blur md:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-800">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                {c.privateLink}
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight text-gray-950 md:text-5xl">
+                {c.bookWith.replace('{practice}', data?.tenant.name || c.fallbackPractice)}
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">{c.subtitle}</p>
+            </div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+              <ShieldCheck className="mr-2 inline h-4 w-4" aria-hidden />
+              {c.secure}
+            </div>
+          </div>
+        </header>
+
+        {error && (
+          <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={submit} className="grid grid-cols-1 gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <section className="rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur md:p-6">
+            <h2 className="text-lg font-semibold text-gray-950">{c.chooseService}</h2>
+            {loading && !data ? (
+              <p className="mt-4 text-sm text-gray-500">{c.loadingServices}</p>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {data?.procedures.map((procedure) => (
+                  <button
+                    key={procedure.id}
+                    type="button"
+                    onClick={() => setProcedureId(procedure.id)}
+                    className={clsx(
+                      'w-full rounded-2xl border p-4 text-left transition-all',
+                      procedureId === procedure.id
+                        ? 'border-orange-300 bg-orange-50 shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-orange-200'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-gray-950">{procedure.name}</p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {procedure.defaultDurationMin} {c.min}
+                          {procedure.bufferAfterMinutes > 0
+                            ? ` + ${procedure.bufferAfterMinutes} ${c.min} ${c.buffer}`
+                            : ''}
+                        </p>
+                      </div>
+                      <p className="text-sm font-semibold text-orange-800">
+                        {money(procedure.basePriceCents, procedure.currency)}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <h2 className="mt-8 text-lg font-semibold text-gray-950">{c.pickTime}</h2>
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2">
+              {data?.slots.length === 0 && selectedProcedure && (
+                <p className="col-span-full text-sm text-gray-500">
+                  {c.noSlots}
+                </p>
+              )}
+              {data?.slots.slice(0, 24).map((slot) => (
+                <button
+                  key={slot.startsAt}
+                  type="button"
+                  onClick={() => setSelectedSlot(slot.startsAt)}
+                  className={clsx(
+                    'rounded-2xl border p-3 text-left transition-all',
+                    selectedSlot === slot.startsAt
+                      ? 'border-orange-400 bg-orange-50 shadow-sm'
+                      : 'border-gray-200 bg-white hover:border-orange-200'
+                  )}
+                >
+                  <CalendarClock className="mb-2 h-4 w-4 text-orange-600" aria-hidden />
+                  <p className="text-sm font-semibold text-gray-950">
+                    {new Date(slot.startsAt).toLocaleDateString(dateLocale, {
+                      weekday: 'short',
+                      day: '2-digit',
+                      month: 'short',
+                    })}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(slot.startsAt).toLocaleTimeString(dateLocale, {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur md:p-6">
+            <h2 className="text-lg font-semibold text-gray-950">{c.yourDetails}</h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label={c.firstName} value={form.firstName} onChange={(v) => setForm({ ...form, firstName: v })} required />
+              <Field label={c.lastName} value={form.lastName} onChange={(v) => setForm({ ...form, lastName: v })} required />
+              <Field
+                label={c.dateOfBirth}
+                type="date"
+                value={form.dateOfBirth}
+                onChange={(v) => setForm({ ...form, dateOfBirth: v })}
+                required
+              />
+              <Field label={c.phone} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
+              <Field label={c.email} type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+              <label className="sm:col-span-2 text-sm font-medium text-gray-700">
+                {c.notes}
+                <textarea
+                  rows={4}
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  className="mt-1 w-full rounded-2xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
+                  placeholder={c.notesPlaceholder}
+                />
+              </label>
+            </div>
+
+            <label className="mt-5 flex gap-3 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-sm text-orange-950">
+              <input
+                type="checkbox"
+                checked={form.consentAccepted}
+                onChange={(e) => setForm({ ...form, consentAccepted: e.target.checked })}
+                className="mt-1 h-5 w-5 rounded border-orange-300 text-orange-600"
+              />
+              <span>
+                {c.consent}
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 disabled:opacity-60"
+            >
+              {submitting ? c.requesting : c.request}
+              <ChevronRight className="h-4 w-4" aria-hidden />
+            </button>
+          </section>
+        </form>
+      </div>
+    </main>
+  )
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  required = false,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  type?: string
+  required?: boolean
+}) {
+  return (
+    <label className="text-sm font-medium text-gray-700">
+      {label}
+      <input
+        required={required}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-2xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
+      />
+    </label>
+  )
+}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isClinicStockLow } from '@/lib/clinic/inventory'
 import { getClinicSession } from '@/lib/clinic/session'
+import { publicBookingEnabledFromSettings } from '@/lib/clinic/public-booking-settings'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -16,8 +17,12 @@ export async function GET(request: NextRequest) {
   endOfDay.setDate(endOfDay.getDate() + 1)
 
   try {
-    const [patientCount, procedureCount, appointmentToday, appointmentUpcoming, stockItems] =
+    const [tenant, patientCount, procedureCount, appointmentToday, appointmentUpcoming, stockItems] =
       await Promise.all([
+        prisma.tenant.findFirst({
+          where: { id: tenantId },
+          select: { slug: true, settings: { select: { thresholds: true } } },
+        }),
         prisma.clinicPatient.count({ where: { tenantId } }),
         prisma.clinicProcedure.count({ where: { tenantId, active: true } }),
         prisma.clinicAppointment.count({
@@ -48,6 +53,8 @@ export async function GET(request: NextRequest) {
       appointmentToday,
       appointmentUpcoming,
       lowStockCount,
+      bookingUrl: tenant?.slug ? `/book/${tenant.slug}` : null,
+      publicBookingEnabled: publicBookingEnabledFromSettings(tenant?.settings?.thresholds),
     })
   } catch (e) {
     console.error('GET /api/clinic/stats', e)

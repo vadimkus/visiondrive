@@ -377,7 +377,7 @@ export function ClinicAppointmentDrawer({
                   {[2, 4, 6, 8].map((weeks) => (
                     <ActionButton
                       key={weeks}
-                      busy={busy === `follow-${weeks}`}
+                      busy={busy === 'create_follow_up'}
                       onClick={() => runAction('create_follow_up', { weeks })}
                     >
                       +{weeks}w

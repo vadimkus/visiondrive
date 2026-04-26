@@ -177,8 +177,8 @@ export default function ClinicPatientsPage() {
               <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
                 <tr>
                   <th className="px-4 py-3 font-medium">{t.patients}</th>
-                  <th className="px-4 py-3 font-medium">DOB</th>
-                  <th className="px-4 py-3 font-medium hidden md:table-cell">Phone</th>
+                  <th className="px-4 py-3 font-medium">{t.dobLabel}</th>
+                  <th className="px-4 py-3 font-medium hidden md:table-cell">{t.phoneLabel}</th>
                 </tr>
               </thead>
               <tbody>

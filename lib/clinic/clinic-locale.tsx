@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -31,11 +30,7 @@ function readStoredLocale(): ClinicLocale {
 }
 
 export function ClinicLocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<ClinicLocale>('en')
-
-  useEffect(() => {
-    setLocaleState(readStoredLocale())
-  }, [])
+  const [locale, setLocaleState] = useState<ClinicLocale>(() => readStoredLocale())
 
   const setLocale = useCallback((l: ClinicLocale) => {
     setLocaleState(l)

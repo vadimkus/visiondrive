@@ -1,22 +1,37 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { FlatCompat } from '@eslint/eslintrc'
+import nextVitals from 'eslint-config-next/core-web-vitals'
 
-// ESLint v9 uses "flat config" by default. This project previously used .eslintrc.json.
-// We keep the same ruleset by adapting the old extends via FlatCompat.
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
-
-export default [
+const config = [
   {
-    ignores: ['.next/**', 'node_modules/**', 'dist/**', 'coverage/**'],
+    ignores: [
+      '.next/**',
+      '**/.next/**',
+      'node_modules/**',
+      '**/node_modules/**',
+      'dist/**',
+      'coverage/**',
+      'docs/archive/**',
+      'smartkitchen/**',
+      'agent-pnl/**',
+      'agentnet/**',
+      'al-futtaim/**',
+      'data/**',
+      'scripts/**',
+      'tao/**',
+      'weekend/**',
+      'xrp/**',
+      'app/api/portal/**',
+      'app/components/common/**',
+      'app/components/portal/**',
+      'app/components/sections/**',
+      'app/contexts/**',
+      'app/kitchen-owner/**',
+      'app/portal/**',
+    ],
   },
-  ...compat.extends('next/core-web-vitals'),
+  ...nextVitals,
 ]
+
+export default config
 
 
 

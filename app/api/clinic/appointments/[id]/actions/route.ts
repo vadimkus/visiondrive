@@ -15,10 +15,10 @@ import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-s
 import { applyProcedureLinkedInventoryDeduction } from '@/lib/clinic/inventory-visit-consume'
 import {
   appointmentEnd,
-  findAppointmentConflict,
   normalizeBufferMinutes,
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
+import { findSchedulingConflict } from '@/lib/clinic/scheduling-guard'
 import {
   DEFAULT_REMINDER_MINUTES_BEFORE,
   getReminderTemplate,
@@ -71,6 +71,7 @@ export async function POST(
         session.tenantId,
         ClinicReminderKind.APPOINTMENT_REMINDER
       )
+      if (!template) return { disabled: true as const }
       const text = renderReminderTemplate(template?.body || '', existing)
       const url = whatsappUrl(existing.patient.phone, text)
       const delivery = await tx.clinicReminderDelivery.create({
@@ -109,6 +110,9 @@ export async function POST(
       })
       return { text, url, delivery }
     })
+    if ('disabled' in result) {
+      return NextResponse.json({ error: 'Reminder template is inactive' }, { status: 409 })
+    }
     return NextResponse.json({
       reminderText: result.text,
       whatsappUrl: result.url,
@@ -125,6 +129,7 @@ export async function POST(
         session.tenantId,
         ClinicReminderKind.APPOINTMENT_REMINDER
       )
+      if (!template) return { disabled: true as const }
       const text = renderReminderTemplate(template?.body || '', existing)
       const delivery = await tx.clinicReminderDelivery.create({
         data: {
@@ -149,6 +154,9 @@ export async function POST(
       })
       return delivery
     })
+    if ('disabled' in delivery) {
+      return NextResponse.json({ error: 'Reminder template is inactive' }, { status: 409 })
+    }
     return NextResponse.json({ delivery }, { status: 201 })
   }
 
@@ -159,6 +167,7 @@ export async function POST(
         session.tenantId,
         ClinicReminderKind.NO_SHOW_FOLLOW_UP
       )
+      if (!template) return { disabled: true as const }
       const text = renderReminderTemplate(template?.body || '', existing)
       const url = whatsappUrl(existing.patient.phone, text)
       const delivery = await tx.clinicReminderDelivery.create({
@@ -197,6 +206,9 @@ export async function POST(
       })
       return { text, url, delivery }
     })
+    if ('disabled' in result) {
+      return NextResponse.json({ error: 'Reminder template is inactive' }, { status: 409 })
+    }
     return NextResponse.json({
       reminderText: result.text,
       whatsappUrl: result.url,
@@ -320,7 +332,7 @@ export async function POST(
     )
 
     const result = await prisma.$transaction(async (tx) => {
-      const conflict = await findAppointmentConflict(tx, {
+      const conflict = await findSchedulingConflict(tx, {
         tenantId: session.tenantId,
         startsAt,
         endsAt,

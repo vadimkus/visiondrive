@@ -44,6 +44,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/PATCH /api/clinic/reminders/templates` — read/save reminder templates.
 - `GET /api/clinic/reminders/deliveries` — delivery/preparation log.
 - `GET/POST /api/clinic/reminders/run` — prepare due scheduled reminders; cron may use `CRON_SECRET`.
+- `GET/POST /api/clinic/public-booking/[slug]` — public service/slot lookup and online appointment creation by enabled tenant slug.
+- `GET/PATCH /api/clinic/public-booking/settings` — staff on/off control stored in `tenant_settings.thresholds.publicBooking.enabled`.
 - `POST /api/clinic/visits`, `PATCH /api/clinic/visits/[id]`.
 - `POST /api/clinic/patients/[id]/media`, `GET /api/clinic/media/[id]`.
 - `POST .../payments`, `POST .../crm`.
