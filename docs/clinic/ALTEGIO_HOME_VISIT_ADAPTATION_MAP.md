@@ -185,8 +185,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Next improvements: downloadable import template, inline row editing before commit, import history, and richer duplicate merge tools.
 
 25. Product import from Excel
+   - Status: shipped first pass.
    - Source: product import.
    - Solo version: import stock catalog, supplier, cost, barcode, reorder point.
+   - Shipped: `/clinic/inventory/import` accepts `.xlsx`/`.csv`, previews mapped stock rows, flags invalid rows and barcode/SKU/name duplicates, creates clean stock items, and posts opening receipt movements for imported quantities.
+   - Next improvements: downloadable import template, inline row editing before commit, supplier profile linking, batch/expiry columns, and cost fields once supplier/cost accounting lands.
 
 26. Supplier profiles and settlement history
    - Source: suppliers and counterparties.
@@ -322,13 +325,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Product import from Excel.
-2. Supplier profiles and settlement history.
+1. Supplier profiles and settlement history.
+2. Payment fee rules.
 3. Data export/deletion tools.
 4. Booking source/UTM attribution and abandoned-booking follow-up.
 5. Patient-uploaded photos through the portal.
 
 ## Recommendation
 
-The next point should be product import from Excel. Client import now removes the patient onboarding bottleneck; the same bulk path should bring existing stock catalogs, suppliers, costs, barcodes, and reorder points into inventory.
+The next point should be supplier profiles and settlement history. Product import now brings stock catalogs in bulk; supplier records are the missing structure for purchase history, preferred reorder quantities, and unpaid supplier amounts.
 

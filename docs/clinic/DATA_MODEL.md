@@ -46,6 +46,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/POST /api/clinic/inventory` — list (`?lowStock=1`, `?includeInactive=1`), create (optional opening `RECEIPT` movement).
 - `GET/PATCH /api/clinic/inventory/[id]` — detail + metadata; `GET/POST .../movements` — history + record movement (transactional qty update).
 - `GET /api/clinic/inventory/lookup?q=` — scanner lookup by barcode, SKU, or exact item name.
+- `POST /api/clinic/inventory/import` — preview and commit product spreadsheet imports from `.xlsx` / `.csv`; duplicate rows are detected by barcode, SKU, or name before creation.
 - `GET/POST /api/clinic/procedures/[id]/materials`; `PATCH/DELETE .../materials/[materialId]` — manage procedure bill-of-material rows.
 - `GET/POST /api/clinic/procedures/[id]/intake-questions`; `PATCH/DELETE .../intake-questions/[questionId]` — manage service-specific public intake questions.
 - `GET/POST /api/clinic/stock-takes`; `GET/PATCH /api/clinic/stock-takes/[id]`; `PATCH .../lines/[lineId]`; `POST .../finalize` — create/count/finalize stock-taking sessions and post variance adjustments.

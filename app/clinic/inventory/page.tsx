@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { FileSpreadsheet } from 'lucide-react'
 import clsx from 'clsx'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
@@ -163,6 +164,13 @@ function ClinicInventoryPageContent() {
           className="ms-auto inline-flex items-center min-h-11 px-4 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600"
         >
           {t.addStockItem}
+        </Link>
+        <Link
+          href="/clinic/inventory/import"
+          className="inline-flex items-center gap-2 min-h-11 px-4 rounded-xl border border-orange-200 bg-white text-sm font-semibold text-orange-700 hover:bg-orange-50"
+        >
+          <FileSpreadsheet className="h-4 w-4" aria-hidden />
+          {t.productImportTitle}
         </Link>
         <Link
           href="/clinic/stock-takes"

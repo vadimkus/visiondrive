@@ -348,6 +348,20 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/patients/import',
   },
+  {
+    id: 'product-import-excel',
+    category: 'Inventory',
+    title: 'Import products from Excel',
+    summary:
+      'Set up inventory faster by importing stock catalogs with SKU, barcode, on-hand quantity, reorder point, supplier, cost, and notes.',
+    steps: [
+      'Open Inventory and click Import products.',
+      'Upload an .xlsx or .csv file with product/name, SKU, barcode, unit, quantity, reorder point, consume per visit, procedure, supplier, cost, and notes.',
+      'Review duplicate warnings by barcode, SKU, or name. Rows with unknown linked procedures are marked invalid.',
+      'Click Create products to create only clean inventory rows. Opening quantities create receipt movements automatically.',
+    ],
+    link: '/clinic/inventory/import',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -673,6 +687,20 @@ const articlesRu: Article[] = [
       'Нажмите Создать пациентов, чтобы импортировать только чистые строки, затем работайте со списком пациентов.',
     ],
     link: '/clinic/patients/import',
+  },
+  {
+    id: 'product-import-excel',
+    category: 'Склад',
+    title: 'Импортируйте товары из Excel',
+    summary:
+      'Быстро настройте склад: SKU, штрихкоды, остатки, минимальные остатки, поставщики, себестоимость и заметки.',
+    steps: [
+      'Откройте Склад и нажмите Импорт товаров.',
+      'Загрузите .xlsx или .csv с колонками: товар/название, SKU, штрихкод, единица, остаток, минимум, расход на визит, процедура, поставщик, себестоимость и заметки.',
+      'Проверьте предупреждения о дублях по штрихкоду, SKU или названию. Строки с неизвестной процедурой будут помечены как ошибочные.',
+      'Нажмите Создать товары, чтобы создать только чистые позиции. Начальные остатки автоматически создают движения поступления.',
+    ],
+    link: '/clinic/inventory/import',
   },
 ]
 

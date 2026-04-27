@@ -630,6 +630,24 @@
 
 ---
 
+## Chunk 36 — 2026-04-27 (product import from Excel)
+
+**Shipped**
+
+- **Helper/API:** `lib/clinic/product-import.ts` maps common EN/RU stock spreadsheet headers into inventory fields, validates required name/unit and linked procedure names, preserves supplier/unit-cost context in notes, and flags barcode/SKU/name duplicates. `POST /api/clinic/inventory/import` supports upload preview and JSON commit.
+- **UI:** added `/clinic/inventory/import` plus an Inventory page action. Staff can upload `.xlsx`/`.csv`, preview invalid/duplicate rows, and create only clean stock items.
+- **Inventory effects:** imported opening quantities create receipt movements and set `quantityOnHand`; reorder points, barcodes, SKU, unit, consume-per-visit, notes, and procedure links are stored on `ClinicStockItem`.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article explain the product import workflow.
+- **Docs/canvas:** Altegio backlog and canvas mark Point 25 as shipped and move the next recommendation to supplier profiles.
+
+**Validation**
+
+- Added Vitest coverage for product import header mapping, procedure matching, duplicate detection, and import summaries.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**
