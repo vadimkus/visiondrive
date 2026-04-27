@@ -14,6 +14,7 @@ import {
   ClipboardList,
   FileDown,
   PackageCheck,
+  ShieldCheck,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
@@ -100,6 +101,35 @@ type PackageRow = {
   redemptions: PackageRedemptionRow[]
 }
 
+type ConsentTemplateRow = {
+  id: string
+  title: string
+  body: string
+  contraindications: string[]
+  aftercareText: string | null
+  active: boolean
+  procedure: ProcedureRef
+}
+
+type ConsentRecordRow = {
+  id: string
+  templateTitleSnapshot: string
+  templateBodySnapshot: string
+  contraindicationsSnapshot: string[]
+  checkedItems: string[]
+  patientNameSnapshot: string
+  accepted: boolean
+  acceptedAt: string | null
+  signatureText: string | null
+  aftercareAcknowledged: boolean
+  note: string | null
+  createdAt: string
+  procedure: ProcedureRef
+  visit?: { id: string; visitAt: string } | null
+  appointment?: { id: string; startsAt: string } | null
+  template?: { id: string; title: string; active: boolean } | null
+}
+
 type ClientBalance = {
   currency: string
   expectedCents: number
@@ -139,11 +169,12 @@ export type PatientRecord = {
   media: MediaMeta[]
   payments: PaymentRow[]
   packages: PackageRow[]
+  consentRecords: ConsentRecordRow[]
   clientBalance: ClientBalance
   crmActivities: CrmRow[]
 }
 
-type Tab = 'overview' | 'timeline' | 'photos' | 'payments' | 'packages' | 'crm'
+type Tab = 'overview' | 'timeline' | 'photos' | 'payments' | 'packages' | 'consents' | 'crm'
 
 function categoryLabel(t: ReturnType<typeof useClinicLocale>['t'], category: PatientCategory) {
   if (category === 'VIP') return t.categoryVip
@@ -378,6 +409,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     { id: 'photos', label: t.photos, icon: Camera },
     { id: 'payments', label: t.payments, icon: CreditCard },
     { id: 'packages', label: t.packages, icon: PackageCheck },
+    { id: 'consents', label: t.consents, icon: ShieldCheck },
     { id: 'crm', label: t.crm, icon: MessageSquare },
   ]
 
@@ -573,6 +605,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
       {tab === 'photos' && <PhotosTab patient={patient} onRefresh={load} />}
       {tab === 'payments' && <PaymentsTab patient={patient} onRefresh={load} />}
       {tab === 'packages' && <PackagesTab patient={patient} onRefresh={load} />}
+      {tab === 'consents' && <ConsentsTab patient={patient} onRefresh={load} />}
       {tab === 'crm' && <CrmTab patient={patient} onRefresh={load} />}
     </div>
   )
@@ -1501,6 +1534,377 @@ function PackagesTab({
               </article>
             )
           })
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ConsentsTab({
+  patient,
+  onRefresh,
+}: {
+  patient: PatientRecord
+  onRefresh: () => Promise<void>
+}) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const [templates, setTemplates] = useState<ConsentTemplateRow[]>([])
+  const [procedures, setProcedures] = useState<Array<{ id: string; name: string }>>([])
+  const [templateTitle, setTemplateTitle] = useState('')
+  const [templateBody, setTemplateBody] = useState('')
+  const [templateProcedureId, setTemplateProcedureId] = useState('')
+  const [templateContraindications, setTemplateContraindications] = useState('')
+  const [aftercareText, setAftercareText] = useState('')
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [checkedItems, setCheckedItems] = useState<string[]>([])
+  const [visitId, setVisitId] = useState('')
+  const [signatureName, setSignatureName] = useState(
+    [patient.firstName, patient.middleName, patient.lastName].filter(Boolean).join(' ')
+  )
+  const [accepted, setAccepted] = useState(false)
+  const [aftercareAcknowledged, setAftercareAcknowledged] = useState(false)
+  const [note, setNote] = useState('')
+  const [savingTemplate, setSavingTemplate] = useState(false)
+  const [savingConsent, setSavingConsent] = useState(false)
+
+  const loadTemplates = useCallback(async () => {
+    const res = await fetch('/api/clinic/consents/templates', { credentials: 'include' })
+    if (!res.ok) return
+    const data = await res.json()
+    setTemplates(data.templates || [])
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    loadTemplates()
+    ;(async () => {
+      const res = await fetch('/api/clinic/procedures', { credentials: 'include' })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!cancelled) {
+        setProcedures((data.procedures || []).filter((procedure: { active: boolean }) => procedure.active))
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [loadTemplates])
+
+  const selectedTemplate = templates.find((template) => template.id === selectedTemplateId)
+
+  const createTemplate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!templateTitle.trim() || !templateBody.trim()) {
+      alert(t.consentTemplateRequired)
+      return
+    }
+    setSavingTemplate(true)
+    try {
+      const res = await fetch('/api/clinic/consents/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: templateTitle.trim(),
+          body: templateBody.trim(),
+          procedureId: templateProcedureId || null,
+          contraindications: templateContraindications
+            .split('\n')
+            .map((item) => item.trim())
+            .filter(Boolean),
+          aftercareText: aftercareText.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      setTemplateTitle('')
+      setTemplateBody('')
+      setTemplateProcedureId('')
+      setTemplateContraindications('')
+      setAftercareText('')
+      await loadTemplates()
+      setSelectedTemplateId(data.template?.id || '')
+    } finally {
+      setSavingTemplate(false)
+    }
+  }
+
+  const signConsent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedTemplate) {
+      alert(t.consentTemplateRequired)
+      return
+    }
+    if (!accepted || !signatureName.trim()) {
+      alert(t.consentSignatureRequired)
+      return
+    }
+    setSavingConsent(true)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/consents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          templateId: selectedTemplate.id,
+          visitId: visitId || null,
+          checkedItems,
+          patientNameSnapshot: signatureName.trim(),
+          signatureText: signatureName.trim(),
+          accepted: true,
+          aftercareAcknowledged,
+          note: note.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      setCheckedItems([])
+      setVisitId('')
+      setAccepted(false)
+      setAftercareAcknowledged(false)
+      setNote('')
+      await onRefresh()
+    } finally {
+      setSavingConsent(false)
+    }
+  }
+
+  const toggleCheckedItem = (item: string) => {
+    setCheckedItems((current) =>
+      current.includes(item) ? current.filter((entry) => entry !== item) : [...current, item]
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-blue-100 bg-blue-50 p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">{t.consentForms}</p>
+        <h2 className="mt-1 text-xl font-semibold text-blue-950">{t.signConsent}</h2>
+        <p className="mt-1 text-sm text-blue-800">{t.consentHint}</p>
+      </section>
+
+      <form onSubmit={createTemplate} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t.consentTemplateLibrary}</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t.createConsentTemplate}</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.consentTemplateTitle}</label>
+            <input
+              value={templateTitle}
+              onChange={(e) => setTemplateTitle(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.packageProcedure}</label>
+            <select
+              value={templateProcedureId}
+              onChange={(e) => setTemplateProcedureId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="">{t.allServicesPackage}</option>
+              {procedures.map((procedure) => (
+                <option key={procedure.id} value={procedure.id}>
+                  {procedure.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.consentTemplateBody}</label>
+          <textarea
+            value={templateBody}
+            onChange={(e) => setTemplateBody(e.target.value)}
+            rows={4}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.contraindications}</label>
+          <textarea
+            value={templateContraindications}
+            onChange={(e) => setTemplateContraindications(e.target.value)}
+            rows={3}
+            placeholder="Pregnancy or breastfeeding"
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+          <p className="mt-1 text-xs text-gray-500">{t.contraindicationsHint}</p>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.aftercareText}</label>
+          <textarea
+            value={aftercareText}
+            onChange={(e) => setAftercareText(e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={savingTemplate}
+          className="w-full sm:w-auto min-h-11 px-5 rounded-xl bg-blue-600 text-white font-semibold disabled:opacity-60"
+        >
+          {savingTemplate ? t.savingEllipsis : t.saveTemplate}
+        </button>
+      </form>
+
+      <form onSubmit={signConsent} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">{t.signConsent}</h3>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.consentTemplate}</label>
+          <select
+            value={selectedTemplateId}
+            onChange={(e) => {
+              setSelectedTemplateId(e.target.value)
+              setCheckedItems([])
+            }}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+          >
+            <option value="">{templates.length ? t.selectPlaceholder : t.noConsentTemplates}</option>
+            {templates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.title}
+                {template.procedure ? ` · ${template.procedure.name}` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+        {selectedTemplate && (
+          <div className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-700 space-y-3">
+            <p className="font-semibold text-gray-900">{selectedTemplate.title}</p>
+            <p className="whitespace-pre-wrap">{selectedTemplate.body}</p>
+            {selectedTemplate.contraindications.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  {t.reviewedContraindications}
+                </p>
+                <div className="mt-2 space-y-2">
+                  {selectedTemplate.contraindications.map((item) => (
+                    <label key={item} className="flex items-start gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={checkedItems.includes(item)}
+                        onChange={() => toggleCheckedItem(item)}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600"
+                      />
+                      <span>{item}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.linkToVisitOptional}</label>
+            <select
+              value={visitId}
+              onChange={(e) => setVisitId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="">{t.emptyValue}</option>
+              {patient.visits.map((visit) => (
+                <option key={visit.id} value={visit.id}>
+                  {new Date(visit.visitAt).toLocaleString(dateLocale, {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.patientSignatureName}</label>
+            <input
+              value={signatureName}
+              onChange={(e) => setSignatureName(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+        </div>
+        <label className="flex items-start gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={accepted}
+            onChange={(e) => setAccepted(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600"
+          />
+          <span>{t.patientAcceptedConsent}</span>
+        </label>
+        <label className="flex items-start gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={aftercareAcknowledged}
+            onChange={(e) => setAftercareAcknowledged(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600"
+          />
+          <span>{t.aftercareAcknowledged}</span>
+        </label>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.note}</label>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+        </div>
+        <p className="text-xs text-gray-500">{t.consentPatientSafeExportHint}</p>
+        <button
+          type="submit"
+          disabled={savingConsent || !selectedTemplate}
+          className="w-full sm:w-auto min-h-11 px-5 rounded-xl bg-blue-600 text-white font-semibold disabled:opacity-60"
+        >
+          {savingConsent ? t.savingEllipsis : t.saveSignedConsent}
+        </button>
+      </form>
+
+      <div className="space-y-3">
+        {patient.consentRecords.length === 0 ? (
+          <ClinicEmptyState title={t.noConsentsYet} />
+        ) : (
+          patient.consentRecords.map((consent) => (
+            <article key={consent.id} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{consent.templateTitleSnapshot}</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {consent.procedure?.name ?? t.allServicesPackage}
+                    {consent.visit
+                      ? ` · ${t.consentLinkedVisit}: ${new Date(consent.visit.visitAt).toLocaleDateString(dateLocale)}`
+                      : ''}
+                  </p>
+                </div>
+                <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">
+                  {consent.acceptedAt
+                    ? `${t.consentAcceptedAt}: ${new Date(consent.acceptedAt).toLocaleDateString(dateLocale)}`
+                    : t.notLinked}
+                </span>
+              </div>
+              <p className="mt-3 whitespace-pre-wrap text-sm text-gray-700">{consent.templateBodySnapshot}</p>
+              {consent.contraindicationsSnapshot.length > 0 && (
+                <p className="mt-3 text-xs text-gray-500">
+                  {t.reviewedContraindications}: {consent.checkedItems.join(', ') || t.emptyValue}
+                </p>
+              )}
+              <p className="mt-2 text-xs text-gray-500">
+                {t.patientSignatureName}: {consent.signatureText || consent.patientNameSnapshot}
+              </p>
+            </article>
+          ))
         )}
       </div>
     </div>

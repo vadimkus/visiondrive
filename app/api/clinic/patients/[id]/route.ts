@@ -95,6 +95,16 @@ export async function GET(
           },
         },
       },
+      consentRecords: {
+        orderBy: { createdAt: 'desc' },
+        take: 40,
+        include: {
+          procedure: { select: { id: true, name: true } },
+          visit: { select: { id: true, visitAt: true } },
+          appointment: { select: { id: true, startsAt: true } },
+          template: { select: { id: true, title: true, active: true } },
+        },
+      },
       media: {
         orderBy: { createdAt: 'desc' },
         take: 60,

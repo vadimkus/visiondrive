@@ -108,6 +108,8 @@ model Tenant {
   clinicPatientReviews ClinicPatientReview[]
   clinicPatientPackages ClinicPatientPackage[]
   clinicPackageRedemptions ClinicPackageRedemption[]
+  clinicConsentTemplates ClinicConsentTemplate[]
+  clinicConsentRecords ClinicConsentRecord[]
 
   @@map("tenants")
 }
@@ -824,6 +826,7 @@ model ClinicPatient {
   crmActivities  ClinicCrmActivity[]
   reviews        ClinicPatientReview[]
   packages       ClinicPatientPackage[]
+  consentRecords ClinicConsentRecord[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -850,6 +853,8 @@ model ClinicProcedure {
   stockItems    ClinicStockItem[]
   availabilityRules ClinicAvailabilityRule[]
   patientPackages ClinicPatientPackage[]
+  consentTemplates ClinicConsentTemplate[]
+  consentRecords ClinicConsentRecord[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -892,6 +897,7 @@ model ClinicAppointment {
   events    ClinicAppointmentEvent[]
   reviews   ClinicPatientReview[]
   packageRedemptions ClinicPackageRedemption[]
+  consentRecords ClinicConsentRecord[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1080,6 +1086,7 @@ model ClinicVisit {
   payments    ClinicPatientPayment[]
   reviews     ClinicPatientReview[]
   packageRedemptions ClinicPackageRedemption[]
+  consentRecords ClinicConsentRecord[]
 
   @@index([tenantId, visitAt])
   @@index([patientId, visitAt])
@@ -1182,6 +1189,63 @@ model ClinicPackageRedemption {
   @@index([visitId])
   @@index([patientPackageId, redeemedAt])
   @@map("clinic_package_redemptions")
+}
+
+model ClinicConsentTemplate {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  procedureId        String?
+  title              String
+  body               String   @db.Text
+  contraindications  String[] @default([])
+  aftercareText      String?  @db.Text
+  active             Boolean  @default(true)
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  createdByUserId    String?
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  records   ClinicConsentRecord[]
+
+  @@index([tenantId, active, title])
+  @@index([tenantId, procedureId, active])
+  @@map("clinic_consent_templates")
+}
+
+model ClinicConsentRecord {
+  id                        String   @id @default(cuid())
+  tenantId                  String
+  patientId                 String
+  templateId                String?
+  procedureId               String?
+  appointmentId             String?
+  visitId                   String?
+  templateTitleSnapshot     String
+  templateBodySnapshot      String   @db.Text
+  contraindicationsSnapshot String[] @default([])
+  checkedItems              String[] @default([])
+  patientNameSnapshot       String
+  accepted                  Boolean  @default(false)
+  acceptedAt                DateTime? @db.Timestamptz(6)
+  signatureText             String?
+  aftercareAcknowledged     Boolean  @default(false)
+  note                      String?  @db.Text
+  createdAt                 DateTime @default(now())
+  createdByUserId           String?
+
+  tenant      Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  template    ClinicConsentTemplate?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  procedure   ClinicProcedure?        @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  appointment ClinicAppointment?      @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  visit       ClinicVisit?            @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, patientId, createdAt])
+  @@index([tenantId, acceptedAt])
+  @@index([visitId, createdAt])
+  @@map("clinic_consent_records")
 }
 
 model ClinicPatientReview {

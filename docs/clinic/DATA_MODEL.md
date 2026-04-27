@@ -21,6 +21,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_patient_media` | Before/after images: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime + caption. |
 | `clinic_patient_payments` | Payments; optional `visit_id`. Client balance is derived from completed/arrived appointment prices, linked payments, refunds, pending rows, and standalone deposits. |
 | `clinic_patient_packages` + `clinic_package_redemptions` | Prepaid patient packages/courses: total/remaining sessions, optional service restriction, expiry, payment reference, and visit-linked session usage rows. |
+| `clinic_consent_templates` + `clinic_consent_records` | Consent template library plus signed patient snapshots with contraindications, signature name, aftercare acknowledgement, and optional visit/appointment links. |
 | `clinic_crm_activities` | CRM timeline (type + body + occurred_at). |
 | `clinic_stock_items` | Inventory SKU: name, unit, `quantity_on_hand`, `reorder_point`, optional `procedure_id`, optional `barcode`, `consume_per_visit`, low-stock cooldown. |
 | `clinic_stock_movements` | Receipt / adjustment / consumption / return; signed `quantity_delta`; never allows negative on-hand. |
@@ -53,6 +54,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `POST /api/clinic/patients/[id]/media`, `GET /api/clinic/media/[id]`.
 - `POST .../payments`, `POST .../crm`.
 - `GET/POST .../packages` — list/sell prepaid treatment packages; completed visits auto-debit one matching session.
+- `GET/POST /api/clinic/consents/templates`; `GET/POST .../patients/[id]/consents` — manage consent templates and signed patient consent records.
 - `GET/PATCH /api/clinic/me` — profile + password.
 
 All routes require **clinic session** (`getClinicSession`): `authToken` cookie + `portal=clinic`.

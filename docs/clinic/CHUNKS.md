@@ -368,6 +368,24 @@
 
 ---
 
+## Chunk 22 — 2026-04-27 (consent and contraindication forms)
+
+**Shipped**
+
+- **Schema:** added `ClinicConsentTemplate` and `ClinicConsentRecord` with tenant scope, optional procedure/visit/appointment links, contraindication arrays, signature name, accepted timestamp, and aftercare acknowledgement.
+- **API:** `GET/POST /api/clinic/consents/templates` for reusable templates; `GET/POST /api/clinic/patients/[id]/consents` for signed patient consent records.
+- **UI:** patient record now has a Consents tab for creating templates, reviewing contraindications, signing consent, linking to visits, and viewing immutable patient-safe snapshots.
+- **i18n/Knowledge Base:** EN/RU strings and a Knowledge Base article for consent and contraindication workflows.
+- **Lib:** `lib/clinic/consents.ts` normalizes consent text, contraindications, accepted timestamps, and signed snapshots.
+
+**Validation**
+
+- Added Vitest coverage for consent helper normalization and snapshot logic.
+- Run `npm run db:generate`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

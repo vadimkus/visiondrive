@@ -86,6 +86,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: procedure-specific consent, contraindications, medication/allergy confirmation, aftercare acknowledgement.
    - Why it matters: protects practitioner and patient, especially for home aesthetic/medical-adjacent procedures.
    - Build shape: consent template library, patient signature/checkbox timestamp, form snapshot attached to visit, patient-safe export.
+   - Shipped: tenant consent template library, procedure-specific optional template links, signed patient consent records with immutable template snapshots, reviewed contraindication checklist, aftercare acknowledgement, optional visit/appointment links, patient chart Consents tab, and EN/RU Knowledge Base article.
+   - Next improvements: public pre-visit signing link, drawn signature capture, consent expiry/renewal reminders, and dedicated consent PDF export.
 
 13. Inline payments and receipts
    - Altegio source: financial operations, cash registers, refunds, payment methods.

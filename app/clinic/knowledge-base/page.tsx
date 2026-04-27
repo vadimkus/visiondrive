@@ -184,6 +184,19 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/patients',
   },
+  {
+    id: 'consent-contraindication-forms',
+    category: 'Patients',
+    title: 'Capture consent and contraindications before treatment',
+    summary: 'Use reusable consent templates and signed patient snapshots before medical-adjacent home visits.',
+    steps: [
+      'Open a patient record and go to Consents.',
+      'Create a consent template with procedure-specific text, contraindications, and aftercare wording.',
+      'Before treatment, select the template, review contraindications, link the consent to a visit if needed, and record the patient signature name.',
+      'The signed record stores a snapshot of the exact text accepted, so future template edits do not change past consent.',
+    ],
+    link: '/clinic/patients',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -342,6 +355,19 @@ const articlesRu: Article[] = [
       'Создайте пакет с названием, количеством сеансов, ценой, сроком действия и ограничением по услуге при необходимости.',
       'Когда подходящий визит завершён, система автоматически спишет один сеанс.',
       'Проверяйте остаток и предупреждение об одном оставшемся сеансе перед следующей записью.',
+    ],
+    link: '/clinic/patients',
+  },
+  {
+    id: 'consent-contraindication-forms',
+    category: 'Пациенты',
+    title: 'Собирайте согласия и противопоказания до процедуры',
+    summary: 'Используйте шаблоны согласий и подписанные снимки текста перед выездными процедурами.',
+    steps: [
+      'Откройте карту пациента и вкладку Согласия.',
+      'Создайте шаблон согласия с текстом для процедуры, противопоказаниями и правилами ухода после.',
+      'Перед процедурой выберите шаблон, проверьте противопоказания, при необходимости привяжите согласие к визиту и сохраните имя подписи пациента.',
+      'Подписанная запись хранит снимок принятого текста, поэтому будущие изменения шаблона не меняют прошлые согласия.',
     ],
     link: '/clinic/patients',
   },
