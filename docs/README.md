@@ -54,6 +54,7 @@
 | [2026-04-27_clinic-follow-up-automation.md](2026-04-27_clinic-follow-up-automation.md) | Clinic follow-up automation note |
 | [2026-04-27_clinic-reviews-reputation.md](2026-04-27_clinic-reviews-reputation.md) | Clinic reviews and reputation note |
 | [2026-04-27_clinic-client-categories-tags.md](2026-04-27_clinic-client-categories-tags.md) | Clinic client categories and tags note |
+| [2026-04-27_homepage-solo-practitioner-positioning.md](2026-04-27_homepage-solo-practitioner-positioning.md) | Homepage solo practitioner positioning note |
 
 ### Action Plan (Section 11)
 
