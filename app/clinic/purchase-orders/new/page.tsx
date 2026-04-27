@@ -7,6 +7,7 @@ import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 
 type StockRow = { id: string; name: string; unit: string }
+type SupplierRow = { id: string; name: string }
 
 type LineForm = { stockItemId: string; quantityOrdered: string; unitCostCents: string }
 
@@ -14,6 +15,8 @@ export default function NewPurchaseOrderPage() {
   const router = useRouter()
   const { t } = useClinicLocale()
   const [stock, setStock] = useState<StockRow[]>([])
+  const [suppliers, setSuppliers] = useState<SupplierRow[]>([])
+  const [supplierId, setSupplierId] = useState('')
   const [supplierName, setSupplierName] = useState('')
   const [reference, setReference] = useState('')
   const [expectedAt, setExpectedAt] = useState('')
@@ -27,11 +30,19 @@ export default function NewPurchaseOrderPage() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const res = await fetch('/api/clinic/inventory', { credentials: 'include' })
-      if (!res.ok) return
-      const data = await res.json()
+      const [stockRes, suppliersRes] = await Promise.all([
+        fetch('/api/clinic/inventory', { credentials: 'include' }),
+        fetch('/api/clinic/suppliers', { credentials: 'include' }),
+      ])
       if (!cancelled) {
-        setStock((data.items || []).filter((i: { active: boolean }) => i.active))
+        if (stockRes.ok) {
+          const data = await stockRes.json()
+          setStock((data.items || []).filter((i: { active: boolean }) => i.active))
+        }
+        if (suppliersRes.ok) {
+          const data = await suppliersRes.json()
+          setSuppliers(data.suppliers || [])
+        }
       }
     })()
     return () => {
@@ -66,6 +77,7 @@ export default function NewPurchaseOrderPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           supplierName: supplierName.trim(),
+          supplierId: supplierId || null,
           reference: reference.trim() || null,
           notes: notes.trim() || null,
           expectedAt: expectedAt ? new Date(expectedAt).toISOString() : null,
@@ -105,12 +117,36 @@ export default function NewPurchaseOrderPage() {
 
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 shadow-sm space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t.poSupplier}</label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.poSupplier}</label>
+            <Link href="/clinic/suppliers" className="text-xs font-medium text-orange-600">
+              {t.manageSuppliers}
+            </Link>
+          </div>
+          <select
+            className="mb-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 min-h-11"
+            value={supplierId}
+            onChange={(e) => {
+              const nextId = e.target.value
+              setSupplierId(nextId)
+              const selected = suppliers.find((supplier) => supplier.id === nextId)
+              if (selected) setSupplierName(selected.name)
+            }}
+          >
+            <option value="">{t.chooseSupplierOptional}</option>
+            {suppliers.map((supplier) => (
+              <option key={supplier.id} value={supplier.id}>
+                {supplier.name}
+              </option>
+            ))}
+          </select>
           <input
-            required
+            required={!supplierId}
+            disabled={!!supplierId}
             className="w-full rounded-xl border border-gray-200 px-3 py-2.5 min-h-11"
             value={supplierName}
             onChange={(e) => setSupplierName(e.target.value)}
+            placeholder={supplierId ? t.useTypedSupplierName : undefined}
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

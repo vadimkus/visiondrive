@@ -120,6 +120,20 @@ const articlesEn: Article[] = [
     link: '/clinic/purchase-orders',
   },
   {
+    id: 'supplier-profiles',
+    category: 'Inventory',
+    title: 'Track suppliers, settlements, and unpaid stock costs',
+    summary: 'Keep supplier contacts, purchase history, received value, payments, and outstanding balances in one place.',
+    steps: [
+      'Open Suppliers and create a profile with contact details, WhatsApp, payment terms, and reorder notes.',
+      'When creating a purchase order, choose the supplier profile instead of typing a loose name.',
+      'Receive purchase orders as usual; received line cost becomes the payable supplier amount.',
+      'Record supplier settlements when you pay, using amount, method, reference, and note.',
+      'Use the unpaid amount card to see what is still owed for received stock.',
+    ],
+    link: '/clinic/suppliers',
+  },
+  {
     id: 'procedure-bill-of-materials',
     category: 'Inventory',
     title: 'Attach a bill of materials to each procedure',
@@ -457,6 +471,20 @@ const articlesRu: Article[] = [
       'Проверьте движения склада и статус низких остатков.',
     ],
     link: '/clinic/purchase-orders',
+  },
+  {
+    id: 'supplier-profiles',
+    category: 'Склад',
+    title: 'Ведите поставщиков, оплаты и долги за склад',
+    summary: 'Контакты поставщика, история закупок, принятая сумма, оплаты и остаток к оплате в одном месте.',
+    steps: [
+      'Откройте Поставщики и создайте профиль с контактами, WhatsApp, сроком оплаты и заметками по дозакупке.',
+      'При создании закупки выбирайте профиль поставщика, а не вводите свободный текст.',
+      'Принимайте закупки как обычно; стоимость принятых строк становится суммой к оплате поставщику.',
+      'Записывайте оплаты поставщику с суммой, методом, референсом и заметкой.',
+      'Смотрите карточку к оплате, чтобы понимать долг по уже принятым товарам.',
+    ],
+    link: '/clinic/suppliers',
   },
   {
     id: 'procedure-bill-of-materials',

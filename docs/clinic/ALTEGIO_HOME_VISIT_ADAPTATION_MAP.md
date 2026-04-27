@@ -192,8 +192,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Next improvements: downloadable import template, inline row editing before commit, supplier profile linking, batch/expiry columns, and cost fields once supplier/cost accounting lands.
 
 26. Supplier profiles and settlement history
+   - Status: shipped first pass.
    - Source: suppliers and counterparties.
    - Solo version: supplier contact, ordered items, purchase history, unpaid supplier amounts, preferred reorder quantity.
+   - Shipped: `/clinic/suppliers` manages supplier profiles and contact details; supplier detail shows linked purchase history, received value, settlement history, and unpaid amount. Purchase orders can now link to supplier profiles.
+   - Next improvements: supplier import/backfill review, preferred reorder quantity per product, due-date aging buckets, and supplier-level export.
 
 27. Payment fee rules
    - Source: acquiring fees.
@@ -325,13 +328,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Supplier profiles and settlement history.
-2. Payment fee rules.
-3. Data export/deletion tools.
-4. Booking source/UTM attribution and abandoned-booking follow-up.
+1. Payment fee rules.
+2. Data export/deletion tools.
+3. Booking source/UTM attribution and abandoned-booking follow-up.
+4. Dormant patient reactivation.
 5. Patient-uploaded photos through the portal.
 
 ## Recommendation
 
-The next point should be supplier profiles and settlement history. Product import now brings stock catalogs in bulk; supplier records are the missing structure for purchase history, preferred reorder quantities, and unpaid supplier amounts.
+The next point should be payment fee rules. Supplier profiles now cover purchase history and unpaid supplier amounts; method-level fees are the next finance gap because card/POS/Stripe charges currently require manual expense handling instead of automatic net margin.
 

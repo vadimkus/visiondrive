@@ -68,7 +68,7 @@ export async function POST(
     const result = await prisma.$transaction(async (tx) => {
       const order = await tx.clinicPurchaseOrder.findFirst({
         where: { id, tenantId: session.tenantId },
-        include: { lines: true },
+        include: { supplier: { select: { id: true, name: true } }, lines: true },
       })
       if (!order) {
         return { error: 'Not found' as const, status: 404 as const }
@@ -146,6 +146,7 @@ export async function POST(
         where: { id },
         data: { status: headerStatus },
         include: {
+          supplier: { select: { id: true, name: true } },
           lines: {
             include: {
               stockItem: { select: { id: true, name: true, unit: true, sku: true } },

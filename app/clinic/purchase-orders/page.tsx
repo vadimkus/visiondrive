@@ -19,6 +19,7 @@ type Line = {
 type Order = {
   id: string
   supplierName: string
+  supplier: { id: string; name: string } | null
   reference: string | null
   status: string
   orderedAt: string
@@ -119,6 +120,12 @@ export default function PurchaseOrdersPage() {
           >
             {t.newPurchaseOrder}
           </Link>
+          <Link
+            href="/clinic/suppliers"
+            className="inline-flex items-center min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-gray-800 text-sm font-semibold hover:bg-gray-50"
+          >
+            {t.suppliers}
+          </Link>
         </div>
       </div>
 
@@ -133,7 +140,7 @@ export default function PurchaseOrdersPage() {
               <li key={o.id} className="p-4 hover:bg-gray-50/80">
                 <Link href={`/clinic/purchase-orders/${o.id}`} className="block min-h-11">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-gray-900">{o.supplierName}</span>
+                    <span className="font-semibold text-gray-900">{o.supplier?.name ?? o.supplierName}</span>
                     <span
                       className={clsx(
                         'inline-flex px-2 py-0.5 rounded-lg text-xs font-semibold',

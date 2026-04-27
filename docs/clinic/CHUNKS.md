@@ -648,6 +648,24 @@
 
 ---
 
+## Chunk 37 — 2026-04-27 (supplier profiles and settlement history)
+
+**Shipped**
+
+- **Schema:** `ClinicSupplier` and `ClinicSupplierSettlement`; purchase orders now support optional `supplierId` while keeping `supplierName` as a snapshot for older/free-text orders.
+- **API:** `GET/POST /api/clinic/suppliers`, `GET/PATCH /api/clinic/suppliers/[id]`, and `POST .../settlements`; supplier creation links existing purchase orders with a matching supplier name.
+- **UI:** `/clinic/suppliers` creates and lists supplier profiles; `/clinic/suppliers/[id]` shows contact details, purchase history, settlement history, received value, paid amount, and unpaid supplier balance.
+- **Purchase orders:** new purchase orders can choose an existing supplier profile; PO detail links back to the supplier profile.
+- **i18n/Knowledge Base:** EN/RU strings and article explain supplier profiles, settlements, and unpaid stock costs.
+
+**Validation**
+
+- Added Vitest coverage for supplier settlement summaries and payable cost calculations.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Schema change: run `npx prisma db push` on target databases after pull.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

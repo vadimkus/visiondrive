@@ -19,6 +19,7 @@ type Line = {
 type Order = {
   id: string
   supplierName: string
+  supplier: { id: string; name: string } | null
   reference: string | null
   notes: string | null
   status: string
@@ -213,7 +214,16 @@ export default function PurchaseOrderDetailPage() {
             {statusLabel(order.status)}
           </span>
         </div>
-        <p className="text-gray-700 mt-2 font-medium">{order.supplierName}</p>
+        {order.supplier ? (
+          <Link
+            href={`/clinic/suppliers/${order.supplier.id}`}
+            className="mt-2 inline-flex min-h-11 items-center text-gray-700 font-medium hover:text-orange-700"
+          >
+            {order.supplier.name}
+          </Link>
+        ) : (
+          <p className="text-gray-700 mt-2 font-medium">{order.supplierName}</p>
+        )}
         <p className="text-sm text-gray-600">
           {order.reference || t.emptyValue}
           <span className="text-gray-400 mx-2">·</span>

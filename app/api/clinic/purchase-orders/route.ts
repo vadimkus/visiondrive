@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     where,
     orderBy: { orderedAt: 'desc' },
     include: {
+      supplier: { select: { id: true, name: true } },
       lines: {
         include: {
           stockItem: { select: { id: true, name: true, unit: true, sku: true } },
@@ -55,8 +56,20 @@ export async function POST(request: NextRequest) {
   }
 
   const supplierName = String(body.supplierName ?? '').trim()
-  if (!supplierName) {
+  const supplierId = body.supplierId != null ? String(body.supplierId).trim() || null : null
+  if (!supplierName && !supplierId) {
     return NextResponse.json({ error: 'supplierName is required' }, { status: 400 })
+  }
+
+  let supplier: { id: string; name: string } | null = null
+  if (supplierId) {
+    supplier = await prisma.clinicSupplier.findFirst({
+      where: { id: supplierId, tenantId: session.tenantId, active: true },
+      select: { id: true, name: true },
+    })
+    if (!supplier) {
+      return NextResponse.json({ error: 'Supplier not found' }, { status: 400 })
+    }
   }
 
   const reference = body.reference != null ? String(body.reference).trim() || null : null
@@ -123,7 +136,8 @@ export async function POST(request: NextRequest) {
       const created = await tx.clinicPurchaseOrder.create({
         data: {
           tenantId: session.tenantId,
-          supplierName,
+          supplierId: supplier?.id ?? null,
+          supplierName: supplier?.name ?? supplierName,
           reference,
           notes,
           expectedAt,
@@ -137,6 +151,7 @@ export async function POST(request: NextRequest) {
           },
         },
         include: {
+          supplier: { select: { id: true, name: true } },
           lines: {
             include: {
               stockItem: { select: { id: true, name: true, unit: true, sku: true } },

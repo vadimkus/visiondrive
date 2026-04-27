@@ -34,7 +34,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_procedure_materials` | Bill of materials rows: procedure + stock item + quantity per visit + unit material cost + active flag. |
 | `clinic_stock_movements` | Receipt / adjustment / consumption / return; signed `quantity_delta`; never allows negative on-hand. |
 | `clinic_stock_count_sessions` + `clinic_stock_count_lines` | Physical stock counts with expected vs counted quantities, variance reason/note, status, finalization timestamp, and adjustment movement references. |
-| `clinic_purchase_orders` + `clinic_purchase_order_lines` | Supplier ordering and receiving; receipts create `RECEIPT` stock movements. |
+| `clinic_suppliers` + `clinic_supplier_settlements` | Supplier profiles, contact/payment terms/reorder notes, settlement history, and derived unpaid balance. |
+| `clinic_purchase_orders` + `clinic_purchase_order_lines` | Supplier ordering and receiving; receipts create `RECEIPT` stock movements; orders can link to supplier profiles while preserving the supplier name snapshot. |
 | `clinic_web_push_subscriptions` | Browser push subscriptions for low-stock alerts. |
 
 ## API surface (high level)
@@ -50,6 +51,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/POST /api/clinic/procedures/[id]/materials`; `PATCH/DELETE .../materials/[materialId]` — manage procedure bill-of-material rows.
 - `GET/POST /api/clinic/procedures/[id]/intake-questions`; `PATCH/DELETE .../intake-questions/[questionId]` — manage service-specific public intake questions.
 - `GET/POST /api/clinic/stock-takes`; `GET/PATCH /api/clinic/stock-takes/[id]`; `PATCH .../lines/[lineId]`; `POST .../finalize` — create/count/finalize stock-taking sessions and post variance adjustments.
+- `GET/POST /api/clinic/suppliers`; `GET/PATCH /api/clinic/suppliers/[id]`; `POST /api/clinic/suppliers/[id]/settlements` — supplier contacts, purchase history, received value, payments, and unpaid balance.
 - `GET/POST /api/clinic/purchase-orders`; `GET/PATCH /api/clinic/purchase-orders/[id]`; `POST /api/clinic/purchase-orders/[id]/receive`.
 - `GET /api/clinic/push/vapid-public`; `POST/DELETE /api/clinic/push/subscribe`.
 - `GET/POST /api/clinic/appointments` — range query + conflict-safe create; create checks existing appointments, blocked time, working hours, and minimum lead time.

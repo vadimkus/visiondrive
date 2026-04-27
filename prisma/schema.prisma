@@ -104,6 +104,8 @@ model Tenant {
   clinicStockCountSessions    ClinicStockCountSession[]
   clinicStockCountLines       ClinicStockCountLine[]
   clinicPurchaseOrders        ClinicPurchaseOrder[]
+  clinicSuppliers             ClinicSupplier[]
+  clinicSupplierSettlements   ClinicSupplierSettlement[]
   clinicWebPushSubscriptions  ClinicWebPushSubscription[]
   clinicAppointmentEvents     ClinicAppointmentEvent[]
   clinicAvailabilityRules     ClinicAvailabilityRule[]
@@ -1726,6 +1728,7 @@ enum ClinicPurchaseOrderStatus {
 model ClinicPurchaseOrder {
   id           String                    @id @default(cuid())
   tenantId     String
+  supplierId   String?
   supplierName String
   status       ClinicPurchaseOrderStatus @default(DRAFT)
   reference    String?
@@ -1735,11 +1738,58 @@ model ClinicPurchaseOrder {
   createdAt    DateTime                  @default(now())
   updatedAt    DateTime                  @updatedAt
 
-  tenant Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  lines  ClinicPurchaseOrderLine[]
+  tenant   Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplier ClinicSupplier?           @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  lines    ClinicPurchaseOrderLine[]
 
   @@index([tenantId, orderedAt])
+  @@index([tenantId, supplierId, orderedAt])
   @@map("clinic_purchase_orders")
+}
+
+model ClinicSupplier {
+  id                      String   @id @default(cuid())
+  tenantId                String
+  name                    String
+  contactName             String?
+  phone                   String?
+  email                   String?
+  whatsapp                String?
+  address                 String?  @db.Text
+  preferredReorderNote    String?  @db.Text
+  defaultPaymentTermsDays Int      @default(0)
+  notes                   String?  @db.Text
+  active                  Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  createdByUserId         String?
+
+  tenant         Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  purchaseOrders ClinicPurchaseOrder[]
+  settlements    ClinicSupplierSettlement[]
+
+  @@index([tenantId, active, name])
+  @@map("clinic_suppliers")
+}
+
+model ClinicSupplierSettlement {
+  id              String   @id @default(cuid())
+  tenantId        String
+  supplierId      String
+  amountCents     Int
+  currency        String   @default("AED")
+  method          String?
+  reference       String?
+  note            String?  @db.Text
+  paidAt          DateTime @default(now()) @db.Timestamptz(6)
+  createdAt       DateTime @default(now())
+  createdByUserId String?
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplier ClinicSupplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, supplierId, paidAt])
+  @@map("clinic_supplier_settlements")
 }
 
 model ClinicPurchaseOrderLine {

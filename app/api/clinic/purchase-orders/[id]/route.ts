@@ -25,6 +25,7 @@ export async function GET(
   const order = await prisma.clinicPurchaseOrder.findFirst({
     where: { id, tenantId: session.tenantId },
     include: {
+      supplier: { select: { id: true, name: true } },
       lines: {
         include: {
           stockItem: { select: { id: true, name: true, unit: true, sku: true } },
@@ -68,6 +69,7 @@ export async function PATCH(
 
   const data: {
     supplierName?: string
+    supplierId?: string | null
     reference?: string | null
     notes?: string | null
     expectedAt?: Date | null
@@ -78,6 +80,21 @@ export async function PATCH(
     const v = String(body.supplierName).trim()
     if (!v) return NextResponse.json({ error: 'supplierName cannot be empty' }, { status: 400 })
     data.supplierName = v
+  }
+  if (body.supplierId !== undefined) {
+    if (body.supplierId == null || !String(body.supplierId).trim()) {
+      data.supplierId = null
+    } else {
+      const supplier = await prisma.clinicSupplier.findFirst({
+        where: { id: String(body.supplierId), tenantId: session.tenantId, active: true },
+        select: { id: true, name: true },
+      })
+      if (!supplier) {
+        return NextResponse.json({ error: 'Supplier not found' }, { status: 400 })
+      }
+      data.supplierId = supplier.id
+      data.supplierName = supplier.name
+    }
   }
   if (body.reference !== undefined) {
     data.reference = body.reference == null ? null : String(body.reference).trim() || null
@@ -188,6 +205,7 @@ export async function PATCH(
         where: { id },
         data,
         include: {
+          supplier: { select: { id: true, name: true } },
           lines: {
             include: {
               stockItem: { select: { id: true, name: true, unit: true, sku: true } },
