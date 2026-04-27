@@ -460,6 +460,25 @@
 
 ---
 
+## Chunk 27 — 2026-04-27 (stock-taking and variance)
+
+**Shipped**
+
+- **Schema:** added `ClinicStockCountSession`, `ClinicStockCountLine`, `ClinicStockCountStatus`, and `ClinicStockVarianceReason` for physical inventory count sessions.
+- **API:** `GET/POST /api/clinic/stock-takes`, `GET/PATCH .../[id]`, `PATCH .../lines/[lineId]`, and `POST .../finalize` create count sessions, save counted quantities/reasons, and finalize variances.
+- **Inventory audit:** finalization creates `ADJUSTMENT` stock movements with stock-count references and sets each item on-hand to the physical count.
+- **UI/navigation:** added Stock-taking navigation, list/create screen, detail count screen, variance reason workflow, and Inventory shortcut.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article for monthly physical counts and variance adjustment.
+- **Lib:** `lib/clinic/stock-taking.ts` normalizes counted quantities, variance reasons, and variance math.
+
+**Validation**
+
+- Added Vitest coverage for stock-taking helper normalization and variance calculation.
+- Run `npm run db:generate`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

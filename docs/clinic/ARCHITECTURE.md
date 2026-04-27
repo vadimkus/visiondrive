@@ -29,6 +29,7 @@
 | `ClinicStockItem` | Inventory line: **`quantityOnHand`**, **`reorderPoint`** (low-stock when on-hand <= point and point &gt; 0), optional **`procedureId`**, `barcode`, `consumePerVisit`, and low-stock notification cooldown. |
 | `ClinicProcedureMaterial` | Bill of materials row linking a procedure to a stock item with quantity per visit, unit material cost, active flag, note, and sort order. |
 | `ClinicStockMovement` | **`RECEIPT` / `ADJUSTMENT` / `CONSUMPTION` / `RETURN`** with signed **`quantityDelta`**; updates item atomically in a transaction. |
+| `ClinicStockCountSession` / `ClinicStockCountLine` | Physical stock-taking workflow: count session snapshot, expected vs counted quantities, variance reason, note, and movement reference after finalization. |
 | `ClinicPurchaseOrder` / `ClinicPurchaseOrderLine` | Supplier orders and receipts; receiving creates `RECEIPT` stock movements and increments item quantities. |
 | `ClinicWebPushSubscription` | Browser push endpoints for low-stock alerts, scoped to user + tenant. |
 
@@ -50,6 +51,7 @@ Public booking: `/book/[tenant.slug]` is a private branded link, not a marketpla
 - **Patient-safe PDF:** `GET .../patients/[id]/summary-pdf` returns a minimal English summary for handout; staff-only fields are excluded by construction (not redacted — never loaded).
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
 - **Procedure materials:** `GET/POST /api/clinic/procedures/[id]/materials`, `PATCH/DELETE .../materials/[materialId]`; visit completion deducts active material rows before falling back to legacy stock-item procedure links.
+- **Stock-taking:** `GET/POST /api/clinic/stock-takes`, `GET/PATCH .../stock-takes/[id]`, `PATCH .../lines/[lineId]`, `POST .../finalize`; finalization posts audited `ADJUSTMENT` stock movements and updates on-hand quantities to the physical count.
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`.
 - **Availability:** `GET/PATCH /api/clinic/availability`, `GET /api/clinic/availability/slots`, `GET/POST /api/clinic/blocked-times`, `DELETE .../blocked-times/[id]`.
 - **Reminders/reputation:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`, `GET /api/clinic/reviews`, `PATCH /api/clinic/reviews/[id]`; appointment actions support `send_reminder`, `schedule_reminder`, `no_show_follow_up`, `schedule_rebooking_follow_up`, and `send_review_request`.

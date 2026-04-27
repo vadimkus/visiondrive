@@ -164,6 +164,12 @@ function ClinicInventoryPageContent() {
         >
           {t.addStockItem}
         </Link>
+        <Link
+          href="/clinic/stock-takes"
+          className="inline-flex items-center min-h-11 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-800 hover:bg-gray-50"
+        >
+          {t.stockTakes}
+        </Link>
       </div>
 
       {items.length === 0 ? (

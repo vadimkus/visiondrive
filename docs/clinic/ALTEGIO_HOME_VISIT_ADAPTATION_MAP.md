@@ -126,6 +126,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: count physical bag/clinic stock monthly, adjust differences, record expired/damaged/lost reasons.
    - Why it matters: home practitioners carry inventory in bags/cases; small missing items quietly destroy margin.
    - Build shape: stock count session, expected vs counted, variance movements, reason codes, audit trail.
+   - Shipped: stock-taking sessions snapshot all active inventory items, capture counted quantities, require reasons for variances, and finalize into audited adjustment stock movements that set on-hand stock to physical counts.
+   - Next improvements: partial-cycle counts by bag/location, printable count sheet, expiry-date batches, and variance report in finance/P&L.
 
 18. Product sales from visit
    - Altegio source: product sales and inventory operation.

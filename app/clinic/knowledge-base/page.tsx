@@ -131,6 +131,19 @@ const articlesEn: Article[] = [
     link: '/clinic/procedures',
   },
   {
+    id: 'stock-taking-variance',
+    category: 'Inventory',
+    title: 'Run stock-taking and record variance',
+    summary: 'Count physical bag or clinic stock, explain differences, and post audited adjustments.',
+    steps: [
+      'Open Stock-taking and start a new count. The session snapshots all active inventory items.',
+      'Enter the physical count for each item from your treatment bag, case, or clinic shelf.',
+      'If the count differs from expected stock, choose a reason such as expired, damaged, lost, found, or count correction.',
+      'Finalize the count only after every line is counted. The system creates adjustment movements and updates on-hand stock.',
+    ],
+    link: '/clinic/stock-takes',
+  },
+  {
     id: 'finance',
     category: 'Finance',
     title: 'Read profitability at a glance',
@@ -355,6 +368,19 @@ const articlesRu: Article[] = [
       'Когда визит по связанной записи завершён, система спишет все активные материалы, если остатка достаточно.',
     ],
     link: '/clinic/procedures',
+  },
+  {
+    id: 'stock-taking-variance',
+    category: 'Склад',
+    title: 'Проводите инвентаризацию и фиксируйте расхождения',
+    summary: 'Пересчитывайте физические остатки в сумке или кабинете, объясняйте разницу и создавайте аудит корректировок.',
+    steps: [
+      'Откройте Инвентаризацию и начните новый пересчет. Сессия зафиксирует все активные позиции склада.',
+      'Введите фактическое количество каждой позиции из рабочей сумки, кейса или полки.',
+      'Если фактическое количество отличается от ожидаемого, выберите причину: просрочено, повреждено, потеряно, найдено или коррекция пересчета.',
+      'Завершайте инвентаризацию только после пересчета всех строк. Система создаст корректирующие движения и обновит остатки.',
+    ],
+    link: '/clinic/stock-takes',
   },
   {
     id: 'finance',

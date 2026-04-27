@@ -98,6 +98,8 @@ model Tenant {
   clinicCrmActivities     ClinicCrmActivity[]
   clinicStockItems          ClinicStockItem[]
   clinicStockMovements      ClinicStockMovement[]
+  clinicStockCountSessions  ClinicStockCountSession[]
+  clinicStockCountLines     ClinicStockCountLine[]
   clinicPurchaseOrders      ClinicPurchaseOrder[]
   clinicWebPushSubscriptions ClinicWebPushSubscription[]
   clinicAppointmentEvents ClinicAppointmentEvent[]
@@ -1356,6 +1358,21 @@ enum ClinicStockMovementType {
   RETURN
 }
 
+enum ClinicStockCountStatus {
+  DRAFT
+  FINALIZED
+  CANCELLED
+}
+
+enum ClinicStockVarianceReason {
+  COUNT_CORRECTION
+  EXPIRED
+  DAMAGED
+  LOST
+  FOUND
+  OTHER
+}
+
 /// Consumables / retail stock per practice. Movements adjust quantityOnHand.
 model ClinicStockItem {
   id               String   @id @default(cuid())
@@ -1384,6 +1401,7 @@ model ClinicStockItem {
   movements ClinicStockMovement[]
   purchaseOrderLines ClinicPurchaseOrderLine[]
   procedureMaterials ClinicProcedureMaterial[]
+  stockCountLines ClinicStockCountLine[]
 
   @@index([tenantId, active, name])
   @@index([tenantId, procedureId])
@@ -1434,6 +1452,50 @@ model ClinicStockMovement {
   @@index([tenantId, createdAt])
   @@index([stockItemId, createdAt])
   @@map("clinic_stock_movements")
+}
+
+model ClinicStockCountSession {
+  id                String                 @id @default(cuid())
+  tenantId          String
+  title             String
+  status            ClinicStockCountStatus @default(DRAFT)
+  countedAt         DateTime               @default(now()) @db.Timestamptz(6)
+  finalizedAt       DateTime?              @db.Timestamptz(6)
+  note              String?                @db.Text
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  createdByUserId   String?
+  finalizedByUserId String?
+
+  tenant Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lines  ClinicStockCountLine[]
+
+  @@index([tenantId, status, countedAt])
+  @@map("clinic_stock_count_sessions")
+}
+
+model ClinicStockCountLine {
+  id               String                     @id @default(cuid())
+  tenantId         String
+  sessionId        String
+  stockItemId      String
+  expectedQuantity Int
+  countedQuantity  Int?
+  varianceQuantity Int                       @default(0)
+  reason           ClinicStockVarianceReason?
+  note             String?                   @db.Text
+  movementId       String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  tenant    Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  session   ClinicStockCountSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  stockItem ClinicStockItem         @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, stockItemId])
+  @@index([tenantId, stockItemId])
+  @@index([tenantId, sessionId])
+  @@map("clinic_stock_count_lines")
 }
 
 enum ClinicPurchaseOrderStatus {
