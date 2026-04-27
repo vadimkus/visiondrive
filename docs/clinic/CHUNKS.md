@@ -535,6 +535,24 @@
 
 ---
 
+## Chunk 31 — 2026-04-27 (retention analytics)
+
+**Shipped**
+
+- **Helper:** `lib/clinic/retention.ts` derives rebook rate, returning-client rate, no-show rate, lost patients, follow-up conversion, and repeat intervals.
+- **API:** `GET /api/clinic/retention/overview` aggregates appointment and rebooking reminder data into a retention report.
+- **UI/navigation:** added `/clinic/retention` and a Retention nav item with KPI cards, procedure repeat interval table, lost-patient list, chart links, and WhatsApp reactivation actions.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article explain the retention workflow.
+- **Docs/canvas:** Altegio backlog and canvas mark Point 20 as shipped and move the next recommendation to booking funnel analytics.
+
+**Validation**
+
+- Added Vitest coverage for retention summary, repeat intervals, and follow-up conversion.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

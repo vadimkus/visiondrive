@@ -279,6 +279,19 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/inbox',
   },
+  {
+    id: 'retention-analytics',
+    category: 'Finance',
+    title: 'Use retention analytics to bring clients back',
+    summary: 'Track rebook rate, returning clients, no-shows, follow-up conversion, lost patients, and repeat interval by procedure.',
+    steps: [
+      'Open Retention from the clinic navigation.',
+      'Use 90 days, 180 days, or 1 year to compare rebook rate, returning clients, no-show rate, and follow-up conversion.',
+      'Review repeat interval by procedure to understand how often clients normally return for each service.',
+      'Use Lost patients to open the patient chart or start a WhatsApp reactivation message.',
+    ],
+    link: '/clinic/retention',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -534,6 +547,20 @@ const articlesRu: Article[] = [
       'Откройте связанную запись, напоминание, репутацию или складскую позицию, чтобы закрыть задачу.',
     ],
     link: '/clinic/inbox',
+  },
+  {
+    id: 'retention-analytics',
+    category: 'Финансы',
+    title: 'Используйте аналитику удержания, чтобы возвращать клиентов',
+    summary:
+      'Повторная запись, повторные клиенты, неявки, конверсия follow-up, потерянные пациенты и интервалы повторов по процедурам.',
+    steps: [
+      'Откройте Удержание в навигации клиники.',
+      'Выберите 90 дней, 180 дней или 1 год, чтобы сравнить повторную запись, повторных клиентов, неявки и конверсию follow-up.',
+      'Смотрите интервалы повторов по процедурам, чтобы понимать нормальный ритм возврата клиентов по каждой услуге.',
+      'В блоке Потерянные пациенты открывайте карту пациента или запускайте WhatsApp-сообщение для реактивации.',
+    ],
+    link: '/clinic/retention',
   },
 ]
 

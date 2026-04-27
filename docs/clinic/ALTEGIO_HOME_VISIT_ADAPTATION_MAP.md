@@ -150,6 +150,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: rebook rate, lost patients, no-show rate, follow-up conversion, repeat interval by procedure.
    - Why it matters: home treatment growth comes from repeat care, not only new clients.
    - Build shape: retention report with clickable patient lists and WhatsApp reactivation actions.
+   - Shipped: Retention screen shows rebook rate, returning-client rate, no-show rate, rebooking follow-up conversion, repeat interval by procedure, and lost patients with chart links and WhatsApp reactivation.
+   - Next improvements: cohort charts, revenue by retained/lost segment, and service-specific retention targets.
 
 ## Strong Medium-Term Candidates
 

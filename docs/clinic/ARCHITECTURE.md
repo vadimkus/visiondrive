@@ -65,6 +65,7 @@ Public booking: `/book/[tenant.slug]` is a private branded link, not a marketpla
 - **Consents:** `GET/POST /api/clinic/consents/templates` manages reusable consent templates. `GET/POST /api/clinic/patients/[id]/consents` lists and signs consent snapshots for a patient, optionally linked to a visit or appointment.
 - **Treatment plans:** `GET/POST /api/clinic/patients/[id]/treatment-plans` and `PATCH .../treatment-plans/[planId]` manage planned care courses. Visit create/update accepts `treatmentPlanId`, and patient charts compute plan progress from linked completed visits.
 - **Notification center:** `GET /api/clinic/inbox` returns derived operational tasks for reminders due, online bookings, recent reschedules, review requests, unpaid visits, and low-stock inventory. It does not persist notifications; it aggregates live source-of-truth rows.
+- **Retention analytics:** `GET /api/clinic/retention/overview` derives rebook rate, returning-client rate, no-show rate, follow-up conversion, lost patients, and repeat interval by procedure from appointments and rebooking reminders.
 - **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).
