@@ -158,6 +158,19 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/reputation',
   },
+  {
+    id: 'client-tags',
+    category: 'Patients',
+    title: 'Segment clients with categories and tags',
+    summary: 'Use simple labels to spot VIPs, sensitive clients, follow-up due cases, and late payers.',
+    steps: [
+      'Add or edit a patient and choose one category such as VIP, Regular, New, Sensitive, or High-risk.',
+      'Add tags like Follow-up due or Late payer when the label should be temporary or operational.',
+      'Use the patient list filters to focus on one segment before outreach.',
+      'Check appointment drawers for tags before calling, messaging, or taking payment.',
+    ],
+    link: '/clinic/patients',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -292,6 +305,19 @@ const articlesRu: Article[] = [
       'Отмечайте отзыв опубликованным только после проверки текста.',
     ],
     link: '/clinic/reputation',
+  },
+  {
+    id: 'client-tags',
+    category: 'Пациенты',
+    title: 'Сегментируйте клиентов категориями и тегами',
+    summary: 'Отмечайте VIP, чувствительных клиентов, follow-up и задержки оплаты.',
+    steps: [
+      'Создайте или отредактируйте пациента и выберите категорию: VIP, постоянный, новый, чувствительный или высокий риск.',
+      'Добавьте теги вроде Нужен follow-up или Задержка оплаты для операционных задач.',
+      'Используйте фильтры списка пациентов, чтобы быстро найти нужный сегмент.',
+      'Проверяйте теги в карточке записи перед звонком, сообщением или оплатой.',
+    ],
+    link: '/clinic/patients',
   },
 ]
 

@@ -17,6 +17,7 @@ import {
 import clsx from 'clsx'
 import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
 import { buildTimelineItems, filterTimelineItems, type TimelineFilter } from '@/lib/clinic/timeline'
+import { PATIENT_CATEGORIES, PATIENT_TAGS, type PatientCategory, type PatientTag } from '@/lib/clinic/patient-tags'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
@@ -83,6 +84,8 @@ export type PatientRecord = {
   dateOfBirth: string
   phone: string | null
   email: string | null
+  category: PatientCategory | null
+  tags: PatientTag[]
   internalNotes: string | null
   anamnesisJson?: unknown | null
   appointments: AppointmentRow[]
@@ -93,6 +96,24 @@ export type PatientRecord = {
 }
 
 type Tab = 'overview' | 'timeline' | 'photos' | 'payments' | 'crm'
+
+function categoryLabel(t: ReturnType<typeof useClinicLocale>['t'], category: PatientCategory) {
+  if (category === 'VIP') return t.categoryVip
+  if (category === 'REGULAR') return t.categoryRegular
+  if (category === 'NEW') return t.categoryNew
+  if (category === 'SENSITIVE') return t.categorySensitive
+  return t.categoryHighRisk
+}
+
+function tagLabel(t: ReturnType<typeof useClinicLocale>['t'], tag: PatientTag) {
+  if (tag === 'vip') return t.tagVip
+  if (tag === 'regular') return t.tagRegular
+  if (tag === 'new') return t.tagNew
+  if (tag === 'sensitive') return t.tagSensitive
+  if (tag === 'high-risk') return t.tagHighRisk
+  if (tag === 'follow-up-due') return t.tagFollowUpDue
+  return t.tagLatePayer
+}
 
 function ageFromDob(iso: string) {
   const d = new Date(iso)
@@ -124,6 +145,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const [editLast, setEditLast] = useState('')
   const [editPhone, setEditPhone] = useState('')
   const [editEmail, setEditEmail] = useState('')
+  const [editCategory, setEditCategory] = useState('')
+  const [editTags, setEditTags] = useState<PatientTag[]>([])
   const [editInternal, setEditInternal] = useState('')
   const [editAllergies, setEditAllergies] = useState('')
   const [editMedications, setEditMedications] = useState('')
@@ -148,6 +171,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     setEditLast(p.lastName)
     setEditPhone(p.phone ?? '')
     setEditEmail(p.email ?? '')
+    setEditCategory(p.category ?? '')
+    setEditTags(p.tags ?? [])
     setEditInternal(p.internalNotes ?? '')
     const am = anamnesisFromJson(p.anamnesisJson)
     setEditAllergies(am.allergies)
@@ -234,6 +259,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           lastName: editLast,
           phone: editPhone || null,
           email: editEmail || null,
+          category: editCategory || null,
+          tags: editTags,
           internalNotes: editInternal || null,
           anamnesisJson,
         }),
@@ -397,6 +424,10 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           setEditPhone={setEditPhone}
           editEmail={editEmail}
           setEditEmail={setEditEmail}
+          editCategory={editCategory}
+          setEditCategory={setEditCategory}
+          editTags={editTags}
+          setEditTags={setEditTags}
           editInternal={editInternal}
           setEditInternal={setEditInternal}
           editAllergies={editAllergies}
@@ -473,6 +504,10 @@ function OverviewTab({
   setEditPhone,
   editEmail,
   setEditEmail,
+  editCategory,
+  setEditCategory,
+  editTags,
+  setEditTags,
   editInternal,
   setEditInternal,
   editAllergies,
@@ -498,6 +533,10 @@ function OverviewTab({
   setEditPhone: (v: string) => void
   editEmail: string
   setEditEmail: (v: string) => void
+  editCategory: string
+  setEditCategory: (v: string) => void
+  editTags: PatientTag[]
+  setEditTags: (v: PatientTag[]) => void
   editInternal: string
   setEditInternal: (v: string) => void
   editAllergies: string
@@ -527,6 +566,14 @@ function OverviewTab({
   const [nextSteps, setNextSteps] = useState('')
   const [staffNotes, setStaffNotes] = useState('')
   const [logging, setLogging] = useState(false)
+
+  function toggleTag(tag: PatientTag) {
+    setEditTags(
+      editTags.includes(tag)
+        ? editTags.filter((item) => item !== tag)
+        : [...editTags, tag]
+    )
+  }
 
   const logVisit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -589,6 +636,25 @@ function OverviewTab({
         <p>
           <span className="text-gray-500">{t.emailLabel}:</span> {patient.email || t.emptyValue}
         </p>
+        <div className="pt-2">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            {t.patientCategory}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {patient.category ? (
+              <span className="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
+                {categoryLabel(t, patient.category)}
+              </span>
+            ) : (
+              <span className="text-gray-500">{t.noCategory}</span>
+            )}
+            {patient.tags.map((tag) => (
+              <span key={tag} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700">
+                {tagLabel(t, tag)}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3 text-sm">
@@ -668,6 +734,42 @@ function OverviewTab({
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
               inputMode="email"
             />
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-1">{t.patientCategory}</label>
+            <select
+              value={editCategory}
+              onChange={(e) => setEditCategory(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            >
+              <option value="">{t.noCategory}</option>
+              {PATIENT_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {categoryLabel(t, category)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <p className="block text-gray-600 mb-1">{t.patientTags}</p>
+            <p className="mb-2 text-xs text-gray-500">{t.patientTagsHint}</p>
+            <div className="flex flex-wrap gap-2">
+              {PATIENT_TAGS.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={clsx(
+                    'rounded-full border px-3 py-1.5 text-xs font-semibold',
+                    editTags.includes(tag)
+                      ? 'border-orange-200 bg-orange-50 text-orange-800'
+                      : 'border-gray-200 bg-white text-gray-600'
+                  )}
+                >
+                  {tagLabel(t, tag)}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="block text-gray-600 mb-1">{t.internalNotesStaff}</label>

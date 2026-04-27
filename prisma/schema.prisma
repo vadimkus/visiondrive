@@ -801,6 +801,8 @@ model ClinicPatient {
   dateOfBirth    DateTime  @db.Date
   phone          String?
   email          String?
+  category       String?
+  tags           String[]  @default([])
   /// Staff-only; never expose on patient-facing PDF exports
   internalNotes  String?   @db.Text
   /// Structured intake / history (v1 object: allergies, medications, conditions, social)
@@ -818,6 +820,7 @@ model ClinicPatient {
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
+  @@index([tenantId, category])
   @@map("clinic_patients")
 }
 

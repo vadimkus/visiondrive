@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { parseAnamnesisPatchBody } from '@/lib/clinic/anamnesis'
+import { normalizePatientCategory, normalizePatientTags } from '@/lib/clinic/patient-tags'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function parseDateOnly(isoDate: string): Date | null {
@@ -130,6 +131,8 @@ export async function PATCH(
     dateOfBirth?: Date
     phone?: string | null
     email?: string | null
+    category?: string | null
+    tags?: string[]
     internalNotes?: string | null
     anamnesisJson?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
   } = {}
@@ -158,6 +161,12 @@ export async function PATCH(
   if (body.email !== undefined) {
     data.email = body.email == null ? null : String(body.email).trim() || null
   }
+  if (body.category !== undefined) {
+    data.category = normalizePatientCategory(body.category)
+  }
+  if (body.tags !== undefined) {
+    data.tags = normalizePatientTags(body.tags)
+  }
   if (body.internalNotes !== undefined) {
     data.internalNotes = body.internalNotes == null ? null : String(body.internalNotes).trim() || null
   }
@@ -185,6 +194,8 @@ export async function PATCH(
       dateOfBirth: true,
       phone: true,
       email: true,
+      category: true,
+      tags: true,
       internalNotes: true,
       anamnesisJson: true,
       updatedAt: true,

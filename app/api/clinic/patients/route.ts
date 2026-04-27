@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { normalizePatientCategory, normalizePatientTags } from '@/lib/clinic/patient-tags'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function parseDateOnly(isoDate: string): Date | null {
@@ -19,11 +20,17 @@ export async function GET(request: NextRequest) {
   }
 
   const q = request.nextUrl.searchParams.get('q')?.trim() ?? ''
+  const category = normalizePatientCategory(request.nextUrl.searchParams.get('category'))
+  const tags = normalizePatientTags(request.nextUrl.searchParams.get('tag'))
 
   const where: {
     tenantId: string
     OR?: Array<Record<string, unknown>>
+    category?: string
+    tags?: { hasEvery: string[] }
   } = { tenantId: session.tenantId }
+  if (category) where.category = category
+  if (tags.length > 0) where.tags = { hasEvery: tags }
 
   if (q.length > 0) {
     const parts = q.split(/\s+/).filter(Boolean)
@@ -56,6 +63,8 @@ export async function GET(request: NextRequest) {
       dateOfBirth: true,
       phone: true,
       email: true,
+      category: true,
+      tags: true,
       createdAt: true,
     },
   })
@@ -82,6 +91,8 @@ export async function POST(request: NextRequest) {
   const dateOfBirthRaw = String(body.dateOfBirth ?? '')
   const phone = body.phone != null ? String(body.phone).trim() || null : null
   const email = body.email != null ? String(body.email).trim() || null : null
+  const category = normalizePatientCategory(body.category)
+  const tags = normalizePatientTags(body.tags)
   const internalNotes =
     body.internalNotes != null ? String(body.internalNotes).trim() || null : null
 
@@ -103,6 +114,8 @@ export async function POST(request: NextRequest) {
       dateOfBirth,
       phone,
       email,
+      category,
+      tags,
       internalNotes,
     },
     select: {
@@ -113,6 +126,8 @@ export async function POST(request: NextRequest) {
       dateOfBirth: true,
       phone: true,
       email: true,
+      category: true,
+      tags: true,
       createdAt: true,
     },
   })

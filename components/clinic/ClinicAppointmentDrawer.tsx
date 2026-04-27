@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { X } from 'lucide-react'
 import clsx from 'clsx'
 import { FOLLOW_UP_WEEK_OPTIONS } from '@/lib/clinic/follow-up'
+import type { PatientCategory, PatientTag } from '@/lib/clinic/patient-tags'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import type { ClinicStrings } from '@/lib/clinic/strings'
 
@@ -53,6 +54,8 @@ type Appointment = {
     middleName: string | null
     phone: string | null
     email: string | null
+    category: PatientCategory | null
+    tags: PatientTag[]
     internalNotes: string | null
   }
   procedure: {
@@ -125,6 +128,24 @@ function statusClasses(status: AppointmentStatus) {
   if (status === 'COMPLETED') return 'bg-gray-100 text-gray-700 border-gray-200'
   if (status === 'CANCELLED' || status === 'NO_SHOW') return 'bg-red-50 text-red-800 border-red-100'
   return 'bg-orange-50 text-orange-800 border-orange-100'
+}
+
+function categoryLabel(t: ClinicStrings, category: PatientCategory) {
+  if (category === 'VIP') return t.categoryVip
+  if (category === 'REGULAR') return t.categoryRegular
+  if (category === 'NEW') return t.categoryNew
+  if (category === 'SENSITIVE') return t.categorySensitive
+  return t.categoryHighRisk
+}
+
+function tagLabel(t: ClinicStrings, tag: PatientTag) {
+  if (tag === 'vip') return t.tagVip
+  if (tag === 'regular') return t.tagRegular
+  if (tag === 'new') return t.tagNew
+  if (tag === 'sensitive') return t.tagSensitive
+  if (tag === 'high-risk') return t.tagHighRisk
+  if (tag === 'follow-up-due') return t.tagFollowUpDue
+  return t.tagLatePayer
 }
 
 export function ClinicAppointmentDrawer({
@@ -544,6 +565,18 @@ export function ClinicAppointmentDrawer({
                 <div className="mt-2 space-y-1 text-sm text-gray-600">
                   <p>{appointment.patient.phone || t.emptyValue}</p>
                   <p>{appointment.patient.email || t.emptyValue}</p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {appointment.patient.category && (
+                      <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-semibold text-orange-700">
+                        {categoryLabel(t, appointment.patient.category)}
+                      </span>
+                    )}
+                    {appointment.patient.tags.map((tag) => (
+                      <span key={tag} className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
+                        {tagLabel(t, tag)}
+                      </span>
+                    ))}
+                  </div>
                   {appointment.patient.internalNotes && (
                     <p className="rounded-xl bg-amber-50 p-2 text-amber-900">
                       {appointment.patient.internalNotes}

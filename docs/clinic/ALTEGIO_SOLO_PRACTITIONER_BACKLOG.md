@@ -53,10 +53,11 @@ Goal: adapt the useful parts of a mature salon/clinic platform for a solo/home p
    - Shipped: completed appointment drawer can prepare a WhatsApp review request; `/clinic/reputation` tracks requested/replied/published reviews, internal ratings, private notes, and candidate public text.
 
 8. Client categories and tags
-   - Status: not built.
+   - Status: shipped first pass.
    - Adapt from Altegio: client categories.
    - Solo version: VIP, regular, new, sensitive, high-risk, follow-up due, late payer.
    - Use tags in appointment drawer and patient list filters.
+   - Shipped: patient category + tags on create/edit, patient list filters, and appointment drawer/patient chart chips.
 
 9. Client balance / debt
    - Status: partially represented by payments.

@@ -4,6 +4,25 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
+import { PATIENT_CATEGORIES, PATIENT_TAGS, type PatientCategory, type PatientTag } from '@/lib/clinic/patient-tags'
+
+function categoryLabel(t: ReturnType<typeof useClinicLocale>['t'], category: PatientCategory) {
+  if (category === 'VIP') return t.categoryVip
+  if (category === 'REGULAR') return t.categoryRegular
+  if (category === 'NEW') return t.categoryNew
+  if (category === 'SENSITIVE') return t.categorySensitive
+  return t.categoryHighRisk
+}
+
+function tagLabel(t: ReturnType<typeof useClinicLocale>['t'], tag: PatientTag) {
+  if (tag === 'vip') return t.tagVip
+  if (tag === 'regular') return t.tagRegular
+  if (tag === 'new') return t.tagNew
+  if (tag === 'sensitive') return t.tagSensitive
+  if (tag === 'high-risk') return t.tagHighRisk
+  if (tag === 'follow-up-due') return t.tagFollowUpDue
+  return t.tagLatePayer
+}
 
 export default function NewPatientPage() {
   const router = useRouter()
@@ -17,8 +36,19 @@ export default function NewPatientPage() {
     dateOfBirth: '',
     phone: '',
     email: '',
+    category: '',
+    tags: [] as PatientTag[],
     internalNotes: '',
   })
+
+  function toggleTag(tag: PatientTag) {
+    setForm((current) => ({
+      ...current,
+      tags: current.tags.includes(tag)
+        ? current.tags.filter((item) => item !== tag)
+        : [...current.tags, tag],
+    }))
+  }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,6 +66,8 @@ export default function NewPatientPage() {
           dateOfBirth: form.dateOfBirth,
           phone: form.phone || undefined,
           email: form.email || undefined,
+          category: form.category || undefined,
+          tags: form.tags,
           internalNotes: form.internalNotes || undefined,
         }),
       })
@@ -120,6 +152,41 @@ export default function NewPatientPage() {
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.patientCategory}</label>
+          <select
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+          >
+            <option value="">{t.noCategory}</option>
+            {PATIENT_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {categoryLabel(t, category)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <p className="block text-sm font-medium text-gray-700 mb-1">{t.patientTags}</p>
+          <p className="mb-2 text-xs text-gray-500">{t.patientTagsHint}</p>
+          <div className="flex flex-wrap gap-2">
+            {PATIENT_TAGS.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => toggleTag(tag)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                  form.tags.includes(tag)
+                    ? 'border-orange-200 bg-orange-50 text-orange-800'
+                    : 'border-gray-200 bg-white text-gray-600'
+                }`}
+              >
+                {tagLabel(t, tag)}
+              </button>
+            ))}
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t.internalNotesStaffOnly}</label>

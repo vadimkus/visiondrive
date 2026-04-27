@@ -152,7 +152,17 @@ export async function POST(request: NextRequest) {
         internalNotes,
       },
       include: {
-        patient: { select: { id: true, firstName: true, lastName: true, phone: true, email: true } },
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            category: true,
+            tags: true,
+          },
+        },
         procedure: { select: { id: true, name: true, defaultDurationMin: true, bufferAfterMinutes: true, basePriceCents: true, currency: true } },
         visits: { select: { id: true, status: true, visitAt: true }, orderBy: { visitAt: 'desc' }, take: 1 },
       },

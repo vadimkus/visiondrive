@@ -297,6 +297,23 @@
 
 ---
 
+## Chunk 18 — 2026-04-27 (client categories and tags)
+
+**Shipped**
+
+- **Schema:** `ClinicPatient.category` and `ClinicPatient.tags` store client segmentation directly on the patient.
+- **Helpers:** category/tag normalization keeps a controlled solo-practice vocabulary: VIP, regular, new, sensitive, high-risk, follow-up due, late payer.
+- **API:** patient list supports `?category=` and `?tag=` filters; create/edit persists category and tags.
+- **UI:** patient create/edit forms can assign category/tags; patient list and appointment drawer show segmentation chips.
+- **Knowledge Base:** added EN/RU guidance for using client categories and tags.
+
+**Validation**
+
+- Added focused helper tests for category/tag normalization.
+- Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Plus, Search } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
+import { PATIENT_CATEGORIES, PATIENT_TAGS, type PatientCategory, type PatientTag } from '@/lib/clinic/patient-tags'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
@@ -17,10 +18,30 @@ type Patient = {
   dateOfBirth: string
   phone: string | null
   email: string | null
+  category: PatientCategory | null
+  tags: PatientTag[]
   createdAt?: string
 }
 
 type SortMode = 'nameAsc' | 'nameDesc' | 'newest'
+
+function categoryLabel(t: ReturnType<typeof useClinicLocale>['t'], category: PatientCategory) {
+  if (category === 'VIP') return t.categoryVip
+  if (category === 'REGULAR') return t.categoryRegular
+  if (category === 'NEW') return t.categoryNew
+  if (category === 'SENSITIVE') return t.categorySensitive
+  return t.categoryHighRisk
+}
+
+function tagLabel(t: ReturnType<typeof useClinicLocale>['t'], tag: PatientTag) {
+  if (tag === 'vip') return t.tagVip
+  if (tag === 'regular') return t.tagRegular
+  if (tag === 'new') return t.tagNew
+  if (tag === 'sensitive') return t.tagSensitive
+  if (tag === 'high-risk') return t.tagHighRisk
+  if (tag === 'follow-up-due') return t.tagFollowUpDue
+  return t.tagLatePayer
+}
 
 function formatDob(iso: string, locale: string) {
   const d = new Date(iso)
@@ -35,6 +56,8 @@ export default function ClinicPatientsPage() {
   const [query, setQuery] = useState('')
   const [debounced, setDebounced] = useState('')
   const [sort, setSort] = useState<SortMode>('nameAsc')
+  const [category, setCategory] = useState('')
+  const [tag, setTag] = useState('')
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -50,7 +73,11 @@ export default function ClinicPatientsPage() {
       setLoading(true)
       setError('')
       try {
-        const qs = debounced ? `?q=${encodeURIComponent(debounced)}` : ''
+        const params = new URLSearchParams()
+        if (debounced) params.set('q', debounced)
+        if (category) params.set('category', category)
+        if (tag) params.set('tag', tag)
+        const qs = params.toString() ? `?${params.toString()}` : ''
         const res = await fetch(`/api/clinic/patients${qs}`, { credentials: 'include' })
         if (res.status === 401) {
           router.replace('/login')
@@ -71,7 +98,7 @@ export default function ClinicPatientsPage() {
     return () => {
       cancelled = true
     }
-  }, [debounced, router, t.networkError, t.failedToLoad])
+  }, [category, debounced, router, tag, t.networkError, t.failedToLoad])
 
   const sorted = useMemo(() => {
     const list = [...patients]
@@ -131,20 +158,50 @@ export default function ClinicPatientsPage() {
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <label htmlFor="patient-sort" className="text-sm text-gray-600 shrink-0">
-            {t.sortBy}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <label className="text-sm text-gray-600">
+            <span className="mb-1 block">{t.sortBy}</span>
+            <select
+              id="patient-sort"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortMode)}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm min-h-11"
+            >
+              <option value="nameAsc">{t.sortNameAsc}</option>
+              <option value="nameDesc">{t.sortNameDesc}</option>
+              <option value="newest">{t.sortNewest}</option>
+            </select>
           </label>
-          <select
-            id="patient-sort"
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortMode)}
-            className="w-full sm:w-64 rounded-xl border border-gray-200 px-3 py-3 bg-white text-sm min-h-11"
-          >
-            <option value="nameAsc">{t.sortNameAsc}</option>
-            <option value="nameDesc">{t.sortNameDesc}</option>
-            <option value="newest">{t.sortNewest}</option>
-          </select>
+          <label className="text-sm text-gray-600">
+            <span className="mb-1 block">{t.patientCategory}</span>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm min-h-11"
+            >
+              <option value="">{t.allCategories}</option>
+              {PATIENT_CATEGORIES.map((value) => (
+                <option key={value} value={value}>
+                  {categoryLabel(t, value)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm text-gray-600">
+            <span className="mb-1 block">{t.patientTags}</span>
+            <select
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm min-h-11"
+            >
+              <option value="">{t.allTags}</option>
+              {PATIENT_TAGS.map((value) => (
+                <option key={value} value={value}>
+                  {tagLabel(t, value)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
@@ -192,6 +249,18 @@ export default function ClinicPatientsPage() {
                         {p.lastName}, {p.firstName}
                         {p.middleName ? ` ${p.middleName}` : ''}
                       </Link>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {p.category && (
+                          <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-semibold text-orange-700">
+                            {categoryLabel(t, p.category)}
+                          </span>
+                        )}
+                        {p.tags.slice(0, 3).map((item) => (
+                          <span key={item} className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
+                            {tagLabel(t, item)}
+                          </span>
+                        ))}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600">{formatDob(p.dateOfBirth, dateLocale)}</td>
                     <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{p.phone || '—'}</td>

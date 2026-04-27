@@ -60,6 +60,8 @@ export async function GET(
           middleName: true,
           phone: true,
           email: true,
+          category: true,
+          tags: true,
           internalNotes: true,
         },
       },
@@ -348,7 +350,17 @@ export async function PATCH(
       where: { id },
       data,
       include: {
-        patient: { select: { id: true, firstName: true, lastName: true, phone: true, email: true } },
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            category: true,
+            tags: true,
+          },
+        },
         procedure: {
           select: {
             id: true,

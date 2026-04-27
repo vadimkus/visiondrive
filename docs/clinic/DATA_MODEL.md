@@ -8,7 +8,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 |-------|---------|
 | `tenants` | Practice / organization boundary. |
 | `users` + `tenant_memberships` | Staff accounts; clinic login uses `users.defaultTenantId` in JWT. |
-| `clinic_patients` | Demographics, contacts, **internal_notes** (staff only), optional **`anamnesis_json`** (v1 JSON: allergies, medications, conditions, social). |
+| `clinic_patients` | Demographics, contacts, client `category` and `tags`, **internal_notes** (staff only), optional **`anamnesis_json`** (v1 JSON: allergies, medications, conditions, social). |
 | `clinic_procedures` | Service catalog (duration, hidden buffer, price, currency). |
 | `clinic_appointments` | Scheduled slots; richer status; source; optional procedure; hidden buffer; lifecycle timestamps; **internal_notes**; optional override reason for intentional conflict/out-of-hours bookings. |
 | `clinic_appointment_events` | Appointment audit/change history for reschedules, reminders, visit actions, payments, and follow-ups. |
@@ -28,7 +28,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 
 ## API surface (high level)
 
-- `GET/POST /api/clinic/patients` — list (+ `?q=` search), create.
+- `GET/POST /api/clinic/patients` — list (+ `?q=`, `?category=`, `?tag=` filters), create.
 - `GET/PATCH /api/clinic/patients/[id]` — full chart for GET (includes related collections).
 - `GET /api/clinic/patients/[id]/summary-pdf` — **patient-safe** PDF (demographics, anamnesis, appointment/visit dates only; no internal notes, CRM, payments, media, clinical visit text).
 - `GET/POST /api/clinic/inventory` — list (`?lowStock=1`, `?includeInactive=1`), create (optional opening `RECEIPT` movement).
