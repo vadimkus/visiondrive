@@ -15,46 +15,46 @@ import { visiondriveSloganWithRegion } from '@/lib/brand'
 
 const homeCopy = {
   en: {
-    headlineBefore: 'Practice operations ',
-    headlineAccent: 'built to scale',
-    sub: 'VisionDrive is building a full operations platform for professional practices in the UAE — appointments, records, photos, retail, inventory, and financial analytics. We are shipping in stages toward a commercial release; today the product is in active use with our founding practice team in Dubai (Iryna and Vadim) while we harden workflows for wider rollout.',
-    ctaPrimary: 'Talk to us',
+    headlineBefore: 'A professional system for ',
+    headlineAccent: 'solo practitioners',
+    sub: 'VisionDrive gives independent clinics and solo service providers one calm workspace for bookings, client records, treatment notes, photos, inventory, payments, and business reporting. Built for practitioners who need the discipline of a clinic system without the overhead of an enterprise suite.',
+    ctaPrimary: 'Request product walkthrough',
     capabilities: [
-      { icon: Lock, label: 'Secure team access' },
-      { icon: Shield, label: 'UAE-first deployment' },
-      { icon: BarChart3, label: 'Visits & revenue insight' },
-      { icon: Layers, label: 'One stack, end-to-end' },
+      { icon: Lock, label: 'Client records & privacy' },
+      { icon: Shield, label: 'UAE-ready practice data' },
+      { icon: BarChart3, label: 'Revenue & follow-up insight' },
+      { icon: Layers, label: 'Bookings to payments' },
     ],
-    darkKicker: 'Practice console',
-    darkTitle: 'Founding team access',
+    darkKicker: 'Practice workspace',
+    darkTitle: 'Run the whole practice from one console',
     darkBody:
-      'Sign-in is limited to authorized staff while we expand the system. If you operate a practice and want to explore VisionDrive for a future rollout, reach out — we are selectively onboarding design partners ahead of general availability.',
-    darkPrimary: 'Sign in',
-    darkSecondary: 'Request a conversation',
+      'Access is currently private while the product is prepared for selective onboarding. VisionDrive helps solo practitioners keep appointments, treatment history, follow-ups, stock, and finances organized in one professional operating system.',
+    darkPrimary: 'Open console',
+    darkSecondary: 'Request access',
   },
-  ar: {
-    headlineBefore: 'تشغيل الممارسات المهنية ',
-    headlineAccent: 'قابل للتوسع',
-    sub: 'تطوّر VisionDrive منصة تشغيل كاملة للممارسات المهنية في الإمارات — المواعيد، السجلات، الصور، المبيعات، المخزون، والتحليلات المالية. نطرح المزايا على مراحل نحو إطلاق تجاري؛ اليوم المنتج قيد الاستخدام الفعلي مع فريق الممارسة المؤسس في دبي (إيرينا وفاديم) بينما نثبت سير العمل لمرحلة أوسع.',
-    ctaPrimary: 'تواصل معنا',
+  ru: {
+    headlineBefore: 'Профессиональная система для ',
+    headlineAccent: 'частных специалистов',
+    sub: 'VisionDrive дает независимым клиникам и частным специалистам единое рабочее пространство для записей, клиентских карт, заметок по процедурам, фото, склада, оплат и управленческой отчетности. Это дисциплина клинической системы без сложности корпоративной платформы.',
+    ctaPrimary: 'Запросить демонстрацию',
     capabilities: [
-      { icon: Lock, label: 'دخول آمن للفريق' },
-      { icon: Shield, label: 'أولوية للإمارات' },
-      { icon: BarChart3, label: 'رؤية الزيارات والإيرادات' },
-      { icon: Layers, label: 'منصة واحدة شاملة' },
+      { icon: Lock, label: 'Клиентские карты и приватность' },
+      { icon: Shield, label: 'Данные практики в ОАЭ' },
+      { icon: BarChart3, label: 'Доходы и повторные визиты' },
+      { icon: Layers, label: 'От записи до оплаты' },
     ],
-    darkKicker: 'وحدة التحكم',
-    darkTitle: 'وصول الفريق المؤسس',
+    darkKicker: 'Рабочее пространство',
+    darkTitle: 'Управляйте всей практикой из одной консоли',
     darkBody:
-      'تسجيل الدخول مخصص للموظفين المصرح لهم أثناء توسيع النظام. إذا كنت تدير ممارسة مهنية وترغب في استكشاف VisionDrive لمرحلة لاحقة، راسلنا — نستقبل شركاء تصميم مختارين قبل التوفر العام.',
-    darkPrimary: 'تسجيل الدخول',
-    darkSecondary: 'طلب اتصال',
+      'Доступ сейчас закрытый, пока продукт готовится к выборочному подключению. VisionDrive помогает частным специалистам держать в порядке расписание, историю процедур, повторные визиты, склад и финансы в одной профессиональной операционной системе.',
+    darkPrimary: 'Открыть консоль',
+    darkSecondary: 'Запросить доступ',
   },
 } as const
 
 export default function HomeClient() {
-  const { language } = useLanguage()
-  const t = homeCopy[language]
+  const { publicLanguage } = useLanguage()
+  const t = homeCopy[publicLanguage]
 
   const capabilities = t.capabilities
 
@@ -65,16 +65,16 @@ export default function HomeClient() {
         <div className="max-w-5xl mx-auto">
           <p
             className="text-center text-sm font-medium text-orange-600 mb-4"
-            dir={language === 'ar' ? 'rtl' : 'ltr'}
+            dir="ltr"
           >
-            {visiondriveSloganWithRegion[language]}
+            {visiondriveSloganWithRegion[publicLanguage]}
           </p>
 
           {/* Main Heading */}
           <div className="text-center mb-10 md:mb-10">
             <h1
               className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 mb-4 md:mb-5"
-              dir={language === 'ar' ? 'rtl' : 'ltr'}
+              dir="ltr"
             >
               {t.headlineBefore}
               <span className="text-orange-500">{t.headlineAccent}</span>
@@ -82,7 +82,7 @@ export default function HomeClient() {
 
             <p
               className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed"
-              dir={language === 'ar' ? 'rtl' : 'ltr'}
+              dir="ltr"
             >
               {t.sub}
             </p>
@@ -135,14 +135,14 @@ export default function HomeClient() {
 
               <h2
                 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white mb-4 tracking-tight"
-                dir={language === 'ar' ? 'rtl' : 'ltr'}
+                dir="ltr"
               >
                 {t.darkTitle}
               </h2>
 
               <p
                 className="text-gray-400 mb-8 text-lg max-w-lg mx-auto leading-relaxed"
-                dir={language === 'ar' ? 'rtl' : 'ltr'}
+                dir="ltr"
               >
                 {t.darkBody}
               </p>

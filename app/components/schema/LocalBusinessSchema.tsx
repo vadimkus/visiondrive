@@ -7,7 +7,7 @@ export default function LocalBusinessSchema() {
     url: 'https://visiondrive.ae',
     image: 'https://visiondrive.ae/favicon/android-chrome-512x512.png',
     description:
-      'VisionDrive — practice operations, made clear. Business software for professional teams across the UAE.',
+      'VisionDrive — practice operations, made clear. Business software for solo practitioners across the UAE.',
     telephone: '+971559152985',
     email: 'tech@visiondrive.ae',
     address: {

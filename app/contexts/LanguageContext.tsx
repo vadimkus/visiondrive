@@ -3,10 +3,16 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 type Language = 'en' | 'ar'
+type PublicLanguage = 'en' | 'ru'
 
 interface LanguageContextType {
+  /**
+   * Legacy content language used by older marketing sections.
+   * Russian falls back to English unless a section provides RU copy.
+   */
   language: Language
-  setLanguage: (lang: Language) => void
+  publicLanguage: PublicLanguage
+  setLanguage: (lang: PublicLanguage) => void
   t: (key: string) => string
 }
 
@@ -18,39 +24,42 @@ const translations: Record<Language, Record<string, string>> = {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('en')
+  const [publicLanguage, setPublicLanguage] = useState<PublicLanguage>('en')
   const [isClient, setIsClient] = useState(false)
+  const language: Language = 'en'
 
   useEffect(() => {
     setIsClient(true)
     // Load language from localStorage or default to 'en'
-    const savedLang = localStorage.getItem('language') as Language
-    if (savedLang === 'en' || savedLang === 'ar') {
-      setLanguageState(savedLang)
+    const savedLang = localStorage.getItem('language')
+    if (savedLang === 'en' || savedLang === 'ru') {
+      setPublicLanguage(savedLang)
+    } else if (savedLang === 'ar') {
+      setPublicLanguage('ru')
+      localStorage.setItem('language', 'ru')
     }
   }, [])
 
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang)
+  const setLanguage = (lang: PublicLanguage) => {
+    setPublicLanguage(lang)
     localStorage.setItem('language', lang)
-    // Update document direction
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+    document.documentElement.dir = 'ltr'
     document.documentElement.lang = lang
   }
 
   useEffect(() => {
     if (isClient) {
-      document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
-      document.documentElement.lang = language
+      document.documentElement.dir = 'ltr'
+      document.documentElement.lang = publicLanguage
     }
-  }, [language, isClient])
+  }, [publicLanguage, isClient])
 
   const t = (key: string): string => {
     return translations[language][key] || translations.en[key] || key
   }
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, publicLanguage, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   )

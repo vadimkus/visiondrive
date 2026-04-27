@@ -22,13 +22,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://visiondrive.ae'),
   title: {
-    default: 'VisionDrive — Practice operations software | Dubai, UAE',
+    default: 'VisionDrive — Practice software for solo practitioners | Dubai, UAE',
     template: '%s | VisionDrive',
   },
   description:
-    'Practice operations, made clear. VisionDrive builds practice software in the UAE — appointments, records, media, inventory, and finance. Active development in Dubai.',
+    'Practice operations, made clear. VisionDrive builds professional practice software for solo practitioners in the UAE — bookings, records, treatment notes, inventory, payments, and reporting.',
   keywords:
-    'practice management UAE, clinic software Dubai, professional practice software, VisionDrive, healthcare operations UAE, appointment software Dubai',
+    'solo practitioner software UAE, practice management UAE, clinic software Dubai, professional practice software, VisionDrive, appointment software Dubai',
   authors: [{ name: 'Vision Drive Technologies FZ-LLC' }],
   creator: 'Vision Drive Technologies FZ-LLC',
   publisher: 'Vision Drive Technologies FZ-LLC',
@@ -63,9 +63,9 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'VisionDrive — Practice operations software (UAE)',
+    title: 'VisionDrive — Practice software for solo practitioners (UAE)',
     description:
-      'Practice operations, made clear. Commercial-grade tools for UAE professional practices — calendar to ledger.',
+      'Practice operations, made clear. Commercial-grade tools for UAE solo practitioners — bookings to payments.',
     type: 'website',
     url: 'https://visiondrive.ae',
     siteName: 'VisionDrive',
@@ -75,15 +75,15 @@ export const metadata: Metadata = {
         url: '/favicon/android-chrome-512x512.png',
         width: 512,
         height: 512,
-        alt: 'VisionDrive — Practice operations software',
+        alt: 'VisionDrive — Practice software for solo practitioners',
       },
     ],
   },
   twitter: {
     card: 'summary',
-    title: 'VisionDrive — Practice operations software',
+    title: 'VisionDrive — Practice software for solo practitioners',
     description:
-      'Practice operations, made clear. UAE-built software for professional practices — commercial roadmap; founding team in Dubai.',
+      'Practice operations, made clear. UAE-built software for solo practitioners — bookings, records, inventory, payments, and reporting.',
     images: ['/favicon/android-chrome-512x512.png'],
   },
   other: {

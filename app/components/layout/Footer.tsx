@@ -13,7 +13,7 @@ const footerTranslations = {
     company: 'Company',
     contact: 'Contact',
     description:
-      'Practice operations, made clear. Software for professional teams in the UAE — built in Dubai.',
+      'Practice operations, made clear. Software for solo practitioners in the UAE.',
     copyright: 'All rights reserved.',
     solutionsLinks: {
       restaurants: 'Product overview',
@@ -31,35 +31,35 @@ const footerTranslations = {
       compliance: 'Compliance',
     },
   },
-  ar: {
-    solutions: 'الحلول',
-    company: 'الشركة',
-    contact: 'اتصل بنا',
+  ru: {
+    solutions: 'Разделы',
+    company: 'Компания',
+    contact: 'Контакты',
     description:
-      'وضوح في عمليات الممارسة. برمجيات للفرق المهنية في الإمارات — من دبي.',
-    copyright: 'جميع الحقوق محفوظة.',
+      'Операции клиники — ясно и просто. ПО для частных специалистов в ОАЭ.',
+    copyright: 'Все права защищены.',
     solutionsLinks: {
-      restaurants: 'نظرة على المنتج',
-      hotels: 'الأمان والبيانات',
-      technology: 'عن المنصة',
+      restaurants: 'Обзор продукта',
+      hotels: 'Безопасность и данные',
+      technology: 'О платформе',
     },
     companyLinks: {
-      about: 'من نحن',
-      contact: 'اتصل بنا',
-      faq: 'الأسئلة الشائعة',
+      about: 'О нас',
+      contact: 'Контакты',
+      faq: 'FAQ',
     },
     legalLinks: {
-      privacy: 'الخصوصية',
-      terms: 'الشروط',
-      compliance: 'الامتثال',
+      privacy: 'Конфиденциальность',
+      terms: 'Условия',
+      compliance: 'Compliance',
     },
   },
 }
 
 export default function Footer() {
-  const { language } = useLanguage()
+  const { publicLanguage } = useLanguage()
   const pathname = usePathname()
-  const t = footerTranslations[language]
+  const t = footerTranslations[publicLanguage]
   
   const footerNavigation = {
     solutions: [
@@ -94,7 +94,7 @@ export default function Footer() {
                   Vision<span className="text-orange-500">Drive</span>
                 </span>
                 <span className="text-[10px] text-gray-400 block leading-snug">
-                  {visiondriveSlogan[language]}
+                  {visiondriveSlogan[publicLanguage]}
                 </span>
               </div>
             </Link>
@@ -203,8 +203,8 @@ export default function Footer() {
                     Vision<span className="text-orange-500">Drive</span>
                   </span>
                   <span className="text-[10px] text-gray-400 block leading-snug">
-                  {visiondriveSlogan[language]}
-                </span>
+                    {visiondriveSlogan[publicLanguage]}
+                  </span>
                 </div>
               </Link>
               <p className="text-sm text-gray-500 leading-relaxed">{t.description}</p>

@@ -18,15 +18,15 @@ const navigation = {
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ],
-  ar: [
-    { name: 'الرئيسية', href: '/' },
-    { name: 'من نحن', href: '/about' },
-    { name: 'اتصل بنا', href: '/contact' },
+  ru: [
+    { name: 'Главная', href: '/' },
+    { name: 'О продукте', href: '/about' },
+    { name: 'Контакты', href: '/contact' },
   ],
 }
 
 export default function Header() {
-  const { language } = useLanguage()
+  const { publicLanguage } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -34,7 +34,7 @@ export default function Header() {
   const [dashboardHref, setDashboardHref] = useState('/clinic')
   const [loading, setLoading] = useState(true)
   
-  const navItems = navigation[language]
+  const navItems = navigation[publicLanguage]
 
   const handleLogout = async () => {
     try {
@@ -111,7 +111,7 @@ export default function Header() {
                   Vision<span className="text-orange-500">Drive</span>
                 </span>
                 <span className="text-[10px] text-gray-400 leading-snug max-w-[200px] md:max-w-none">
-                  {visiondriveSlogan[language]}
+                  {visiondriveSlogan[publicLanguage]}
                 </span>
               </div>
             </Link>
