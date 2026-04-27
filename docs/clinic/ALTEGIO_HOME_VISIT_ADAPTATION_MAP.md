@@ -163,9 +163,12 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Next improvements: source/UTM attribution, booking abandoned WhatsApp callback, and funnel comparison by shared channel.
 
 22. Private patient portal lite
+   - Status: shipped first pass.
    - Source: client app, online booking, personal account.
    - Solo version: secure patient link for upcoming appointment, intake forms, aftercare, receipts, package balance, reschedule/cancel request.
    - Keep it link-based first; do not require patients to install an app.
+   - Shipped: patient chart creates/revokes hashed private portal links; `/patient-portal/[token]` shows upcoming appointments, aftercare, package balance, receipts, treatment plans, accepted consent titles, and reschedule/cancel request forms.
+   - Next improvements: public intake/consent signing, patient-uploaded photos, package renewal prompt, and WhatsApp one-time link delivery.
 
 23. Custom intake fields per service
    - Source: custom fields and booking step settings.
@@ -313,13 +316,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Patient portal lite with forms, aftercare, receipts, and package balance.
-2. Service-specific public intake fields.
-3. Client import from Excel.
-4. Data export/deletion tools.
-5. Booking source/UTM attribution and abandoned-booking follow-up.
+1. Service-specific public intake fields.
+2. Client import from Excel.
+3. Data export/deletion tools.
+4. Booking source/UTM attribution and abandoned-booking follow-up.
+5. Patient-uploaded photos through the portal.
 
 ## Recommendation
 
-The next point should be patient portal lite. The operating loop is now strong enough that the next leverage comes from reducing admin messages: give each patient a private link for upcoming appointments, forms, aftercare, receipts, and package balance without requiring an app install.
+The next point should be service-specific public intake fields. Patient portal lite now reduces admin messages; the remaining gap is collecting the right contraindication/address/access questions before each service without making every patient answer the same generic form.
 

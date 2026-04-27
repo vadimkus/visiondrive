@@ -572,6 +572,27 @@
 
 ---
 
+## Chunk 33 — 2026-04-27 (patient portal lite)
+
+**Shipped**
+
+- **Schema:** added `ClinicPatientPortalLink`, `ClinicPatientPortalRequest`, request type/status enums, and tenant/patient/appointment/user relations.
+- **Security:** portal links store only SHA-256 token hashes plus last-four metadata; creating a new link revokes existing active links and sets a 90-day expiry.
+- **Staff controls:** patient chart now includes a Patient portal lite card to create/copy/revoke the private link and review recent portal requests.
+- **Public portal:** `/patient-portal/[token]` shows upcoming appointments, location notes, aftercare/next steps, package balances, payment receipts, active treatment plans, and accepted consent titles.
+- **Requests:** patients can request reschedule/cancellation from the portal; requests create structured portal rows, CRM notes, and appointment events for staff review without changing the appointment automatically.
+- **Receipts:** active portal tokens can download patient-safe receipt PDFs for that patient's payments.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article explain secure sharing and request handling.
+- **Docs/canvas:** Altegio backlog and canvas mark Point 22 as shipped and move the next recommendation to custom intake fields per service.
+
+**Validation**
+
+- Added Vitest coverage for patient portal token hashing, expiry, active-state, and request normalization.
+- Run `npm run db:generate`, `npm run db:push`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

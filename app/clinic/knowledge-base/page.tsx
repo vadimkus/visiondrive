@@ -306,6 +306,20 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/booking-funnel',
   },
+  {
+    id: 'patient-portal-lite',
+    category: 'Patients',
+    title: 'Share a private patient portal link',
+    summary:
+      'Give a patient one secure link for upcoming appointments, aftercare, package balance, receipts, consents, and reschedule/cancel requests.',
+    steps: [
+      'Open the patient chart and find Patient portal lite under the header.',
+      'Create a portal link; the old active link is revoked automatically and the new link expires after 90 days.',
+      'Send the copied link privately through WhatsApp or email.',
+      'Review portal requests in the patient chart and CRM timeline when a patient asks to reschedule or cancel.',
+    ],
+    link: '/clinic/patients',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -589,6 +603,20 @@ const articlesRu: Article[] = [
       'Проверьте конверсию по процедурам: какие услуги интересуют клиентов, но теряют их до записи.',
     ],
     link: '/clinic/booking-funnel',
+  },
+  {
+    id: 'patient-portal-lite',
+    category: 'Пациенты',
+    title: 'Отправляйте приватную ссылку кабинета пациента',
+    summary:
+      'Одна защищённая ссылка для будущих записей, рекомендаций, баланса пакетов, чеков, согласий и запросов на перенос/отмену.',
+    steps: [
+      'Откройте карту пациента и найдите блок Личный кабинет пациента Lite под шапкой.',
+      'Создайте ссылку: старая активная ссылка отзывается автоматически, новая действует 90 дней.',
+      'Отправьте скопированную ссылку приватно через WhatsApp или email.',
+      'Проверяйте запросы из кабинета в карте пациента и CRM-ленте, когда пациент просит перенос или отмену.',
+    ],
+    link: '/clinic/patients',
   },
 ]
 

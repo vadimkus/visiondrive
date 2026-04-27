@@ -48,6 +48,7 @@ model User {
   expenses Expense[] @relation("ExpenseCreatedBy")
   clinicWebPushSubscriptions ClinicWebPushSubscription[]
   clinicAppointmentEvents ClinicAppointmentEvent[] @relation("ClinicAppointmentEventActor")
+  clinicPatientPortalLinks ClinicPatientPortalLink[] @relation("ClinicPatientPortalLinkCreator")
 
   @@map("users")
 }
@@ -117,6 +118,8 @@ model Tenant {
   clinicTreatmentPlans ClinicTreatmentPlan[]
   clinicProcedureMaterials ClinicProcedureMaterial[]
   clinicBookingFunnelEvents ClinicBookingFunnelEvent[]
+  clinicPatientPortalLinks ClinicPatientPortalLink[]
+  clinicPatientPortalRequests ClinicPatientPortalRequest[]
 
   @@map("tenants")
 }
@@ -820,6 +823,18 @@ enum ClinicTreatmentPlanStatus {
   CANCELLED
 }
 
+enum ClinicPatientPortalRequestType {
+  RESCHEDULE
+  CANCEL
+  MESSAGE
+}
+
+enum ClinicPatientPortalRequestStatus {
+  OPEN
+  REVIEWED
+  CLOSED
+}
+
 model ClinicPatient {
   id             String    @id @default(cuid())
   tenantId       String
@@ -852,6 +867,8 @@ model ClinicPatient {
   packages       ClinicPatientPackage[]
   consentRecords ClinicConsentRecord[]
   treatmentPlans ClinicTreatmentPlan[]
+  portalLinks    ClinicPatientPortalLink[]
+  portalRequests ClinicPatientPortalRequest[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -929,6 +946,7 @@ model ClinicAppointment {
   payments ClinicPatientPayment[]
   productSales ClinicProductSale[]
   bookingFunnelEvents ClinicBookingFunnelEvent[]
+  portalRequests ClinicPatientPortalRequest[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1064,6 +1082,52 @@ model ClinicBookingFunnelEvent {
   @@index([tenantId, sessionId, occurredAt])
   @@index([procedureId, occurredAt])
   @@map("clinic_booking_funnel_events")
+}
+
+model ClinicPatientPortalLink {
+  id              String    @id @default(cuid())
+  tenantId        String
+  patientId       String
+  tokenHash       String    @unique
+  tokenLastFour   String
+  expiresAt       DateTime  @db.Timestamptz(6)
+  revokedAt       DateTime? @db.Timestamptz(6)
+  lastAccessedAt  DateTime? @db.Timestamptz(6)
+  createdAt       DateTime  @default(now())
+  createdByUserId String?
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient  ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdBy User?        @relation("ClinicPatientPortalLinkCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  requests ClinicPatientPortalRequest[]
+
+  @@index([tenantId, patientId, revokedAt])
+  @@index([tenantId, expiresAt])
+  @@map("clinic_patient_portal_links")
+}
+
+model ClinicPatientPortalRequest {
+  id              String                           @id @default(cuid())
+  tenantId        String
+  patientId       String
+  appointmentId   String?
+  portalLinkId    String?
+  type            ClinicPatientPortalRequestType
+  status          ClinicPatientPortalRequestStatus @default(OPEN)
+  message         String                           @db.Text
+  preferredTime   String?                          @db.Text
+  createdAt       DateTime                         @default(now()) @db.Timestamptz(6)
+  reviewedAt      DateTime?                        @db.Timestamptz(6)
+
+  tenant      Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment ClinicAppointment?       @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  portalLink  ClinicPatientPortalLink? @relation(fields: [portalLinkId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, patientId, createdAt])
+  @@index([appointmentId, createdAt])
+  @@map("clinic_patient_portal_requests")
 }
 
 enum ClinicReviewStatus {

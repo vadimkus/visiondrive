@@ -17,6 +17,9 @@ import {
   PackageCheck,
   ShieldCheck,
   Trash2,
+  Link2,
+  Copy,
+  XCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
@@ -186,6 +189,30 @@ type TreatmentPlanRow = {
   }>
 }
 
+type PortalLinkRow = {
+  id: string
+  tokenLastFour: string
+  expiresAt: string
+  revokedAt: string | null
+  lastAccessedAt: string | null
+  createdAt: string
+}
+
+type PortalRequestRow = {
+  id: string
+  type: 'RESCHEDULE' | 'CANCEL' | 'MESSAGE'
+  status: 'OPEN' | 'REVIEWED' | 'CLOSED'
+  message: string
+  preferredTime: string | null
+  createdAt: string
+  appointment?: {
+    id: string
+    startsAt: string
+    titleOverride: string | null
+    procedure: { name: string } | null
+  } | null
+}
+
 type ClientBalance = {
   currency: string
   expectedCents: number
@@ -228,6 +255,8 @@ export type PatientRecord = {
   packages: PackageRow[]
   consentRecords: ConsentRecordRow[]
   treatmentPlans: TreatmentPlanRow[]
+  portalLinks: PortalLinkRow[]
+  portalRequests: PortalRequestRow[]
   clientBalance: ClientBalance
   crmActivities: CrmRow[]
 }
@@ -582,6 +611,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
 
       <BalanceSummaryCard balance={patient.clientBalance} />
 
+      <PatientPortalCard patient={patient} onRefresh={load} />
+
       <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
@@ -721,6 +752,209 @@ function BalanceSummaryCard({ balance }: { balance: ClientBalance }) {
           <dd className="font-semibold">{formatMoney(balance.pendingCents, balance.currency)}</dd>
         </div>
       </dl>
+    </section>
+  )
+}
+
+function PatientPortalCard({
+  patient,
+  onRefresh,
+}: {
+  patient: PatientRecord
+  onRefresh: () => Promise<void>
+}) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const [creating, setCreating] = useState(false)
+  const [revoking, setRevoking] = useState('')
+  const [portalUrl, setPortalUrl] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [error, setError] = useState('')
+  const now = Date.now()
+  const activeLink =
+    patient.portalLinks.find((link) => !link.revokedAt && new Date(link.expiresAt).getTime() >= now) ?? null
+  const latestRequests = patient.portalRequests.slice(0, 3)
+
+  const createLink = async () => {
+    setCreating(true)
+    setError('')
+    setCopied(false)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/portal-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ expiryDays: 90 }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.saveFailed)
+        return
+      }
+      setPortalUrl(data.url)
+      await navigator.clipboard?.writeText(data.url).catch(() => undefined)
+      setCopied(true)
+      await onRefresh()
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const revokeLink = async (linkId: string) => {
+    setRevoking(linkId)
+    setError('')
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/portal-link`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ linkId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.saveFailed)
+        return
+      }
+      if (activeLink?.id === linkId) setPortalUrl('')
+      await onRefresh()
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setRevoking('')
+    }
+  }
+
+  const copyLink = async () => {
+    if (!portalUrl) return
+    await navigator.clipboard?.writeText(portalUrl).catch(() => undefined)
+    setCopied(true)
+  }
+
+  return (
+    <section className="rounded-2xl border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">{t.patientPortalLite}</p>
+          <h2 className="mt-1 text-lg font-semibold text-gray-950">{t.patientPortalPrivateLink}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-blue-950/80">{t.patientPortalPrivateLinkHint}</p>
+        </div>
+        <button
+          type="button"
+          onClick={createLink}
+          disabled={creating}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        >
+          <Link2 className="h-4 w-4" aria-hidden />
+          {creating ? t.creatingEllipsis : t.patientPortalCreateLink}
+        </button>
+      </div>
+
+      {error && <p className="mt-3 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+
+      {portalUrl && (
+        <div className="mt-4 rounded-2xl border border-blue-100 bg-white p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+            {copied ? t.patientPortalCopied : t.patientPortalCopyLink}
+          </p>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <input
+              readOnly
+              value={portalUrl}
+              className="min-h-11 flex-1 rounded-xl border border-gray-200 px-3 text-sm text-gray-800"
+            />
+            <button
+              type="button"
+              onClick={copyLink}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+            >
+              <Copy className="h-4 w-4" aria-hidden />
+              {t.copy}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-2xl border border-blue-100 bg-white p-4">
+          <p className="text-sm font-semibold text-gray-950">{t.patientPortalActiveLink}</p>
+          {activeLink ? (
+            <div className="mt-2 space-y-2 text-sm text-gray-600">
+              <p>
+                {t.patientPortalTokenEnding} <span className="font-mono text-gray-900">{activeLink.tokenLastFour}</span>
+              </p>
+              <p>
+                {t.expires}{' '}
+                {new Date(activeLink.expiresAt).toLocaleDateString(dateLocale, {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </p>
+              {activeLink.lastAccessedAt && (
+                <p>
+                  {t.patientPortalLastOpened}{' '}
+                  {new Date(activeLink.lastAccessedAt).toLocaleString(dateLocale, {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => revokeLink(activeLink.id)}
+                disabled={revoking === activeLink.id}
+                className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
+              >
+                <XCircle className="h-4 w-4" aria-hidden />
+                {revoking === activeLink.id ? t.deletingEllipsis : t.patientPortalRevokeLink}
+              </button>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-gray-500">{t.patientPortalNoActiveLink}</p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-blue-100 bg-white p-4">
+          <p className="text-sm font-semibold text-gray-950">{t.patientPortalRequests}</p>
+          {latestRequests.length === 0 ? (
+            <p className="mt-2 text-sm text-gray-500">{t.patientPortalNoRequests}</p>
+          ) : (
+            <div className="mt-2 space-y-3">
+              {latestRequests.map((request) => (
+                <div key={request.id} className="rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm">
+                  <p className="font-medium text-gray-900">
+                    {request.type === 'RESCHEDULE'
+                      ? t.patientPortalRequestReschedule
+                      : request.type === 'CANCEL'
+                        ? t.patientPortalRequestCancel
+                        : t.patientPortalRequestMessage}
+                    {' · '}
+                    {request.status}
+                  </p>
+                  <p className="mt-1 text-gray-600 whitespace-pre-wrap">{request.message}</p>
+                  {request.preferredTime && (
+                    <p className="mt-1 text-gray-500">
+                      {t.patientPortalPreferredTime}: {request.preferredTime}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-gray-400">
+                    {new Date(request.createdAt).toLocaleString(dateLocale, {
+                      day: '2-digit',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   )
 }

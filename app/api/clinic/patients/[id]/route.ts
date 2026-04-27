@@ -178,6 +178,38 @@ export async function GET(
           },
         },
       },
+      portalLinks: {
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          tokenLastFour: true,
+          expiresAt: true,
+          revokedAt: true,
+          lastAccessedAt: true,
+          createdAt: true,
+        },
+      },
+      portalRequests: {
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          message: true,
+          preferredTime: true,
+          createdAt: true,
+          appointment: {
+            select: {
+              id: true,
+              startsAt: true,
+              titleOverride: true,
+              procedure: { select: { name: true } },
+            },
+          },
+        },
+      },
       crmActivities: {
         orderBy: { occurredAt: 'desc' },
         take: 80,
