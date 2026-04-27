@@ -58,6 +58,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 - Base path: **`/api/clinic/*`**.
 - **Patient media:** `POST .../patients/[id]/media` uploads before/after/other images from camera or file picker and optional visit links; `GET/DELETE /api/clinic/media/[id]` serves/removes private tenant-scoped media.
 - **Patient-safe PDF:** `GET .../patients/[id]/summary-pdf` returns a minimal English summary for handout; staff-only fields are excluded by construction (not redacted — never loaded).
+- **Patient import:** `POST /api/clinic/patients/import` accepts `.xlsx`/`.csv` uploads for preview, detects invalid rows and phone/email duplicates, and commits only clean patient rows when called with `action=commit`.
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
 - **Procedure materials:** `GET/POST /api/clinic/procedures/[id]/materials`, `PATCH/DELETE .../materials/[materialId]`; visit completion deducts active material rows before falling back to legacy stock-item procedure links.
 - **Procedure intake questions:** `GET/POST /api/clinic/procedures/[id]/intake-questions`, `PATCH/DELETE .../intake-questions/[questionId]`; active questions are shown on public booking for that service and required answers block submission until completed.

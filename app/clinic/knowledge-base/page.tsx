@@ -334,6 +334,20 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/procedures',
   },
+  {
+    id: 'client-import-excel',
+    category: 'Patients',
+    title: 'Import clients from Excel',
+    summary:
+      'Bring an existing client spreadsheet into Practice OS with duplicate checks before any patient cards are created.',
+    steps: [
+      'Open Patients and click Import clients.',
+      'Upload an .xlsx or .csv file with columns such as full name, DOB, phone, email, address, category, tags, and notes.',
+      'Review the preview: invalid rows and duplicates by phone/email are clearly marked and skipped.',
+      'Click Create patients to import only clean rows, then continue working from the patient list.',
+    ],
+    link: '/clinic/patients/import',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -645,6 +659,20 @@ const articlesRu: Article[] = [
       'При онлайн-записи ответы сохраняются в запись как staff-only снимок анкеты.',
     ],
     link: '/clinic/procedures',
+  },
+  {
+    id: 'client-import-excel',
+    category: 'Пациенты',
+    title: 'Импортируйте клиентов из Excel',
+    summary:
+      'Перенесите существующую клиентскую базу в Practice OS с проверкой дублей до создания карт пациентов.',
+    steps: [
+      'Откройте Пациенты и нажмите Импорт клиентов.',
+      'Загрузите .xlsx или .csv с колонками: ФИО, дата рождения, телефон, email, адрес, категория, теги и заметки.',
+      'Проверьте предпросмотр: строки с ошибками и дубли по телефону/email будут отмечены и пропущены.',
+      'Нажмите Создать пациентов, чтобы импортировать только чистые строки, затем работайте со списком пациентов.',
+    ],
+    link: '/clinic/patients/import',
   },
 ]
 

@@ -612,6 +612,24 @@
 
 ---
 
+## Chunk 35 — 2026-04-27 (client import from Excel)
+
+**Shipped**
+
+- **Dependency:** added `read-excel-file` for `.xlsx` parsing; CSV is parsed natively.
+- **Helper/API:** `lib/clinic/patient-import.ts` maps common EN/RU spreadsheet headers into patient fields, validates required name/DOB/contact, normalizes categories/tags, and flags file/existing duplicates by email or phone. `POST /api/clinic/patients/import` supports upload preview and JSON commit.
+- **UI:** added `/clinic/patients/import` plus a Patients page action. Staff can upload `.xlsx`/`.csv`, preview invalid/duplicate rows, and create only clean patient cards.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article explain the client import workflow.
+- **Docs/canvas:** Altegio backlog and canvas mark Point 24 as shipped and move the next recommendation to product import from Excel.
+
+**Validation**
+
+- Added Vitest coverage for date parsing, header mapping, duplicate detection, and import summaries.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

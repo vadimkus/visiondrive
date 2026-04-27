@@ -41,6 +41,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 
 - `GET/POST /api/clinic/patients` — list (+ `?q=`, `?category=`, `?tag=` filters), create; list rows include computed `clientBalance`.
 - `GET/PATCH /api/clinic/patients/[id]` — full chart for GET (includes related collections and computed `clientBalance`).
+- `POST /api/clinic/patients/import` — preview and commit client spreadsheet imports from `.xlsx` / `.csv`; duplicate rows are detected by phone/email before creation.
 - `GET /api/clinic/patients/[id]/summary-pdf` — **patient-safe** PDF (demographics, anamnesis, appointment/visit dates only; no internal notes, CRM, payments, media, clinical visit text).
 - `GET/POST /api/clinic/inventory` — list (`?lowStock=1`, `?includeInactive=1`), create (optional opening `RECEIPT` movement).
 - `GET/PATCH /api/clinic/inventory/[id]` — detail + metadata; `GET/POST .../movements` — history + record movement (transactional qty update).

@@ -178,8 +178,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Next improvements: patient-uploaded pre-visit photos, public consent signing, reusable question presets, and portal-based pre-visit update links.
 
 24. Client import from Excel
+   - Status: shipped first pass.
    - Source: client import.
    - Solo version: import existing client spreadsheet into patients with tags/categories and duplicate detection.
+   - Shipped: `/clinic/patients/import` accepts `.xlsx`/`.csv`, previews mapped client rows, flags invalid rows and phone/email duplicates, and commits only clean rows to patient cards.
+   - Next improvements: downloadable import template, inline row editing before commit, import history, and richer duplicate merge tools.
 
 25. Product import from Excel
    - Source: product import.
@@ -319,13 +322,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Client import from Excel.
-2. Product import from Excel.
+1. Product import from Excel.
+2. Supplier profiles and settlement history.
 3. Data export/deletion tools.
 4. Booking source/UTM attribution and abandoned-booking follow-up.
 5. Patient-uploaded photos through the portal.
 
 ## Recommendation
 
-The next point should be client import from Excel. Intake fields now make new public bookings clinically useful; the next operational gap is getting an existing client book into the system without manual one-by-one entry.
+The next point should be product import from Excel. Client import now removes the patient onboarding bottleneck; the same bulk path should bring existing stock catalogs, suppliers, costs, barcodes, and reorder points into inventory.
 

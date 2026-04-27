@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Search } from 'lucide-react'
+import { FileSpreadsheet, Plus, Search } from 'lucide-react'
 import clsx from 'clsx'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { PATIENT_CATEGORIES, PATIENT_TAGS, type PatientCategory, type PatientTag } from '@/lib/clinic/patient-tags'
@@ -157,13 +157,22 @@ export default function ClinicPatientsPage() {
             <h1 className="text-2xl font-semibold text-gray-900">{t.patients}</h1>
             <p className="text-gray-600 text-sm mt-1">{t.searchPatientsHint}</p>
           </div>
-          <Link
-            href="/clinic/patients/new"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 shrink-0"
-          >
-            <Plus className="w-4 h-4 shrink-0" aria-hidden />
-            {t.addPatient}
-          </Link>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Link
+              href="/clinic/patients/import"
+              className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-orange-200 bg-white text-orange-700 text-sm font-semibold hover:bg-orange-50 shrink-0"
+            >
+              <FileSpreadsheet className="w-4 h-4 shrink-0" aria-hidden />
+              {t.importPatients}
+            </Link>
+            <Link
+              href="/clinic/patients/new"
+              className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 shrink-0"
+            >
+              <Plus className="w-4 h-4 shrink-0" aria-hidden />
+              {t.addPatient}
+            </Link>
+          </div>
         </div>
 
         <div className="relative">
