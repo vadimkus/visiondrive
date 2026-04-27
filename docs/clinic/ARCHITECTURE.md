@@ -20,7 +20,7 @@
 | `ClinicReminderDelivery` | Reminder schedule and delivery/preparation log; stores scheduled time, rendered body, WhatsApp URL, status, and errors. |
 | `ClinicPatientReview` | Internal reputation workflow: review request status, rating, private note, candidate public text, and request/reply/publish timestamps. |
 | `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional links to an appointment and treatment plan, **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
-| `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); served via **`GET /api/clinic/media/[id]`** (tenant-scoped). |
+| `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); served/deleted via **`GET/DELETE /api/clinic/media/[id]`** (tenant-scoped). |
 | `ClinicPatientPayment` | Patient-level payments (amount, discount, fee, method, status, optional **`visitId`** / **`appointmentId`**). Client balance is derived from billable appointments plus linked/standalone payment rows; no separate ledger table yet. |
 | `ClinicProductSale` / `ClinicProductSaleLine` | Retail / aftercare products sold from a visit: line items, stock deduction movements, optional appointment/visit link, and a payment row for finance revenue. |
 | `ClinicPatientPackage` / `ClinicPackageRedemption` | Prepaid treatment packages sold to a patient, with remaining session balance, optional service restriction, expiry, and automatic redemption rows when a completed visit consumes a session. |
@@ -49,6 +49,7 @@ Public booking: `/book/[tenant.slug]` is a private branded link, not a marketpla
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.
+- **Patient media:** `POST .../patients/[id]/media` uploads before/after/other images from camera or file picker and optional visit links; `GET/DELETE /api/clinic/media/[id]` serves/removes private tenant-scoped media.
 - **Patient-safe PDF:** `GET .../patients/[id]/summary-pdf` returns a minimal English summary for handout; staff-only fields are excluded by construction (not redacted — never loaded).
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
 - **Procedure materials:** `GET/POST /api/clinic/procedures/[id]/materials`, `PATCH/DELETE .../materials/[materialId]`; visit completion deducts active material rows before falling back to legacy stock-item procedure links.

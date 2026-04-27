@@ -13,8 +13,10 @@ import {
   ChevronUp,
   ClipboardList,
   FileDown,
+  ImagePlus,
   PackageCheck,
   ShieldCheck,
+  Trash2,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
@@ -1241,18 +1243,23 @@ function PhotosTab({
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [visitId, setVisitId] = useState<string>('')
   const [kind, setKind] = useState<string>('BEFORE')
+  const [caption, setCaption] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
     setUploading(true)
+    setError(null)
     try {
       const fd = new FormData()
       fd.append('file', file)
       fd.append('kind', kind)
       if (visitId) fd.append('visitId', visitId)
+      if (caption.trim()) fd.append('caption', caption.trim())
       const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
         method: 'POST',
         body: fd,
@@ -1263,9 +1270,33 @@ function PhotosTab({
         alert(data.error || t.uploadFailed)
         return
       }
+      setCaption('')
       await onRefresh()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.uploadFailed)
     } finally {
       setUploading(false)
+    }
+  }
+
+  const deleteMedia = async (mediaId: string) => {
+    if (!window.confirm(t.confirmDeletePhoto)) return
+    setDeletingId(mediaId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/clinic/media/${mediaId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.deletePhotoFailed)
+      }
+      await onRefresh()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.deletePhotoFailed)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -1291,6 +1322,7 @@ function PhotosTab({
           {t.addPhotoTitle}
         </h2>
         <p className="text-sm text-gray-500">{t.addPhotoHint}</p>
+        {error && <ClinicAlert variant="error">{error}</ClinicAlert>}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-gray-600 mb-1">{t.linkToVisit}</label>
@@ -1325,20 +1357,46 @@ function PhotosTab({
             </select>
           </div>
         </div>
-        <label className="flex flex-col items-center justify-center gap-2 w-full py-10 border-2 border-dashed border-orange-200 rounded-2xl bg-orange-50/50 cursor-pointer hover:bg-orange-50 transition-colors">
-          <Camera className="w-8 h-8 text-orange-500" />
-          <span className="text-sm font-medium text-orange-800">
-            {uploading ? t.uploadingEllipsis : t.tapToChoosePhoto}
-          </span>
+        <label className="block">
+          <span className="block text-sm text-gray-600 mb-1">{t.photoCaption}</span>
           <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            disabled={uploading}
-            onChange={onFile}
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            placeholder={t.photoCaptionPlaceholder}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
           />
         </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="flex flex-col items-center justify-center gap-2 w-full py-8 border-2 border-dashed border-orange-200 rounded-2xl bg-orange-50/50 cursor-pointer hover:bg-orange-50 transition-colors">
+            <Camera className="w-8 h-8 text-orange-500" />
+            <span className="text-sm font-semibold text-orange-900">
+              {uploading ? t.uploadingEllipsis : t.takePhoto}
+            </span>
+            <span className="text-xs text-orange-700">{t.takePhotoHint}</span>
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              disabled={uploading}
+              onChange={onFile}
+            />
+          </label>
+          <label className="flex flex-col items-center justify-center gap-2 w-full py-8 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+            <ImagePlus className="w-8 h-8 text-gray-500" />
+            <span className="text-sm font-semibold text-gray-900">
+              {uploading ? t.uploadingEllipsis : t.chooseExistingPhoto}
+            </span>
+            <span className="text-xs text-gray-500">{t.chooseExistingPhotoHint}</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={uploading}
+              onChange={onFile}
+            />
+          </label>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1350,10 +1408,22 @@ function PhotosTab({
               alt={m.caption || m.kind}
               className="w-full aspect-square object-cover"
             />
-            <div className="p-2 text-[11px] text-gray-600">
-              <span className="font-semibold text-gray-800">{m.kind}</span>
-              <span className="text-gray-400"> · </span>
-              {m.visitLabel}
+            <div className="p-2 text-[11px] text-gray-600 space-y-2">
+              <div>
+                <span className="font-semibold text-gray-800">{m.kind}</span>
+                <span className="text-gray-400"> · </span>
+                {m.visitLabel}
+                {m.caption && <p className="mt-1 text-gray-700 line-clamp-2">{m.caption}</p>}
+              </div>
+              <button
+                type="button"
+                onClick={() => deleteMedia(m.id)}
+                disabled={deletingId === m.id}
+                className="inline-flex items-center gap-1 rounded-lg border border-red-100 px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+              >
+                <Trash2 className="w-3 h-3" aria-hidden />
+                {deletingId === m.id ? t.deletingEllipsis : t.deletePhoto}
+              </button>
             </div>
           </div>
         ))}

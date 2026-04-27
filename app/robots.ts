@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/portal/', '/login', '/notes', '/roadmap2'],
+        disallow: ['/api/', '/portal/', '/clinic/', '/book/', '/login', '/notes', '/roadmap2'],
       },
     ],
     sitemap: ['https://visiondrive.ae/sitemap.xml'],

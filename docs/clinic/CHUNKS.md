@@ -517,6 +517,24 @@
 
 ---
 
+## Chunk 30 — 2026-04-27 (mobile patient photos and SEO/LLM files)
+
+**Shipped**
+
+- **Patient photos:** Photos tab now separates iPhone/iPad camera capture from existing photo/file attachment, supports captions, visit links, and before/after/other type.
+- **Delete flow:** `DELETE /api/clinic/media/[id]` removes tenant-scoped private media and best-effort deletes Vercel Blob storage when used.
+- **UI/Knowledge Base:** photo cards show captions and delete controls; EN/RU Knowledge Base explains mobile capture and deleting mistakes.
+- **SEO privacy:** robots now blocks private `/clinic`, `/book`, `/portal`, `/login`, and `/api` routes from indexing.
+- **LLM files:** `llms.txt` and `llms-full.txt` now describe Practice OS as the primary VisionDrive product and keep Smart Kitchen as secondary/legacy context.
+- **Structured data:** public layout includes `PracticeSoftwareSchema` JSON-LD for VisionDrive Practice OS.
+
+**Validation**
+
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

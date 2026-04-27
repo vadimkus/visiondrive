@@ -10,6 +10,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import OrganizationSchema from './components/schema/OrganizationSchema'
 import LocalBusinessSchema from './components/schema/LocalBusinessSchema'
 import WebSiteSchema from './components/schema/WebSiteSchema'
+import PracticeSoftwareSchema from './components/schema/PracticeSoftwareSchema'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -103,6 +104,7 @@ export default function RootLayout({
         <OrganizationSchema />
         <LocalBusinessSchema />
         <WebSiteSchema />
+        <PracticeSoftwareSchema />
         <LanguageProvider>
           <ConditionalLayout>
             {children}

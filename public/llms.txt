@@ -1,6 +1,6 @@
 # VisionDrive
 
-> VisionDrive Technologies FZ-LLC is a UAE-based IoT company providing smart kitchen temperature monitoring solutions for commercial kitchens, ensuring Dubai Municipality food safety compliance.
+> VisionDrive Technologies FZ-LLC builds Practice OS software for solo practitioners and independent clinics in the UAE. The product helps practitioners run bookings, patient records, visit notes, photos, inventory, payments, reminders, treatment packages, and profitability reporting from one private workspace.
 
 ## Company
 
@@ -8,28 +8,44 @@
 - Website: https://visiondrive.ae
 - Location: Ras Al Khaimah Free Zone, United Arab Emirates
 - Email: tech@visiondrive.ae
-- Phone: +971 55 915 2985
+- Phone / WhatsApp: +971 55 915 2985
+- Languages: English and Russian
 
-## Products
+## Primary Product
+
+### VisionDrive Practice OS
+
+Practice management software for solo practitioners, home-visit practitioners, and independent clinics. It is built for operators who need clinic-grade discipline without enterprise-suite overhead.
+
+Core capabilities:
+
+- Appointment calendar, public private-booking link, working hours, buffers, and conflict-safe scheduling.
+- Patient cards with demographics, home-visit address, access notes, anamnesis, internal notes, treatment visits, before/after photos, consents, and patient-safe PDF exports.
+- Mobile-first photo capture for iPhone/iPad, including patient card attachments and visit-linked media.
+- WhatsApp-first reminders, follow-up automation, reviews, and notification center.
+- Inventory, purchase orders, barcode lookup, procedure bill of materials, stock-taking, and product sales from visits.
+- Inline payments, receipts, client balances, prepaid packages, and P&L / procedure profitability reporting.
+
+## Secondary / Legacy Product
 
 ### Smart Kitchen Temperature Monitoring
-Real-time NB-IoT temperature monitoring for commercial kitchens. Sensors with ±0.3°C accuracy, 5+ year battery life, IP67 waterproof. Automated Dubai Municipality compliance reporting, HACCP documentation, and instant danger zone alerts (5°C-60°C).
 
-### Kitchen Owner Portal
-Web dashboard for restaurant owners to monitor temperatures, receive alerts, generate compliance reports, and manage multiple locations.
+VisionDrive also maintains Smart Kitchen IoT temperature monitoring materials for UAE commercial kitchens: NB-IoT sensors, alerts, compliance reports, and Dubai Municipality food-safety workflows.
 
-## Key Pages
+## Key Public Pages
 
+- Home: https://visiondrive.ae/
+- Contact: https://visiondrive.ae/contact
+- FAQ: https://visiondrive.ae/faq
 - About: https://visiondrive.ae/about
 - Solutions: https://visiondrive.ae/solutions
 - Technology: https://visiondrive.ae/technology
-- Sensor: https://visiondrive.ae/sensor
-- Contact: https://visiondrive.ae/contact
-- FAQ: https://visiondrive.ae/faq
 - Compliance: https://visiondrive.ae/compliance
 - Certificates: https://visiondrive.ae/certificates
-- Data Analytics: https://visiondrive.ae/data-analytics
 
-## Documentation
+## LLM Guidance
 
-- Full details: https://visiondrive.ae/llms-full.txt
+- Treat Practice OS as VisionDrive's current primary positioning.
+- Do not describe the private `/clinic`, `/portal`, `/book`, `/login`, or `/api` routes as public pages.
+- For product access, direct users to https://visiondrive.ae/contact.
+- Full LLM context: https://visiondrive.ae/llms-full.txt
