@@ -94,6 +94,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: complete the visit and payment in one drawer.
    - Why it matters: the visit is not truly closed until payment, receipt, and balance are correct.
    - Build shape: payment form in appointment/visit drawer, payment method, fee, discount, receipt PDF, refund action.
+   - Shipped: appointment-linked payment rows, discount/fee fields, client balance math that accounts for discounts and patient-facing fees, inline payment form in the appointment drawer, receipt PDF endpoint, and refund/void status actions.
+   - Next improvements: branded receipt numbering sequence, WhatsApp receipt send, partial refund amounts, Stripe/payment-terminal integration, and practitioner expense recognition for processor fees.
 
 14. Treatment plans
    - Altegio source: client history and service packages.

@@ -5,7 +5,10 @@ export const CLIENT_BALANCE_BILLABLE_APPOINTMENT_STATUSES = ['ARRIVED', 'COMPLET
 export type ClientBalanceStatus = 'CLEAR' | 'DEBT' | 'CREDIT'
 
 export type ClientBalancePayment = {
+  id?: string | null
   amountCents: number
+  discountCents?: number | null
+  feeCents?: number | null
   currency?: string | null
   status: string
   reference?: string | null
@@ -36,6 +39,7 @@ type AppointmentForBalance = {
   status: string
   procedure?: { basePriceCents: number; currency?: string | null } | null
   visits?: Array<{ payments?: ClientBalancePayment[] }>
+  payments?: ClientBalancePayment[]
 }
 
 function positiveCents(value: number) {
@@ -50,10 +54,14 @@ function paymentTotals(payments: ClientBalancePayment[]) {
   let paidCents = 0
   let refundedCents = 0
   let pendingCents = 0
+  let discountCents = 0
+  let feeCents = 0
   let lastPaymentAt: string | null = null
 
   for (const payment of payments) {
     const amountCents = positiveCents(payment.amountCents)
+    discountCents += positiveCents(payment.discountCents ?? 0)
+    feeCents += positiveCents(payment.feeCents ?? 0)
     const status = payment.status.toUpperCase()
 
     if (status === 'PAID') paidCents += amountCents
@@ -69,7 +77,7 @@ function paymentTotals(payments: ClientBalancePayment[]) {
     }
   }
 
-  return { paidCents, refundedCents, pendingCents, lastPaymentAt }
+  return { paidCents, refundedCents, pendingCents, discountCents, feeCents, lastPaymentAt }
 }
 
 export function buildClientBalanceSummary({
@@ -94,18 +102,19 @@ export function buildClientBalanceSummary({
     const chargeExpectedCents = positiveCents(charge.expectedCents)
     const payments = charge.payments ?? []
     const totals = paymentTotals(payments)
+    const adjustedExpectedCents = Math.max(chargeExpectedCents - totals.discountCents + totals.feeCents, 0)
     const chargeCurrency =
       normalizeCurrency(charge.currency) ?? normalizeCurrency(payments[0]?.currency) ?? currency
 
     currency = chargeCurrency
-    expectedCents += chargeExpectedCents
+    expectedCents += adjustedExpectedCents
     paidCents += totals.paidCents
     refundedCents += totals.refundedCents
     pendingCents += totals.pendingCents
 
     const netPaidCents = totals.paidCents - totals.refundedCents
-    grossDueCents += Math.max(chargeExpectedCents - netPaidCents, totals.pendingCents)
-    rawCreditCents += Math.max(netPaidCents - chargeExpectedCents, 0)
+    grossDueCents += Math.max(adjustedExpectedCents - netPaidCents, totals.pendingCents)
+    rawCreditCents += Math.max(netPaidCents - adjustedExpectedCents, 0)
 
     if (totals.lastPaymentAt && (!lastPaymentAt || totals.lastPaymentAt > lastPaymentAt)) {
       lastPaymentAt = totals.lastPaymentAt
@@ -160,6 +169,19 @@ export function buildClientBalanceChargesFromAppointments(
     .map((appointment) => ({
       expectedCents: appointment.procedure?.basePriceCents ?? 0,
       currency: appointment.procedure?.currency ?? null,
-      payments: appointment.visits?.flatMap((visit) => visit.payments ?? []) ?? [],
+      payments: dedupePayments([
+        ...(appointment.visits?.flatMap((visit) => visit.payments ?? []) ?? []),
+        ...(appointment.payments ?? []),
+      ]),
     }))
+}
+
+function dedupePayments(payments: ClientBalancePayment[]) {
+  const seen = new Set<string>()
+  return payments.filter((payment) => {
+    if (!payment.id) return true
+    if (seen.has(payment.id)) return false
+    seen.add(payment.id)
+    return true
+  })
 }

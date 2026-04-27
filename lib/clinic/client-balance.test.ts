@@ -99,4 +99,28 @@ describe('clinic client balance', () => {
     expect(charges).toHaveLength(2)
     expect(charges.map((charge) => charge.expectedCents)).toEqual([20000, 15000])
   })
+
+  it('applies payment discounts and fees to the expected charge', () => {
+    const summary = buildClientBalanceSummary({
+      charges: [
+        {
+          expectedCents: 50000,
+          currency: 'AED',
+          payments: [
+            {
+              amountCents: 46000,
+              currency: 'AED',
+              status: 'PAID',
+              discountCents: 5000,
+              feeCents: 1000,
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(summary.expectedCents).toBe(46000)
+    expect(summary.dueCents).toBe(0)
+    expect(summary.status).toBe('CLEAR')
+  })
 })

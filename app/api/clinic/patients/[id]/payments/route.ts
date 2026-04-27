@@ -52,6 +52,14 @@ export async function POST(
   if (!Number.isInteger(amountCents) || amountCents <= 0) {
     return NextResponse.json({ error: 'amountCents must be a positive integer' }, { status: 400 })
   }
+  const discountCents = Number(body.discountCents ?? 0)
+  if (!Number.isInteger(discountCents) || discountCents < 0) {
+    return NextResponse.json({ error: 'discountCents must be a non-negative integer' }, { status: 400 })
+  }
+  const feeCents = Number(body.feeCents ?? 0)
+  if (!Number.isInteger(feeCents) || feeCents < 0) {
+    return NextResponse.json({ error: 'feeCents must be a non-negative integer' }, { status: 400 })
+  }
 
   const currency = body.currency != null ? String(body.currency).trim().toUpperCase() || 'AED' : 'AED'
   const method = parseMethod(String(body.method ?? 'OTHER')) ?? ClinicPaymentMethod.OTHER
@@ -67,8 +75,12 @@ export async function POST(
   const note = body.note != null ? String(body.note).trim() || null : null
   const visitId =
     body.visitId != null && String(body.visitId).trim() ? String(body.visitId).trim() : null
+  const requestedAppointmentId =
+    body.appointmentId != null && String(body.appointmentId).trim()
+      ? String(body.appointmentId).trim()
+      : null
 
-  let appointmentId: string | null = null
+  let appointmentId: string | null = requestedAppointmentId
   if (visitId) {
     const visit = await prisma.clinicVisit.findFirst({
       where: { id: visitId, patientId, tenantId: session.tenantId },
@@ -77,7 +89,17 @@ export async function POST(
     if (!visit) {
       return NextResponse.json({ error: 'Visit not found for this patient' }, { status: 400 })
     }
-    appointmentId = visit.appointmentId
+    appointmentId = appointmentId ?? visit.appointmentId
+  }
+
+  if (appointmentId) {
+    const appointment = await prisma.clinicAppointment.findFirst({
+      where: { id: appointmentId, patientId, tenantId: session.tenantId },
+      select: { id: true },
+    })
+    if (!appointment) {
+      return NextResponse.json({ error: 'Appointment not found for this patient' }, { status: 400 })
+    }
   }
 
   const payment = await prisma.$transaction(async (tx) => {
@@ -86,7 +108,10 @@ export async function POST(
         tenantId: session.tenantId,
         patientId,
         visitId,
+        appointmentId,
         amountCents,
+        discountCents,
+        feeCents,
         currency,
         method,
         status,
@@ -98,6 +123,8 @@ export async function POST(
       select: {
         id: true,
         amountCents: true,
+        discountCents: true,
+        feeCents: true,
         currency: true,
         method: true,
         status: true,
@@ -105,6 +132,7 @@ export async function POST(
         note: true,
         paidAt: true,
         visitId: true,
+        appointmentId: true,
         createdAt: true,
       },
     })
@@ -114,7 +142,7 @@ export async function POST(
         appointmentId,
         type: ClinicAppointmentEventType.PAYMENT_RECORDED,
         message: `Payment recorded: ${(amountCents / 100).toFixed(2)} ${currency}`,
-        after: { paymentId: payment.id, amountCents, currency, status },
+        after: { paymentId: payment.id, amountCents, discountCents, feeCents, currency, status },
         createdByUserId: session.userId,
       })
     }

@@ -81,7 +81,10 @@ export async function GET(request: NextRequest) {
             select: {
               payments: {
                 select: {
+                  id: true,
                   amountCents: true,
+                  discountCents: true,
+                  feeCents: true,
                   currency: true,
                   status: true,
                   reference: true,
@@ -90,12 +93,27 @@ export async function GET(request: NextRequest) {
               },
             },
           },
+          payments: {
+            select: {
+              id: true,
+              amountCents: true,
+              discountCents: true,
+              feeCents: true,
+              currency: true,
+              status: true,
+              reference: true,
+              paidAt: true,
+            },
+          },
         },
       },
       payments: {
-        where: { visitId: null },
+        where: { visitId: null, appointmentId: null },
         select: {
+          id: true,
           amountCents: true,
+          discountCents: true,
+          feeCents: true,
           currency: true,
           status: true,
           reference: true,

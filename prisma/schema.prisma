@@ -898,6 +898,7 @@ model ClinicAppointment {
   reviews   ClinicPatientReview[]
   packageRedemptions ClinicPackageRedemption[]
   consentRecords ClinicConsentRecord[]
+  payments ClinicPatientPayment[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1123,7 +1124,10 @@ model ClinicPatientPayment {
   tenantId        String
   patientId       String
   visitId         String?
+  appointmentId   String?
   amountCents     Int
+  discountCents   Int                 @default(0)
+  feeCents        Int                 @default(0)
   currency        String              @default("AED")
   method          ClinicPaymentMethod @default(OTHER)
   status          ClinicPaymentStatus @default(PAID)
@@ -1136,8 +1140,10 @@ model ClinicPatientPayment {
   tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
   visit   ClinicVisit?  @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  appointment ClinicAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, patientId, paidAt])
+  @@index([appointmentId, paidAt])
   @@map("clinic_patient_payments")
 }
 

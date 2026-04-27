@@ -386,6 +386,25 @@
 
 ---
 
+## Chunk 23 — 2026-04-27 (inline payments and receipts)
+
+**Shipped**
+
+- **Schema:** `ClinicPatientPayment` now supports optional `appointmentId`, `discountCents`, and `feeCents` in addition to existing visit links.
+- **Balance math:** client balance includes appointment-linked payments, deduplicates visit+appointment linked rows, reduces expected charge by discounts, and increases expected charge by patient-facing fees.
+- **API:** payment creation accepts appointment links, discounts, fees, method/status/reference/note; `PATCH /api/clinic/patients/[id]/payments/[paymentId]` marks payments refunded or void; `GET .../receipt` exports a receipt PDF.
+- **UI:** appointment drawer payment snapshot now records payment inline, shows payment history, downloads receipts, and exposes refund/void actions.
+- **i18n/Knowledge Base:** EN/RU strings and a Knowledge Base article for closing visits with payment and receipt.
+- **Lib:** `lib/clinic/payment-receipt-pdf.ts` builds patient-safe receipt PDFs.
+
+**Validation**
+
+- Added Vitest coverage for receipt PDF generation and discount/fee balance math.
+- Run `npm run db:generate`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

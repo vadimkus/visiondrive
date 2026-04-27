@@ -185,6 +185,19 @@ const articlesEn: Article[] = [
     link: '/clinic/patients',
   },
   {
+    id: 'inline-payments-receipts',
+    category: 'Finance',
+    title: 'Close the visit with payment and receipt',
+    summary: 'Record payment, discount, fee, method, refund/void status, and receipt from the appointment drawer.',
+    steps: [
+      'Open Appointments and select the patient appointment.',
+      'Use the Payment snapshot section to enter the amount, method, discount, fee, status, reference, and note.',
+      'Save the payment before leaving the drawer so the client balance updates immediately.',
+      'Use Receipt to download a patient-safe PDF, or Refund/Void when the payment should no longer count as paid.',
+    ],
+    link: '/clinic/appointments',
+  },
+  {
     id: 'consent-contraindication-forms',
     category: 'Patients',
     title: 'Capture consent and contraindications before treatment',
@@ -357,6 +370,19 @@ const articlesRu: Article[] = [
       'Проверяйте остаток и предупреждение об одном оставшемся сеансе перед следующей записью.',
     ],
     link: '/clinic/patients',
+  },
+  {
+    id: 'inline-payments-receipts',
+    category: 'Финансы',
+    title: 'Закрывайте визит оплатой и чеком',
+    summary: 'Записывайте оплату, скидку, комиссию, метод, возврат/аннулирование и чек из карточки записи.',
+    steps: [
+      'Откройте Записи и выберите нужную запись пациента.',
+      'В блоке оплаты внесите сумму, метод, скидку, комиссию, статус, референс и заметку.',
+      'Сохраните оплату до выхода из карточки, чтобы баланс клиента обновился сразу.',
+      'Используйте Чек для PDF, либо Возврат/Аннулировать, если оплата не должна считаться оплаченной.',
+    ],
+    link: '/clinic/appointments',
   },
   {
     id: 'consent-contraindication-forms',

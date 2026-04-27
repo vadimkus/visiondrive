@@ -21,10 +21,16 @@ type AppointmentStatus =
 type Payment = {
   id: string
   amountCents: number
+  discountCents: number
+  feeCents: number
   currency: string
   method: string
   status: string
+  reference: string | null
+  note: string | null
   paidAt: string
+  visitId: string | null
+  appointmentId: string | null
 }
 
 type ClientBalance = {
@@ -85,6 +91,7 @@ type Appointment = {
     currency: string
   } | null
   visits: Visit[]
+  payments: Payment[]
   events: {
     id: string
     type: string
@@ -123,6 +130,11 @@ type Appointment = {
 
 function money(cents: number, currency = 'AED') {
   return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+function parseMajorToCents(value: string) {
+  const major = Number.parseFloat(value || '0')
+  return Number.isFinite(major) ? Math.round(major * 100) : NaN
 }
 
 function balanceLabel(t: ClinicStrings, balance: ClientBalance) {
@@ -196,6 +208,13 @@ export function ClinicAppointmentDrawer({
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [paymentAmount, setPaymentAmount] = useState('')
+  const [paymentDiscount, setPaymentDiscount] = useState('')
+  const [paymentFee, setPaymentFee] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('CARD')
+  const [paymentStatus, setPaymentStatus] = useState('PAID')
+  const [paymentReference, setPaymentReference] = useState('')
+  const [paymentNote, setPaymentNote] = useState('')
 
   const load = useCallback(async () => {
     if (!appointmentId) return
@@ -226,20 +245,109 @@ export function ClinicAppointmentDrawer({
   }, [appointmentId, load])
 
   const payment = useMemo(() => {
-    const payments = appointment?.visits.flatMap((visit) => visit.payments) ?? []
+    const seen = new Set<string>()
+    const payments = [
+      ...(appointment?.visits.flatMap((visit) => visit.payments) ?? []),
+      ...(appointment?.payments ?? []),
+    ].filter((item) => {
+      if (seen.has(item.id)) return false
+      seen.add(item.id)
+      return true
+    })
     const paid = payments
       .filter((p) => p.status === 'PAID')
       .reduce((sum, p) => sum + p.amountCents, 0)
     const refunded = payments
       .filter((p) => p.status === 'REFUNDED')
       .reduce((sum, p) => sum + p.amountCents, 0)
-    const expected = appointment?.procedure?.basePriceCents ?? 0
+    const discount = payments.reduce((sum, p) => sum + (p.discountCents || 0), 0)
+    const fee = payments.reduce((sum, p) => sum + (p.feeCents || 0), 0)
+    const expected = Math.max((appointment?.procedure?.basePriceCents ?? 0) - discount + fee, 0)
     return {
       paid: paid - refunded,
       due: Math.max(0, expected - (paid - refunded)),
       currency: appointment?.procedure?.currency || payments[0]?.currency || 'AED',
+      payments,
     }
   }, [appointment])
+
+  async function recordPayment(e: React.FormEvent) {
+    e.preventDefault()
+    if (!appointment) return
+    const amountCents = parseMajorToCents(paymentAmount)
+    const discountCents = parseMajorToCents(paymentDiscount)
+    const feeCents = parseMajorToCents(paymentFee)
+    if (!Number.isInteger(amountCents) || amountCents <= 0) {
+      setError(t.enterValidAmount)
+      return
+    }
+    if (!Number.isInteger(discountCents) || discountCents < 0 || !Number.isInteger(feeCents) || feeCents < 0) {
+      setError(t.enterValidAmount)
+      return
+    }
+
+    setBusy('record_payment')
+    setError('')
+    setNotice('')
+    try {
+      const res = await fetch(`/api/clinic/patients/${appointment.patient.id}/payments`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointmentId: appointment.id,
+          visitId: appointment.visits[0]?.id ?? null,
+          amountCents,
+          discountCents,
+          feeCents,
+          currency: appointment.procedure?.currency ?? 'AED',
+          method: paymentMethod,
+          status: paymentStatus,
+          reference: paymentReference.trim() || null,
+          note: paymentNote.trim() || null,
+          paidAt: new Date().toISOString(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || t.saveFailed)
+      setPaymentAmount('')
+      setPaymentDiscount('')
+      setPaymentFee('')
+      setPaymentReference('')
+      setPaymentNote('')
+      setNotice(t.paymentRecorded)
+      await load()
+      onChanged()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.saveFailed)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function updatePaymentStatus(paymentId: string, status: 'REFUNDED' | 'VOID') {
+    if (!appointment) return
+    setBusy(`${status}_${paymentId}`)
+    setError('')
+    setNotice('')
+    try {
+      const res = await fetch(`/api/clinic/patients/${appointment.patient.id}/payments/${paymentId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || t.saveFailed)
+      setNotice(status === 'REFUNDED' ? t.paymentRefunded : t.paymentVoided)
+      await load()
+      onChanged()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.saveFailed)
+    } finally {
+      setBusy(null)
+    }
+  }
 
   async function patchStatus(status: AppointmentStatus) {
     if (!appointmentId) return
@@ -491,6 +599,146 @@ export function ClinicAppointmentDrawer({
                     {t.balanceRefunded}: {money(appointment.clientBalance.refundedCents, appointment.clientBalance.currency)}
                   </p>
                 </div>
+                <form onSubmit={recordPayment} className="mt-4 space-y-3 rounded-2xl bg-gray-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t.recordInlinePayment}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="text-xs text-gray-600">
+                      {t.amountAed}
+                      <input
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        inputMode="decimal"
+                        placeholder={(payment.due / 100).toFixed(2)}
+                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                      />
+                    </label>
+                    <label className="text-xs text-gray-600">
+                      {t.paymentMethod}
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-base"
+                      >
+                        <option value="CARD">{t.payMethodCard}</option>
+                        <option value="CASH">{t.payMethodCash}</option>
+                        <option value="TRANSFER">{t.payMethodTransfer}</option>
+                        <option value="POS">{t.payMethodPos}</option>
+                        <option value="OTHER">{t.payMethodOther}</option>
+                      </select>
+                    </label>
+                    <label className="text-xs text-gray-600">
+                      {t.paymentDiscount}
+                      <input
+                        value={paymentDiscount}
+                        onChange={(e) => setPaymentDiscount(e.target.value)}
+                        inputMode="decimal"
+                        placeholder="0"
+                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                      />
+                    </label>
+                    <label className="text-xs text-gray-600">
+                      {t.paymentFee}
+                      <input
+                        value={paymentFee}
+                        onChange={(e) => setPaymentFee(e.target.value)}
+                        inputMode="decimal"
+                        placeholder="0"
+                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                      />
+                    </label>
+                    <label className="text-xs text-gray-600">
+                      {t.paymentStatusLabel}
+                      <select
+                        value={paymentStatus}
+                        onChange={(e) => setPaymentStatus(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-base"
+                      >
+                        <option value="PAID">{t.payStatusPaid}</option>
+                        <option value="PENDING">{t.payStatusPending}</option>
+                      </select>
+                    </label>
+                    <label className="text-xs text-gray-600">
+                      {t.paymentReference}
+                      <input
+                        value={paymentReference}
+                        onChange={(e) => setPaymentReference(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                      />
+                    </label>
+                  </div>
+                  <label className="block text-xs text-gray-600">
+                    {t.note}
+                    <input
+                      value={paymentNote}
+                      onChange={(e) => setPaymentNote(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={busy === 'record_payment'}
+                    className="min-h-11 w-full rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                  >
+                    {busy === 'record_payment' ? t.savingEllipsis : t.savePayment}
+                  </button>
+                </form>
+                {payment.payments.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      {t.paymentHistory}
+                    </p>
+                    {payment.payments.slice(0, 5).map((item) => (
+                      <div key={item.id} className="rounded-xl border border-gray-100 bg-white p-3 text-xs text-gray-600">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {money(item.amountCents, item.currency)} · {item.status}
+                            </p>
+                            <p>
+                              {item.method} · {new Date(item.paidAt).toLocaleDateString(dateLocale)}
+                            </p>
+                            {(item.discountCents > 0 || item.feeCents > 0) && (
+                              <p>
+                                {t.paymentDiscount}: {money(item.discountCents, item.currency)} · {t.paymentFee}:{' '}
+                                {money(item.feeCents, item.currency)}
+                              </p>
+                            )}
+                          </div>
+                          <a
+                            href={`/api/clinic/patients/${appointment.patient.id}/payments/${item.id}/receipt`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-orange-600"
+                          >
+                            {t.receipt}
+                          </a>
+                        </div>
+                        {item.status === 'PAID' && (
+                          <div className="mt-2 flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => updatePaymentStatus(item.id, 'REFUNDED')}
+                              disabled={busy === `REFUNDED_${item.id}`}
+                              className="rounded-lg border border-gray-200 px-2 py-1 font-semibold text-gray-700 disabled:opacity-60"
+                            >
+                              {t.refundPayment}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updatePaymentStatus(item.id, 'VOID')}
+                              disabled={busy === `VOID_${item.id}`}
+                              className="rounded-lg border border-gray-200 px-2 py-1 font-semibold text-gray-700 disabled:opacity-60"
+                            >
+                              {t.voidPayment}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section className="rounded-2xl border border-gray-200 p-4">

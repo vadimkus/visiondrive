@@ -56,13 +56,28 @@ export async function GET(
             select: {
               payments: {
                 select: {
+                  id: true,
                   amountCents: true,
+                  discountCents: true,
+                  feeCents: true,
                   currency: true,
                   status: true,
                   reference: true,
                   paidAt: true,
                 },
               },
+            },
+          },
+          payments: {
+            select: {
+              id: true,
+              amountCents: true,
+              discountCents: true,
+              feeCents: true,
+              currency: true,
+              status: true,
+              reference: true,
+              paidAt: true,
             },
           },
         },
@@ -116,6 +131,8 @@ export async function GET(
         select: {
           id: true,
           amountCents: true,
+          discountCents: true,
+          feeCents: true,
           currency: true,
           method: true,
           status: true,
@@ -123,6 +140,7 @@ export async function GET(
           note: true,
           paidAt: true,
           visitId: true,
+          appointmentId: true,
           createdAt: true,
         },
       },
@@ -146,7 +164,9 @@ export async function GET(
 
   const clientBalance = buildClientBalanceSummary({
     charges: buildClientBalanceChargesFromAppointments(patient.appointments),
-    standalonePayments: patient.payments.filter((payment) => payment.visitId === null),
+    standalonePayments: patient.payments.filter(
+      (payment) => payment.visitId === null && payment.appointmentId === null
+    ),
   })
 
   return NextResponse.json({
