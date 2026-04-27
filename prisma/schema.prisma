@@ -903,6 +903,8 @@ model ClinicAvailabilityRule {
   dayOfWeek           Int
   startMinutes        Int
   endMinutes          Int
+  /// FIXED = fixed slot interval; DYNAMIC = step by selected service duration + buffer.
+  slotMode            String   @default("FIXED")
   slotIntervalMinutes Int      @default(30)
   minLeadMinutes      Int      @default(120)
   active              Boolean  @default(true)

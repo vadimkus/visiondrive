@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ClinicAppointmentEventType, ClinicAppointmentStatus } from '@prisma/client'
+import {
+  ClinicAppointmentEventType,
+  ClinicAppointmentStatus,
+  ClinicReminderKind,
+  ClinicReminderStatus,
+} from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
 import {
@@ -26,6 +31,12 @@ function parseStatus(v: string): ClinicAppointmentStatus | null {
   ]
   return allowed.includes(u as ClinicAppointmentStatus) ? (u as ClinicAppointmentStatus) : null
 }
+
+const UPCOMING_APPOINTMENT_STATUSES = [
+  ClinicAppointmentStatus.SCHEDULED,
+  ClinicAppointmentStatus.CONFIRMED,
+  ClinicAppointmentStatus.ARRIVED,
+]
 
 export async function GET(
   request: NextRequest,
@@ -110,7 +121,39 @@ export async function GET(
     take: 10,
   })
 
-  return NextResponse.json({ appointment: { ...appointment, reminderDeliveries } })
+  const nextAppointment = await prisma.clinicAppointment.findFirst({
+    where: {
+      tenantId: session.tenantId,
+      patientId: appointment.patientId,
+      id: { not: id },
+      startsAt: { gt: new Date() },
+      status: { in: UPCOMING_APPOINTMENT_STATUSES },
+    },
+    select: {
+      id: true,
+      startsAt: true,
+      procedure: { select: { name: true } },
+      titleOverride: true,
+    },
+    orderBy: { startsAt: 'asc' },
+  })
+
+  const rebookingReminderScheduled = reminderDeliveries.some(
+    (delivery) =>
+      delivery.kind === ClinicReminderKind.REBOOKING_FOLLOW_UP &&
+      delivery.status === ClinicReminderStatus.SCHEDULED
+  )
+
+  return NextResponse.json({
+    appointment: {
+      ...appointment,
+      reminderDeliveries,
+      followUpAutomation: {
+        nextAppointment,
+        rebookingReminderScheduled,
+      },
+    },
+  })
 }
 
 export async function PATCH(

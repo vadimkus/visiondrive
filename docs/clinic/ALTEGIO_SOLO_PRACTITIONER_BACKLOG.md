@@ -33,17 +33,18 @@ Goal: adapt the useful parts of a mature salon/clinic platform for a solo/home p
    - Next improvements: custom booking slug/token, intake questions per service, staff approval workflow, client reschedule/cancel link.
 
 5. Availability rules
-   - Status: shipped second pass (working hours, minimum lead time, fixed slot interval, blocked time, slot preview, service-specific availability overrides).
+   - Status: shipped third pass (working hours, minimum lead time, fixed/dynamic slot modes, blocked time, slot preview, service-specific availability overrides).
    - Adapt from Altegio: fixed/optimal/dynamic slots.
    - Solo version: working hours, minimum lead time, booking interval, disabled days, manually hidden slots.
-   - Next improvements: dynamic/optimal slot packing, exception calendar templates, availability analytics.
+   - Next improvements: exception calendar templates, availability analytics.
 
 ## Priority 2 — Patient Retention and Revenue
 
 6. Follow-up automation
-   - Status: quick follow-up shortcuts started.
+   - Status: shipped first pass.
    - Adapt from Altegio: repeat booking, repeat visit invitations.
-   - Solo version: after completion, suggest 2/4/6/8 week rebooking; send rebook reminder if no future appointment.
+   - Solo version: after completion, suggest 2/4/6/8 week repeat booking; schedule WhatsApp rebook reminders only when no future appointment exists.
+   - Shipped: appointment drawer Follow-up automation panel, 2/4/6/8 week repeat booking shortcuts, scheduled rebooking nudges, and runner-time skip when a future appointment is later booked.
 
 7. Reviews and reputation
    - Status: not built.

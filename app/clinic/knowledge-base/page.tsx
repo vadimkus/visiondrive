@@ -138,6 +138,8 @@ const articlesEn: Article[] = [
     steps: [
       'Open Reminders to adjust WhatsApp templates for reminders, no-shows, and rebooking.',
       'Open an appointment drawer to send now or schedule a 24h reminder.',
+      'After completing a visit, create a 2/4/6/8 week repeat booking from Follow-up automation.',
+      'If the patient has no future appointment, schedule a rebooking nudge for the same 2/4/6/8 week windows.',
       'Use No-show follow-up when a client misses the appointment.',
       'Check the delivery log and appointment history to see what was prepared.',
     ],
@@ -258,6 +260,8 @@ const articlesRu: Article[] = [
     steps: [
       'Откройте Напоминания, чтобы настроить шаблоны WhatsApp.',
       'Откройте карточку записи, чтобы отправить сейчас или запланировать за 24 часа.',
+      'После завершения визита создайте повтор через 2/4/6/8 недель в блоке автоматизации повторов.',
+      'Если будущей записи нет, запланируйте WhatsApp-напоминание о повторной записи на те же 2/4/6/8 недель.',
       'Используйте сообщение после неявки, если клиент пропустил запись.',
       'Проверяйте журнал отправок и историю записи.',
     ],

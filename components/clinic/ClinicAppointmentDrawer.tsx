@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { X } from 'lucide-react'
 import clsx from 'clsx'
+import { FOLLOW_UP_WEEK_OPTIONS } from '@/lib/clinic/follow-up'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import type { ClinicStrings } from '@/lib/clinic/strings'
 
@@ -79,6 +80,15 @@ type Appointment = {
     error: string | null
     body: string
   }[]
+  followUpAutomation: {
+    nextAppointment: {
+      id: string
+      startsAt: string
+      procedure: { name: string } | null
+      titleOverride: string | null
+    } | null
+    rebookingReminderScheduled: boolean
+  }
 }
 
 function money(cents: number, currency = 'AED') {
@@ -125,6 +135,7 @@ export function ClinicAppointmentDrawer({
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
 
   const load = useCallback(async () => {
     if (!appointmentId) return
@@ -147,8 +158,10 @@ export function ClinicAppointmentDrawer({
   useEffect(() => {
     if (!appointmentId) {
       setAppointment(null)
+      setNotice('')
       return
     }
+    setNotice('')
     void load()
   }, [appointmentId, load])
 
@@ -172,6 +185,7 @@ export function ClinicAppointmentDrawer({
     if (!appointmentId) return
     setBusy(status)
     setError('')
+    setNotice('')
     try {
       const res = await fetch(`/api/clinic/appointments/${appointmentId}`, {
         method: 'PATCH',
@@ -194,6 +208,7 @@ export function ClinicAppointmentDrawer({
     if (!appointmentId) return
     setBusy(action)
     setError('')
+    setNotice('')
     try {
       const res = await fetch(`/api/clinic/appointments/${appointmentId}/actions`, {
         method: 'POST',
@@ -209,6 +224,17 @@ export function ClinicAppointmentDrawer({
         }
         if (data.whatsappUrl && typeof window !== 'undefined') {
           window.open(data.whatsappUrl, '_blank', 'noopener,noreferrer')
+        }
+      }
+      if (action === 'schedule_rebooking_follow_up') {
+        if (data.skipped && data.futureAppointment) {
+          const nextAt = new Date(data.futureAppointment.startsAt).toLocaleString(dateLocale, {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          })
+          setNotice(`${t.nextAppointmentAlreadyScheduled} ${nextAt}`)
+        } else {
+          setNotice(t.rebookingReminderScheduled)
         }
       }
       await load()
@@ -255,6 +281,7 @@ export function ClinicAppointmentDrawer({
         <div className="space-y-4 p-4">
           {loading && <p className="text-sm text-gray-500">{t.loading}</p>}
           {error && <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+          {notice && <div className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</div>}
 
           {appointment && (
             <>
@@ -374,15 +401,6 @@ export function ClinicAppointmentDrawer({
                   <ActionButton busy={busy === 'no_show_follow_up'} onClick={() => runAction('no_show_follow_up')}>
                     {t.noShowFollowUp}
                   </ActionButton>
-                  {[2, 4, 6, 8].map((weeks) => (
-                    <ActionButton
-                      key={weeks}
-                      busy={busy === 'create_follow_up'}
-                      onClick={() => runAction('create_follow_up', { weeks })}
-                    >
-                      +{weeks}w
-                    </ActionButton>
-                  ))}
                 </div>
                 {appointment.reminderDeliveries.length > 0 && (
                   <div className="mt-4 space-y-2">
@@ -402,6 +420,68 @@ export function ClinicAppointmentDrawer({
                     ))}
                   </div>
                 )}
+              </section>
+
+              <section className="rounded-2xl border border-gray-200 p-4">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 className="text-sm font-semibold text-gray-900">{t.followUpAutomation}</h3>
+                  {appointment.followUpAutomation.rebookingReminderScheduled && (
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+                      {t.rebookingReminderScheduled}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 text-xs text-gray-500">{t.rebookingReminderHint}</p>
+                {appointment.followUpAutomation.nextAppointment ? (
+                  <p className="mt-3 rounded-xl bg-blue-50 p-3 text-sm text-blue-800">
+                    {t.nextAppointmentAlreadyScheduled}{' '}
+                    {new Date(appointment.followUpAutomation.nextAppointment.startsAt).toLocaleString(dateLocale, {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })}
+                  </p>
+                ) : (
+                  <p className="mt-3 text-sm text-gray-600">{t.noFutureAppointmentForRebooking}</p>
+                )}
+
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      {t.repeatBooking}
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      {FOLLOW_UP_WEEK_OPTIONS.map((weeks) => (
+                        <ActionButton
+                          key={weeks}
+                          busy={busy === 'create_follow_up'}
+                          onClick={() => runAction('create_follow_up', { weeks })}
+                        >
+                          +{weeks}w
+                        </ActionButton>
+                      ))}
+                    </div>
+                  </div>
+
+                  {!appointment.followUpAutomation.nextAppointment &&
+                  !appointment.followUpAutomation.rebookingReminderScheduled ? (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        {t.rebookingReminder}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {FOLLOW_UP_WEEK_OPTIONS.map((weeks) => (
+                          <ActionButton
+                            key={weeks}
+                            busy={busy === 'schedule_rebooking_follow_up'}
+                            onClick={() => runAction('schedule_rebooking_follow_up', { weeks })}
+                          >
+                            +{weeks}w
+                          </ActionButton>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </section>
 
               <section className="rounded-2xl border border-gray-200 p-4">

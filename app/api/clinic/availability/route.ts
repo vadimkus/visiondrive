@@ -82,6 +82,7 @@ export async function PATCH(request: NextRequest) {
           dayOfWeek: rule.dayOfWeek,
           startMinutes: rule.startMinutes,
           endMinutes: rule.endMinutes,
+          slotMode: rule.slotMode ?? 'FIXED',
           slotIntervalMinutes: rule.slotIntervalMinutes ?? 30,
           minLeadMinutes: rule.minLeadMinutes ?? 120,
           active: rule.active !== false,

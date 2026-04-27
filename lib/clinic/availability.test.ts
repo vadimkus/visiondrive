@@ -12,14 +12,48 @@ describe('availability helpers', () => {
       dayOfWeek: 9,
       startMinutes: 20 * 60,
       endMinutes: 18 * 60,
+      slotMode: 'WRONG',
       slotIntervalMinutes: 1,
       minLeadMinutes: -10,
     })
 
     expect(rule.dayOfWeek).toBe(7)
     expect(rule.endMinutes).toBeGreaterThan(rule.startMinutes)
+    expect(rule.slotMode).toBe('FIXED')
     expect(rule.slotIntervalMinutes).toBe(5)
     expect(rule.minLeadMinutes).toBe(0)
+  })
+
+  it('generates dynamic slots by service duration plus buffer', () => {
+    const from = new Date('2026-04-27T00:00:00.000Z')
+    const to = new Date('2026-04-28T00:00:00.000Z')
+
+    const slots = generateAvailabilitySlots({
+      from,
+      to,
+      rules: [
+        {
+          dayOfWeek: 1,
+          startMinutes: 10 * 60,
+          endMinutes: 13 * 60,
+          slotMode: 'DYNAMIC',
+          slotIntervalMinutes: 15,
+          minLeadMinutes: 0,
+          active: true,
+        },
+      ],
+      appointments: [],
+      blockedTimes: [],
+      durationMinutes: 45,
+      bufferAfterMinutes: 15,
+      now: new Date('2026-04-26T00:00:00.000Z'),
+    })
+
+    expect(slots.map((slot) => slot.startsAt)).toEqual([
+      '2026-04-27T06:00:00.000Z',
+      '2026-04-27T07:00:00.000Z',
+      '2026-04-27T08:00:00.000Z',
+    ])
   })
 
   it('generates slots inside working hours', () => {

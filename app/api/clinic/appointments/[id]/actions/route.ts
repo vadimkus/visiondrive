@@ -18,6 +18,11 @@ import {
   normalizeBufferMinutes,
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
+import {
+  followUpStartsAt,
+  normalizeFollowUpWeeks,
+  rebookingReminderScheduledFor,
+} from '@/lib/clinic/follow-up'
 import { findSchedulingConflict } from '@/lib/clinic/scheduling-guard'
 import {
   DEFAULT_REMINDER_MINUTES_BEFORE,
@@ -27,6 +32,12 @@ import {
   renderReminderTemplate,
   whatsappUrl,
 } from '@/lib/clinic/reminders'
+
+const FUTURE_APPOINTMENT_STATUSES = [
+  ClinicAppointmentStatus.SCHEDULED,
+  ClinicAppointmentStatus.CONFIRMED,
+  ClinicAppointmentStatus.ARRIVED,
+]
 
 export async function POST(
   request: NextRequest,
@@ -318,9 +329,97 @@ export async function POST(
     return NextResponse.json({ visit, inventoryDeduction })
   }
 
+  if (action === 'schedule_rebooking_follow_up') {
+    const weeks = normalizeFollowUpWeeks(body.weeks, 4)
+    const now = new Date()
+    const scheduledFor = rebookingReminderScheduledFor(existing.startsAt, weeks, now)
+
+    const result = await prisma.$transaction(async (tx) => {
+      const futureAppointment = await tx.clinicAppointment.findFirst({
+        where: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          id: { not: id },
+          startsAt: { gt: now },
+          status: { in: FUTURE_APPOINTMENT_STATUSES },
+        },
+        select: {
+          id: true,
+          startsAt: true,
+          procedure: { select: { name: true } },
+          titleOverride: true,
+        },
+        orderBy: { startsAt: 'asc' },
+      })
+      if (futureAppointment) {
+        return { skipped: true as const, reason: 'future_appointment', futureAppointment }
+      }
+
+      const template = await getReminderTemplate(
+        tx,
+        session.tenantId,
+        ClinicReminderKind.REBOOKING_FOLLOW_UP
+      )
+      if (!template) return { disabled: true as const }
+
+      const existingDelivery = await tx.clinicReminderDelivery.findFirst({
+        where: {
+          tenantId: session.tenantId,
+          appointmentId: id,
+          patientId: existing.patientId,
+          kind: ClinicReminderKind.REBOOKING_FOLLOW_UP,
+          channel: ClinicReminderChannel.WHATSAPP,
+          status: ClinicReminderStatus.SCHEDULED,
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+      if (existingDelivery) {
+        return { delivery: existingDelivery, alreadyScheduled: true as const }
+      }
+
+      const text = renderReminderTemplate(template.body || '', {
+        ...existing,
+        startsAt: scheduledFor,
+      })
+      const delivery = await tx.clinicReminderDelivery.create({
+        data: {
+          tenantId: session.tenantId,
+          appointmentId: id,
+          patientId: existing.patientId,
+          kind: ClinicReminderKind.REBOOKING_FOLLOW_UP,
+          channel: ClinicReminderChannel.WHATSAPP,
+          status: ClinicReminderStatus.SCHEDULED,
+          scheduledFor,
+          body: text,
+          createdByUserId: session.userId,
+        },
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: id,
+        type: ClinicAppointmentEventType.REMINDER_SCHEDULED,
+        message: `Rebooking follow-up scheduled in ${weeks} weeks`,
+        after: {
+          kind: ClinicReminderKind.REBOOKING_FOLLOW_UP,
+          reminderDeliveryId: delivery.id,
+          scheduledFor: scheduledFor.toISOString(),
+          weeks,
+        },
+        createdByUserId: session.userId,
+      })
+      return { delivery, alreadyScheduled: false as const }
+    })
+
+    if ('disabled' in result) {
+      return NextResponse.json({ error: 'Reminder template is inactive' }, { status: 409 })
+    }
+
+    return NextResponse.json(result, { status: 'skipped' in result ? 200 : 201 })
+  }
+
   if (action === 'create_follow_up') {
-    const weeks = Math.min(52, Math.max(1, Number(body.weeks || 4)))
-    const startsAt = new Date(existing.startsAt.getTime() + weeks * 7 * 24 * 60 * 60 * 1000)
+    const weeks = normalizeFollowUpWeeks(body.weeks, 4)
+    const startsAt = followUpStartsAt(existing.startsAt, weeks)
     const endsAt = appointmentEnd(
       startsAt,
       null,

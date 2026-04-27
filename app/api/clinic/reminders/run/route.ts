@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ClinicAppointmentEventType, ClinicCrmActivityType, ClinicReminderStatus } from '@prisma/client'
+import {
+  ClinicAppointmentEventType,
+  ClinicAppointmentStatus,
+  ClinicCrmActivityType,
+  ClinicReminderKind,
+  ClinicReminderStatus,
+} from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
 import { phoneForWhatsapp, whatsappUrl } from '@/lib/clinic/reminders'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
+
+const UPCOMING_APPOINTMENT_STATUSES = [
+  ClinicAppointmentStatus.SCHEDULED,
+  ClinicAppointmentStatus.CONFIRMED,
+  ClinicAppointmentStatus.ARRIVED,
+]
 
 function authorized(request: NextRequest) {
   const session = getClinicSession(request)
@@ -28,6 +40,29 @@ async function runDueReminders(tenantId?: string | null) {
 
   const prepared: string[] = []
   for (const reminder of due) {
+    if (reminder.kind === ClinicReminderKind.REBOOKING_FOLLOW_UP && reminder.patientId) {
+      const futureAppointment = await prisma.clinicAppointment.findFirst({
+        where: {
+          tenantId: reminder.tenantId,
+          patientId: reminder.patientId,
+          ...(reminder.appointmentId ? { id: { not: reminder.appointmentId } } : {}),
+          startsAt: { gt: now },
+          status: { in: UPCOMING_APPOINTMENT_STATUSES },
+        },
+        select: { id: true },
+      })
+      if (futureAppointment) {
+        await prisma.clinicReminderDelivery.update({
+          where: { id: reminder.id },
+          data: {
+            status: ClinicReminderStatus.SKIPPED,
+            error: 'Future appointment already booked',
+          },
+        })
+        continue
+      }
+    }
+
     const appointment = reminder.appointmentId
       ? await prisma.clinicAppointment.findFirst({
           where: { id: reminder.appointmentId, tenantId: reminder.tenantId },

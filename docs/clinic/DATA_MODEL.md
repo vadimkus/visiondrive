@@ -12,7 +12,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_procedures` | Service catalog (duration, hidden buffer, price, currency). |
 | `clinic_appointments` | Scheduled slots; richer status; source; optional procedure; hidden buffer; lifecycle timestamps; **internal_notes**; optional override reason for intentional conflict/out-of-hours bookings. |
 | `clinic_appointment_events` | Appointment audit/change history for reschedules, reminders, visit actions, payments, and follow-ups. |
-| `clinic_availability_rules` | Tenant working-hours rules by weekday: start/end, slot interval, minimum lead time, active/closed day, optional `procedure_id` for service-specific overrides. |
+| `clinic_availability_rules` | Tenant working-hours rules by weekday: start/end, `slot_mode` (`FIXED`/`DYNAMIC`), slot interval, minimum lead time, active/closed day, optional `procedure_id` for service-specific overrides. |
 | `clinic_blocked_times` | Manual private time / lunch / leave blocks that remove availability slots. |
 | `clinic_reminder_templates` | Tenant WhatsApp/email/SMS templates for appointment reminders, no-show follow-up, and rebooking follow-up. |
 | `clinic_reminder_deliveries` | Reminder schedule and preparation log: status, scheduled time, body, WhatsApp URL, errors. |
@@ -39,7 +39,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/PATCH /api/clinic/appointments/[id]` — read/update one appointment, including drawer context and event history; schedule changes require override reason when they violate scheduling rules.
 - `POST /api/clinic/appointments/[id]/actions` — reminder, start/complete visit, and follow-up actions.
 - `GET/PATCH /api/clinic/availability` — read/save general and service-specific working-hour rules.
-- `GET /api/clinic/availability/slots` — generate bookable slots from working hours, service-specific overrides, blocked time, appointments, service duration, and buffers.
+- `GET /api/clinic/availability/slots` — generate bookable slots from working hours, service-specific overrides, fixed/dynamic slot mode, blocked time, appointments, service duration, and buffers.
 - `GET/POST /api/clinic/blocked-times`; `DELETE /api/clinic/blocked-times/[id]` — manual private/closed time.
 - `GET/PATCH /api/clinic/reminders/templates` — read/save reminder templates.
 - `GET /api/clinic/reminders/deliveries` — delivery/preparation log.

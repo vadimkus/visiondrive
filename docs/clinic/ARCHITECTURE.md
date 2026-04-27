@@ -14,7 +14,7 @@
 | `ClinicProcedure` | Catalog: name, duration, hidden **`bufferAfterMinutes`** (cleanup/prep/travel), base price, currency (default AED). |
 | `ClinicAppointment` | Scheduled visit intent: patient, optional procedure, start/end, status, source, hidden buffer, lifecycle timestamps, **`internalNotes`**, and optional `overrideReason` for intentional scheduling exceptions. |
 | `ClinicAppointmentEvent` | Appointment change history: create/update/reschedule/status/reminder/visit/payment/follow-up events. |
-| `ClinicAvailabilityRule` | Working-hours and booking cadence per weekday: open/closed, start/end, slot interval, minimum lead time, and optional procedure-specific overrides. |
+| `ClinicAvailabilityRule` | Working-hours and booking cadence per weekday: open/closed, start/end, fixed/dynamic slot mode, slot interval, minimum lead time, and optional procedure-specific overrides. |
 | `ClinicBlockedTime` | Manual availability removals for lunch, leave, training, private time, or supplier errands. |
 | `ClinicReminderTemplate` | Tenant-scoped WhatsApp/email/SMS template text for appointment reminders, no-show follow-ups, and rebooking nudges. |
 | `ClinicReminderDelivery` | Reminder schedule and delivery/preparation log; stores scheduled time, rendered body, WhatsApp URL, status, and errors. |
@@ -29,11 +29,11 @@
 
 Relationships: `ClinicAppointment` → `ClinicPatient`, optional → `ClinicProcedure`; **`ClinicVisit`** optionally → `ClinicAppointment`; `ClinicAppointmentEvent` → `ClinicAppointment`; media and payments optionally → **`ClinicVisit`**. Cascade deletes are tenant-safe because patient belongs to tenant.
 
-Availability: `/api/clinic/availability/slots` combines `ClinicAvailabilityRule`, `ClinicBlockedTime`, existing active appointments, service duration, and hidden buffers. General rules apply to all services; if a procedure has rules for a given day, those service-specific rules override the general day rules. It returns candidate slots only; appointment creation still goes through the conflict-safe appointment API.
+Availability: `/api/clinic/availability/slots` combines `ClinicAvailabilityRule`, `ClinicBlockedTime`, existing active appointments, service duration, and hidden buffers. General rules apply to all services; if a procedure has rules for a given day, those service-specific rules override the general day rules. `FIXED` rules step by `slotIntervalMinutes`; `DYNAMIC` rules step by selected service duration plus buffer for tighter packing. It returns candidate slots only; appointment creation still goes through the conflict-safe appointment API.
 
 Scheduling guard: appointment create/reschedule checks existing appointment occupancy, blocked time, working hours, and minimum lead time. Staff can override a violation only when `allowConflictOverride=true` and a non-empty `overrideReason` is provided; the reason is stored on the appointment and visible in the drawer.
 
-Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send WhatsApp messages. The runner prepares due messages and logs them; staff opens the generated `wa.me` link to send. Future WhatsApp Business API integration can mark deliveries as sent automatically.
+Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send WhatsApp messages. The runner prepares due messages and logs them; staff opens the generated `wa.me` link to send. Rebooking follow-up nudges can be scheduled from completed appointments and are skipped at runner time if the patient already has a future appointment. Future WhatsApp Business API integration can mark deliveries as sent automatically.
 
 Public booking: `/book/[tenant.slug]` is a private branded link, not a marketplace. It is disabled by default and controlled from the clinic dashboard using `tenant_settings.thresholds.publicBooking.enabled`. When enabled, the public API exposes active services and generated slots only; booking creation stores DOB/contact/consent as a real patient + `ONLINE` appointment and still uses the scheduling guard. No public override is allowed.
 
@@ -44,7 +44,7 @@ Public booking: `/book/[tenant.slug]` is a private branded link, not a marketpla
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`.
 - **Availability:** `GET/PATCH /api/clinic/availability`, `GET /api/clinic/availability/slots`, `GET/POST /api/clinic/blocked-times`, `DELETE .../blocked-times/[id]`.
-- **Reminders:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`; appointment actions support `send_reminder`, `schedule_reminder`, and `no_show_follow_up`.
+- **Reminders:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`; appointment actions support `send_reminder`, `schedule_reminder`, `no_show_follow_up`, and `schedule_rebooking_follow_up`.
 - **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).

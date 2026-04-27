@@ -14,6 +14,7 @@ type AvailabilityRule = {
   dayOfWeek: number
   startMinutes: number
   endMinutes: number
+  slotMode?: 'FIXED' | 'DYNAMIC'
   slotIntervalMinutes: number
   minLeadMinutes: number
   active: boolean
@@ -67,6 +68,7 @@ function defaultRows(): AvailabilityRule[] {
     dayOfWeek: i + 1,
     startMinutes: 10 * 60,
     endMinutes: 18 * 60,
+    slotMode: 'FIXED',
     slotIntervalMinutes: 30,
     minLeadMinutes: 120,
     active: i < 5,
@@ -95,6 +97,12 @@ export default function ClinicAvailabilityPage() {
     from: isRu ? 'С' : 'From',
     to: isRu ? 'До' : 'To',
     interval: isRu ? 'Интервал' : 'Interval',
+    slotMode: isRu ? 'Режим слотов' : 'Slot mode',
+    fixedSlots: isRu ? 'Фиксированный' : 'Fixed',
+    dynamicSlots: isRu ? 'Динамический' : 'Dynamic',
+    dynamicSlotsHint: isRu
+      ? 'Динамический режим строит слоты по длительности выбранной услуги плюс буфер.'
+      : 'Dynamic mode spaces slots by selected service duration plus buffer.',
     lead: isRu ? 'Мин. до записи' : 'Min lead',
     reason: isRu ? 'Причина' : 'Reason',
     reasonPlaceholder: isRu ? 'Обед, личное, обучение...' : 'Lunch, personal, training...',
@@ -195,6 +203,7 @@ export default function ClinicAvailabilityPage() {
         dayOfWeek: 1,
         startMinutes: 10 * 60,
         endMinutes: 18 * 60,
+        slotMode: 'FIXED',
         slotIntervalMinutes: 30,
         minLeadMinutes: 120,
         active: true,
@@ -351,7 +360,7 @@ export default function ClinicAvailabilityPage() {
                   dayNames[rule.dayOfWeek - 1]
                 )}
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-6 xl:grid-cols-[1.3fr_repeat(4,1fr)_auto] gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-7 xl:grid-cols-[1.3fr_repeat(5,1fr)_auto] gap-3">
                 <label className="text-sm text-gray-600">
                   <span className="block mb-1">{copy.scope}</span>
                   <select
@@ -394,16 +403,35 @@ export default function ClinicAvailabilityPage() {
                   />
                 </label>
                 <label className="text-sm text-gray-600">
+                  <span className="block mb-1">{copy.slotMode}</span>
+                  <select
+                    value={rule.slotMode ?? 'FIXED'}
+                    disabled={!rule.active}
+                    onChange={(e) =>
+                      updateRule(index, { slotMode: e.target.value as AvailabilityRule['slotMode'] })
+                    }
+                    className="w-full min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-gray-900 disabled:bg-gray-50"
+                  >
+                    <option value="FIXED">{copy.fixedSlots}</option>
+                    <option value="DYNAMIC">{copy.dynamicSlots}</option>
+                  </select>
+                </label>
+                <label className="text-sm text-gray-600">
                   <span className="block mb-1">{copy.interval}</span>
                   <input
                     type="number"
                     min={5}
                     max={240}
                     value={rule.slotIntervalMinutes}
-                    disabled={!rule.active}
+                    disabled={!rule.active || rule.slotMode === 'DYNAMIC'}
                     onChange={(e) => updateRule(index, { slotIntervalMinutes: Number(e.target.value) })}
                     className="w-full min-h-11 rounded-xl border border-gray-200 px-3 text-gray-900 disabled:bg-gray-50"
                   />
+                  {rule.slotMode === 'DYNAMIC' && (
+                    <span className="mt-1 block text-[11px] leading-snug text-gray-400">
+                      {copy.dynamicSlotsHint}
+                    </span>
+                  )}
                 </label>
                 <label className="text-sm text-gray-600">
                   <span className="block mb-1">{copy.lead}</span>

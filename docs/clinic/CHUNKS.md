@@ -253,13 +253,30 @@
 
 - **Schema:** `ClinicAvailabilityRule.procedureId` supports optional service-specific working-hour overrides.
 - **Engine:** Slot generation falls back to general rules, but uses procedure-specific rules for a day when they exist.
+- **Slot modes:** `FIXED` keeps fixed interval slots; `DYNAMIC` spaces slots by selected service duration plus buffer for tighter packing.
 - **Scheduling guard:** Manual create/edit, public booking, and follow-up creation now validate against the selected procedure's availability rules.
-- **UI:** `/clinic/appointments/availability` can add/remove service-specific rules and preview slots for a selected service.
+- **UI:** `/clinic/appointments/availability` can add/remove service-specific rules, choose fixed/dynamic slot mode, and preview slots for a selected service.
 
 **Validation**
 
-- Added focused tests for procedure-specific slot generation and scheduling guard behavior.
+- Added focused tests for procedure-specific slot generation, dynamic slot mode, and scheduling guard behavior.
 - Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
+## Chunk 16 — 2026-04-27 (follow-up automation)
+
+**Shipped**
+
+- **Drawer:** Appointment drawer now has a Follow-up automation panel with 2/4/6/8 week repeat booking shortcuts and matching rebooking reminder shortcuts.
+- **Rebooking guard:** `schedule_rebooking_follow_up` only schedules a WhatsApp nudge when the patient has no future scheduled/confirmed/arrived appointment.
+- **Runner safety:** Due rebooking reminders are skipped if the patient books a future appointment after the reminder was scheduled.
+- **Knowledge Base:** Reminder/follow-up article now explains repeat bookings and rebooking nudges in EN/RU.
+
+**Validation**
+
+- Added focused helper tests for follow-up week normalization and reminder scheduling dates.
+- No schema change in this chunk.
 
 ---
 

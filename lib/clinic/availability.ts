@@ -7,6 +7,9 @@ import type {
 import { appointmentOccupiedUntil, rangesOverlap } from './appointments'
 
 export const CLINIC_TIME_ZONE = 'Asia/Dubai'
+export const AVAILABILITY_SLOT_MODES = ['FIXED', 'DYNAMIC'] as const
+
+export type AvailabilitySlotMode = (typeof AVAILABILITY_SLOT_MODES)[number]
 
 export type AvailabilityRuleInput = {
   id?: string
@@ -14,6 +17,7 @@ export type AvailabilityRuleInput = {
   dayOfWeek: number
   startMinutes: number
   endMinutes: number
+  slotMode?: AvailabilitySlotMode | string | null
   slotIntervalMinutes?: number
   minLeadMinutes?: number
   active?: boolean
@@ -41,6 +45,7 @@ type RuleForAvailability = Pick<
   'dayOfWeek' | 'startMinutes' | 'endMinutes'
 > & {
   procedureId?: string | null
+  slotMode?: AvailabilitySlotMode | string | null
   slotIntervalMinutes?: number
   minLeadMinutes?: number
   active?: boolean
@@ -62,6 +67,7 @@ export function defaultAvailabilityRules(): AvailabilityRuleInput[] {
     procedureId: null,
     startMinutes: 10 * 60,
     endMinutes: 18 * 60,
+    slotMode: 'FIXED',
     slotIntervalMinutes: 30,
     minLeadMinutes: 120,
     active: true,
@@ -78,6 +84,7 @@ export function normalizeAvailabilityRule(input: AvailabilityRuleInput): Availab
   const dayOfWeek = Math.max(1, Math.min(7, Math.round(Number(input.dayOfWeek))))
   let startMinutes = normalizeMinutes(input.startMinutes, 10 * 60)
   let endMinutes = normalizeMinutes(input.endMinutes, 18 * 60)
+  const slotMode = input.slotMode === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED'
   const slotIntervalMinutes = Math.max(
     5,
     Math.min(240, Math.round(Number(input.slotIntervalMinutes ?? 30)))
@@ -96,11 +103,20 @@ export function normalizeAvailabilityRule(input: AvailabilityRuleInput): Availab
     dayOfWeek,
     startMinutes,
     endMinutes,
+    slotMode,
     slotIntervalMinutes,
     minLeadMinutes,
     active: input.active !== false,
     label: input.label?.trim() || null,
   }
+}
+
+export function slotStepMinutes(rule: RuleForAvailability, durationMinutes: number, bufferAfterMinutes: number) {
+  if (rule.slotMode === 'DYNAMIC') {
+    return Math.max(5, Math.min(24 * 60, durationMinutes + bufferAfterMinutes))
+  }
+
+  return rule.slotIntervalMinutes ?? 30
 }
 
 export function applicableRulesForDay(
@@ -202,10 +218,11 @@ export function generateAvailabilitySlots(params: {
 
     for (const rule of rules) {
       const earliest = new Date(now.getTime() + (rule.minLeadMinutes ?? 120) * 60 * 1000)
+      const stepMinutes = slotStepMinutes(rule, params.durationMinutes, params.bufferAfterMinutes)
       for (
         let minute = rule.startMinutes;
         minute + params.durationMinutes <= rule.endMinutes;
-        minute += rule.slotIntervalMinutes ?? 30
+        minute += stepMinutes
       ) {
         const startsAt = dateAtDubaiMinutes(dayKey, minute)
         const endsAt = new Date(startsAt.getTime() + params.durationMinutes * 60 * 1000)
