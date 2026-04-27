@@ -13,6 +13,13 @@ import { generateAvailabilitySlots, defaultAvailabilityRules } from '@/lib/clini
 import { normalizeBufferMinutes, writeAppointmentEvent } from '@/lib/clinic/appointments'
 import { findSchedulingConflict } from '@/lib/clinic/scheduling-guard'
 import {
+  intakeResponsesNote,
+  normalizeIntakeResponses,
+  parseIntakeAnswerInputs,
+  type IntakeQuestionLike,
+  type NormalizedIntakeAnswer,
+} from '@/lib/clinic/intake-fields'
+import {
   normalizePublicBookingInput,
   publicBookingNote,
   validatePublicBookingInput,
@@ -72,6 +79,18 @@ export async function GET(
       bufferAfterMinutes: true,
       basePriceCents: true,
       currency: true,
+      intakeQuestions: {
+        where: { active: true },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: {
+          id: true,
+          prompt: true,
+          helpText: true,
+          type: true,
+          required: true,
+          sortOrder: true,
+        },
+      },
     },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
   })
@@ -169,6 +188,17 @@ export async function POST(
       name: true,
       defaultDurationMin: true,
       bufferAfterMinutes: true,
+      intakeQuestions: {
+        where: { active: true },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: {
+          id: true,
+          prompt: true,
+          helpText: true,
+          type: true,
+          required: true,
+        },
+      },
     },
   })
   if (!procedure) {
@@ -177,6 +207,17 @@ export async function POST(
 
   const endsAt = new Date(startsAt.getTime() + procedure.defaultDurationMin * 60 * 1000)
   const bufferAfterMinutes = normalizeBufferMinutes(procedure.bufferAfterMinutes)
+  const intake = normalizeIntakeResponses(
+    procedure.intakeQuestions as IntakeQuestionLike[],
+    parseIntakeAnswerInputs(body.intakeAnswers)
+  )
+  if (intake.missingRequired.length > 0) {
+    return NextResponse.json(
+      { error: 'Required intake questions are missing', missingQuestionIds: intake.missingRequired.map((q) => q.id) },
+      { status: 400 }
+    )
+  }
+  const intakeNote = intakeResponsesNote(intake.responses)
 
   const result = await prisma.$transaction(async (tx) => {
     const conflict = await findSchedulingConflict(tx, {
@@ -218,13 +259,28 @@ export async function POST(
         endsAt,
         source: ClinicAppointmentSource.ONLINE,
         bufferAfterMinutes,
-        internalNotes: publicBookingNote(client),
+        internalNotes: [publicBookingNote(client), intakeNote].filter(Boolean).join('\n\n'),
       },
       include: {
         patient: { select: { firstName: true, lastName: true, phone: true } },
         procedure: { select: { name: true } },
       },
     })
+
+    if (intake.responses.length > 0) {
+      await tx.clinicIntakeResponse.createMany({
+        data: intake.responses.map((response: NormalizedIntakeAnswer) => ({
+          tenantId: tenant.id,
+          patientId: patient.id,
+          appointmentId: appointment.id,
+          procedureId: procedure.id,
+          questionId: response.questionId,
+          promptSnapshot: response.promptSnapshot,
+          typeSnapshot: response.typeSnapshot,
+          answerText: response.answerText,
+        })),
+      })
+    }
 
     await writeAppointmentEvent(tx, {
       tenantId: tenant.id,
@@ -235,6 +291,11 @@ export async function POST(
         source: ClinicAppointmentSource.ONLINE,
         consentAccepted: client.consentAccepted,
         notes: client.notes,
+        intakeAnswers: intake.responses.map((response) => ({
+          questionId: response.questionId,
+          prompt: response.promptSnapshot,
+          answer: response.answerText,
+        })),
       },
       createdByUserId: null,
     })

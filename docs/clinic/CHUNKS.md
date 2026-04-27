@@ -593,6 +593,25 @@
 
 ---
 
+## Chunk 34 — 2026-04-27 (service-specific public intake fields)
+
+**Shipped**
+
+- **Schema:** added `ClinicIntakeQuestion`, `ClinicIntakeResponse`, and `ClinicIntakeQuestionType` for procedure-specific public booking questions and appointment-linked answer snapshots.
+- **Staff controls:** procedure catalog now includes Public intake questions per service with short text, long text, and yes/no question types plus required flags.
+- **Public booking:** `/book/[slug]` displays active questions for the selected service and sends answers with the booking request.
+- **Booking safety:** public booking validates required intake answers server-side, stores answers in `clinic_intake_responses`, and adds a staff-only intake summary to appointment internal notes.
+- **i18n/Knowledge Base:** EN/RU copy and a Knowledge Base article explain how to configure and use service-specific intake questions.
+- **Docs/canvas:** Altegio backlog and canvas mark Point 23 as shipped and move the next recommendation to client import from Excel.
+
+**Validation**
+
+- Added Vitest coverage for intake question type/answer normalization, required-answer validation, and staff note generation.
+- Run `npm run db:generate`, `npm run db:push`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

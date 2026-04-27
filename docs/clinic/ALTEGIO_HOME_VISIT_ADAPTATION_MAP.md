@@ -171,8 +171,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Next improvements: public intake/consent signing, patient-uploaded photos, package renewal prompt, and WhatsApp one-time link delivery.
 
 23. Custom intake fields per service
+   - Status: shipped first pass.
    - Source: custom fields and booking step settings.
    - Solo version: service-specific questions for allergies, contraindications, pregnancy, recent procedures, photos, address/access notes.
+   - Shipped: procedure catalog now supports public intake questions per service with short text, long text, yes/no types, required flags, and public booking answer capture. Answers are snapshotted to appointment-linked intake responses and appended to staff-only appointment notes.
+   - Next improvements: patient-uploaded pre-visit photos, public consent signing, reusable question presets, and portal-based pre-visit update links.
 
 24. Client import from Excel
    - Source: client import.
@@ -316,13 +319,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Service-specific public intake fields.
-2. Client import from Excel.
+1. Client import from Excel.
+2. Product import from Excel.
 3. Data export/deletion tools.
 4. Booking source/UTM attribution and abandoned-booking follow-up.
 5. Patient-uploaded photos through the portal.
 
 ## Recommendation
 
-The next point should be service-specific public intake fields. Patient portal lite now reduces admin messages; the remaining gap is collecting the right contraindication/address/access questions before each service without making every patient answer the same generic form.
+The next point should be client import from Excel. Intake fields now make new public bookings clinically useful; the next operational gap is getting an existing client book into the system without manual one-by-one entry.
 

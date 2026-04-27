@@ -26,29 +26,29 @@ enum UserStatus {
 }
 
 model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
-  passwordHash  String
-  name          String?
-  role          UserRole   @default(USER)
-  status        UserStatus @default(ACTIVE)
+  id              String     @id @default(cuid())
+  email           String     @unique
+  passwordHash    String
+  name            String?
+  role            UserRole   @default(USER)
+  status          UserStatus @default(ACTIVE)
   defaultTenantId String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
-  defaultTenant Tenant? @relation("DefaultTenant", fields: [defaultTenantId], references: [id])
-  memberships   TenantMembership[]
-  auditLogs     AuditLog[] @relation("AuditActor")
-  ingestFiles   IngestFile[]
-  maintenanceNotes MaintenanceNote[] @relation("MaintenanceAuthor")
-  alertsAcknowledged Alert[] @relation("AlertAcknowledgedBy")
-  alertsAssigned     Alert[] @relation("AlertAssignedTo")
-  alertEvents        AlertEvent[] @relation("AlertEventActor")
-  reportSubscriptions ReportSubscription[] @relation("ReportCreatedBy")
-  expenses Expense[] @relation("ExpenseCreatedBy")
+  defaultTenant              Tenant?                     @relation("DefaultTenant", fields: [defaultTenantId], references: [id])
+  memberships                TenantMembership[]
+  auditLogs                  AuditLog[]                  @relation("AuditActor")
+  ingestFiles                IngestFile[]
+  maintenanceNotes           MaintenanceNote[]           @relation("MaintenanceAuthor")
+  alertsAcknowledged         Alert[]                     @relation("AlertAcknowledgedBy")
+  alertsAssigned             Alert[]                     @relation("AlertAssignedTo")
+  alertEvents                AlertEvent[]                @relation("AlertEventActor")
+  reportSubscriptions        ReportSubscription[]        @relation("ReportCreatedBy")
+  expenses                   Expense[]                   @relation("ExpenseCreatedBy")
   clinicWebPushSubscriptions ClinicWebPushSubscription[]
-  clinicAppointmentEvents ClinicAppointmentEvent[] @relation("ClinicAppointmentEventActor")
-  clinicPatientPortalLinks ClinicPatientPortalLink[] @relation("ClinicPatientPortalLinkCreator")
+  clinicAppointmentEvents    ClinicAppointmentEvent[]    @relation("ClinicAppointmentEventActor")
+  clinicPatientPortalLinks   ClinicPatientPortalLink[]   @relation("ClinicPatientPortalLinkCreator")
 
   @@map("users")
 }
@@ -66,60 +66,62 @@ model Tenant {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  members   TenantMembership[]
-  usersDefaultTenant User[] @relation("DefaultTenant")
+  members            TenantMembership[]
+  usersDefaultTenant User[]             @relation("DefaultTenant")
 
-  sites     Site[]
-  zones     Zone[]
-  bays      Bay[]
-  sensors   Sensor[]
-  gateways  Gateway[]
-  sensorEvents SensorEvent[]
-  auditLogs AuditLog[]
-  ingestFiles IngestFile[]
-  ingestEvents IngestEvent[]
-  ingestDeadLetters IngestDeadLetter[]
-  replayJobs ReplayJob[]
-  settings TenantSetting?
-  maintenanceNotes MaintenanceNote[]
-  alerts Alert[]
-  alertEvents AlertEvent[]
-  reportSubscriptions ReportSubscription[]
-  reportDeliveries ReportDelivery[]
-  expenses Expense[]
-  billingEvents BillingEvent[]
+  sites                Site[]
+  zones                Zone[]
+  bays                 Bay[]
+  sensors              Sensor[]
+  gateways             Gateway[]
+  sensorEvents         SensorEvent[]
+  auditLogs            AuditLog[]
+  ingestFiles          IngestFile[]
+  ingestEvents         IngestEvent[]
+  ingestDeadLetters    IngestDeadLetter[]
+  replayJobs           ReplayJob[]
+  settings             TenantSetting?
+  maintenanceNotes     MaintenanceNote[]
+  alerts               Alert[]
+  alertEvents          AlertEvent[]
+  reportSubscriptions  ReportSubscription[]
+  reportDeliveries     ReportDelivery[]
+  expenses             Expense[]
+  billingEvents        BillingEvent[]
   billingSubscriptions BillingSubscription[]
 
-  clinicPatients     ClinicPatient[]
-  clinicProcedures   ClinicProcedure[]
-  clinicAppointments ClinicAppointment[]
-  clinicVisits              ClinicVisit[]
-  clinicPatientMedia      ClinicPatientMedia[]
-  clinicPatientPayments   ClinicPatientPayment[]
-  clinicProductSales      ClinicProductSale[]
-  clinicProductSaleLines  ClinicProductSaleLine[]
-  clinicCrmActivities     ClinicCrmActivity[]
-  clinicStockItems          ClinicStockItem[]
-  clinicStockMovements      ClinicStockMovement[]
-  clinicStockCountSessions  ClinicStockCountSession[]
-  clinicStockCountLines     ClinicStockCountLine[]
-  clinicPurchaseOrders      ClinicPurchaseOrder[]
-  clinicWebPushSubscriptions ClinicWebPushSubscription[]
-  clinicAppointmentEvents ClinicAppointmentEvent[]
-  clinicAvailabilityRules ClinicAvailabilityRule[]
-  clinicBlockedTimes ClinicBlockedTime[]
-  clinicReminderTemplates ClinicReminderTemplate[]
-  clinicReminderDeliveries ClinicReminderDelivery[]
-  clinicPatientReviews ClinicPatientReview[]
-  clinicPatientPackages ClinicPatientPackage[]
-  clinicPackageRedemptions ClinicPackageRedemption[]
-  clinicConsentTemplates ClinicConsentTemplate[]
-  clinicConsentRecords ClinicConsentRecord[]
-  clinicTreatmentPlans ClinicTreatmentPlan[]
-  clinicProcedureMaterials ClinicProcedureMaterial[]
-  clinicBookingFunnelEvents ClinicBookingFunnelEvent[]
-  clinicPatientPortalLinks ClinicPatientPortalLink[]
+  clinicPatients              ClinicPatient[]
+  clinicProcedures            ClinicProcedure[]
+  clinicAppointments          ClinicAppointment[]
+  clinicVisits                ClinicVisit[]
+  clinicPatientMedia          ClinicPatientMedia[]
+  clinicPatientPayments       ClinicPatientPayment[]
+  clinicProductSales          ClinicProductSale[]
+  clinicProductSaleLines      ClinicProductSaleLine[]
+  clinicCrmActivities         ClinicCrmActivity[]
+  clinicStockItems            ClinicStockItem[]
+  clinicStockMovements        ClinicStockMovement[]
+  clinicStockCountSessions    ClinicStockCountSession[]
+  clinicStockCountLines       ClinicStockCountLine[]
+  clinicPurchaseOrders        ClinicPurchaseOrder[]
+  clinicWebPushSubscriptions  ClinicWebPushSubscription[]
+  clinicAppointmentEvents     ClinicAppointmentEvent[]
+  clinicAvailabilityRules     ClinicAvailabilityRule[]
+  clinicBlockedTimes          ClinicBlockedTime[]
+  clinicReminderTemplates     ClinicReminderTemplate[]
+  clinicReminderDeliveries    ClinicReminderDelivery[]
+  clinicPatientReviews        ClinicPatientReview[]
+  clinicPatientPackages       ClinicPatientPackage[]
+  clinicPackageRedemptions    ClinicPackageRedemption[]
+  clinicConsentTemplates      ClinicConsentTemplate[]
+  clinicConsentRecords        ClinicConsentRecord[]
+  clinicTreatmentPlans        ClinicTreatmentPlan[]
+  clinicProcedureMaterials    ClinicProcedureMaterial[]
+  clinicBookingFunnelEvents   ClinicBookingFunnelEvent[]
+  clinicPatientPortalLinks    ClinicPatientPortalLink[]
   clinicPatientPortalRequests ClinicPatientPortalRequest[]
+  clinicIntakeQuestions       ClinicIntakeQuestion[]
+  clinicIntakeResponses       ClinicIntakeResponse[]
 
   @@map("tenants")
 }
@@ -185,13 +187,13 @@ model Site {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  zones   Zone[]
-  bays    Bay[]
-  sensors Sensor[]
-  gateways Gateway[]
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  zones        Zone[]
+  bays         Bay[]
+  sensors      Sensor[]
+  gateways     Gateway[]
   sensorEvents SensorEvent[]
-  alerts Alert[]
+  alerts       Alert[]
 
   @@index([tenantId])
   @@map("sites")
@@ -208,32 +210,32 @@ model Zone {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  bays   Bay[]
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site    Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  bays    Bay[]
   sensors Sensor[]
-  alerts Alert[]
+  alerts  Alert[]
 
   @@index([tenantId, siteId])
   @@map("zones")
 }
 
 model Bay {
-  id        String   @id @default(cuid())
-  tenantId  String
-  siteId    String
-  zoneId    String?
-  code      String?
-  lat       Float?
-  lng       Float?
-  geojson   Json?
+  id         String   @id @default(cuid())
+  tenantId   String
+  siteId     String
+  zoneId     String?
+  code       String?
+  lat        Float?
+  lng        Float?
+  geojson    Json?
   attributes Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  zone   Zone?  @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site   Site    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  zone   Zone?   @relation(fields: [zoneId], references: [id], onDelete: SetNull)
   sensor Sensor?
 
   @@index([tenantId, siteId])
@@ -261,13 +263,13 @@ model Sensor {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: SetNull)
-  zone   Zone?  @relation(fields: [zoneId], references: [id], onDelete: SetNull)
-  bay    Bay?   @relation(fields: [bayId], references: [id], onDelete: SetNull)
-  events SensorEvent[]
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site             Site?             @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  zone             Zone?             @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  bay              Bay?              @relation(fields: [bayId], references: [id], onDelete: SetNull)
+  events           SensorEvent[]
   maintenanceNotes MaintenanceNote[]
-  alerts Alert[]
+  alerts           Alert[]
 
   @@index([tenantId])
   @@index([siteId])
@@ -276,7 +278,7 @@ model Sensor {
 }
 
 model TenantSetting {
-  tenantId   String  @id
+  tenantId   String   @id
   thresholds Json
   updatedAt  DateTime @updatedAt @db.Timestamptz(6)
 
@@ -286,12 +288,12 @@ model TenantSetting {
 }
 
 model MaintenanceNote {
-  id        String   @id @default(cuid())
-  tenantId  String
-  sensorId  String
+  id              String   @id @default(cuid())
+  tenantId        String
+  sensorId        String
   createdByUserId String?
-  note      String   @db.Text
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  note            String   @db.Text
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sensor Sensor @relation(fields: [sensorId], references: [id], onDelete: Cascade)
@@ -303,24 +305,24 @@ model MaintenanceNote {
 }
 
 model Gateway {
-  id            String         @id @default(cuid())
+  id            String          @id @default(cuid())
   tenantId      String
   siteId        String?
   name          String
-  serial        String?        @unique
+  serial        String?         @unique
   model         String?
   firmware      String?
-  status        AssetStatus    @default(ACTIVE)
+  status        AssetStatus     @default(ACTIVE)
   backhaul      GatewayBackhaul @default(UNKNOWN)
   lastHeartbeat DateTime?
   lat           Float?
   lng           Float?
   meta          Json?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  tenant Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site   Site?         @relation(fields: [siteId], references: [id], onDelete: SetNull)
   events SensorEvent[]
   alerts Alert[]
 
@@ -337,46 +339,46 @@ enum SensorEventKind {
 }
 
 model SensorEvent {
-  id         String         @default(cuid())
-  time       DateTime       @default(now()) @db.Timestamptz(6)
-  createdAt  DateTime       @default(now()) @db.Timestamptz(6)
+  id         String          @default(cuid())
+  time       DateTime        @default(now()) @db.Timestamptz(6)
+  createdAt  DateTime        @default(now()) @db.Timestamptz(6)
   tenantId   String
   siteId     String?
   sensorId   String
   gatewayId  String?
   kind       SensorEventKind @default(UPLINK)
   decoded    Json?
-  rawPayload String?        @db.Text
+  rawPayload String?         @db.Text
   rssi       Int?
   snr        Float?
   batteryPct Float?
   meta       Json?
 
-  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  site    Site?   @relation(fields: [siteId], references: [id], onDelete: SetNull)
-  sensor  Sensor  @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site    Site?    @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  sensor  Sensor   @relation(fields: [sensorId], references: [id], onDelete: Cascade)
   gateway Gateway? @relation(fields: [gatewayId], references: [id], onDelete: SetNull)
 
+  @@id([id, time])
   @@index([tenantId, time])
   @@index([tenantId, siteId, time])
   @@index([sensorId, time])
   @@index([gatewayId, time])
-  @@id([id, time])
   @@map("sensor_events")
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  tenantId   String?
+  id          String   @id @default(cuid())
+  tenantId    String?
   actorUserId String?
-  action     String
-  entityType String
-  entityId   String?
-  before     Json?
-  after      Json?
-  ip         String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
+  action      String
+  entityType  String
+  entityId    String?
+  before      Json?
+  after       Json?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
 
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   actor  User?   @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
@@ -394,52 +396,52 @@ enum IngestFileStatus {
 }
 
 model IngestFile {
-  id           String           @id @default(cuid())
-  tenantId     String
+  id               String           @id @default(cuid())
+  tenantId         String
   uploadedByUserId String?
-  filename     String
-  contentType  String?
-  source       String?          // e.g. "manual-upload"
-  status       IngestFileStatus @default(UPLOADED)
-  totalEvents  Int              @default(0)
-  validEvents  Int              @default(0)
-  invalidEvents Int             @default(0)
-  minTime      DateTime?        @db.Timestamptz(6)
-  maxTime      DateTime?        @db.Timestamptz(6)
-  meta         Json?
-  createdAt    DateTime         @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime         @updatedAt @db.Timestamptz(6)
+  filename         String
+  contentType      String?
+  source           String? // e.g. "manual-upload"
+  status           IngestFileStatus @default(UPLOADED)
+  totalEvents      Int              @default(0)
+  validEvents      Int              @default(0)
+  invalidEvents    Int              @default(0)
+  minTime          DateTime?        @db.Timestamptz(6)
+  maxTime          DateTime?        @db.Timestamptz(6)
+  meta             Json?
+  createdAt        DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @db.Timestamptz(6)
 
-  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  uploader User?  @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
-  events   IngestEvent[]
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  uploader    User?              @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  events      IngestEvent[]
   deadLetters IngestDeadLetter[]
-  replayJobs ReplayJob[]
+  replayJobs  ReplayJob[]
 
   @@index([tenantId, createdAt])
   @@map("ingest_files")
 }
 
 model IngestEvent {
-  id         String   @id @default(cuid())
-  seq        BigInt   @default(autoincrement())
-  tenantId   String
-  fileId     String
-  originalTime DateTime @db.Timestamptz(6)
-  devEui     String
-  sensorType SensorType @default(OTHER)
+  id            String     @id @default(cuid())
+  seq           BigInt     @default(autoincrement())
+  tenantId      String
+  fileId        String
+  originalTime  DateTime   @db.Timestamptz(6)
+  devEui        String
+  sensorType    SensorType @default(OTHER)
   gatewaySerial String?
-  rawPayload String? @db.Text
-  decoded    Json?
-  rssi       Int?
-  snr        Float?
-  batteryPct Float?
-  lat        Float?
-  lng        Float?
-  meta       Json?
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  rawPayload    String?    @db.Text
+  decoded       Json?
+  rssi          Int?
+  snr           Float?
+  batteryPct    Float?
+  lat           Float?
+  lng           Float?
+  meta          Json?
+  createdAt     DateTime   @default(now()) @db.Timestamptz(6)
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   file   IngestFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
 
   @@index([fileId, seq])
@@ -456,7 +458,7 @@ model IngestDeadLetter {
   raw       Json?
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   file   IngestFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
 
   @@index([fileId, createdAt])
@@ -491,43 +493,43 @@ enum AlertStatus {
 }
 
 model Alert {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   tenantId  String
   siteId    String?
   zoneId    String?
   sensorId  String?
   gatewayId String?
 
-  type      AlertType
-  severity  AlertSeverity @default(WARNING)
-  status    AlertStatus   @default(OPEN)
+  type     AlertType
+  severity AlertSeverity @default(WARNING)
+  status   AlertStatus   @default(OPEN)
 
-  title     String
-  message   String?
-  meta      Json?
+  title   String
+  message String?
+  meta    Json?
 
   openedAt        DateTime @default(now()) @db.Timestamptz(6)
   firstDetectedAt DateTime @default(now()) @db.Timestamptz(6)
   lastDetectedAt  DateTime @default(now()) @db.Timestamptz(6)
 
-  acknowledgedAt DateTime? @db.Timestamptz(6)
+  acknowledgedAt       DateTime? @db.Timestamptz(6)
   acknowledgedByUserId String?
-  assignedToUserId String?
-  resolvedAt     DateTime? @db.Timestamptz(6)
+  assignedToUserId     String?
+  resolvedAt           DateTime? @db.Timestamptz(6)
 
-  slaDueAt   DateTime? @db.Timestamptz(6)
+  slaDueAt DateTime? @db.Timestamptz(6)
 
-  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: SetNull)
-  zone   Zone?  @relation(fields: [zoneId], references: [id], onDelete: SetNull)
-  sensor Sensor? @relation(fields: [sensorId], references: [id], onDelete: SetNull)
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  site    Site?    @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  zone    Zone?    @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  sensor  Sensor?  @relation(fields: [sensorId], references: [id], onDelete: SetNull)
   gateway Gateway? @relation(fields: [gatewayId], references: [id], onDelete: SetNull)
 
   acknowledgedBy User? @relation("AlertAcknowledgedBy", fields: [acknowledgedByUserId], references: [id], onDelete: SetNull)
-  assignedTo User? @relation("AlertAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  assignedTo     User? @relation("AlertAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
 
   events AlertEvent[]
 
@@ -538,14 +540,14 @@ model Alert {
 }
 
 model AlertEvent {
-  id        String  @id @default(cuid())
-  tenantId  String
-  alertId   String
+  id          String   @id @default(cuid())
+  tenantId    String
+  alertId     String
   actorUserId String?
-  action    String
-  note      String?
-  meta      Json?
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  action      String
+  note        String?
+  meta        Json?
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   alert  Alert  @relation(fields: [alertId], references: [id], onDelete: Cascade)
@@ -557,20 +559,20 @@ model AlertEvent {
 }
 
 model ReplayJob {
-  id        String         @id @default(cuid())
-  tenantId  String
-  fileId    String
-  status    ReplayJobStatus @default(CREATED)
-  speed     Float          @default(1.0) // 1x, 10x, etc.
-  cursorSeq BigInt?        // last processed seq
-  processed Int            @default(0)
-  error     String?
-  startedAt DateTime?      @db.Timestamptz(6)
-  finishedAt DateTime?     @db.Timestamptz(6)
-  createdAt DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime       @updatedAt @db.Timestamptz(6)
+  id         String          @id @default(cuid())
+  tenantId   String
+  fileId     String
+  status     ReplayJobStatus @default(CREATED)
+  speed      Float           @default(1.0) // 1x, 10x, etc.
+  cursorSeq  BigInt? // last processed seq
+  processed  Int             @default(0)
+  error      String?
+  startedAt  DateTime?       @db.Timestamptz(6)
+  finishedAt DateTime?       @db.Timestamptz(6)
+  createdAt  DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime        @updatedAt @db.Timestamptz(6)
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   file   IngestFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, createdAt])
@@ -621,20 +623,20 @@ enum ExpenseCategory {
 }
 
 model Expense {
-  id        String @id @default(cuid())
-  tenantId  String?
-  category  ExpenseCategory @default(OTHER)
-  vendor    String?
-  description String?
-  amountCents Int
-  currency   String @default("AED")
-  occurredAt DateTime @db.Timestamptz(6)
+  id              String          @id @default(cuid())
+  tenantId        String?
+  category        ExpenseCategory @default(OTHER)
+  vendor          String?
+  description     String?
+  amountCents     Int
+  currency        String          @default("AED")
+  occurredAt      DateTime        @db.Timestamptz(6)
   createdByUserId String?
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  createdAt       DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(6)
 
-  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
-  createdBy User? @relation("ExpenseCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  tenant    Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  createdBy User?   @relation("ExpenseCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, occurredAt])
   @@index([category, occurredAt])
@@ -642,20 +644,20 @@ model Expense {
 }
 
 model BillingEvent {
-  id        String @id @default(cuid())
-  tenantId  String?
-  provider  BillingProvider @default(STRIPE)
-  providerEventId String @unique
-  type      String
-  occurredAt DateTime @db.Timestamptz(6)
-  amountCents Int?
-  currency   String?
-  customerId String?
-  subscriptionId String?
-  invoiceId  String?
-  status     String?
-  raw        Json
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  id              String          @id @default(cuid())
+  tenantId        String?
+  provider        BillingProvider @default(STRIPE)
+  providerEventId String          @unique
+  type            String
+  occurredAt      DateTime        @db.Timestamptz(6)
+  amountCents     Int?
+  currency        String?
+  customerId      String?
+  subscriptionId  String?
+  invoiceId       String?
+  status          String?
+  raw             Json
+  createdAt       DateTime        @default(now()) @db.Timestamptz(6)
 
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
@@ -665,24 +667,24 @@ model BillingEvent {
 }
 
 model BillingSubscription {
-  id        String @id @default(cuid())
-  tenantId  String?
-  provider  BillingProvider @default(STRIPE)
-  providerSubscriptionId String @unique
-  customerId String?
-  status    String
-  currency  String?
-  interval  String?
-  intervalCount Int?
-  mrrCents  Int @default(0)
-  currentPeriodStart DateTime? @db.Timestamptz(6)
-  currentPeriodEnd   DateTime? @db.Timestamptz(6)
-  cancelAt           DateTime? @db.Timestamptz(6)
-  canceledAt         DateTime? @db.Timestamptz(6)
-  cancelAtPeriodEnd  Boolean @default(false)
-  raw               Json?
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  id                     String          @id @default(cuid())
+  tenantId               String?
+  provider               BillingProvider @default(STRIPE)
+  providerSubscriptionId String          @unique
+  customerId             String?
+  status                 String
+  currency               String?
+  interval               String?
+  intervalCount          Int?
+  mrrCents               Int             @default(0)
+  currentPeriodStart     DateTime?       @db.Timestamptz(6)
+  currentPeriodEnd       DateTime?       @db.Timestamptz(6)
+  cancelAt               DateTime?       @db.Timestamptz(6)
+  canceledAt             DateTime?       @db.Timestamptz(6)
+  cancelAtPeriodEnd      Boolean         @default(false)
+  raw                    Json?
+  updatedAt              DateTime        @updatedAt @db.Timestamptz(6)
+  createdAt              DateTime        @default(now()) @db.Timestamptz(6)
 
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
@@ -691,25 +693,25 @@ model BillingSubscription {
 }
 
 model ReportSubscription {
-  id        String @id @default(cuid())
-  tenantId  String
-  name      String
-  kind      ReportKind
-  cadence   ReportCadence
-  timezone  String? // e.g. Asia/Dubai
-  recipients Json?  // [{email,name?}, ...] (email sending integration later)
-  params     Json?  // report params (zoneId, etc.)
-  enabled    Boolean @default(true)
+  id         String        @id @default(cuid())
+  tenantId   String
+  name       String
+  kind       ReportKind
+  cadence    ReportCadence
+  timezone   String? // e.g. Asia/Dubai
+  recipients Json? // [{email,name?}, ...] (email sending integration later)
+  params     Json? // report params (zoneId, etc.)
+  enabled    Boolean       @default(true)
 
-  lastRunAt  DateTime? @db.Timestamptz(6)
-  nextRunAt  DateTime? @db.Timestamptz(6)
+  lastRunAt DateTime? @db.Timestamptz(6)
+  nextRunAt DateTime? @db.Timestamptz(6)
 
   createdByUserId String?
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdBy User? @relation("ReportCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy  User?            @relation("ReportCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   deliveries ReportDelivery[]
 
   @@index([tenantId, enabled, nextRunAt])
@@ -718,18 +720,18 @@ model ReportSubscription {
 }
 
 model ReportDelivery {
-  id        String @id @default(cuid())
-  tenantId  String
+  id             String               @id @default(cuid())
+  tenantId       String
   subscriptionId String
-  status    ReportDeliveryStatus @default(PENDING)
-  scheduledAt DateTime @default(now()) @db.Timestamptz(6)
-  startedAt  DateTime? @db.Timestamptz(6)
-  finishedAt DateTime? @db.Timestamptz(6)
-  error      String?
-  meta       Json?
+  status         ReportDeliveryStatus @default(PENDING)
+  scheduledAt    DateTime             @default(now()) @db.Timestamptz(6)
+  startedAt      DateTime?            @db.Timestamptz(6)
+  finishedAt     DateTime?            @db.Timestamptz(6)
+  error          String?
+  meta           Json?
 
   subscription ReportSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, scheduledAt])
   @@index([subscriptionId, scheduledAt])
@@ -737,16 +739,16 @@ model ReportDelivery {
 }
 
 model Image {
-  id          String    @id @default(cuid())
-  type        ImageType
-  name        String    // e.g., "logo", "favicon-16x16", "hero-image"
-  mimeType    String    // e.g., "image/png", "image/jpeg"
-  data        String    @db.Text // Base64 encoded image data
-  width       Int?
-  height      Int?
-  alt         String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String    @id @default(cuid())
+  type      ImageType
+  name      String // e.g., "logo", "favicon-16x16", "hero-image"
+  mimeType  String // e.g., "image/png", "image/jpeg"
+  data      String    @db.Text // Base64 encoded image data
+  width     Int?
+  height    Int?
+  alt       String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@unique([type, name])
   @@map("images")
@@ -835,40 +837,47 @@ enum ClinicPatientPortalRequestStatus {
   CLOSED
 }
 
-model ClinicPatient {
-  id             String    @id @default(cuid())
-  tenantId       String
-  firstName      String
-  lastName       String
-  middleName     String?
-  dateOfBirth    DateTime  @db.Date
-  phone          String?
-  email          String?
-  homeAddress    String?   @db.Text
-  area           String?
-  accessNotes    String?   @db.Text
-  category       String?
-  tags           String[]  @default([])
-  /// Staff-only; never expose on patient-facing PDF exports
-  internalNotes  String?   @db.Text
-  /// Structured intake / history (v1 object: allergies, medications, conditions, social)
-  anamnesisJson  Json?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+enum ClinicIntakeQuestionType {
+  TEXT
+  TEXTAREA
+  YES_NO
+}
 
-  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments   ClinicAppointment[]
-  visits         ClinicVisit[]
-  media          ClinicPatientMedia[]
-  payments       ClinicPatientPayment[]
-  productSales   ClinicProductSale[]
-  crmActivities  ClinicCrmActivity[]
-  reviews        ClinicPatientReview[]
-  packages       ClinicPatientPackage[]
-  consentRecords ClinicConsentRecord[]
-  treatmentPlans ClinicTreatmentPlan[]
-  portalLinks    ClinicPatientPortalLink[]
-  portalRequests ClinicPatientPortalRequest[]
+model ClinicPatient {
+  id            String   @id @default(cuid())
+  tenantId      String
+  firstName     String
+  lastName      String
+  middleName    String?
+  dateOfBirth   DateTime @db.Date
+  phone         String?
+  email         String?
+  homeAddress   String?  @db.Text
+  area          String?
+  accessNotes   String?  @db.Text
+  category      String?
+  tags          String[] @default([])
+  /// Staff-only; never expose on patient-facing PDF exports
+  internalNotes String?  @db.Text
+  /// Structured intake / history (v1 object: allergies, medications, conditions, social)
+  anamnesisJson Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant          Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments    ClinicAppointment[]
+  visits          ClinicVisit[]
+  media           ClinicPatientMedia[]
+  payments        ClinicPatientPayment[]
+  productSales    ClinicProductSale[]
+  crmActivities   ClinicCrmActivity[]
+  reviews         ClinicPatientReview[]
+  packages        ClinicPatientPackage[]
+  consentRecords  ClinicConsentRecord[]
+  treatmentPlans  ClinicTreatmentPlan[]
+  portalLinks     ClinicPatientPortalLink[]
+  portalRequests  ClinicPatientPortalRequest[]
+  intakeResponses ClinicIntakeResponse[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -890,63 +899,66 @@ model ClinicProcedure {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments  ClinicAppointment[]
-  stockItems    ClinicStockItem[]
-  availabilityRules ClinicAvailabilityRule[]
-  patientPackages ClinicPatientPackage[]
-  consentTemplates ClinicConsentTemplate[]
-  consentRecords ClinicConsentRecord[]
-  treatmentPlans ClinicTreatmentPlan[]
-  materials ClinicProcedureMaterial[]
+  tenant              Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments        ClinicAppointment[]
+  stockItems          ClinicStockItem[]
+  availabilityRules   ClinicAvailabilityRule[]
+  patientPackages     ClinicPatientPackage[]
+  consentTemplates    ClinicConsentTemplate[]
+  consentRecords      ClinicConsentRecord[]
+  treatmentPlans      ClinicTreatmentPlan[]
+  materials           ClinicProcedureMaterial[]
   bookingFunnelEvents ClinicBookingFunnelEvent[]
+  intakeQuestions     ClinicIntakeQuestion[]
+  intakeResponses     ClinicIntakeResponse[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
 }
 
 model ClinicAppointment {
-  id            String                  @id @default(cuid())
-  tenantId      String
-  patientId     String
-  procedureId   String?
-  startsAt      DateTime                @db.Timestamptz(6)
-  endsAt        DateTime?               @db.Timestamptz(6)
-  status        ClinicAppointmentStatus @default(SCHEDULED)
-  source        ClinicAppointmentSource @default(MANUAL)
+  id                        String                  @id @default(cuid())
+  tenantId                  String
+  patientId                 String
+  procedureId               String?
+  startsAt                  DateTime                @db.Timestamptz(6)
+  endsAt                    DateTime?               @db.Timestamptz(6)
+  status                    ClinicAppointmentStatus @default(SCHEDULED)
+  source                    ClinicAppointmentSource @default(MANUAL)
   /// Hidden occupied time after the appointment. Used for conflict checks, not shown as service duration.
-  bufferAfterMinutes Int                    @default(0)
+  bufferAfterMinutes        Int                     @default(0)
   /// Travel/prep time before a home visit. Used for conflict checks and route planning.
-  travelBufferBeforeMinutes Int             @default(0)
+  travelBufferBeforeMinutes Int                     @default(0)
   /// Travel time after a home visit. Used for conflict checks and route planning.
-  travelBufferAfterMinutes Int              @default(0)
-  locationAddress String?                   @db.Text
-  locationArea    String?
-  locationNotes   String?                   @db.Text
-  titleOverride String?
+  travelBufferAfterMinutes  Int                     @default(0)
+  locationAddress           String?                 @db.Text
+  locationArea              String?
+  locationNotes             String?                 @db.Text
+  titleOverride             String?
   /// Required when staff intentionally books through a conflict, blocked time, or outside working hours.
-  overrideReason String?                 @db.Text
-  cancelReason  String?                 @db.Text
-  confirmedAt   DateTime?               @db.Timestamptz(6)
-  arrivedAt     DateTime?               @db.Timestamptz(6)
-  completedAt   DateTime?               @db.Timestamptz(6)
+  overrideReason            String?                 @db.Text
+  cancelReason              String?                 @db.Text
+  confirmedAt               DateTime?               @db.Timestamptz(6)
+  arrivedAt                 DateTime?               @db.Timestamptz(6)
+  completedAt               DateTime?               @db.Timestamptz(6)
   /// Doctor-only appointment / scheduling notes
-  internalNotes String?                 @db.Text
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
+  internalNotes             String?                 @db.Text
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @updatedAt
 
-  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient   ClinicPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
-  visits    ClinicVisit[]
-  events    ClinicAppointmentEvent[]
-  reviews   ClinicPatientReview[]
-  packageRedemptions ClinicPackageRedemption[]
-  consentRecords ClinicConsentRecord[]
-  payments ClinicPatientPayment[]
-  productSales ClinicProductSale[]
+  tenant              Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient             ClinicPatient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure           ClinicProcedure?             @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  visits              ClinicVisit[]
+  events              ClinicAppointmentEvent[]
+  reviews             ClinicPatientReview[]
+  packageRedemptions  ClinicPackageRedemption[]
+  consentRecords      ClinicConsentRecord[]
+  payments            ClinicPatientPayment[]
+  productSales        ClinicProductSale[]
   bookingFunnelEvents ClinicBookingFunnelEvent[]
-  portalRequests ClinicPatientPortalRequest[]
+  portalRequests      ClinicPatientPortalRequest[]
+  intakeResponses     ClinicIntakeResponse[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1051,7 +1063,7 @@ model ClinicReminderDelivery {
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant  Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   reviews ClinicPatientReview[]
 
   @@index([tenantId, status, scheduledFor])
@@ -1096,10 +1108,10 @@ model ClinicPatientPortalLink {
   createdAt       DateTime  @default(now())
   createdByUserId String?
 
-  tenant   Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient  ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  createdBy User?        @relation("ClinicPatientPortalLinkCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  requests ClinicPatientPortalRequest[]
+  tenant    Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient   ClinicPatient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdBy User?                        @relation("ClinicPatientPortalLinkCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  requests  ClinicPatientPortalRequest[]
 
   @@index([tenantId, patientId, revokedAt])
   @@index([tenantId, expiresAt])
@@ -1107,17 +1119,17 @@ model ClinicPatientPortalLink {
 }
 
 model ClinicPatientPortalRequest {
-  id              String                           @id @default(cuid())
-  tenantId        String
-  patientId       String
-  appointmentId   String?
-  portalLinkId    String?
-  type            ClinicPatientPortalRequestType
-  status          ClinicPatientPortalRequestStatus @default(OPEN)
-  message         String                           @db.Text
-  preferredTime   String?                          @db.Text
-  createdAt       DateTime                         @default(now()) @db.Timestamptz(6)
-  reviewedAt      DateTime?                        @db.Timestamptz(6)
+  id            String                           @id @default(cuid())
+  tenantId      String
+  patientId     String
+  appointmentId String?
+  portalLinkId  String?
+  type          ClinicPatientPortalRequestType
+  status        ClinicPatientPortalRequestStatus @default(OPEN)
+  message       String                           @db.Text
+  preferredTime String?                          @db.Text
+  createdAt     DateTime                         @default(now()) @db.Timestamptz(6)
+  reviewedAt    DateTime?                        @db.Timestamptz(6)
 
   tenant      Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient     ClinicPatient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -1128,6 +1140,52 @@ model ClinicPatientPortalRequest {
   @@index([tenantId, patientId, createdAt])
   @@index([appointmentId, createdAt])
   @@map("clinic_patient_portal_requests")
+}
+
+model ClinicIntakeQuestion {
+  id              String                   @id @default(cuid())
+  tenantId        String
+  procedureId     String
+  prompt          String                   @db.Text
+  helpText        String?                  @db.Text
+  type            ClinicIntakeQuestionType @default(TEXT)
+  required        Boolean                  @default(false)
+  active          Boolean                  @default(true)
+  sortOrder       Int                      @default(0)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  createdByUserId String?
+
+  tenant    Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure        @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+  responses ClinicIntakeResponse[]
+
+  @@index([tenantId, procedureId, active, sortOrder])
+  @@map("clinic_intake_questions")
+}
+
+model ClinicIntakeResponse {
+  id             String                   @id @default(cuid())
+  tenantId       String
+  patientId      String
+  appointmentId  String
+  procedureId    String?
+  questionId     String?
+  promptSnapshot String                   @db.Text
+  typeSnapshot   ClinicIntakeQuestionType
+  answerText     String?                  @db.Text
+  createdAt      DateTime                 @default(now()) @db.Timestamptz(6)
+
+  tenant      Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment ClinicAppointment     @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  procedure   ClinicProcedure?      @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  question    ClinicIntakeQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, appointmentId, createdAt])
+  @@index([tenantId, patientId, createdAt])
+  @@index([questionId, createdAt])
+  @@map("clinic_intake_responses")
 }
 
 enum ClinicReviewStatus {
@@ -1182,33 +1240,33 @@ enum ClinicCrmActivityType {
 
 /// In-person or telehealth encounter; attach before/after photos and payments.
 model ClinicVisit {
-  id               String            @id @default(cuid())
-  tenantId         String
-  patientId        String
-  appointmentId    String?
-  treatmentPlanId  String?
-  visitAt          DateTime          @db.Timestamptz(6)
-  status           ClinicVisitStatus @default(COMPLETED)
-  chiefComplaint   String?           @db.Text
-  procedureSummary String?           @db.Text
-  staffNotes       String?           @db.Text
+  id                  String            @id @default(cuid())
+  tenantId            String
+  patientId           String
+  appointmentId       String?
+  treatmentPlanId     String?
+  visitAt             DateTime          @db.Timestamptz(6)
+  status              ClinicVisitStatus @default(COMPLETED)
+  chiefComplaint      String?           @db.Text
+  procedureSummary    String?           @db.Text
+  staffNotes          String?           @db.Text
   /// Planned follow-up / what to do next (shown prominently on patient chart)
-  nextSteps        String?           @db.Text
+  nextSteps           String?           @db.Text
   /// Set when procedure-linked inventory auto-consumption has been applied (idempotent).
-  inventoryConsumedAt DateTime?      @db.Timestamptz(6)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  inventoryConsumedAt DateTime?         @db.Timestamptz(6)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
-  tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient     ClinicPatient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  appointment ClinicAppointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  treatmentPlan ClinicTreatmentPlan? @relation(fields: [treatmentPlanId], references: [id], onDelete: SetNull)
-  media       ClinicPatientMedia[]
-  payments    ClinicPatientPayment[]
-  productSales ClinicProductSale[]
-  reviews     ClinicPatientReview[]
+  tenant             Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient            ClinicPatient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment        ClinicAppointment?        @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  treatmentPlan      ClinicTreatmentPlan?      @relation(fields: [treatmentPlanId], references: [id], onDelete: SetNull)
+  media              ClinicPatientMedia[]
+  payments           ClinicPatientPayment[]
+  productSales       ClinicProductSale[]
+  reviews            ClinicPatientReview[]
   packageRedemptions ClinicPackageRedemption[]
-  consentRecords ClinicConsentRecord[]
+  consentRecords     ClinicConsentRecord[]
 
   @@index([tenantId, visitAt])
   @@index([patientId, visitAt])
@@ -1218,7 +1276,7 @@ model ClinicVisit {
 
 /// Clinical photo (e.g. before/after). Stored as Postgres BYTEA and/or Vercel Blob (private pathname).
 model ClinicPatientMedia {
-  id              String         @id @default(cuid())
+  id              String          @id @default(cuid())
   tenantId        String
   patientId       String
   visitId         String?
@@ -1229,7 +1287,7 @@ model ClinicPatientMedia {
   data            Bytes?
   /// Vercel Blob private pathname (use SDK `get` with token). Null when `data` is set.
   blobPathname    String?
-  createdAt       DateTime       @default(now())
+  createdAt       DateTime        @default(now())
   createdByUserId String?
 
   tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1259,9 +1317,9 @@ model ClinicPatientPayment {
   createdAt       DateTime            @default(now())
   createdByUserId String?
 
-  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  visit   ClinicVisit?  @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visit       ClinicVisit?       @relation(fields: [visitId], references: [id], onDelete: SetNull)
   appointment ClinicAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   productSale ClinicProductSale?
 
@@ -1288,11 +1346,11 @@ model ClinicProductSale {
   createdAt       DateTime            @default(now())
   createdByUserId String?
 
-  tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient     ClinicPatient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  visit       ClinicVisit?           @relation(fields: [visitId], references: [id], onDelete: SetNull)
-  appointment ClinicAppointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  payment     ClinicPatientPayment?  @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  tenant      Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visit       ClinicVisit?            @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  appointment ClinicAppointment?      @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  payment     ClinicPatientPayment?   @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   lines       ClinicProductSaleLine[]
 
   @@index([tenantId, patientId, soldAt])
@@ -1319,9 +1377,9 @@ model ClinicPatientPackage {
   updatedAt         DateTime                   @updatedAt
   createdByUserId   String?
 
-  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient     ClinicPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  procedure   ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  tenant      Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure   ClinicProcedure?          @relation(fields: [procedureId], references: [id], onDelete: SetNull)
   redemptions ClinicPackageRedemption[]
 
   @@index([tenantId, patientId, status])
@@ -1352,21 +1410,21 @@ model ClinicPackageRedemption {
 }
 
 model ClinicConsentTemplate {
-  id                 String   @id @default(cuid())
-  tenantId           String
-  procedureId        String?
-  title              String
-  body               String   @db.Text
-  contraindications  String[] @default([])
-  aftercareText      String?  @db.Text
-  active             Boolean  @default(true)
-  sortOrder          Int      @default(0)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  createdByUserId    String?
+  id                String   @id @default(cuid())
+  tenantId          String
+  procedureId       String?
+  title             String
+  body              String   @db.Text
+  contraindications String[] @default([])
+  aftercareText     String?  @db.Text
+  active            Boolean  @default(true)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  createdByUserId   String?
 
-  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  tenant    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure?      @relation(fields: [procedureId], references: [id], onDelete: SetNull)
   records   ClinicConsentRecord[]
 
   @@index([tenantId, active, title])
@@ -1375,7 +1433,7 @@ model ClinicConsentTemplate {
 }
 
 model ClinicConsentRecord {
-  id                        String   @id @default(cuid())
+  id                        String    @id @default(cuid())
   tenantId                  String
   patientId                 String
   templateId                String?
@@ -1383,24 +1441,24 @@ model ClinicConsentRecord {
   appointmentId             String?
   visitId                   String?
   templateTitleSnapshot     String
-  templateBodySnapshot      String   @db.Text
-  contraindicationsSnapshot String[] @default([])
-  checkedItems              String[] @default([])
+  templateBodySnapshot      String    @db.Text
+  contraindicationsSnapshot String[]  @default([])
+  checkedItems              String[]  @default([])
   patientNameSnapshot       String
-  accepted                  Boolean  @default(false)
+  accepted                  Boolean   @default(false)
   acceptedAt                DateTime? @db.Timestamptz(6)
   signatureText             String?
-  aftercareAcknowledged     Boolean  @default(false)
-  note                      String?  @db.Text
-  createdAt                 DateTime @default(now())
+  aftercareAcknowledged     Boolean   @default(false)
+  note                      String?   @db.Text
+  createdAt                 DateTime  @default(now())
   createdByUserId           String?
 
-  tenant      Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient     ClinicPatient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  template    ClinicConsentTemplate?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  procedure   ClinicProcedure?        @relation(fields: [procedureId], references: [id], onDelete: SetNull)
-  appointment ClinicAppointment?      @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  visit       ClinicVisit?            @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  template    ClinicConsentTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  procedure   ClinicProcedure?       @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  appointment ClinicAppointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  visit       ClinicVisit?           @relation(fields: [visitId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, patientId, createdAt])
   @@index([tenantId, acceptedAt])
@@ -1409,23 +1467,23 @@ model ClinicConsentRecord {
 }
 
 model ClinicTreatmentPlan {
-  id              String                    @id @default(cuid())
-  tenantId        String
-  patientId       String
-  procedureId     String?
-  title           String
-  expectedSessions Int                     @default(1)
-  cadenceDays     Int                      @default(14)
-  status          ClinicTreatmentPlanStatus @default(ACTIVE)
-  targetStartAt   DateTime?                @db.Date
-  targetEndAt     DateTime?                @db.Date
-  goals           String?                  @db.Text
-  nextSteps       String?                  @db.Text
-  outcomeNotes    String?                  @db.Text
-  photoMilestones Json?
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  createdByUserId String?
+  id               String                    @id @default(cuid())
+  tenantId         String
+  patientId        String
+  procedureId      String?
+  title            String
+  expectedSessions Int                       @default(1)
+  cadenceDays      Int                       @default(14)
+  status           ClinicTreatmentPlanStatus @default(ACTIVE)
+  targetStartAt    DateTime?                 @db.Date
+  targetEndAt      DateTime?                 @db.Date
+  goals            String?                   @db.Text
+  nextSteps        String?                   @db.Text
+  outcomeNotes     String?                   @db.Text
+  photoMilestones  Json?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  createdByUserId  String?
 
   tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient   ClinicPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -1512,34 +1570,34 @@ enum ClinicStockVarianceReason {
 
 /// Consumables / retail stock per practice. Movements adjust quantityOnHand.
 model ClinicStockItem {
-  id               String   @id @default(cuid())
-  tenantId         String
-  name             String
-  sku              String?
-  unit             String   @default("unit")
-  quantityOnHand   Int      @default(0)
+  id                 String    @id @default(cuid())
+  tenantId           String
+  name               String
+  sku                String?
+  unit               String    @default("unit")
+  quantityOnHand     Int       @default(0)
   /// Alert when active and quantityOnHand <= reorderPoint (if reorderPoint > 0).
-  reorderPoint     Int      @default(0)
-  active           Boolean  @default(true)
-  notes            String?  @db.Text
+  reorderPoint       Int       @default(0)
+  active             Boolean   @default(true)
+  notes              String?   @db.Text
   /// Optional link to a procedure this item is typically consumed for.
-  procedureId      String?
+  procedureId        String?
   /// Scannable code (distinct from sku); optional unique per tenant when set.
-  barcode          String?
+  barcode            String?
   /// When visit completes with linked procedure, deduct this many units (0 = disabled).
-  consumePerVisit  Int      @default(0)
+  consumePerVisit    Int       @default(0)
   /// Last time a low-stock email/push was sent (24h cooldown).
   lowStockNotifiedAt DateTime? @db.Timestamptz(6)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
-  movements ClinicStockMovement[]
+  tenant             Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure          ClinicProcedure?          @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  movements          ClinicStockMovement[]
   purchaseOrderLines ClinicPurchaseOrderLine[]
   procedureMaterials ClinicProcedureMaterial[]
-  stockCountLines ClinicStockCountLine[]
-  productSaleLines ClinicProductSaleLine[]
+  stockCountLines    ClinicStockCountLine[]
+  productSaleLines   ClinicProductSaleLine[]
 
   @@index([tenantId, active, name])
   @@index([tenantId, procedureId])
@@ -1549,18 +1607,18 @@ model ClinicStockItem {
 }
 
 model ClinicProcedureMaterial {
-  id              String   @id @default(cuid())
-  tenantId        String
-  procedureId     String
-  stockItemId     String
-  quantityPerVisit Int     @default(1)
-  unitCostCents   Int      @default(0)
-  sortOrder       Int      @default(0)
-  active          Boolean  @default(true)
-  note            String?  @db.Text
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  createdByUserId String?
+  id               String   @id @default(cuid())
+  tenantId         String
+  procedureId      String
+  stockItemId      String
+  quantityPerVisit Int      @default(1)
+  unitCostCents    Int      @default(0)
+  sortOrder        Int      @default(0)
+  active           Boolean  @default(true)
+  note             String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  createdByUserId  String?
 
   tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   procedure ClinicProcedure @relation(fields: [procedureId], references: [id], onDelete: Cascade)
@@ -1640,12 +1698,12 @@ model ClinicStockCountLine {
   stockItemId      String
   expectedQuantity Int
   countedQuantity  Int?
-  varianceQuantity Int                       @default(0)
+  varianceQuantity Int                        @default(0)
   reason           ClinicStockVarianceReason?
-  note             String?                   @db.Text
+  note             String?                    @db.Text
   movementId       String?
-  createdAt        DateTime                  @default(now())
-  updatedAt        DateTime                  @updatedAt
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
 
   tenant    Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   session   ClinicStockCountSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -1677,7 +1735,7 @@ model ClinicPurchaseOrder {
   createdAt    DateTime                  @default(now())
   updatedAt    DateTime                  @updatedAt
 
-  tenant Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   lines  ClinicPurchaseOrderLine[]
 
   @@index([tenantId, orderedAt])
@@ -1693,7 +1751,7 @@ model ClinicPurchaseOrderLine {
   unitCostCents    Int?
 
   purchaseOrder ClinicPurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  stockItem     ClinicStockItem      @relation(fields: [stockItemId], references: [id], onDelete: Restrict)
+  stockItem     ClinicStockItem     @relation(fields: [stockItemId], references: [id], onDelete: Restrict)
 
   @@index([purchaseOrderId])
   @@index([stockItemId])
@@ -1728,4 +1786,3 @@ model RateLimit {
   @@index([updatedAt]) // For cleanup queries
   @@map("rate_limits")
 }
-

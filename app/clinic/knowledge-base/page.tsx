@@ -320,6 +320,20 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/patients',
   },
+  {
+    id: 'service-intake-fields',
+    category: 'Appointments',
+    title: 'Add service-specific public intake fields',
+    summary:
+      'Collect the right allergy, contraindication, pregnancy, address, or preparation answers for each service before the booking reaches the calendar.',
+    steps: [
+      'Open Procedures and find the service you want to prepare for.',
+      'Use Public intake questions to add short text, long text, or yes/no questions.',
+      'Mark important questions as required so the public booking form cannot be submitted without them.',
+      'When a client books online, answers are saved to the appointment as a staff-only intake snapshot.',
+    ],
+    link: '/clinic/procedures',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -617,6 +631,20 @@ const articlesRu: Article[] = [
       'Проверяйте запросы из кабинета в карте пациента и CRM-ленте, когда пациент просит перенос или отмену.',
     ],
     link: '/clinic/patients',
+  },
+  {
+    id: 'service-intake-fields',
+    category: 'Записи',
+    title: 'Добавляйте вопросы анкеты под конкретную услугу',
+    summary:
+      'Собирайте ответы по аллергиям, противопоказаниям, беременности, адресу или подготовке до того, как запись попадёт в календарь.',
+    steps: [
+      'Откройте Процедуры и выберите нужную услугу.',
+      'В блоке Вопросы публичной анкеты добавьте короткий текст, длинный текст или вопрос да/нет.',
+      'Отметьте важные вопросы как обязательные, чтобы клиент не мог отправить форму без ответа.',
+      'При онлайн-записи ответы сохраняются в запись как staff-only снимок анкеты.',
+    ],
+    link: '/clinic/procedures',
   },
 ]
 

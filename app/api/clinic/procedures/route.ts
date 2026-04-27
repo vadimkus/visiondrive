@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
           stockItem: { select: { id: true, name: true, unit: true, quantityOnHand: true, active: true } },
         },
       },
+      intakeQuestions: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      },
     },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
   })

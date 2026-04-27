@@ -16,6 +16,17 @@ type Procedure = {
   currency: string
   active: boolean
   materials: ProcedureMaterial[]
+  intakeQuestions: IntakeQuestion[]
+}
+
+type IntakeQuestion = {
+  id: string
+  prompt: string
+  helpText: string | null
+  type: 'TEXT' | 'TEXTAREA' | 'YES_NO'
+  required: boolean
+  active: boolean
+  sortOrder: number
 }
 
 type ProcedureMaterial = {
@@ -48,6 +59,13 @@ type MaterialForm = {
   note: string
 }
 
+type IntakeForm = {
+  prompt: string
+  helpText: string
+  type: 'TEXT' | 'TEXTAREA' | 'YES_NO'
+  required: boolean
+}
+
 function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
 }
@@ -69,6 +87,7 @@ export default function ClinicProceduresPage() {
   const [procedures, setProcedures] = useState<Procedure[]>([])
   const [stockItems, setStockItems] = useState<StockItem[]>([])
   const [forms, setForms] = useState<Record<string, MaterialForm>>({})
+  const [intakeForms, setIntakeForms] = useState<Record<string, IntakeForm>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -113,6 +132,18 @@ export default function ClinicProceduresPage() {
   function updateForm(procedureId: string, patch: Partial<MaterialForm>) {
     const defaultForm = { stockItemId: '', quantityPerVisit: '1', unitCost: '0', note: '' }
     setForms((current) => ({
+      ...current,
+      [procedureId]: {
+        ...defaultForm,
+        ...current[procedureId],
+        ...patch,
+      },
+    }))
+  }
+
+  function updateIntakeForm(procedureId: string, patch: Partial<IntakeForm>) {
+    const defaultForm: IntakeForm = { prompt: '', helpText: '', type: 'TEXT', required: false }
+    setIntakeForms((current) => ({
       ...current,
       [procedureId]: {
         ...defaultForm,
@@ -174,6 +205,58 @@ export default function ClinicProceduresPage() {
     }
   }
 
+  async function saveIntakeQuestion(procedureId: string) {
+    const form = intakeForms[procedureId]
+    if (!form?.prompt.trim()) {
+      alert(t.intakeQuestionRequired)
+      return
+    }
+    setBusy(`intake-${procedureId}`)
+    try {
+      const res = await fetch(`/api/clinic/procedures/${procedureId}/intake-questions`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: form.prompt,
+          helpText: form.helpText || null,
+          type: form.type,
+          required: form.required,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.operationFailed)
+        return
+      }
+      setIntakeForms((current) => ({
+        ...current,
+        [procedureId]: { prompt: '', helpText: '', type: 'TEXT', required: false },
+      }))
+      await load()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function removeIntakeQuestion(procedureId: string, questionId: string) {
+    setBusy(questionId)
+    try {
+      const res = await fetch(`/api/clinic/procedures/${procedureId}/intake-questions/${questionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.operationFailed)
+        return
+      }
+      await load()
+    } finally {
+      setBusy(null)
+    }
+  }
+
   if (loading) {
     return <ClinicSpinner label={t.loading} className="min-h-[40vh]" />
   }
@@ -201,6 +284,7 @@ export default function ClinicProceduresPage() {
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((p) => {
             const form = forms[p.id] ?? { stockItemId: '', quantityPerVisit: '1', unitCost: '0', note: '' }
+            const intakeForm = intakeForms[p.id] ?? { prompt: '', helpText: '', type: 'TEXT' as const, required: false }
             const cost = materialCost(p.materials || [])
             return (
               <article key={p.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -226,6 +310,94 @@ export default function ClinicProceduresPage() {
                   <div className="rounded-2xl bg-purple-50 px-4 py-3 text-purple-950">
                     <p className="text-xs font-semibold uppercase tracking-wide text-purple-700">{t.materialCost}</p>
                     <p className="mt-1 text-xl font-semibold">{formatMoney(cost, p.currency)}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{t.intakeQuestions}</h3>
+                      <p className="text-xs text-gray-500">{t.intakeQuestionsHint}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {p.intakeQuestions?.length ? (
+                      p.intakeQuestions.map((question) => (
+                        <div
+                          key={question.id}
+                          className="flex flex-col gap-2 rounded-xl border border-blue-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{question.prompt}</p>
+                            <p className="text-xs text-gray-500">
+                              {question.type === 'YES_NO'
+                                ? t.intakeTypeYesNo
+                                : question.type === 'TEXTAREA'
+                                  ? t.intakeTypeTextarea
+                                  : t.intakeTypeText}
+                              {question.required ? ` · ${t.required}` : ''}
+                              {!question.active ? ` · ${t.statusInactive}` : ''}
+                            </p>
+                            {question.helpText && <p className="mt-1 text-xs text-gray-500">{question.helpText}</p>}
+                          </div>
+                          <button
+                            type="button"
+                            disabled={busy === question.id}
+                            onClick={() => void removeIntakeQuestion(p.id, question.id)}
+                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-red-100 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden />
+                            {t.removeQuestion}
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="rounded-xl border border-dashed border-blue-100 bg-white p-4 text-sm text-gray-500">
+                        {t.noIntakeQuestionsYet}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_0.9fr_0.65fr_auto_auto]">
+                    <input
+                      value={intakeForm.prompt}
+                      onChange={(e) => updateIntakeForm(p.id, { prompt: e.target.value })}
+                      placeholder={t.intakeQuestionPrompt}
+                      className="min-h-11 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                    />
+                    <input
+                      value={intakeForm.helpText}
+                      onChange={(e) => updateIntakeForm(p.id, { helpText: e.target.value })}
+                      placeholder={t.intakeQuestionHelp}
+                      className="min-h-11 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                    />
+                    <select
+                      value={intakeForm.type}
+                      onChange={(e) => updateIntakeForm(p.id, { type: e.target.value as IntakeForm['type'] })}
+                      className="min-h-11 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                    >
+                      <option value="TEXT">{t.intakeTypeText}</option>
+                      <option value="TEXTAREA">{t.intakeTypeTextarea}</option>
+                      <option value="YES_NO">{t.intakeTypeYesNo}</option>
+                    </select>
+                    <label className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 text-sm font-medium text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={intakeForm.required}
+                        onChange={(e) => updateIntakeForm(p.id, { required: e.target.checked })}
+                        className="h-4 w-4 rounded border-blue-200 text-blue-600"
+                      />
+                      {t.required}
+                    </label>
+                    <button
+                      type="button"
+                      disabled={busy === `intake-${p.id}`}
+                      onClick={() => void saveIntakeQuestion(p.id)}
+                      className="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                    >
+                      {busy === `intake-${p.id}` ? t.savingEllipsis : t.saveQuestion}
+                    </button>
                   </div>
                 </div>
 

@@ -13,6 +13,15 @@ type Procedure = {
   bufferAfterMinutes: number
   basePriceCents: number
   currency: string
+  intakeQuestions: IntakeQuestion[]
+}
+
+type IntakeQuestion = {
+  id: string
+  prompt: string
+  helpText: string | null
+  type: 'TEXT' | 'TEXTAREA' | 'YES_NO'
+  required: boolean
 }
 
 type Slot = {
@@ -80,6 +89,11 @@ const copy = {
     email: 'Email',
     notes: 'Notes for the practice',
     notesPlaceholder: 'Anything the practitioner should know before the appointment?',
+    serviceQuestions: 'Service questions',
+    serviceQuestionsHint: 'Answer these so the practitioner can prepare safely.',
+    chooseAnswer: 'Choose answer',
+    yes: 'Yes',
+    no: 'No',
     consent: 'I consent to the practice storing my details for booking and patient-record purposes.',
     requesting: 'Requesting booking...',
     request: 'Request booking',
@@ -98,6 +112,7 @@ const copy = {
       'dateOfBirth is required': 'Дата рождения обязательна.',
       'phone or email is required': 'Укажите телефон или email.',
       'Consent is required': 'Необходимо согласие на обработку данных.',
+      'Required intake questions are missing': 'Ответьте на обязательные вопросы по услуге.',
       'procedureId and valid startsAt are required': 'Выберите услугу и корректное время.',
       'Service not found': 'Услуга не найдена.',
       'This slot is no longer available': 'Этот слот больше недоступен.',
@@ -125,6 +140,11 @@ const copy = {
     email: 'Email',
     notes: 'Комментарий для клиники',
     notesPlaceholder: 'Что специалисту нужно знать перед записью?',
+    serviceQuestions: 'Вопросы по услуге',
+    serviceQuestionsHint: 'Ответьте, чтобы специалист мог безопасно подготовиться.',
+    chooseAnswer: 'Выберите ответ',
+    yes: 'Да',
+    no: 'Нет',
     consent: 'Я согласен(на), чтобы клиника хранила мои данные для записи и карты пациента.',
     requesting: 'Отправляем запрос...',
     request: 'Запросить запись',
@@ -163,6 +183,7 @@ export default function PublicBookingPage() {
     notes: '',
     consentAccepted: false,
   })
+  const [intakeAnswers, setIntakeAnswers] = useState<Record<string, string>>({})
   const viewedRef = useRef(false)
   const formStartedRef = useRef(false)
 
@@ -193,6 +214,17 @@ export default function PublicBookingPage() {
   const updateForm = useCallback(
     (patch: Partial<typeof form>) => {
       setForm((current) => ({ ...current, ...patch }))
+      if (!formStartedRef.current) {
+        formStartedRef.current = true
+        track('FORM_STARTED', { procedureId, startsAt: selectedSlot || undefined })
+      }
+    },
+    [procedureId, selectedSlot, track]
+  )
+
+  const updateIntakeAnswer = useCallback(
+    (questionId: string, answer: string) => {
+      setIntakeAnswers((current) => ({ ...current, [questionId]: answer }))
       if (!formStartedRef.current) {
         formStartedRef.current = true
         track('FORM_STARTED', { procedureId, startsAt: selectedSlot || undefined })
@@ -235,6 +267,7 @@ export default function PublicBookingPage() {
 
   useEffect(() => {
     setSelectedSlot('')
+    setIntakeAnswers({})
   }, [procedureId])
 
   const chooseProcedure = (id: string) => {
@@ -264,6 +297,10 @@ export default function PublicBookingPage() {
           ...form,
           procedureId,
           startsAt: selectedSlot,
+          intakeAnswers: Object.entries(intakeAnswers).map(([questionId, answer]) => ({
+            questionId,
+            answer,
+          })),
         }),
       })
       const json = await res.json()
@@ -442,6 +479,49 @@ export default function PublicBookingPage() {
                 />
               </label>
             </div>
+
+            {selectedProcedure?.intakeQuestions?.length ? (
+              <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                <h3 className="text-sm font-semibold text-blue-950">{c.serviceQuestions}</h3>
+                <p className="mt-1 text-xs text-blue-900/70">{c.serviceQuestionsHint}</p>
+                <div className="mt-4 space-y-4">
+                  {selectedProcedure.intakeQuestions.map((question) => (
+                    <label key={question.id} className="block text-sm font-medium text-gray-700">
+                      {question.prompt}
+                      {question.required ? ' *' : ''}
+                      {question.helpText && <span className="mt-1 block text-xs font-normal text-gray-500">{question.helpText}</span>}
+                      {question.type === 'YES_NO' ? (
+                        <select
+                          value={intakeAnswers[question.id] ?? ''}
+                          onChange={(e) => updateIntakeAnswer(question.id, e.target.value)}
+                          required={question.required}
+                          className="mt-1 min-h-11 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
+                        >
+                          <option value="">{c.chooseAnswer}</option>
+                          <option value="yes">{c.yes}</option>
+                          <option value="no">{c.no}</option>
+                        </select>
+                      ) : question.type === 'TEXTAREA' ? (
+                        <textarea
+                          rows={3}
+                          value={intakeAnswers[question.id] ?? ''}
+                          onChange={(e) => updateIntakeAnswer(question.id, e.target.value)}
+                          required={question.required}
+                          className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
+                        />
+                      ) : (
+                        <input
+                          value={intakeAnswers[question.id] ?? ''}
+                          onChange={(e) => updateIntakeAnswer(question.id, e.target.value)}
+                          required={question.required}
+                          className="mt-1 min-h-11 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
+                        />
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <label className="mt-5 flex gap-3 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-sm text-orange-950">
               <input

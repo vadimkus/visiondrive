@@ -21,6 +21,8 @@
 | `ClinicBookingFunnelEvent` | Anonymous tenant-scoped public booking analytics events for link views, service/slot selection, form activity, and completed online booking. |
 | `ClinicPatientPortalLink` | Hashed private patient portal token with expiry/revocation and last-access tracking; plaintext link is only returned at creation time. |
 | `ClinicPatientPortalRequest` | Patient-submitted portal requests for reschedule, cancellation, or message, attached to patient and optional appointment. |
+| `ClinicIntakeQuestion` | Procedure-scoped public booking question with type, help text, required/active flags, and sort order. |
+| `ClinicIntakeResponse` | Appointment-linked intake answer snapshot from public booking, preserving prompt/type even if the question changes later. |
 | `ClinicPatientReview` | Internal reputation workflow: review request status, rating, private note, candidate public text, and request/reply/publish timestamps. |
 | `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional links to an appointment and treatment plan, **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
 | `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); served/deleted via **`GET/DELETE /api/clinic/media/[id]`** (tenant-scoped). |
@@ -47,7 +49,7 @@ Home visits: patient records store the default address, area, and parking/access
 
 Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send WhatsApp messages. The runner prepares due messages and logs them; staff opens the generated `wa.me` link to send. Rebooking follow-up nudges can be scheduled from completed appointments and are skipped at runner time if the patient already has a future appointment. Review requests create internal `ClinicPatientReview` rows so ratings/replies can be captured before publishing externally. Future WhatsApp Business API integration can mark deliveries as sent automatically.
 
-Public booking: `/book/[tenant.slug]` is a private branded link, not a marketplace. It is disabled by default and controlled from the clinic dashboard using `tenant_settings.thresholds.publicBooking.enabled`. When enabled, the public API exposes active services and generated slots only; booking creation stores DOB/contact/consent as a real patient + `ONLINE` appointment and still uses the scheduling guard. No public override is allowed.
+Public booking: `/book/[tenant.slug]` is a private branded link, not a marketplace. It is disabled by default and controlled from the clinic dashboard using `tenant_settings.thresholds.publicBooking.enabled`. When enabled, the public API exposes active services, generated slots, and active service-specific intake questions. Booking creation stores DOB/contact/consent as a real patient + `ONLINE` appointment, validates required intake answers, snapshots answers into `ClinicIntakeResponse`, and still uses the scheduling guard. No public override is allowed.
 
 Patient portal lite: `/patient-portal/[token]` is a private, token-based patient view. Tokens are stored as SHA-256 hashes, expire, and can be revoked from the patient chart. The portal exposes patient-safe operational data only: upcoming appointments, aftercare/next steps, package balances, receipts, accepted consent titles, and treatment-plan progress. Requests from the portal do not mutate appointments directly; they create a `ClinicPatientPortalRequest`, CRM note, and appointment event for staff review.
 
@@ -58,6 +60,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 - **Patient-safe PDF:** `GET .../patients/[id]/summary-pdf` returns a minimal English summary for handout; staff-only fields are excluded by construction (not redacted — never loaded).
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
 - **Procedure materials:** `GET/POST /api/clinic/procedures/[id]/materials`, `PATCH/DELETE .../materials/[materialId]`; visit completion deducts active material rows before falling back to legacy stock-item procedure links.
+- **Procedure intake questions:** `GET/POST /api/clinic/procedures/[id]/intake-questions`, `PATCH/DELETE .../intake-questions/[questionId]`; active questions are shown on public booking for that service and required answers block submission until completed.
 - **Stock-taking:** `GET/POST /api/clinic/stock-takes`, `GET/PATCH .../stock-takes/[id]`, `PATCH .../lines/[lineId]`, `POST .../finalize`; finalization posts audited `ADJUSTMENT` stock movements and updates on-hand quantities to the physical count.
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`.
 - **Availability:** `GET/PATCH /api/clinic/availability`, `GET /api/clinic/availability/slots`, `GET/POST /api/clinic/blocked-times`, `DELETE .../blocked-times/[id]`.
@@ -73,7 +76,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 - **Retention analytics:** `GET /api/clinic/retention/overview` derives rebook rate, returning-client rate, no-show rate, follow-up conversion, lost patients, and repeat interval by procedure from appointments and rebooking reminders.
 - **Booking funnel analytics:** `POST /api/clinic/public-booking/[slug]/funnel` records anonymous public booking step events; `GET /api/clinic/booking-funnel/overview` summarizes conversion by stage, day, and procedure.
 - **Patient portal lite:** `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` manages private portal links; `GET/POST /api/patient-portal/[token]` returns patient-safe portal data and creates reschedule/cancel/message requests; `GET /api/patient-portal/[token]/payments/[paymentId]/receipt` downloads receipt PDFs for that patient only.
-- **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
+- **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot/intake discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).
 - Errors: JSON `{ error: string, code?: string }` with appropriate HTTP status.
