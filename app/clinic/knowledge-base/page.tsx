@@ -223,6 +223,19 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/patients',
   },
+  {
+    id: 'notification-center',
+    category: 'Communication',
+    title: 'Work from one daily notification center',
+    summary: 'Use Inbox to catch reminders due, online bookings, reschedules, reviews, unpaid visits, and low stock.',
+    steps: [
+      'Open Inbox from the clinic navigation.',
+      'Review urgent items first: due reminders, unpaid completed visits, and stock at zero.',
+      'Use filters to focus on bookings, reschedules, review requests, payments, or inventory.',
+      'Open the linked appointment, patient workflow, reminder, reputation, or stock item to resolve the task.',
+    ],
+    link: '/clinic/inbox',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -422,6 +435,19 @@ const articlesRu: Article[] = [
       'Ставьте план на паузу, активируйте или завершайте его по мере изменения курса.',
     ],
     link: '/clinic/patients',
+  },
+  {
+    id: 'notification-center',
+    category: 'Коммуникации',
+    title: 'Работайте из единого центра уведомлений',
+    summary: 'Во Входящих видны напоминания, онлайн-записи, переносы, отзывы, неоплаченные визиты и низкий склад.',
+    steps: [
+      'Откройте Входящие в навигации клиники.',
+      'Сначала проверьте срочные пункты: просроченные напоминания, неоплаченные завершённые визиты и нулевые остатки.',
+      'Используйте фильтры для записей, переносов, отзывов, оплат или склада.',
+      'Откройте связанную запись, напоминание, репутацию или складскую позицию, чтобы закрыть задачу.',
+    ],
+    link: '/clinic/inbox',
   },
 ]
 

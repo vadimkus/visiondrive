@@ -423,6 +423,24 @@
 
 ---
 
+## Chunk 25 — 2026-04-27 (notification center)
+
+**Shipped**
+
+- **API:** `GET /api/clinic/inbox` aggregates live operational items from reminders, online bookings, reschedule events, review requests, billable appointments/payments, and inventory.
+- **UI:** `/clinic/inbox` shows totals, severity counts, filters by item type, localized item labels, and action links to the source workflow.
+- **Navigation:** added Inbox to the clinic shell.
+- **i18n/Knowledge Base:** EN/RU strings and a Knowledge Base article for the daily notification-center workflow.
+- **Lib:** `lib/clinic/notification-center.ts` handles due calculation, severity sorting, and summary counters.
+
+**Validation**
+
+- Added Vitest coverage for notification summary/sorting and unpaid appointment due math.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

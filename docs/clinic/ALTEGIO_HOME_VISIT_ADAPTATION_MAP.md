@@ -110,6 +110,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: one practitioner inbox for new bookings, reschedules, cancellations, reminders due, reviews due, unpaid visits, low stock.
    - Why it matters: solo practitioner has no receptionist. The app must surface what needs action today.
    - Build shape: `/clinic/inbox` or dashboard panel backed by reminders, appointments, payments, low-stock signals.
+   - Shipped: `/clinic/inbox` aggregates due reminders, new online bookings, recent reschedules, pending review requests, unpaid billable appointments, and low-stock inventory with severity, filters, counts, and action links.
+   - Next improvements: persistent read/dismiss state, push/email digest, cancellation signals, owner-specific assignment, and SLA aging.
 
 16. Bill of materials per procedure
    - Altegio source: bills of materials and automatic consumable write-off.

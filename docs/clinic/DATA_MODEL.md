@@ -58,6 +58,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/POST .../packages` — list/sell prepaid treatment packages; completed visits auto-debit one matching session.
 - `GET/POST /api/clinic/consents/templates`; `GET/POST .../patients/[id]/consents` — manage consent templates and signed patient consent records.
 - `GET/POST .../patients/[id]/treatment-plans`; `PATCH .../treatment-plans/[planId]` — create/update planned care courses and show progress from linked visits.
+- `GET /api/clinic/inbox` — derived notification center for reminders due, online bookings, recent reschedules, review requests, unpaid visits, and low-stock items.
 - `GET/PATCH /api/clinic/me` — profile + password.
 
 All routes require **clinic session** (`getClinicSession`): `authToken` cookie + `portal=clinic`.
