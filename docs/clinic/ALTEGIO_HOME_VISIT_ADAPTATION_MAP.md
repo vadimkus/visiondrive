@@ -213,8 +213,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Next improvements: correction workflow, exportable close report, cash-in/out movements, and optional manager/practitioner signature.
 
 29. Refund and correction workflow
+   - Status: shipped first pass.
    - Source: client refunds and financial corrections.
    - Solo version: refund a payment without corrupting visit history; record reason and method.
+   - Shipped: payment refunds now create separate `REFUNDED` adjustment rows linked to the original payment, voids require a reason, and appointment/patient payment views show correction history with amount, method, reason, and timestamp.
+   - Next improvements: correction approval/signature, exportable correction report, refund receipt, and richer cash-in/out handling around daily close.
 
 30. Dormant patient reactivation
    - Source: personal messages and lost-client filters.
@@ -334,13 +337,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Refund and correction workflow.
-2. Data export/deletion tools.
-3. Booking source/UTM attribution and abandoned-booking follow-up.
-4. Dormant patient reactivation.
-5. Patient-uploaded photos through the portal.
+1. Data export/deletion tools.
+2. Booking source/UTM attribution and abandoned-booking follow-up.
+3. Dormant patient reactivation.
+4. Patient-uploaded photos through the portal.
+5. Aftercare document library.
 
 ## Recommendation
 
-Daily close now covers the finance-control gap after supplier settlement and payment fee rules. The next point should be refund and correction workflow, because finalized closes need a clean way to handle refunds, mistakes, and post-close adjustments without corrupting visit/payment history.
+Refund and correction workflow now protects the ledger after daily close. The next point should be data export/deletion tools, because the product is now storing richer patient, finance, photo, consent, and payment-correction data that needs clean portability and deletion controls.
 

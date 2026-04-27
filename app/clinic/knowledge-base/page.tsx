@@ -283,6 +283,20 @@ const articlesEn: Article[] = [
     link: '/clinic/appointments',
   },
   {
+    id: 'refund-corrections',
+    category: 'Finance',
+    title: 'Refund or void payments without losing the audit trail',
+    summary: 'Use payment corrections when money is returned or a mistaken payment must be voided.',
+    steps: [
+      'Open the appointment drawer or the patient Payments tab.',
+      'Choose Refund on a paid payment, enter the amount, and record the reason. The original payment stays intact and a refund adjustment row is created.',
+      'Choose Void only for mistaken payments that should never count as collected; a reason is required.',
+      'Review correction history under the payment to see refund amount, method, reason, and timestamp.',
+      'Finance, client balance, and Daily close read the correction rows without rewriting visit history.',
+    ],
+    link: '/clinic/patients',
+  },
+  {
     id: 'consent-contraindication-forms',
     category: 'Patients',
     title: 'Capture consent and contraindications before treatment',
@@ -663,6 +677,20 @@ const articlesRu: Article[] = [
       'Используйте Чек для PDF, либо Возврат/Аннулировать, если оплата не должна считаться оплаченной.',
     ],
     link: '/clinic/appointments',
+  },
+  {
+    id: 'refund-corrections',
+    category: 'Финансы',
+    title: 'Делайте возвраты и аннулирования без потери аудита',
+    summary: 'Используйте корректировки оплат, когда деньги возвращены или ошибочную оплату нужно аннулировать.',
+    steps: [
+      'Откройте карточку записи или вкладку Оплаты в карте пациента.',
+      'Выберите Возврат у оплаченного платежа, укажите сумму и причину. Исходная оплата остается, а система создает отдельную строку возврата.',
+      'Используйте Аннулировать только для ошибочных платежей, которые не должны считаться полученными; причина обязательна.',
+      'Смотрите историю корректировок под оплатой: сумма, метод, причина и дата сохраняются.',
+      'Финансы, баланс клиента и Закрытие дня читают корректировки без переписывания истории визита.',
+    ],
+    link: '/clinic/patients',
   },
   {
     id: 'consent-contraindication-forms',

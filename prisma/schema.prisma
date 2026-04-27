@@ -96,6 +96,7 @@ model Tenant {
   clinicVisits                ClinicVisit[]
   clinicPatientMedia          ClinicPatientMedia[]
   clinicPatientPayments       ClinicPatientPayment[]
+  clinicPaymentCorrections    ClinicPaymentCorrection[]
   clinicPaymentFeeRules       ClinicPaymentFeeRule[]
   clinicDailyCloses           ClinicDailyClose[]
   clinicProductSales          ClinicProductSale[]
@@ -868,20 +869,21 @@ model ClinicPatient {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  tenant          Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments    ClinicAppointment[]
-  visits          ClinicVisit[]
-  media           ClinicPatientMedia[]
-  payments        ClinicPatientPayment[]
-  productSales    ClinicProductSale[]
-  crmActivities   ClinicCrmActivity[]
-  reviews         ClinicPatientReview[]
-  packages        ClinicPatientPackage[]
-  consentRecords  ClinicConsentRecord[]
-  treatmentPlans  ClinicTreatmentPlan[]
-  portalLinks     ClinicPatientPortalLink[]
-  portalRequests  ClinicPatientPortalRequest[]
-  intakeResponses ClinicIntakeResponse[]
+  tenant             Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments       ClinicAppointment[]
+  visits             ClinicVisit[]
+  media              ClinicPatientMedia[]
+  payments           ClinicPatientPayment[]
+  paymentCorrections ClinicPaymentCorrection[]
+  productSales       ClinicProductSale[]
+  crmActivities      ClinicCrmActivity[]
+  reviews            ClinicPatientReview[]
+  packages           ClinicPatientPackage[]
+  consentRecords     ClinicConsentRecord[]
+  treatmentPlans     ClinicTreatmentPlan[]
+  portalLinks        ClinicPatientPortalLink[]
+  portalRequests     ClinicPatientPortalRequest[]
+  intakeResponses    ClinicIntakeResponse[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -1232,6 +1234,11 @@ enum ClinicDailyCloseStatus {
   FINALIZED
 }
 
+enum ClinicPaymentCorrectionType {
+  REFUND
+  VOID
+}
+
 enum ClinicPatientPackageStatus {
   ACTIVE
   USED_UP
@@ -1328,15 +1335,43 @@ model ClinicPatientPayment {
   createdAt         DateTime            @default(now())
   createdByUserId   String?
 
-  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient     ClinicPatient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  visit       ClinicVisit?       @relation(fields: [visitId], references: [id], onDelete: SetNull)
-  appointment ClinicAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  productSale ClinicProductSale?
+  tenant                 Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient                ClinicPatient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visit                  ClinicVisit?              @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  appointment            ClinicAppointment?        @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  productSale            ClinicProductSale?
+  correctionsAsOriginal  ClinicPaymentCorrection[] @relation("OriginalPaymentCorrections")
+  correctionAsAdjustment ClinicPaymentCorrection?  @relation("AdjustmentPaymentCorrection")
 
   @@index([tenantId, patientId, paidAt])
   @@index([appointmentId, paidAt])
   @@map("clinic_patient_payments")
+}
+
+model ClinicPaymentCorrection {
+  id                  String                      @id @default(cuid())
+  tenantId            String
+  patientId           String
+  originalPaymentId   String
+  adjustmentPaymentId String?                     @unique
+  type                ClinicPaymentCorrectionType
+  amountCents         Int                         @default(0)
+  currency            String                      @default("AED")
+  method              ClinicPaymentMethod         @default(OTHER)
+  reason              String
+  note                String?                     @db.Text
+  correctedAt         DateTime                    @default(now()) @db.Timestamptz(6)
+  createdAt           DateTime                    @default(now())
+  createdByUserId     String?
+
+  tenant            Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient           ClinicPatient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  originalPayment   ClinicPatientPayment  @relation("OriginalPaymentCorrections", fields: [originalPaymentId], references: [id], onDelete: Cascade)
+  adjustmentPayment ClinicPatientPayment? @relation("AdjustmentPaymentCorrection", fields: [adjustmentPaymentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, patientId, correctedAt])
+  @@index([originalPaymentId, type])
+  @@map("clinic_payment_corrections")
 }
 
 model ClinicPaymentFeeRule {

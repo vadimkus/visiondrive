@@ -24,7 +24,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_patient_reviews` | Internal review/reputation workflow: request status, rating, private note, candidate public text, requested/replied/published timestamps. |
 | `clinic_visits` | Completed encounters; optional `treatment_plan_id`; **next_steps** drives “what to do next” on the chart; **inventory_consumed_at** prevents repeated auto-deduct. |
 | `clinic_patient_media` | Before/after/other images captured from camera or uploaded from file picker: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime + caption. |
-| `clinic_patient_payments` | Payments; optional `visit_id` / `appointment_id`, discount, patient-facing fee, internal `processor_fee_cents`, method, status, reference, note. Client balance is derived from completed/arrived appointment prices, linked payments, refunds, pending rows, and standalone deposits. |
+| `clinic_patient_payments` | Payments; optional `visit_id` / `appointment_id`, discount, patient-facing fee, internal `processor_fee_cents`, method, status, reference, note. Refunds are separate `REFUNDED` adjustment payment rows that point back to the original via correction records. |
+| `clinic_payment_corrections` | Audit trail for refunds and voids: original payment, optional adjustment payment, type, amount, method, reason, note, actor, and timestamp. |
 | `clinic_payment_fee_rules` | Tenant method-level acquiring rules: payment method, percent bps, fixed fee, active flag. New paid payments snapshot processing fees automatically. |
 | `clinic_daily_closes` | Daily reconciliation snapshots: expected payment totals by method, counted totals, discrepancies, pending/refund totals, payment/appointment counts, notes, and draft/finalized status. |
 | `clinic_product_sales` + `clinic_product_sale_lines` | Retail / aftercare product sales linked to patient, optional visit/appointment, stock item lines, sale totals, and payment reference. |
@@ -73,7 +74,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `POST .../payments`, `POST .../crm`.
 - `GET/PATCH /api/clinic/payment-fee-rules` — configure method-level acquiring costs used to snapshot `processor_fee_cents` on new paid payments.
 - `GET/POST /api/clinic/daily-close` — preview, save, and finalize one-day payment reconciliation by method.
-- `PATCH .../payments/[paymentId]`, `GET .../payments/[paymentId]/receipt` — refund/void payment rows and export patient-safe receipt PDF.
+- `PATCH .../payments/[paymentId]`, `GET .../payments/[paymentId]/receipt` — record refund/void corrections with required reason and export patient-safe receipt PDF.
 - `GET/POST .../product-sales` — record aftercare retail products from a visit, deduct inventory, and create finance revenue payment rows.
 - `GET /api/clinic/finance/overview` — finance dashboard data including P&L v2, direct material/product/payment-processing costs, product sales, operating expenses, and procedure profitability.
 - `GET/POST .../packages` — list/sell prepaid treatment packages; completed visits auto-debit one matching session.

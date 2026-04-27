@@ -32,6 +32,19 @@ type Payment = {
   paidAt: string
   visitId: string | null
   appointmentId: string | null
+  correctionsAsOriginal?: PaymentCorrection[]
+}
+
+type PaymentCorrection = {
+  id: string
+  type: 'REFUND' | 'VOID'
+  amountCents: number
+  currency: string
+  method: string
+  reason: string
+  note: string | null
+  correctedAt: string
+  adjustmentPaymentId: string | null
 }
 
 type ProductSale = {
@@ -161,6 +174,16 @@ type Appointment = {
 
 function money(cents: number, currency = 'AED') {
   return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+function refundedCents(payment: Payment) {
+  return (payment.correctionsAsOriginal ?? [])
+    .filter((correction) => correction.type === 'REFUND')
+    .reduce((sum, correction) => sum + correction.amountCents, 0)
+}
+
+function refundableCents(payment: Payment) {
+  return payment.status === 'PAID' ? Math.max(0, payment.amountCents - refundedCents(payment)) : 0
 }
 
 function parseMajorToCents(value: string) {
@@ -376,17 +399,42 @@ export function ClinicAppointmentDrawer({
     }
   }
 
-  async function updatePaymentStatus(paymentId: string, status: 'REFUNDED' | 'VOID') {
+  async function updatePaymentStatus(paymentItem: Payment, status: 'REFUNDED' | 'VOID') {
     if (!appointment) return
-    setBusy(`${status}_${paymentId}`)
+    const remainingRefundable = refundableCents(paymentItem)
+    const reason = window.prompt(
+      status === 'REFUNDED' ? t.paymentRefundReasonPrompt : t.paymentVoidReasonPrompt
+    )
+    if (!reason?.trim()) {
+      setError(t.paymentCorrectionReasonRequired)
+      return
+    }
+    const amountInput =
+      status === 'REFUNDED'
+        ? window.prompt(t.paymentRefundAmountPrompt, (remainingRefundable / 100).toFixed(2))
+        : null
+    const amountCents =
+      status === 'REFUNDED'
+        ? Math.round(Number.parseFloat(amountInput || '') * 100)
+        : paymentItem.amountCents
+    if (status === 'REFUNDED' && (!Number.isInteger(amountCents) || amountCents <= 0)) {
+      setError(t.enterValidAmount)
+      return
+    }
+    setBusy(`${status}_${paymentItem.id}`)
     setError('')
     setNotice('')
     try {
-      const res = await fetch(`/api/clinic/patients/${appointment.patient.id}/payments/${paymentId}`, {
+      const res = await fetch(`/api/clinic/patients/${appointment.patient.id}/payments/${paymentItem.id}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status,
+          reason,
+          amountCents: status === 'REFUNDED' ? amountCents : undefined,
+          method: paymentItem.method,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || t.saveFailed)
@@ -943,6 +991,18 @@ export function ClinicAppointmentDrawer({
                                 {t.paymentProcessorFee}: {money(item.processorFeeCents, item.currency)}
                               </p>
                             )}
+                            {(item.correctionsAsOriginal?.length ?? 0) > 0 && (
+                              <div className="mt-2 space-y-1 rounded-lg bg-gray-50 p-2">
+                                <p className="font-semibold text-gray-700">{t.paymentCorrectionHistory}</p>
+                                {item.correctionsAsOriginal?.map((correction) => (
+                                  <p key={correction.id}>
+                                    {correction.type === 'REFUND' ? t.refundPayment : t.voidPayment}:{' '}
+                                    {money(correction.amountCents, correction.currency)} · {correction.method} ·{' '}
+                                    {correction.reason}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <a
                             href={`/api/clinic/patients/${appointment.patient.id}/payments/${item.id}/receipt`}
@@ -957,16 +1017,17 @@ export function ClinicAppointmentDrawer({
                           <div className="mt-2 flex gap-2">
                             <button
                               type="button"
-                              onClick={() => updatePaymentStatus(item.id, 'REFUNDED')}
-                              disabled={busy === `REFUNDED_${item.id}`}
+                              onClick={() => updatePaymentStatus(item, 'REFUNDED')}
+                              disabled={busy === `REFUNDED_${item.id}` || refundableCents(item) <= 0}
                               className="rounded-lg border border-gray-200 px-2 py-1 font-semibold text-gray-700 disabled:opacity-60"
                             >
                               {t.refundPayment}
+                              {refundableCents(item) > 0 ? ` (${money(refundableCents(item), item.currency)})` : ''}
                             </button>
                             <button
                               type="button"
-                              onClick={() => updatePaymentStatus(item.id, 'VOID')}
-                              disabled={busy === `VOID_${item.id}`}
+                              onClick={() => updatePaymentStatus(item, 'VOID')}
+                              disabled={busy === `VOID_${item.id}` || refundedCents(item) > 0}
                               className="rounded-lg border border-gray-200 px-2 py-1 font-semibold text-gray-700 disabled:opacity-60"
                             >
                               {t.voidPayment}

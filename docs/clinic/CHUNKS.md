@@ -702,6 +702,24 @@
 
 ---
 
+## Chunk 40 — 2026-04-27 (refund and correction workflow)
+
+**Shipped**
+
+- **Schema:** `ClinicPaymentCorrection` records required-reason refund/void corrections linked to the original payment and optional refund adjustment payment.
+- **Ledger behavior:** refunds preserve the original paid row and create separate `REFUNDED` adjustment payment rows with `REFUND:<originalPaymentId>` references; partial refunds are supported until the remaining refundable amount reaches zero.
+- **API:** `PATCH /api/clinic/patients/[id]/payments/[paymentId]` now validates correction reason, refund amount, refund method, and void eligibility; full product-sale refunds/voids update linked product-sale payment status.
+- **UI:** Appointment drawer and patient Payments tab prompt for refund/void reason, prompt for refund amount, show remaining refundable amount, and display correction history.
+- **i18n/Knowledge Base:** EN/RU strings and article explain corrections, refund adjustment rows, and void rules.
+
+**Validation**
+
+- Added Vitest coverage for refund reference detection, reason/amount normalization, refundable amount calculation, and void eligibility.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Schema change: run `npx prisma db push` on target databases after pull.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

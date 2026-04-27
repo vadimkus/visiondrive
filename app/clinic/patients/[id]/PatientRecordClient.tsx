@@ -76,6 +76,19 @@ type PaymentRow = {
   paidAt: string
   visitId: string | null
   createdAt: string
+  correctionsAsOriginal?: PaymentCorrectionRow[]
+}
+
+type PaymentCorrectionRow = {
+  id: string
+  type: 'REFUND' | 'VOID'
+  amountCents: number
+  currency: string
+  method: string
+  reason: string
+  note: string | null
+  correctedAt: string
+  adjustmentPaymentId: string | null
 }
 
 type ProductSaleRow = {
@@ -294,6 +307,16 @@ function ageFromDob(iso: string) {
 
 function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+function paymentRefundedCents(payment: PaymentRow) {
+  return (payment.correctionsAsOriginal ?? [])
+    .filter((correction) => correction.type === 'REFUND')
+    .reduce((sum, correction) => sum + correction.amountCents, 0)
+}
+
+function paymentRefundableCents(payment: PaymentRow) {
+  return payment.status === 'PAID' ? Math.max(0, payment.amountCents - paymentRefundedCents(payment)) : 0
 }
 
 function balanceLabel(t: ReturnType<typeof useClinicLocale>['t'], balance: ClientBalance) {
@@ -2676,6 +2699,7 @@ function PaymentsTab({
   const [note, setNote] = useState('')
   const [visitId, setVisitId] = useState('')
   const [saving, setSaving] = useState(false)
+  const [correctingId, setCorrectingId] = useState<string | null>(null)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -2711,6 +2735,52 @@ function PaymentsTab({
       await onRefresh()
     } finally {
       setSaving(false)
+    }
+  }
+
+  const updatePaymentStatus = async (payment: PaymentRow, nextStatus: 'REFUNDED' | 'VOID') => {
+    const remainingRefundable = paymentRefundableCents(payment)
+    const reason = window.prompt(
+      nextStatus === 'REFUNDED' ? t.paymentRefundReasonPrompt : t.paymentVoidReasonPrompt
+    )
+    if (!reason?.trim()) {
+      alert(t.paymentCorrectionReasonRequired)
+      return
+    }
+    const amountInput =
+      nextStatus === 'REFUNDED'
+        ? window.prompt(t.paymentRefundAmountPrompt, (remainingRefundable / 100).toFixed(2))
+        : null
+    const amountCents =
+      nextStatus === 'REFUNDED'
+        ? Math.round(Number.parseFloat(amountInput || '') * 100)
+        : payment.amountCents
+    if (nextStatus === 'REFUNDED' && (!Number.isInteger(amountCents) || amountCents <= 0)) {
+      alert(t.enterValidAmount)
+      return
+    }
+
+    setCorrectingId(payment.id)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/payments/${payment.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          status: nextStatus,
+          reason,
+          amountCents: nextStatus === 'REFUNDED' ? amountCents : undefined,
+          method: payment.method,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      await onRefresh()
+    } finally {
+      setCorrectingId(null)
     }
   }
 
@@ -2847,7 +2917,42 @@ function PaymentsTab({
                     {t.paymentProcessorFee}: {formatMoney(pmt.processorFeeCents, pmt.currency)}
                   </p>
                 )}
+                {(pmt.correctionsAsOriginal?.length ?? 0) > 0 && (
+                  <div className="mt-2 space-y-1 rounded-lg bg-gray-50 p-2 text-xs text-gray-600">
+                    <p className="font-semibold text-gray-700">{t.paymentCorrectionHistory}</p>
+                    {pmt.correctionsAsOriginal?.map((correction) => (
+                      <p key={correction.id}>
+                        {correction.type === 'REFUND' ? t.refundPayment : t.voidPayment}:{' '}
+                        {formatMoney(correction.amountCents, correction.currency)} · {correction.method} ·{' '}
+                        {correction.reason}
+                      </p>
+                    ))}
+                  </div>
+                )}
                 {pmt.note && <p className="text-gray-500 text-xs mt-1">{pmt.note}</p>}
+                {pmt.status === 'PAID' && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updatePaymentStatus(pmt, 'REFUNDED')}
+                      disabled={correctingId === pmt.id || paymentRefundableCents(pmt) <= 0}
+                      className="rounded-lg border border-gray-200 px-2 py-1 text-xs font-semibold text-gray-700 disabled:opacity-60"
+                    >
+                      {t.refundPayment}
+                      {paymentRefundableCents(pmt) > 0
+                        ? ` (${formatMoney(paymentRefundableCents(pmt), pmt.currency)})`
+                        : ''}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updatePaymentStatus(pmt, 'VOID')}
+                      disabled={correctingId === pmt.id || paymentRefundedCents(pmt) > 0}
+                      className="rounded-lg border border-gray-200 px-2 py-1 text-xs font-semibold text-gray-700 disabled:opacity-60"
+                    >
+                      {t.voidPayment}
+                    </button>
+                  </div>
+                )}
               </div>
               <p className="text-gray-400 text-xs shrink-0">
                 {new Date(pmt.paidAt).toLocaleDateString(dateLocale)}
