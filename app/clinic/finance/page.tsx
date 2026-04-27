@@ -75,6 +75,43 @@ type FeeRule = {
   active: boolean
 }
 
+type MethodTotals = Record<PaymentMethod, number>
+
+type DailyCloseData = {
+  businessDate: string
+  methods: PaymentMethod[]
+  summary: {
+    expectedByMethod: MethodTotals
+    countedByMethod: MethodTotals
+    discrepancyByMethod: MethodTotals
+    expectedTotalCents: number
+    countedTotalCents: number
+    discrepancyTotalCents: number
+    paidTotalCents: number
+    refundedTotalCents: number
+    pendingTotalCents: number
+    processorFeeCents: number
+    paymentCount: number
+    appointmentCount: number
+  }
+  close: null | {
+    id: string
+    businessDate: string
+    status: 'DRAFT' | 'FINALIZED'
+    note: string | null
+    finalizedAt: string | null
+  }
+  recentCloses?: {
+    id: string
+    businessDate: string
+    status: 'DRAFT' | 'FINALIZED'
+    paidTotalCents: number
+    refundedTotalCents: number
+    pendingTotalCents: number
+    discrepancyByMethod: MethodTotals
+  }[]
+}
+
 const CATEGORIES: ExpenseCategory[] = [
   'OPS',
   'HARDWARE',
@@ -86,6 +123,24 @@ const CATEGORIES: ExpenseCategory[] = [
 ]
 
 const PAYMENT_METHODS: PaymentMethod[] = ['CASH', 'CARD', 'TRANSFER', 'POS', 'STRIPE', 'OTHER']
+
+const EMPTY_METHOD_INPUTS: Record<PaymentMethod, string> = {
+  CASH: '0',
+  CARD: '0',
+  TRANSFER: '0',
+  POS: '0',
+  STRIPE: '0',
+  OTHER: '0',
+}
+
+const EMPTY_METHOD_TOTALS: MethodTotals = {
+  CASH: 0,
+  CARD: 0,
+  TRANSFER: 0,
+  POS: 0,
+  STRIPE: 0,
+  OTHER: 0,
+}
 
 function money(cents: number, currency = 'AED', locale = 'en-GB') {
   return new Intl.NumberFormat(locale, {
@@ -144,9 +199,14 @@ export default function ClinicFinancePage() {
   const [range, setRange] = useState<'month' | '30d'>('month')
   const [overview, setOverview] = useState<Overview | null>(null)
   const [feeRules, setFeeRules] = useState<FeeRule[]>([])
+  const [dailyClose, setDailyClose] = useState<DailyCloseData | null>(null)
+  const [dailyCloseDate, setDailyCloseDate] = useState(new Date().toISOString().slice(0, 10))
+  const [dailyCloseCounts, setDailyCloseCounts] = useState<Record<PaymentMethod, string>>(EMPTY_METHOD_INPUTS)
+  const [dailyCloseNote, setDailyCloseNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingFeeRule, setSavingFeeRule] = useState<PaymentMethod | null>(null)
+  const [savingDailyClose, setSavingDailyClose] = useState<'draft' | 'finalized' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     category: 'OPS' as ExpenseCategory,
@@ -162,11 +222,12 @@ export default function ClinicFinancePage() {
     setLoading(true)
     setError(null)
     try {
-      const [res, feeRes] = await Promise.all([
+      const [res, feeRes, dailyCloseRes] = await Promise.all([
         fetch(`/api/clinic/finance/overview?range=${range}`, {
           credentials: 'include',
         }),
         fetch('/api/clinic/payment-fee-rules', { credentials: 'include' }),
+        fetch(`/api/clinic/daily-close?date=${dailyCloseDate}`, { credentials: 'include' }),
       ])
       if (res.status === 401) {
         router.replace('/login')
@@ -181,12 +242,24 @@ export default function ClinicFinancePage() {
         const feeData = await feeRes.json()
         setFeeRules(feeData.rules || [])
       }
+      if (dailyCloseRes.ok) {
+        const dailyCloseData = await dailyCloseRes.json()
+        setDailyClose(dailyCloseData)
+        const countedByMethod = dailyCloseData.summary?.countedByMethod ?? {}
+        setDailyCloseCounts(
+          PAYMENT_METHODS.reduce((acc, method) => {
+            acc[method] = ((countedByMethod[method] ?? 0) / 100).toString()
+            return acc
+          }, {} as Record<PaymentMethod, string>)
+        )
+        setDailyCloseNote(dailyCloseData.close?.note ?? '')
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t.failedToLoad)
     } finally {
       setLoading(false)
     }
-  }, [range, router, t.failedToLoad])
+  }, [dailyCloseDate, range, router, t.failedToLoad])
 
   useEffect(() => {
     load()
@@ -256,11 +329,61 @@ export default function ClinicFinancePage() {
     }
   }
 
+  async function saveDailyClose(status: 'DRAFT' | 'FINALIZED') {
+    setSavingDailyClose(status === 'FINALIZED' ? 'finalized' : 'draft')
+    setError(null)
+    try {
+      const countedByMethod = PAYMENT_METHODS.reduce((acc, method) => {
+        const amountCents = parseAedToCents(dailyCloseCounts[method] || '0')
+        if (!Number.isFinite(amountCents) || amountCents < 0) {
+          throw new Error(t.enterValidAmount)
+        }
+        acc[method] = amountCents
+        return acc
+      }, {} as MethodTotals)
+
+      const res = await fetch('/api/clinic/daily-close', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: dailyCloseDate,
+          countedByMethod,
+          note: dailyCloseNote,
+          status,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.saveFailed)
+      }
+      setDailyClose(data)
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.saveFailed)
+    } finally {
+      setSavingDailyClose(null)
+    }
+  }
+
   if (loading && !overview) {
     return <ClinicSpinner label={t.loading} className="min-h-[40vh]" />
   }
 
   const kpis = overview?.kpis
+  const expectedByMethod = dailyClose?.summary.expectedByMethod ?? EMPTY_METHOD_TOTALS
+  const countedByMethod = PAYMENT_METHODS.reduce((acc, method) => {
+    const amountCents = parseAedToCents(dailyCloseCounts[method] || '0')
+    acc[method] = Number.isFinite(amountCents) && amountCents > 0 ? amountCents : 0
+    return acc
+  }, {} as MethodTotals)
+  const discrepancyByMethod = PAYMENT_METHODS.reduce((acc, method) => {
+    acc[method] = countedByMethod[method] - (expectedByMethod[method] ?? 0)
+    return acc
+  }, {} as MethodTotals)
+  const expectedTotalCents = PAYMENT_METHODS.reduce((sum, method) => sum + (expectedByMethod[method] ?? 0), 0)
+  const countedTotalCents = PAYMENT_METHODS.reduce((sum, method) => sum + countedByMethod[method], 0)
+  const discrepancyTotalCents = countedTotalCents - expectedTotalCents
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -294,6 +417,182 @@ export default function ClinicFinancePage() {
           {error}
         </div>
       )}
+
+      <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">{t.dailyClose}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t.dailyCloseHint}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              <span className="sr-only">{t.dailyCloseDate}</span>
+              <input
+                type="date"
+                value={dailyCloseDate}
+                onChange={(e) => setDailyCloseDate(e.target.value)}
+                className="min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm"
+              />
+            </label>
+            {dailyClose?.close && (
+              <span
+                className={clsx(
+                  'inline-flex min-h-9 items-center rounded-full px-3 text-xs font-semibold',
+                  dailyClose.close.status === 'FINALIZED'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-amber-50 text-amber-700'
+                )}
+              >
+                {dailyClose.close.status === 'FINALIZED' ? t.dailyCloseFinalized : t.dailyCloseDraft}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+            <p className="text-sm text-gray-500">{t.dailyCloseExpected}</p>
+            <p className="text-xl font-semibold text-gray-900 mt-2 tabular-nums">
+              {money(expectedTotalCents, 'AED', numberLocale)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {dailyClose?.summary.paymentCount ?? 0} {t.dailyClosePayments.toLowerCase()}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+            <p className="text-sm text-gray-500">{t.dailyCloseCounted}</p>
+            <p className="text-xl font-semibold text-gray-900 mt-2 tabular-nums">
+              {money(countedTotalCents, 'AED', numberLocale)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {dailyClose?.summary.appointmentCount ?? 0} {t.appointments.toLowerCase()}
+            </p>
+          </div>
+          <div
+            className={clsx(
+              'rounded-2xl border p-4',
+              discrepancyTotalCents === 0
+                ? 'bg-emerald-50 border-emerald-100'
+                : 'bg-amber-50 border-amber-100'
+            )}
+          >
+            <p className="text-sm text-gray-600">{t.dailyCloseDiscrepancy}</p>
+            <p className="text-xl font-semibold text-gray-900 mt-2 tabular-nums">
+              {money(discrepancyTotalCents, 'AED', numberLocale)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">{t.dailyCloseDiscrepancyHint}</p>
+          </div>
+          <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+            <p className="text-sm text-gray-500">{t.financePending}</p>
+            <p className="text-xl font-semibold text-gray-900 mt-2 tabular-nums">
+              {money(dailyClose?.summary.pendingTotalCents ?? 0, 'AED', numberLocale)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t.financeRefunds}: {money(dailyClose?.summary.refundedTotalCents ?? 0, 'AED', numberLocale)}
+            </p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs text-gray-500">
+              <tr>
+                <th className="py-2 pr-3 font-medium">{t.paymentMethod}</th>
+                <th className="py-2 px-3 font-medium">{t.dailyCloseExpected}</th>
+                <th className="py-2 px-3 font-medium">{t.dailyCloseCounted}</th>
+                <th className="py-2 pl-3 font-medium">{t.dailyCloseDiscrepancy}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {PAYMENT_METHODS.map((method) => (
+                <tr key={method}>
+                  <td className="py-3 pr-3 font-medium text-gray-900">{methodLabel(t, method)}</td>
+                  <td className="py-3 px-3 tabular-nums text-gray-700">
+                    {money(expectedByMethod[method] ?? 0, 'AED', numberLocale)}
+                  </td>
+                  <td className="py-3 px-3">
+                    <input
+                      inputMode="decimal"
+                      value={dailyCloseCounts[method]}
+                      disabled={dailyClose?.close?.status === 'FINALIZED'}
+                      onChange={(e) =>
+                        setDailyCloseCounts((current) => ({ ...current, [method]: e.target.value }))
+                      }
+                      className="min-h-11 w-28 rounded-xl border border-gray-200 px-3 text-sm tabular-nums disabled:bg-gray-50 disabled:text-gray-500"
+                    />
+                  </td>
+                  <td className="py-3 pl-3 tabular-nums font-semibold text-gray-900">
+                    {money(discrepancyByMethod[method] ?? 0, 'AED', numberLocale)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_280px]">
+          <label className="block">
+            <span className="text-sm font-medium text-gray-700">{t.dailyCloseNote}</span>
+            <textarea
+              value={dailyCloseNote}
+              disabled={dailyClose?.close?.status === 'FINALIZED'}
+              onChange={(e) => setDailyCloseNote(e.target.value)}
+              rows={3}
+              className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-500"
+            />
+          </label>
+          <div className="flex flex-col justify-end gap-2">
+            <button
+              type="button"
+              disabled={savingDailyClose !== null || dailyClose?.close?.status === 'FINALIZED'}
+              onClick={() => saveDailyClose('DRAFT')}
+              className="min-h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-60"
+            >
+              {savingDailyClose === 'draft' ? t.savingEllipsis : t.dailyCloseSaveDraft}
+            </button>
+            <button
+              type="button"
+              disabled={savingDailyClose !== null || dailyClose?.close?.status === 'FINALIZED'}
+              onClick={() => saveDailyClose('FINALIZED')}
+              className="min-h-11 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+            >
+              {savingDailyClose === 'finalized' ? t.savingEllipsis : t.dailyCloseFinalize}
+            </button>
+          </div>
+        </div>
+
+        {(dailyClose?.recentCloses?.length ?? 0) > 0 && (
+          <div className="border-t border-gray-100 pt-4">
+            <h3 className="text-sm font-semibold text-gray-900">{t.dailyCloseRecent}</h3>
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
+              {dailyClose?.recentCloses?.map((close) => {
+                const discrepancyTotal = PAYMENT_METHODS.reduce(
+                  (sum, method) => sum + (close.discrepancyByMethod[method] ?? 0),
+                  0
+                )
+                return (
+                  <button
+                    key={close.id}
+                    type="button"
+                    onClick={() => setDailyCloseDate(close.businessDate)}
+                    className="rounded-2xl border border-gray-100 bg-gray-50 p-3 text-left text-sm hover:bg-gray-100"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-semibold text-gray-900">{close.businessDate}</span>
+                      <span className="text-xs text-gray-500">
+                        {close.status === 'FINALIZED' ? t.dailyCloseFinalized : t.dailyCloseDraft}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {t.dailyCloseDiscrepancy}: {money(discrepancyTotal, 'AED', numberLocale)}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="rounded-2xl bg-white border border-gray-200 p-4 shadow-sm">

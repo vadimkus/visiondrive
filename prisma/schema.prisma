@@ -97,6 +97,7 @@ model Tenant {
   clinicPatientMedia          ClinicPatientMedia[]
   clinicPatientPayments       ClinicPatientPayment[]
   clinicPaymentFeeRules       ClinicPaymentFeeRule[]
+  clinicDailyCloses           ClinicDailyClose[]
   clinicProductSales          ClinicProductSale[]
   clinicProductSaleLines      ClinicProductSaleLine[]
   clinicCrmActivities         ClinicCrmActivity[]
@@ -1226,6 +1227,11 @@ enum ClinicPaymentStatus {
   VOID
 }
 
+enum ClinicDailyCloseStatus {
+  DRAFT
+  FINALIZED
+}
+
 enum ClinicPatientPackageStatus {
   ACTIVE
   USED_UP
@@ -1349,6 +1355,49 @@ model ClinicPaymentFeeRule {
   @@unique([tenantId, method])
   @@index([tenantId, active])
   @@map("clinic_payment_fee_rules")
+}
+
+model ClinicDailyClose {
+  id                       String                 @id @default(cuid())
+  tenantId                 String
+  businessDate             DateTime               @db.Date
+  status                   ClinicDailyCloseStatus @default(DRAFT)
+  expectedCashCents        Int                    @default(0)
+  expectedCardCents        Int                    @default(0)
+  expectedTransferCents    Int                    @default(0)
+  expectedPosCents         Int                    @default(0)
+  expectedStripeCents      Int                    @default(0)
+  expectedOtherCents       Int                    @default(0)
+  countedCashCents         Int                    @default(0)
+  countedCardCents         Int                    @default(0)
+  countedTransferCents     Int                    @default(0)
+  countedPosCents          Int                    @default(0)
+  countedStripeCents       Int                    @default(0)
+  countedOtherCents        Int                    @default(0)
+  discrepancyCashCents     Int                    @default(0)
+  discrepancyCardCents     Int                    @default(0)
+  discrepancyTransferCents Int                    @default(0)
+  discrepancyPosCents      Int                    @default(0)
+  discrepancyStripeCents   Int                    @default(0)
+  discrepancyOtherCents    Int                    @default(0)
+  paidTotalCents           Int                    @default(0)
+  refundedTotalCents       Int                    @default(0)
+  pendingTotalCents        Int                    @default(0)
+  processorFeeCents        Int                    @default(0)
+  appointmentCount         Int                    @default(0)
+  paymentCount             Int                    @default(0)
+  note                     String?                @db.Text
+  finalizedAt              DateTime?              @db.Timestamptz(6)
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  createdByUserId          String?
+  finalizedByUserId        String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, businessDate])
+  @@index([tenantId, status, businessDate])
+  @@map("clinic_daily_closes")
 }
 
 model ClinicProductSale {

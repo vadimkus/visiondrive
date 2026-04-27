@@ -202,6 +202,20 @@ const articlesEn: Article[] = [
     link: '/clinic/finance',
   },
   {
+    id: 'daily-close',
+    category: 'Finance',
+    title: 'Close each day with counted totals',
+    summary: 'Reconcile expected payments against counted cash, card, POS, Stripe, transfer, and other totals.',
+    steps: [
+      'Open Finance and choose the business date in Daily close.',
+      'Review expected totals by method from paid and refunded payment rows for that date.',
+      'Enter the counted amount for each method from cash, POS batch reports, bank transfers, and Stripe.',
+      'Save a draft if the day is still being checked, or finalize the close once discrepancies are explained.',
+      'Use the note field to record shortages, tips, bank delays, or manual corrections needed later.',
+    ],
+    link: '/clinic/finance',
+  },
+  {
     id: 'reminders-followups',
     category: 'Communication',
     title: 'Use WhatsApp reminders and follow-ups',
@@ -565,6 +579,21 @@ const articlesRu: Article[] = [
       'Новые оплаченные платежи автоматически сохраняют комиссию при оплате визита, из карты пациента, продаже товара или пакета.',
       'Комиссия эквайринга не увеличивает баланс пациента; это внутренняя себестоимость приема платежа.',
       'Финансы вычитают комиссии из прямых затрат, валовой прибыли, прибыльности процедур и операционной прибыли.',
+    ],
+    link: '/clinic/finance',
+  },
+  {
+    id: 'daily-close',
+    category: 'Финансы',
+    title: 'Закрывайте день по фактическим суммам',
+    summary:
+      'Сверяйте ожидаемые платежи с фактическими суммами по наличным, карте, POS, Stripe, переводам и другим методам.',
+    steps: [
+      'Откройте Финансы и выберите бизнес-дату в блоке Закрытие дня.',
+      'Проверьте ожидаемые суммы по методам из оплаченных и возвращенных платежей за эту дату.',
+      'Введите фактические суммы по кассе, отчетам POS, банковским переводам и Stripe.',
+      'Сохраните черновик, если день еще проверяется, или зафиксируйте закрытие, когда расхождения объяснены.',
+      'В заметке указывайте недостачи, чаевые, задержки банка или ручные исправления, которые нужно сделать позже.',
     ],
     link: '/clinic/finance',
   },

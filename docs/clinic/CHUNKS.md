@@ -684,6 +684,24 @@
 
 ---
 
+## Chunk 39 — 2026-04-27 (daily close)
+
+**Shipped**
+
+- **Schema:** `ClinicDailyClose` stores one reconciliation snapshot per tenant business date with draft/finalized status.
+- **Helper:** `lib/clinic/daily-close.ts` calculates net expected totals by payment method, pending/refunded totals, processor fees, and counted-vs-expected discrepancies.
+- **API:** `GET/POST /api/clinic/daily-close` previews a day from payment rows, saves draft counted totals, and finalizes a day once reconciled.
+- **UI:** Finance page now has a Daily close panel with date selector, method-level counted inputs, discrepancy summary, close notes, recent closes, and finalize action.
+- **i18n/Knowledge Base:** EN/RU strings and article explain how to close the day and document discrepancies.
+
+**Validation**
+
+- Added Vitest coverage for daily close date parsing and reconciliation math.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Schema change: run `npx prisma db push` on target databases after pull.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

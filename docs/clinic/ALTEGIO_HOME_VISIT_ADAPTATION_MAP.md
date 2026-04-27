@@ -206,8 +206,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Next improvements: historical fee backfill, processor-specific VAT/tax handling, and default presets for UAE payment providers.
 
 28. Daily close
+   - Status: shipped first pass.
    - Source: daily cash desk report.
    - Solo version: close day with cash/card/bank totals, unpaid visits, discrepancies, and notes.
+   - Shipped: `/clinic/finance` now has a Daily close panel that previews payment totals by method for a selected business date, records counted amounts, saves draft closes, finalizes reconciled days, and keeps recent close snapshots.
+   - Next improvements: correction workflow, exportable close report, cash-in/out movements, and optional manager/practitioner signature.
 
 29. Refund and correction workflow
    - Source: client refunds and financial corrections.
@@ -331,7 +334,7 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Daily close.
+1. Refund and correction workflow.
 2. Data export/deletion tools.
 3. Booking source/UTM attribution and abandoned-booking follow-up.
 4. Dormant patient reactivation.
@@ -339,5 +342,5 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommendation
 
-The next point should be daily close. Supplier profiles and payment fee rules now improve inventory cost and net margin; daily close is the next finance-control gap for solo practitioners who need to reconcile cash/card/bank totals at the end of the day.
+Daily close now covers the finance-control gap after supplier settlement and payment fee rules. The next point should be refund and correction workflow, because finalized closes need a clean way to handle refunds, mistakes, and post-close adjustments without corrupting visit/payment history.
 

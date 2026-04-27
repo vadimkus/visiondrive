@@ -26,6 +26,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_patient_media` | Before/after/other images captured from camera or uploaded from file picker: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime + caption. |
 | `clinic_patient_payments` | Payments; optional `visit_id` / `appointment_id`, discount, patient-facing fee, internal `processor_fee_cents`, method, status, reference, note. Client balance is derived from completed/arrived appointment prices, linked payments, refunds, pending rows, and standalone deposits. |
 | `clinic_payment_fee_rules` | Tenant method-level acquiring rules: payment method, percent bps, fixed fee, active flag. New paid payments snapshot processing fees automatically. |
+| `clinic_daily_closes` | Daily reconciliation snapshots: expected payment totals by method, counted totals, discrepancies, pending/refund totals, payment/appointment counts, notes, and draft/finalized status. |
 | `clinic_product_sales` + `clinic_product_sale_lines` | Retail / aftercare product sales linked to patient, optional visit/appointment, stock item lines, sale totals, and payment reference. |
 | `clinic_patient_packages` + `clinic_package_redemptions` | Prepaid patient packages/courses: total/remaining sessions, optional service restriction, expiry, payment reference, and visit-linked session usage rows. |
 | `clinic_consent_templates` + `clinic_consent_records` | Consent template library plus signed patient snapshots with contraindications, signature name, aftercare acknowledgement, and optional visit/appointment links. |
@@ -71,6 +72,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `POST /api/clinic/patients/[id]/media`, `GET/DELETE /api/clinic/media/[id]` — attach, serve, and delete private patient photos.
 - `POST .../payments`, `POST .../crm`.
 - `GET/PATCH /api/clinic/payment-fee-rules` — configure method-level acquiring costs used to snapshot `processor_fee_cents` on new paid payments.
+- `GET/POST /api/clinic/daily-close` — preview, save, and finalize one-day payment reconciliation by method.
 - `PATCH .../payments/[paymentId]`, `GET .../payments/[paymentId]/receipt` — refund/void payment rows and export patient-safe receipt PDF.
 - `GET/POST .../product-sales` — record aftercare retail products from a visit, deduct inventory, and create finance revenue payment rows.
 - `GET /api/clinic/finance/overview` — finance dashboard data including P&L v2, direct material/product/payment-processing costs, product sales, operating expenses, and procedure profitability.
