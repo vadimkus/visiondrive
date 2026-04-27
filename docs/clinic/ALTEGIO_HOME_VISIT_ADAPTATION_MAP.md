@@ -156,9 +156,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 ## Strong Medium-Term Candidates
 
 21. Booking funnel analytics
+   - Status: shipped first pass.
    - Source: online booking analytics and widget events.
    - Solo version: track public link views, service selected, slot selected, form submitted, booking completed.
-   - Build after public booking has enough usage.
+   - Shipped: public booking records anonymous link view, service selected, slot selected, form started/submitted, and booking completed events; staff can review conversion/drop-off by stage, recent day, and procedure in `/clinic/booking-funnel`.
+   - Next improvements: source/UTM attribution, booking abandoned WhatsApp callback, and funnel comparison by shared channel.
 
 22. Private patient portal lite
    - Source: client app, online booking, personal account.
@@ -311,23 +313,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Client balance and debt.
-2. Inline payment form and receipt from appointment/visit drawer.
-3. Prepaid treatment packages with automatic visit deduction.
-4. Home address, travel buffer, and daily route view.
-5. Consent forms and service-specific intake fields.
-6. Treatment plans tied to visits, photos, and follow-ups.
-7. Procedure bill of materials with multi-item stock consumption.
-8. Stock-taking and variance workflow.
-9. Product sales from visit drawer.
-10. P&L v2 with material cost, payment fees, and profit per hour.
-11. Notification center for all practitioner tasks.
-12. Retention analytics and dormant patient reactivation.
-13. Patient portal lite with forms, aftercare, receipts, and package balance.
-14. Booking funnel analytics.
-15. Data export/deletion tools.
+1. Patient portal lite with forms, aftercare, receipts, and package balance.
+2. Service-specific public intake fields.
+3. Client import from Excel.
+4. Data export/deletion tools.
+5. Booking source/UTM attribution and abandoned-booking follow-up.
 
 ## Recommendation
 
-The next point should be client balance plus inline payment closure, then prepaid treatment packages. That sequence is better than jumping into more marketing or analytics because it fixes the core operating loop: appointment -> visit -> payment -> balance -> repeat package -> follow-up.
+The next point should be patient portal lite. The operating loop is now strong enough that the next leverage comes from reducing admin messages: give each patient a private link for upcoming appointments, forms, aftercare, receipts, and package balance without requiring an app install.
 

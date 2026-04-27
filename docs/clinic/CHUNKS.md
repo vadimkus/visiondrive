@@ -553,6 +553,25 @@
 
 ---
 
+## Chunk 32 — 2026-04-27 (booking funnel analytics)
+
+**Shipped**
+
+- **Schema:** added `ClinicBookingFunnelEvent` and `ClinicBookingFunnelEventType` for anonymous public booking step events.
+- **Public tracking:** `/book/[slug]` now records link view, service selected, slot selected, form started, form submitted, and booking completed events through `POST /api/clinic/public-booking/[slug]/funnel`.
+- **Helper/API:** `lib/clinic/booking-funnel.ts` summarizes unique sessions, stage conversion/drop-off, and conversion by procedure; `GET /api/clinic/booking-funnel/overview` exposes the staff report.
+- **UI/navigation:** added `/clinic/booking-funnel` with KPI cards, stage conversion table, procedure conversion table, and recent daily view/booking cards.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article explain how to read the booking funnel.
+- **Docs/canvas:** Altegio backlog and canvas mark Point 21 as shipped and move the next recommendation to patient portal lite.
+
+**Validation**
+
+- Added Vitest coverage for booking funnel stage and procedure summaries.
+- Run `npm run db:generate`, `npm run db:push`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

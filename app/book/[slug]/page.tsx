@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { CalendarClock, CheckCircle2, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react'
 import clsx from 'clsx'
@@ -34,6 +34,19 @@ function money(cents: number, currency: string) {
 function readStoredLocale(): ClinicLocale {
   if (typeof window === 'undefined') return 'en'
   return window.localStorage.getItem(CLINIC_LOCALE_STORAGE) === 'ru' ? 'ru' : 'en'
+}
+
+function bookingFunnelSession(slug: string) {
+  if (typeof window === 'undefined') return ''
+  const key = `visiondrive:booking-funnel:${slug}`
+  const existing = window.sessionStorage.getItem(key)
+  if (existing) return existing
+  const created =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  window.sessionStorage.setItem(key, created)
+  return created
 }
 
 const copy = {
@@ -150,10 +163,42 @@ export default function PublicBookingPage() {
     notes: '',
     consentAccepted: false,
   })
+  const viewedRef = useRef(false)
+  const formStartedRef = useRef(false)
 
   const selectedProcedure = useMemo(
     () => data?.procedures.find((procedure) => procedure.id === procedureId) ?? null,
     [data?.procedures, procedureId]
+  )
+
+  const track = useCallback(
+    (eventType: string, extra: Record<string, unknown> = {}) => {
+      if (!slug || typeof window === 'undefined') return
+      const sessionId = bookingFunnelSession(slug)
+      if (!sessionId) return
+      void fetch(`/api/clinic/public-booking/${slug}/funnel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          eventType,
+          ...extra,
+        }),
+        keepalive: true,
+      }).catch(() => undefined)
+    },
+    [slug]
+  )
+
+  const updateForm = useCallback(
+    (patch: Partial<typeof form>) => {
+      setForm((current) => ({ ...current, ...patch }))
+      if (!formStartedRef.current) {
+        formStartedRef.current = true
+        track('FORM_STARTED', { procedureId, startsAt: selectedSlot || undefined })
+      }
+    },
+    [procedureId, selectedSlot, track]
   )
 
   const load = useCallback(async () => {
@@ -170,6 +215,10 @@ export default function PublicBookingPage() {
         return
       }
       setData(json)
+      if (!viewedRef.current) {
+        viewedRef.current = true
+        track('LINK_VIEW')
+      }
       if (!procedureId && json.procedures?.[0]?.id) {
         setProcedureId(json.procedures[0].id)
       }
@@ -178,7 +227,7 @@ export default function PublicBookingPage() {
     } finally {
       setLoading(false)
     }
-  }, [slug, procedureId, locale, c.bookingUnavailable, c.loadFailed])
+  }, [slug, procedureId, locale, c.bookingUnavailable, c.loadFailed, track])
 
   useEffect(() => {
     void load()
@@ -187,6 +236,16 @@ export default function PublicBookingPage() {
   useEffect(() => {
     setSelectedSlot('')
   }, [procedureId])
+
+  const chooseProcedure = (id: string) => {
+    setProcedureId(id)
+    track('SERVICE_SELECTED', { procedureId: id })
+  }
+
+  const chooseSlot = (startsAt: string) => {
+    setSelectedSlot(startsAt)
+    track('SLOT_SELECTED', { procedureId, startsAt })
+  }
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -197,6 +256,7 @@ export default function PublicBookingPage() {
     setSubmitting(true)
     setError('')
     try {
+      track('FORM_SUBMITTED', { procedureId, startsAt: selectedSlot })
       const res = await fetch(`/api/clinic/public-booking/${slug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -213,6 +273,11 @@ export default function PublicBookingPage() {
         return
       }
       setConfirmed(json.appointment)
+      track('BOOKING_COMPLETED', {
+        procedureId,
+        startsAt: selectedSlot,
+        appointmentId: json.appointment?.id,
+      })
     } catch {
       setError(c.createFailedRetry)
     } finally {
@@ -287,7 +352,7 @@ export default function PublicBookingPage() {
                   <button
                     key={procedure.id}
                     type="button"
-                    onClick={() => setProcedureId(procedure.id)}
+                    onClick={() => chooseProcedure(procedure.id)}
                     className={clsx(
                       'w-full rounded-2xl border p-4 text-left transition-all',
                       procedureId === procedure.id
@@ -325,7 +390,7 @@ export default function PublicBookingPage() {
                 <button
                   key={slot.startsAt}
                   type="button"
-                  onClick={() => setSelectedSlot(slot.startsAt)}
+                  onClick={() => chooseSlot(slot.startsAt)}
                   className={clsx(
                     'rounded-2xl border p-3 text-left transition-all',
                     selectedSlot === slot.startsAt
@@ -355,23 +420,23 @@ export default function PublicBookingPage() {
           <section className="rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur md:p-6">
             <h2 className="text-lg font-semibold text-gray-950">{c.yourDetails}</h2>
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label={c.firstName} value={form.firstName} onChange={(v) => setForm({ ...form, firstName: v })} required />
-              <Field label={c.lastName} value={form.lastName} onChange={(v) => setForm({ ...form, lastName: v })} required />
+              <Field label={c.firstName} value={form.firstName} onChange={(v) => updateForm({ firstName: v })} required />
+              <Field label={c.lastName} value={form.lastName} onChange={(v) => updateForm({ lastName: v })} required />
               <Field
                 label={c.dateOfBirth}
                 type="date"
                 value={form.dateOfBirth}
-                onChange={(v) => setForm({ ...form, dateOfBirth: v })}
+                onChange={(v) => updateForm({ dateOfBirth: v })}
                 required
               />
-              <Field label={c.phone} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
-              <Field label={c.email} type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+              <Field label={c.phone} value={form.phone} onChange={(v) => updateForm({ phone: v })} />
+              <Field label={c.email} type="email" value={form.email} onChange={(v) => updateForm({ email: v })} />
               <label className="sm:col-span-2 text-sm font-medium text-gray-700">
                 {c.notes}
                 <textarea
                   rows={4}
                   value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  onChange={(e) => updateForm({ notes: e.target.value })}
                   className="mt-1 w-full rounded-2xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
                   placeholder={c.notesPlaceholder}
                 />
@@ -382,7 +447,7 @@ export default function PublicBookingPage() {
               <input
                 type="checkbox"
                 checked={form.consentAccepted}
-                onChange={(e) => setForm({ ...form, consentAccepted: e.target.checked })}
+                onChange={(e) => updateForm({ consentAccepted: e.target.checked })}
                 className="mt-1 h-5 w-5 rounded border-orange-300 text-orange-600"
               />
               <span>

@@ -18,6 +18,7 @@
 | `ClinicBlockedTime` | Manual availability removals for lunch, leave, training, private time, or supplier errands. |
 | `ClinicReminderTemplate` | Tenant-scoped WhatsApp/email/SMS template text for appointment reminders, no-show follow-ups, and rebooking nudges. |
 | `ClinicReminderDelivery` | Reminder schedule and delivery/preparation log; stores scheduled time, rendered body, WhatsApp URL, status, and errors. |
+| `ClinicBookingFunnelEvent` | Anonymous tenant-scoped public booking analytics events for link views, service/slot selection, form activity, and completed online booking. |
 | `ClinicPatientReview` | Internal reputation workflow: review request status, rating, private note, candidate public text, and request/reply/publish timestamps. |
 | `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional links to an appointment and treatment plan, **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
 | `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); served/deleted via **`GET/DELETE /api/clinic/media/[id]`** (tenant-scoped). |
@@ -66,6 +67,7 @@ Public booking: `/book/[tenant.slug]` is a private branded link, not a marketpla
 - **Treatment plans:** `GET/POST /api/clinic/patients/[id]/treatment-plans` and `PATCH .../treatment-plans/[planId]` manage planned care courses. Visit create/update accepts `treatmentPlanId`, and patient charts compute plan progress from linked completed visits.
 - **Notification center:** `GET /api/clinic/inbox` returns derived operational tasks for reminders due, online bookings, recent reschedules, review requests, unpaid visits, and low-stock inventory. It does not persist notifications; it aggregates live source-of-truth rows.
 - **Retention analytics:** `GET /api/clinic/retention/overview` derives rebook rate, returning-client rate, no-show rate, follow-up conversion, lost patients, and repeat interval by procedure from appointments and rebooking reminders.
+- **Booking funnel analytics:** `POST /api/clinic/public-booking/[slug]/funnel` records anonymous public booking step events; `GET /api/clinic/booking-funnel/overview` summarizes conversion by stage, day, and procedure.
 - **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).

@@ -116,6 +116,7 @@ model Tenant {
   clinicConsentRecords ClinicConsentRecord[]
   clinicTreatmentPlans ClinicTreatmentPlan[]
   clinicProcedureMaterials ClinicProcedureMaterial[]
+  clinicBookingFunnelEvents ClinicBookingFunnelEvent[]
 
   @@map("tenants")
 }
@@ -803,6 +804,15 @@ enum ClinicReminderStatus {
   CANCELLED
 }
 
+enum ClinicBookingFunnelEventType {
+  LINK_VIEW
+  SERVICE_SELECTED
+  SLOT_SELECTED
+  FORM_STARTED
+  FORM_SUBMITTED
+  BOOKING_COMPLETED
+}
+
 enum ClinicTreatmentPlanStatus {
   ACTIVE
   PAUSED
@@ -872,6 +882,7 @@ model ClinicProcedure {
   consentRecords ClinicConsentRecord[]
   treatmentPlans ClinicTreatmentPlan[]
   materials ClinicProcedureMaterial[]
+  bookingFunnelEvents ClinicBookingFunnelEvent[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -917,6 +928,7 @@ model ClinicAppointment {
   consentRecords ClinicConsentRecord[]
   payments ClinicPatientPayment[]
   productSales ClinicProductSale[]
+  bookingFunnelEvents ClinicBookingFunnelEvent[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1028,6 +1040,30 @@ model ClinicReminderDelivery {
   @@index([appointmentId, createdAt])
   @@index([patientId, createdAt])
   @@map("clinic_reminder_deliveries")
+}
+
+model ClinicBookingFunnelEvent {
+  id            String                       @id @default(cuid())
+  tenantId      String
+  sessionId     String
+  eventType     ClinicBookingFunnelEventType
+  procedureId   String?
+  appointmentId String?
+  startsAt      DateTime?                    @db.Timestamptz(6)
+  occurredAt    DateTime                     @default(now()) @db.Timestamptz(6)
+  referrer      String?                      @db.Text
+  userAgent     String?                      @db.Text
+  metadata      Json?
+
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure   ClinicProcedure?   @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  appointment ClinicAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, occurredAt])
+  @@index([tenantId, eventType, occurredAt])
+  @@index([tenantId, sessionId, occurredAt])
+  @@index([procedureId, occurredAt])
+  @@map("clinic_booking_funnel_events")
 }
 
 enum ClinicReviewStatus {

@@ -292,6 +292,20 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/retention',
   },
+  {
+    id: 'booking-funnel-analytics',
+    category: 'Finance',
+    title: 'Measure the public booking funnel',
+    summary:
+      'Track link views, service choices, slot choices, form submissions, completed bookings, and procedure conversion.',
+    steps: [
+      'Share the public booking link from the dashboard after booking is enabled.',
+      'Open Booking funnel from the clinic navigation.',
+      'Use 7 days, 30 days, or 90 days to compare how many sessions reach each step.',
+      'Check conversion by procedure to see which services attract attention but lose clients before booking.',
+    ],
+    link: '/clinic/booking-funnel',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -561,6 +575,20 @@ const articlesRu: Article[] = [
       'В блоке Потерянные пациенты открывайте карту пациента или запускайте WhatsApp-сообщение для реактивации.',
     ],
     link: '/clinic/retention',
+  },
+  {
+    id: 'booking-funnel-analytics',
+    category: 'Финансы',
+    title: 'Измеряйте воронку публичной записи',
+    summary:
+      'Просмотры ссылки, выбор услуги, выбор слота, отправка формы, завершенные записи и конверсия по процедурам.',
+    steps: [
+      'Поделитесь публичной ссылкой из дашборда после включения онлайн-записи.',
+      'Откройте Воронку записи в навигации клиники.',
+      'Выберите 7 дней, 30 дней или 90 дней, чтобы сравнить, сколько сессий доходит до каждого этапа.',
+      'Проверьте конверсию по процедурам: какие услуги интересуют клиентов, но теряют их до записи.',
+    ],
+    link: '/clinic/booking-funnel',
   },
 ]
 

@@ -16,6 +16,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_blocked_times` | Manual private time / lunch / leave blocks that remove availability slots. |
 | `clinic_reminder_templates` | Tenant WhatsApp/email/SMS templates for appointment reminders, no-show follow-up, rebooking follow-up, and review requests. |
 | `clinic_reminder_deliveries` | Reminder schedule and preparation log: status, scheduled time, body, WhatsApp URL, errors. |
+| `clinic_booking_funnel_events` | Anonymous public booking funnel events: link views, service selection, slot selection, form start/submission, and booking completion. |
 | `clinic_patient_reviews` | Internal review/reputation workflow: request status, rating, private note, candidate public text, requested/replied/published timestamps. |
 | `clinic_visits` | Completed encounters; optional `treatment_plan_id`; **next_steps** drives “what to do next” on the chart; **inventory_consumed_at** prevents repeated auto-deduct. |
 | `clinic_patient_media` | Before/after/other images captured from camera or uploaded from file picker: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime + caption. |
@@ -67,6 +68,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/POST .../patients/[id]/treatment-plans`; `PATCH .../treatment-plans/[planId]` — create/update planned care courses and show progress from linked visits.
 - `GET /api/clinic/inbox` — derived notification center for reminders due, online bookings, recent reschedules, review requests, unpaid visits, and low-stock items.
 - `GET /api/clinic/retention/overview` — derived retention analytics for rebook rate, returning clients, no-shows, follow-up conversion, lost patients, and repeat intervals.
+- `POST /api/clinic/public-booking/[slug]/funnel` — anonymous public booking step tracking for enabled tenant booking links.
+- `GET /api/clinic/booking-funnel/overview` — staff analytics for public booking conversion by stage, day, and procedure.
 - `GET/PATCH /api/clinic/me` — profile + password.
 
 All routes require **clinic session** (`getClinicSession`): `authToken` cookie + `portal=clinic`.

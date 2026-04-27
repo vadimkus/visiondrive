@@ -67,6 +67,7 @@
 | [2026-04-27_clinic-pnl-v2-profitability.md](2026-04-27_clinic-pnl-v2-profitability.md) | Clinic P&L v2 and procedure profitability note |
 | [2026-04-27_clinic-mobile-photos-seo-llms.md](2026-04-27_clinic-mobile-photos-seo-llms.md) | Clinic mobile photos plus SEO/LLM files note |
 | [2026-04-27_clinic-retention-analytics.md](2026-04-27_clinic-retention-analytics.md) | Clinic retention analytics note |
+| [2026-04-27_clinic-booking-funnel-analytics.md](2026-04-27_clinic-booking-funnel-analytics.md) | Clinic booking funnel analytics note |
 | [2026-04-27_homepage-solo-practitioner-positioning.md](2026-04-27_homepage-solo-practitioner-positioning.md) | Homepage solo practitioner positioning note |
 | [clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md](clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md) | Altegio adaptation backlog for solo home-visit practitioners |
 

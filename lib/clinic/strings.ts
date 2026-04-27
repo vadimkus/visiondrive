@@ -558,6 +558,29 @@ const table = {
     retentionLostPatientsHint:
       'Completed patients with no future appointment and no visit for more than {days} days.',
     retentionNoLostPatients: 'No lost patients in this window.',
+    bookingFunnelAnalytics: 'Booking funnel',
+    bookingFunnelAnalyticsIntro:
+      'See how the public booking link converts from link views to service choice, slot choice, form submission, and completed online bookings.',
+    bookingFunnelLast7Days: '7 days',
+    bookingFunnelLast30Days: '30 days',
+    bookingFunnelLast90Days: '90 days',
+    bookingFunnelViews: 'Link views',
+    bookingFunnelServiceSelected: 'Service selected',
+    bookingFunnelSlotSelected: 'Slot selected',
+    bookingFunnelFormStarted: 'Form started',
+    bookingFunnelFormSubmitted: 'Form submitted',
+    bookingFunnelBookings: 'Bookings',
+    bookingFunnelCompletionRate: 'Completion rate',
+    bookingFunnelStage: 'Stage',
+    bookingFunnelSessions: 'Sessions',
+    bookingFunnelEvents: 'Events',
+    bookingFunnelFromViews: 'From views',
+    bookingFunnelDropoff: 'Drop-off',
+    bookingFunnelByProcedure: 'Conversion by procedure',
+    bookingFunnelByProcedureHint:
+      'Which services attract selection and which ones actually turn into bookings.',
+    bookingFunnelNoData: 'No public booking funnel data yet. Share the booking link and events will appear here.',
+    refresh: 'Refresh',
     stockItemName: 'Item name',
     stockSku: 'SKU / code',
     stockUnit: 'Unit',
@@ -1551,6 +1574,30 @@ const ruOverrides: Partial<ClinicStrings> = {
   retentionLostPatientsHint:
     'Завершенные пациенты без будущей записи и без визита более {days} дней.',
   retentionNoLostPatients: 'В этом периоде потерянных пациентов нет.',
+  bookingFunnelAnalytics: 'Воронка записи',
+  bookingFunnelAnalyticsIntro:
+    'Смотрите, как публичная ссылка конвертирует просмотры в выбор услуги, выбор слота, отправку формы и завершенные онлайн-записи.',
+  bookingFunnelLast7Days: '7 дней',
+  bookingFunnelLast30Days: '30 дней',
+  bookingFunnelLast90Days: '90 дней',
+  bookingFunnelViews: 'Просмотры ссылки',
+  bookingFunnelServiceSelected: 'Услуга выбрана',
+  bookingFunnelSlotSelected: 'Слот выбран',
+  bookingFunnelFormStarted: 'Форма начата',
+  bookingFunnelFormSubmitted: 'Форма отправлена',
+  bookingFunnelBookings: 'Записи',
+  bookingFunnelCompletionRate: 'Конверсия',
+  bookingFunnelStage: 'Этап',
+  bookingFunnelSessions: 'Сессии',
+  bookingFunnelEvents: 'События',
+  bookingFunnelFromViews: 'От просмотров',
+  bookingFunnelDropoff: 'Потери',
+  bookingFunnelByProcedure: 'Конверсия по процедурам',
+  bookingFunnelByProcedureHint:
+    'Какие услуги выбирают чаще и какие реально превращаются в записи.',
+  bookingFunnelNoData:
+    'Данных по воронке публичной записи пока нет. Поделитесь ссылкой, и события появятся здесь.',
+  refresh: 'Обновить',
 }
 
 export function clinicStrings(locale: ClinicLocale): ClinicStrings {
