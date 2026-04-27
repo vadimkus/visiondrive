@@ -13,6 +13,7 @@ export const ACTIVE_APPOINTMENT_STATUSES: ClinicAppointmentStatus[] = [
 ]
 
 export const MAX_APPOINTMENT_BUFFER_MINUTES = 60
+export const MAX_TRAVEL_BUFFER_MINUTES = 180
 
 type PrismaLike = Prisma.TransactionClient
 
@@ -33,6 +34,12 @@ export function normalizeBufferMinutes(value: unknown, fallback = 0) {
   return Math.min(MAX_APPOINTMENT_BUFFER_MINUTES, Math.max(0, Math.round(n)))
 }
 
+export function normalizeTravelBufferMinutes(value: unknown, fallback = 0) {
+  const n = Number(value ?? fallback)
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(MAX_TRAVEL_BUFFER_MINUTES, Math.max(0, Math.round(n)))
+}
+
 export function appointmentEnd(
   startsAt: Date,
   endsAt: Date | null | undefined,
@@ -45,10 +52,17 @@ export function appointmentOccupiedUntil(
   startsAt: Date,
   endsAt: Date | null | undefined,
   defaultDurationMin: number,
-  bufferAfterMinutes: number
+  bufferAfterMinutes: number,
+  travelBufferAfterMinutes = 0
 ) {
   const end = appointmentEnd(startsAt, endsAt, defaultDurationMin)
-  return new Date(end.getTime() + normalizeBufferMinutes(bufferAfterMinutes) * 60 * 1000)
+  const totalAfterMinutes =
+    normalizeBufferMinutes(bufferAfterMinutes) + normalizeTravelBufferMinutes(travelBufferAfterMinutes)
+  return new Date(end.getTime() + totalAfterMinutes * 60 * 1000)
+}
+
+export function appointmentOccupiedFrom(startsAt: Date, travelBufferBeforeMinutes = 0) {
+  return new Date(startsAt.getTime() - normalizeTravelBufferMinutes(travelBufferBeforeMinutes) * 60 * 1000)
 }
 
 export function rangesOverlap(startA: Date, endA: Date, startB: Date, endB: Date) {
@@ -62,14 +76,18 @@ export async function findAppointmentConflict(
     startsAt: Date
     endsAt: Date | null
     bufferAfterMinutes: number
+    travelBufferBeforeMinutes?: number
+    travelBufferAfterMinutes?: number
     excludeAppointmentId?: string
   }
 ): Promise<AppointmentConflict | null> {
+  const occupiedFrom = appointmentOccupiedFrom(params.startsAt, params.travelBufferBeforeMinutes)
   const occupiedUntil = appointmentOccupiedUntil(
     params.startsAt,
     params.endsAt,
     60,
-    params.bufferAfterMinutes
+    params.bufferAfterMinutes,
+    params.travelBufferAfterMinutes
   )
 
   const candidates = await db.clinicAppointment.findMany({
@@ -92,9 +110,14 @@ export async function findAppointmentConflict(
       candidate.startsAt,
       candidate.endsAt,
       candidate.procedure?.defaultDurationMin ?? 60,
-      candidate.bufferAfterMinutes
+      candidate.bufferAfterMinutes,
+      candidate.travelBufferAfterMinutes
     )
-    if (rangesOverlap(params.startsAt, occupiedUntil, candidate.startsAt, candidateEnd)) {
+    const candidateStart = appointmentOccupiedFrom(
+      candidate.startsAt,
+      candidate.travelBufferBeforeMinutes
+    )
+    if (rangesOverlap(occupiedFrom, occupiedUntil, candidateStart, candidateEnd)) {
       return {
         id: candidate.id,
         startsAt: candidate.startsAt.toISOString(),

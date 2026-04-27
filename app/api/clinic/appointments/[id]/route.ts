@@ -10,6 +10,7 @@ import { getClinicSession } from '@/lib/clinic/session'
 import {
   ACTIVE_APPOINTMENT_STATUSES,
   normalizeBufferMinutes,
+  normalizeTravelBufferMinutes,
   statusTimestampPatch,
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
@@ -18,6 +19,10 @@ import {
   normalizeOverrideReason,
   overrideAllowed,
 } from '@/lib/clinic/scheduling-guard'
+import {
+  buildClientBalanceChargesFromAppointments,
+  buildClientBalanceSummary,
+} from '@/lib/clinic/client-balance'
 
 function parseStatus(v: string): ClinicAppointmentStatus | null {
   const u = v.toUpperCase().trim()
@@ -60,6 +65,9 @@ export async function GET(
           middleName: true,
           phone: true,
           email: true,
+          homeAddress: true,
+          area: true,
+          accessNotes: true,
           category: true,
           tags: true,
           internalNotes: true,
@@ -90,6 +98,7 @@ export async function GET(
               currency: true,
               method: true,
               status: true,
+              reference: true,
               paidAt: true,
             },
             orderBy: { paidAt: 'desc' },
@@ -131,28 +140,70 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const reminderDeliveries = await prisma.clinicReminderDelivery.findMany({
-    where: { appointmentId: id, tenantId: session.tenantId },
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-  })
-
-  const nextAppointment = await prisma.clinicAppointment.findFirst({
-    where: {
-      tenantId: session.tenantId,
-      patientId: appointment.patientId,
-      id: { not: id },
-      startsAt: { gt: new Date() },
-      status: { in: UPCOMING_APPOINTMENT_STATUSES },
-    },
-    select: {
-      id: true,
-      startsAt: true,
-      procedure: { select: { name: true } },
-      titleOverride: true,
-    },
-    orderBy: { startsAt: 'asc' },
-  })
+  const [reminderDeliveries, nextAppointment, balanceAppointments, standalonePayments] =
+    await Promise.all([
+      prisma.clinicReminderDelivery.findMany({
+        where: { appointmentId: id, tenantId: session.tenantId },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+      prisma.clinicAppointment.findFirst({
+        where: {
+          tenantId: session.tenantId,
+          patientId: appointment.patientId,
+          id: { not: id },
+          startsAt: { gt: new Date() },
+          status: { in: UPCOMING_APPOINTMENT_STATUSES },
+        },
+        select: {
+          id: true,
+          startsAt: true,
+          procedure: { select: { name: true } },
+          titleOverride: true,
+        },
+        orderBy: { startsAt: 'asc' },
+      }),
+      prisma.clinicAppointment.findMany({
+        where: {
+          tenantId: session.tenantId,
+          patientId: appointment.patientId,
+          status: {
+            in: [ClinicAppointmentStatus.ARRIVED, ClinicAppointmentStatus.COMPLETED],
+          },
+        },
+        select: {
+          status: true,
+          procedure: { select: { basePriceCents: true, currency: true } },
+          visits: {
+            select: {
+              payments: {
+                select: {
+                  amountCents: true,
+                  currency: true,
+                  status: true,
+                  reference: true,
+                  paidAt: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.clinicPatientPayment.findMany({
+        where: {
+          tenantId: session.tenantId,
+          patientId: appointment.patientId,
+          visitId: null,
+        },
+        select: {
+          amountCents: true,
+          currency: true,
+          status: true,
+          reference: true,
+          paidAt: true,
+        },
+      }),
+    ])
 
   const rebookingReminderScheduled = reminderDeliveries.some(
     (delivery) =>
@@ -168,6 +219,11 @@ export async function GET(
         nextAppointment,
         rebookingReminderScheduled,
       },
+      clientBalance: buildClientBalanceSummary({
+        charges: buildClientBalanceChargesFromAppointments(balanceAppointments),
+        standalonePayments,
+        fallbackCurrency: appointment.procedure?.currency ?? 'AED',
+      }),
     },
   })
 }
@@ -205,6 +261,11 @@ export async function PATCH(
     endsAt?: Date | null
     status?: ClinicAppointmentStatus
     bufferAfterMinutes?: number
+    travelBufferBeforeMinutes?: number
+    travelBufferAfterMinutes?: number
+    locationAddress?: string | null
+    locationArea?: string | null
+    locationNotes?: string | null
     cancelReason?: string | null
     confirmedAt?: Date | null
     arrivedAt?: Date | null
@@ -248,6 +309,28 @@ export async function PATCH(
 
   if (body.bufferAfterMinutes !== undefined) {
     data.bufferAfterMinutes = normalizeBufferMinutes(body.bufferAfterMinutes, existing.bufferAfterMinutes)
+  }
+  if (body.travelBufferBeforeMinutes !== undefined) {
+    data.travelBufferBeforeMinutes = normalizeTravelBufferMinutes(
+      body.travelBufferBeforeMinutes,
+      existing.travelBufferBeforeMinutes
+    )
+  }
+  if (body.travelBufferAfterMinutes !== undefined) {
+    data.travelBufferAfterMinutes = normalizeTravelBufferMinutes(
+      body.travelBufferAfterMinutes,
+      existing.travelBufferAfterMinutes
+    )
+  }
+  if (body.locationAddress !== undefined) {
+    data.locationAddress =
+      body.locationAddress == null ? null : String(body.locationAddress).trim() || null
+  }
+  if (body.locationArea !== undefined) {
+    data.locationArea = body.locationArea == null ? null : String(body.locationArea).trim() || null
+  }
+  if (body.locationNotes !== undefined) {
+    data.locationNotes = body.locationNotes == null ? null : String(body.locationNotes).trim() || null
   }
 
   if (body.cancelReason !== undefined) {
@@ -310,6 +393,10 @@ export async function PATCH(
   const nextStartsAt = data.startsAt ?? existing.startsAt
   const nextEndsAt = data.endsAt !== undefined ? data.endsAt : existing.endsAt
   const nextBufferAfterMinutes = data.bufferAfterMinutes ?? existing.bufferAfterMinutes
+  const nextTravelBufferBeforeMinutes =
+    data.travelBufferBeforeMinutes ?? existing.travelBufferBeforeMinutes
+  const nextTravelBufferAfterMinutes =
+    data.travelBufferAfterMinutes ?? existing.travelBufferAfterMinutes
   const nextProcedureId = data.procedureId !== undefined ? data.procedureId : existing.procedureId
   if (nextEndsAt && nextEndsAt <= nextStartsAt) {
     return NextResponse.json({ error: 'endsAt must be after startsAt' }, { status: 400 })
@@ -325,6 +412,8 @@ export async function PATCH(
       data.startsAt !== undefined ||
       data.endsAt !== undefined ||
       data.bufferAfterMinutes !== undefined ||
+      data.travelBufferBeforeMinutes !== undefined ||
+      data.travelBufferAfterMinutes !== undefined ||
       data.procedureId !== undefined ||
       (!ACTIVE_APPOINTMENT_STATUSES.includes(existing.status) &&
         ACTIVE_APPOINTMENT_STATUSES.includes(nextStatus))
@@ -335,6 +424,8 @@ export async function PATCH(
         startsAt: nextStartsAt,
         endsAt: nextEndsAt,
         bufferAfterMinutes: nextBufferAfterMinutes,
+        travelBufferBeforeMinutes: nextTravelBufferBeforeMinutes,
+        travelBufferAfterMinutes: nextTravelBufferAfterMinutes,
         procedureId: nextProcedureId,
         excludeAppointmentId: id,
       })
@@ -357,6 +448,9 @@ export async function PATCH(
             lastName: true,
             phone: true,
             email: true,
+            homeAddress: true,
+            area: true,
+            accessNotes: true,
             category: true,
             tags: true,
           },
@@ -379,6 +473,8 @@ export async function PATCH(
       data.startsAt !== undefined ||
       data.endsAt !== undefined ||
       data.bufferAfterMinutes !== undefined ||
+      data.travelBufferBeforeMinutes !== undefined ||
+      data.travelBufferAfterMinutes !== undefined ||
       data.procedureId !== undefined
 
     await writeAppointmentEvent(tx, {
@@ -402,6 +498,10 @@ export async function PATCH(
         status: existing.status,
         procedureId: existing.procedureId,
         bufferAfterMinutes: existing.bufferAfterMinutes,
+        travelBufferBeforeMinutes: existing.travelBufferBeforeMinutes,
+        travelBufferAfterMinutes: existing.travelBufferAfterMinutes,
+        locationAddress: existing.locationAddress,
+        locationArea: existing.locationArea,
         overrideReason: existing.overrideReason,
       },
       after: {
@@ -410,6 +510,10 @@ export async function PATCH(
         status: appointment.status,
         procedureId: appointment.procedureId,
         bufferAfterMinutes: appointment.bufferAfterMinutes,
+        travelBufferBeforeMinutes: appointment.travelBufferBeforeMinutes,
+        travelBufferAfterMinutes: appointment.travelBufferAfterMinutes,
+        locationAddress: appointment.locationAddress,
+        locationArea: appointment.locationArea,
         overrideReason: appointment.overrideReason,
       },
       createdByUserId: session.userId,

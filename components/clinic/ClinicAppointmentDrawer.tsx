@@ -27,6 +27,17 @@ type Payment = {
   paidAt: string
 }
 
+type ClientBalance = {
+  currency: string
+  expectedCents: number
+  paidCents: number
+  refundedCents: number
+  pendingCents: number
+  dueCents: number
+  creditCents: number
+  status: 'CLEAR' | 'DEBT' | 'CREDIT'
+}
+
 type Visit = {
   id: string
   visitAt: string
@@ -45,6 +56,11 @@ type Appointment = {
   titleOverride: string | null
   internalNotes: string | null
   bufferAfterMinutes: number
+  travelBufferBeforeMinutes: number
+  travelBufferAfterMinutes: number
+  locationAddress: string | null
+  locationArea: string | null
+  locationNotes: string | null
   overrideReason: string | null
   cancelReason: string | null
   patient: {
@@ -54,6 +70,9 @@ type Appointment = {
     middleName: string | null
     phone: string | null
     email: string | null
+    homeAddress: string | null
+    area: string | null
+    accessNotes: string | null
     category: PatientCategory | null
     tags: PatientTag[]
     internalNotes: string | null
@@ -90,6 +109,7 @@ type Appointment = {
     requestedAt: string | null
     repliedAt: string | null
   }[]
+  clientBalance: ClientBalance
   followUpAutomation: {
     nextAppointment: {
       id: string
@@ -103,6 +123,18 @@ type Appointment = {
 
 function money(cents: number, currency = 'AED') {
   return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+function balanceLabel(t: ClinicStrings, balance: ClientBalance) {
+  if (balance.status === 'DEBT') return `${t.balanceDebt}: ${money(balance.dueCents, balance.currency)}`
+  if (balance.status === 'CREDIT') return `${t.balanceCredit}: ${money(balance.creditCents, balance.currency)}`
+  return t.balanceClear
+}
+
+function balanceClasses(balance: ClientBalance) {
+  if (balance.status === 'DEBT') return 'border-red-200 bg-red-50 text-red-900'
+  if (balance.status === 'CREDIT') return 'border-emerald-200 bg-emerald-50 text-emerald-900'
+  return 'border-gray-200 bg-gray-50 text-gray-900'
 }
 
 function statusLabel(t: ClinicStrings, status: AppointmentStatus) {
@@ -287,7 +319,10 @@ export function ClinicAppointmentDrawer({
   const end = appointment?.endsAt ? new Date(appointment.endsAt) : null
   const occupiedUntil =
     end && appointment
-      ? new Date(end.getTime() + appointment.bufferAfterMinutes * 60 * 1000)
+      ? new Date(
+          end.getTime() +
+            (appointment.bufferAfterMinutes + appointment.travelBufferAfterMinutes) * 60 * 1000
+        )
       : null
 
   return (
@@ -353,6 +388,30 @@ export function ClinicAppointmentDrawer({
                       {appointment.bufferAfterMinutes} {t.minutesAbbr}
                     </p>
                   </div>
+                  <div>
+                    <p className="text-gray-500">{t.travelBefore}</p>
+                    <p className="font-medium text-gray-900">
+                      {appointment.travelBufferBeforeMinutes} {t.minutesAbbr}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">{t.travelAfter}</p>
+                    <p className="font-medium text-gray-900">
+                      {appointment.travelBufferAfterMinutes} {t.minutesAbbr}
+                    </p>
+                  </div>
+                  {appointment.locationAddress && (
+                    <div className="col-span-2 rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+                      <p className="text-xs font-semibold text-emerald-800">{t.visitLocation}</p>
+                      <p className="font-medium text-emerald-950">{appointment.locationAddress}</p>
+                      {appointment.locationArea && (
+                        <p className="text-sm text-emerald-800">{appointment.locationArea}</p>
+                      )}
+                      {appointment.locationNotes && (
+                        <p className="mt-1 text-sm text-emerald-800">{appointment.locationNotes}</p>
+                      )}
+                    </div>
+                  )}
                   {occupiedUntil && (
                     <div className="col-span-2">
                       <p className="text-gray-500">{t.occupiedUntil}</p>
@@ -421,6 +480,16 @@ export function ClinicAppointmentDrawer({
                     <p className="text-gray-500">{t.due}</p>
                     <p className="font-semibold text-gray-900">{money(payment.due, payment.currency)}</p>
                   </div>
+                </div>
+                <div className={clsx('mt-4 rounded-xl border p-3 text-sm', balanceClasses(appointment.clientBalance))}>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="font-semibold">{t.clientBalance}</p>
+                    <p className="font-semibold">{balanceLabel(t, appointment.clientBalance)}</p>
+                  </div>
+                  <p className="mt-1 text-xs opacity-75">
+                    {t.balancePending}: {money(appointment.clientBalance.pendingCents, appointment.clientBalance.currency)} ·{' '}
+                    {t.balanceRefunded}: {money(appointment.clientBalance.refundedCents, appointment.clientBalance.currency)}
+                  </p>
                 </div>
               </section>
 
@@ -565,6 +634,8 @@ export function ClinicAppointmentDrawer({
                 <div className="mt-2 space-y-1 text-sm text-gray-600">
                   <p>{appointment.patient.phone || t.emptyValue}</p>
                   <p>{appointment.patient.email || t.emptyValue}</p>
+                  <p>{appointment.patient.homeAddress || t.emptyValue}</p>
+                  {appointment.patient.area && <p>{appointment.patient.area}</p>}
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {appointment.patient.category && (
                       <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-semibold text-orange-700">

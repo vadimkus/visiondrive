@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Calendar, CalendarClock, CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { Calendar, CalendarClock, CalendarDays, ChevronLeft, ChevronRight, MapPin, Plus } from 'lucide-react'
 import clsx from 'clsx'
 import {
   addDays,
@@ -35,6 +35,11 @@ type Appointment = {
   titleOverride: string | null
   internalNotes: string | null
   bufferAfterMinutes: number
+  travelBufferBeforeMinutes: number
+  travelBufferAfterMinutes: number
+  locationAddress: string | null
+  locationArea: string | null
+  locationNotes: string | null
   patient: { id: string; firstName: string; lastName: string }
   procedure: { id: string; name: string; defaultDurationMin: number; basePriceCents?: number; currency?: string } | null
   visits?: { id: string; status: string; visitAt: string }[]
@@ -47,6 +52,10 @@ function appointmentsOnDay(list: Appointment[], day: Date): Appointment[] {
   return list
     .filter((a) => isSameLocalDay(new Date(a.startsAt), day))
     .sort((x, y) => new Date(x.startsAt).getTime() - new Date(y.startsAt).getTime())
+}
+
+function mapUrl(address: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
 }
 
 export default function ClinicAppointmentsPage() {
@@ -460,7 +469,59 @@ export default function ClinicAppointmentsPage() {
               }
             />
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                      {t.routeToday}
+                    </p>
+                    <h2 className="text-lg font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
+                  </div>
+                  <MapPin className="h-5 w-5 text-emerald-700" aria-hidden />
+                </div>
+                <div className="mt-3 space-y-2">
+                  {dayAppointments
+                    .filter((appointment) => appointment.locationAddress)
+                    .map((appointment, index) => (
+                      <div
+                        key={`route-${appointment.id}`}
+                        className="flex flex-col gap-2 rounded-xl bg-white/80 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {index + 1}.{' '}
+                            {new Date(appointment.startsAt).toLocaleTimeString(dateLocale, {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}{' '}
+                            · {appointment.patient.lastName}, {appointment.patient.firstName}
+                          </p>
+                          <p className="text-gray-600">{appointment.locationAddress}</p>
+                          <p className="text-xs text-gray-500">
+                            {appointment.locationArea || t.emptyValue}
+                            {(appointment.travelBufferBeforeMinutes > 0 ||
+                              appointment.travelBufferAfterMinutes > 0) &&
+                              ` · ${t.travelBefore}: ${appointment.travelBufferBeforeMinutes} ${t.minutesAbbr} · ${t.travelAfter}: ${appointment.travelBufferAfterMinutes} ${t.minutesAbbr}`}
+                          </p>
+                        </div>
+                        {appointment.locationAddress && (
+                          <a
+                            href={mapUrl(appointment.locationAddress)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex min-h-10 items-center justify-center rounded-xl bg-emerald-600 px-3 text-sm font-semibold text-white"
+                          >
+                            {t.openMap}
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  {dayAppointments.every((appointment) => !appointment.locationAddress) && (
+                    <p className="text-sm text-emerald-800">{t.usePatientAddressHint}</p>
+                  )}
+                </div>
+              </div>
               {dayAppointments.map((a) => (
                 <AppointmentAgendaRow
                   key={a.id}
@@ -789,6 +850,18 @@ function AppointmentAgendaRow({
             <p className="mt-1 text-xs text-orange-700">
               {t.technicalBreak}: +{a.bufferAfterMinutes} {t.minutesAbbr} · {t.occupiedUntil}{' '}
               {occupiedUntil.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          )}
+          {a.locationAddress && (
+            <p className="mt-1 text-xs text-emerald-700">
+              {t.visitLocation}: {a.locationAddress}
+              {a.locationArea ? ` · ${a.locationArea}` : ''}
+            </p>
+          )}
+          {(a.travelBufferBeforeMinutes > 0 || a.travelBufferAfterMinutes > 0) && (
+            <p className="mt-1 text-xs text-emerald-700">
+              {t.travelBefore}: {a.travelBufferBeforeMinutes} {t.minutesAbbr} · {t.travelAfter}:{' '}
+              {a.travelBufferAfterMinutes} {t.minutesAbbr}
             </p>
           )}
         </button>

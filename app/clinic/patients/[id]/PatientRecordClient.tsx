@@ -13,6 +13,7 @@ import {
   ChevronUp,
   ClipboardList,
   FileDown,
+  PackageCheck,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
@@ -53,6 +54,7 @@ type VisitRow = {
   staffNotes: string | null
   nextSteps: string | null
   media: MediaMeta[]
+  packageRedemptions?: PackageRedemptionRow[]
 }
 
 type PaymentRow = {
@@ -66,6 +68,47 @@ type PaymentRow = {
   paidAt: string
   visitId: string | null
   createdAt: string
+}
+
+type PackageRedemptionRow = {
+  id: string
+  sessionsDelta: number
+  note: string | null
+  redeemedAt: string
+  visit?: { id: string; visitAt: string } | null
+  appointment?: { id: string; startsAt: string } | null
+  patientPackage?: {
+    id: string
+    name: string
+    totalSessions: number
+    remainingSessions: number
+  }
+}
+
+type PackageRow = {
+  id: string
+  name: string
+  totalSessions: number
+  remainingSessions: number
+  priceCents: number
+  currency: string
+  status: 'ACTIVE' | 'USED_UP' | 'EXPIRED' | 'CANCELLED'
+  purchasedAt: string
+  expiresAt: string | null
+  note: string | null
+  procedure: ProcedureRef
+  redemptions: PackageRedemptionRow[]
+}
+
+type ClientBalance = {
+  currency: string
+  expectedCents: number
+  paidCents: number
+  refundedCents: number
+  pendingCents: number
+  dueCents: number
+  creditCents: number
+  status: 'CLEAR' | 'DEBT' | 'CREDIT'
 }
 
 type CrmRow = {
@@ -84,6 +127,9 @@ export type PatientRecord = {
   dateOfBirth: string
   phone: string | null
   email: string | null
+  homeAddress: string | null
+  area: string | null
+  accessNotes: string | null
   category: PatientCategory | null
   tags: PatientTag[]
   internalNotes: string | null
@@ -92,10 +138,12 @@ export type PatientRecord = {
   visits: VisitRow[]
   media: MediaMeta[]
   payments: PaymentRow[]
+  packages: PackageRow[]
+  clientBalance: ClientBalance
   crmActivities: CrmRow[]
 }
 
-type Tab = 'overview' | 'timeline' | 'photos' | 'payments' | 'crm'
+type Tab = 'overview' | 'timeline' | 'photos' | 'payments' | 'packages' | 'crm'
 
 function categoryLabel(t: ReturnType<typeof useClinicLocale>['t'], category: PatientCategory) {
   if (category === 'VIP') return t.categoryVip
@@ -129,6 +177,25 @@ function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
 }
 
+function balanceLabel(t: ReturnType<typeof useClinicLocale>['t'], balance: ClientBalance) {
+  if (balance.status === 'DEBT') return `${t.balanceDebt}: ${formatMoney(balance.dueCents, balance.currency)}`
+  if (balance.status === 'CREDIT') return `${t.balanceCredit}: ${formatMoney(balance.creditCents, balance.currency)}`
+  return t.balanceClear
+}
+
+function packageStatusLabel(t: ReturnType<typeof useClinicLocale>['t'], status: PackageRow['status']) {
+  if (status === 'USED_UP') return t.packageStatusUsedUp
+  if (status === 'EXPIRED') return t.packageStatusExpired
+  if (status === 'CANCELLED') return t.packageStatusCancelled
+  return t.packageStatusActive
+}
+
+function balanceTone(balance: ClientBalance) {
+  if (balance.status === 'DEBT') return 'border-red-200 bg-red-50 text-red-900'
+  if (balance.status === 'CREDIT') return 'border-emerald-200 bg-emerald-50 text-emerald-900'
+  return 'border-gray-200 bg-white text-gray-900'
+}
+
 export default function PatientRecordClient({ patientId }: { patientId: string }) {
   const router = useRouter()
   const { locale, t } = useClinicLocale()
@@ -145,6 +212,9 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const [editLast, setEditLast] = useState('')
   const [editPhone, setEditPhone] = useState('')
   const [editEmail, setEditEmail] = useState('')
+  const [editHomeAddress, setEditHomeAddress] = useState('')
+  const [editArea, setEditArea] = useState('')
+  const [editAccessNotes, setEditAccessNotes] = useState('')
   const [editCategory, setEditCategory] = useState('')
   const [editTags, setEditTags] = useState<PatientTag[]>([])
   const [editInternal, setEditInternal] = useState('')
@@ -171,6 +241,9 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     setEditLast(p.lastName)
     setEditPhone(p.phone ?? '')
     setEditEmail(p.email ?? '')
+    setEditHomeAddress(p.homeAddress ?? '')
+    setEditArea(p.area ?? '')
+    setEditAccessNotes(p.accessNotes ?? '')
     setEditCategory(p.category ?? '')
     setEditTags(p.tags ?? [])
     setEditInternal(p.internalNotes ?? '')
@@ -259,6 +332,9 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           lastName: editLast,
           phone: editPhone || null,
           email: editEmail || null,
+          homeAddress: editHomeAddress || null,
+          area: editArea || null,
+          accessNotes: editAccessNotes || null,
           category: editCategory || null,
           tags: editTags,
           internalNotes: editInternal || null,
@@ -301,6 +377,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     { id: 'timeline', label: t.timeline, icon: Clock },
     { id: 'photos', label: t.photos, icon: Camera },
     { id: 'payments', label: t.payments, icon: CreditCard },
+    { id: 'packages', label: t.packages, icon: PackageCheck },
     { id: 'crm', label: t.crm, icon: MessageSquare },
   ]
 
@@ -392,6 +469,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
         </ul>
       </div>
 
+      <BalanceSummaryCard balance={patient.clientBalance} />
+
       <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
@@ -424,6 +503,12 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           setEditPhone={setEditPhone}
           editEmail={editEmail}
           setEditEmail={setEditEmail}
+          editHomeAddress={editHomeAddress}
+          setEditHomeAddress={setEditHomeAddress}
+          editArea={editArea}
+          setEditArea={setEditArea}
+          editAccessNotes={editAccessNotes}
+          setEditAccessNotes={setEditAccessNotes}
           editCategory={editCategory}
           setEditCategory={setEditCategory}
           editTags={editTags}
@@ -487,8 +572,43 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
       )}
       {tab === 'photos' && <PhotosTab patient={patient} onRefresh={load} />}
       {tab === 'payments' && <PaymentsTab patient={patient} onRefresh={load} />}
+      {tab === 'packages' && <PackagesTab patient={patient} onRefresh={load} />}
       {tab === 'crm' && <CrmTab patient={patient} onRefresh={load} />}
     </div>
+  )
+}
+
+function BalanceSummaryCard({ balance }: { balance: ClientBalance }) {
+  const { t } = useClinicLocale()
+
+  return (
+    <section className={clsx('rounded-2xl border p-5 shadow-sm', balanceTone(balance))}>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide opacity-75">{t.clientBalance}</p>
+          <p className="mt-1 text-xl font-semibold">{balanceLabel(t, balance)}</p>
+        </div>
+        <p className="text-xs opacity-70 sm:max-w-xs">{t.balanceHint}</p>
+      </div>
+      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+        <div>
+          <dt className="opacity-70">{t.balanceExpected}</dt>
+          <dd className="font-semibold">{formatMoney(balance.expectedCents, balance.currency)}</dd>
+        </div>
+        <div>
+          <dt className="opacity-70">{t.paid}</dt>
+          <dd className="font-semibold">{formatMoney(balance.paidCents, balance.currency)}</dd>
+        </div>
+        <div>
+          <dt className="opacity-70">{t.balanceRefunded}</dt>
+          <dd className="font-semibold">{formatMoney(balance.refundedCents, balance.currency)}</dd>
+        </div>
+        <div>
+          <dt className="opacity-70">{t.balancePending}</dt>
+          <dd className="font-semibold">{formatMoney(balance.pendingCents, balance.currency)}</dd>
+        </div>
+      </dl>
+    </section>
   )
 }
 
@@ -504,6 +624,12 @@ function OverviewTab({
   setEditPhone,
   editEmail,
   setEditEmail,
+  editHomeAddress,
+  setEditHomeAddress,
+  editArea,
+  setEditArea,
+  editAccessNotes,
+  setEditAccessNotes,
   editCategory,
   setEditCategory,
   editTags,
@@ -533,6 +659,12 @@ function OverviewTab({
   setEditPhone: (v: string) => void
   editEmail: string
   setEditEmail: (v: string) => void
+  editHomeAddress: string
+  setEditHomeAddress: (v: string) => void
+  editArea: string
+  setEditArea: (v: string) => void
+  editAccessNotes: string
+  setEditAccessNotes: (v: string) => void
   editCategory: string
   setEditCategory: (v: string) => void
   editTags: PatientTag[]
@@ -636,6 +768,22 @@ function OverviewTab({
         <p>
           <span className="text-gray-500">{t.emailLabel}:</span> {patient.email || t.emptyValue}
         </p>
+        <div className="rounded-2xl bg-emerald-50/70 border border-emerald-100 p-3">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+            {t.homeVisitRoute}
+          </p>
+          <p>
+            <span className="text-gray-500">{t.homeAddress}:</span>{' '}
+            {patient.homeAddress || t.emptyValue}
+          </p>
+          <p>
+            <span className="text-gray-500">{t.area}:</span> {patient.area || t.emptyValue}
+          </p>
+          <p>
+            <span className="text-gray-500">{t.accessNotes}:</span>{' '}
+            {patient.accessNotes || t.emptyValue}
+          </p>
+        </div>
         <div className="pt-2">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
             {t.patientCategory}
@@ -734,6 +882,35 @@ function OverviewTab({
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
               inputMode="email"
             />
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-3">
+            <p className="text-sm font-semibold text-emerald-950">{t.homeVisitRoute}</p>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.homeAddress}</label>
+              <textarea
+                value={editHomeAddress}
+                onChange={(e) => setEditHomeAddress(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.area}</label>
+              <input
+                value={editArea}
+                onChange={(e) => setEditArea(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.accessNotes}</label>
+              <textarea
+                value={editAccessNotes}
+                onChange={(e) => setEditAccessNotes(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
+            </div>
           </div>
           <div>
             <label className="block text-gray-600 mb-1">{t.patientCategory}</label>
@@ -1054,6 +1231,282 @@ function PhotosTab({
   )
 }
 
+function PackagesTab({
+  patient,
+  onRefresh,
+}: {
+  patient: PatientRecord
+  onRefresh: () => Promise<void>
+}) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const [procedures, setProcedures] = useState<Array<{ id: string; name: string; basePriceCents: number; currency: string }>>([])
+  const [name, setName] = useState('')
+  const [procedureId, setProcedureId] = useState('')
+  const [totalSessions, setTotalSessions] = useState('5')
+  const [price, setPrice] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('CARD')
+  const [paymentStatus, setPaymentStatus] = useState('PAID')
+  const [note, setNote] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/clinic/procedures', { credentials: 'include' })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!cancelled) {
+        setProcedures((data.procedures || []).filter((procedure: { active: boolean }) => procedure.active))
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const sessions = Number.parseInt(totalSessions, 10)
+    const major = Number.parseFloat(price || '0')
+    if (!name.trim()) {
+      alert(t.packageNameRequired)
+      return
+    }
+    if (!Number.isFinite(sessions) || sessions <= 0) {
+      alert(t.packageSessionsRequired)
+      return
+    }
+    if (!Number.isFinite(major) || major < 0) {
+      alert(t.enterValidAmount)
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/packages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: name.trim(),
+          procedureId: procedureId || null,
+          totalSessions: sessions,
+          priceCents: Math.round(major * 100),
+          currency: 'AED',
+          expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
+          paymentMethod,
+          paymentStatus,
+          note: note || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      setName('')
+      setProcedureId('')
+      setTotalSessions('5')
+      setPrice('')
+      setExpiresAt('')
+      setNote('')
+      await onRefresh()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const sortedPackages = [...patient.packages].sort((a, b) => {
+    if (a.status === 'ACTIVE' && b.status !== 'ACTIVE') return -1
+    if (a.status !== 'ACTIVE' && b.status === 'ACTIVE') return 1
+    return new Date(b.purchasedAt).getTime() - new Date(a.purchasedAt).getTime()
+  })
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{t.treatmentPackages}</p>
+        <h2 className="mt-1 text-xl font-semibold text-emerald-950">{t.sellPackage}</h2>
+        <p className="mt-1 text-sm text-emerald-800">{t.packageHint}</p>
+      </section>
+
+      <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.packageName}</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t.packageNamePlaceholder}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.packageProcedure}</label>
+            <select
+              value={procedureId}
+              onChange={(e) => setProcedureId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="">{t.allServicesPackage}</option>
+              {procedures.map((procedure) => (
+                <option key={procedure.id} value={procedure.id}>
+                  {procedure.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.packageSessions}</label>
+            <input
+              value={totalSessions}
+              onChange={(e) => setTotalSessions(e.target.value)}
+              inputMode="numeric"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.packagePrice}</label>
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              inputMode="decimal"
+              placeholder="1500"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.packageExpiresAt}</label>
+            <input
+              type="date"
+              value={expiresAt}
+              onChange={(e) => setExpiresAt(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.paymentMethod}</label>
+            <select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="CARD">{t.payMethodCard}</option>
+              <option value="CASH">{t.payMethodCash}</option>
+              <option value="TRANSFER">{t.payMethodTransfer}</option>
+              <option value="POS">{t.payMethodPos}</option>
+              <option value="OTHER">{t.payMethodOther}</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.packagePaymentStatus}</label>
+          <select
+            value={paymentStatus}
+            onChange={(e) => setPaymentStatus(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+          >
+            <option value="PAID">{t.payStatusPaid}</option>
+            <option value="PENDING">{t.payStatusPending}</option>
+          </select>
+          <p className="mt-1 text-xs text-gray-500">{t.packageSaleCreatesPayment}</p>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.note}</label>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full sm:w-auto min-h-11 px-5 rounded-xl bg-emerald-600 text-white font-semibold disabled:opacity-60"
+        >
+          {saving ? t.savingEllipsis : t.savePackage}
+        </button>
+      </form>
+
+      <div className="space-y-3">
+        {sortedPackages.length === 0 ? (
+          <ClinicEmptyState title={t.noPackagesYet} />
+        ) : (
+          sortedPackages.map((item) => {
+            const oneLeft = item.status === 'ACTIVE' && item.remainingSessions === 1
+            return (
+              <article key={item.id} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                      <span
+                        className={clsx(
+                          'rounded-full px-2.5 py-1 text-xs font-semibold',
+                          item.status === 'ACTIVE'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-gray-100 text-gray-600'
+                        )}
+                      >
+                        {packageStatusLabel(t, item.status)}
+                      </span>
+                      {oneLeft && (
+                        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                          {t.oneSessionLeft}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-gray-600">
+                      {item.procedure?.name ?? t.allServicesPackage} · {formatMoney(item.priceCents, item.currency)}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {t.packagePurchased}:{' '}
+                      {new Date(item.purchasedAt).toLocaleDateString(dateLocale, {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                      {' · '}
+                      {item.expiresAt
+                        ? `${t.packageExpires}: ${new Date(item.expiresAt).toLocaleDateString(dateLocale)}`
+                        : t.packageNoExpiry}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-gray-50 px-4 py-3 text-center">
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {item.remainingSessions}/{item.totalSessions}
+                    </p>
+                    <p className="text-xs text-gray-500">{t.packageRemaining}</p>
+                  </div>
+                </div>
+                {item.redemptions.length > 0 && (
+                  <div className="mt-4 border-t border-gray-100 pt-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t.packageUsed}</p>
+                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                      {item.redemptions.slice(0, 5).map((redemption) => (
+                        <p key={redemption.id}>
+                          {new Date(redemption.redeemedAt).toLocaleDateString(dateLocale, {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}{' '}
+                          · {redemption.sessionsDelta}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </article>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}
+
 function PaymentsTab({
   patient,
   onRefresh,
@@ -1109,6 +1562,8 @@ function PaymentsTab({
 
   return (
     <div className="space-y-6">
+      <BalanceSummaryCard balance={patient.clientBalance} />
+
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">{t.recordPayment}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -6,7 +6,14 @@ import { useRouter } from 'next/navigation'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 
-type Patient = { id: string; firstName: string; lastName: string }
+type Patient = {
+  id: string
+  firstName: string
+  lastName: string
+  homeAddress?: string | null
+  area?: string | null
+  accessNotes?: string | null
+}
 type Procedure = { id: string; name: string; bufferAfterMinutes: number }
 type SchedulingConflict = {
   type?: string
@@ -50,6 +57,11 @@ export default function NewAppointmentPage() {
     procedureId: '',
     startsAt: '',
     bufferAfterMinutes: '0',
+    travelBufferBeforeMinutes: '0',
+    travelBufferAfterMinutes: '0',
+    locationAddress: '',
+    locationArea: '',
+    locationNotes: '',
     allowConflictOverride: false,
     overrideReason: '',
     titleOverride: '',
@@ -101,6 +113,11 @@ export default function NewAppointmentPage() {
           procedureId: form.procedureId || undefined,
           startsAt: startsAt.toISOString(),
           bufferAfterMinutes: parseInt(form.bufferAfterMinutes || '0', 10),
+          travelBufferBeforeMinutes: parseInt(form.travelBufferBeforeMinutes || '0', 10),
+          travelBufferAfterMinutes: parseInt(form.travelBufferAfterMinutes || '0', 10),
+          locationAddress: form.locationAddress || undefined,
+          locationArea: form.locationArea || undefined,
+          locationNotes: form.locationNotes || undefined,
           allowConflictOverride: form.allowConflictOverride,
           overrideReason: form.overrideReason || undefined,
           titleOverride: form.titleOverride || undefined,
@@ -155,7 +172,16 @@ export default function NewAppointmentPage() {
               required
               className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
               value={form.patientId}
-              onChange={(e) => setForm({ ...form, patientId: e.target.value })}
+              onChange={(e) => {
+                const patient = patients.find((p) => p.id === e.target.value)
+                setForm({
+                  ...form,
+                  patientId: e.target.value,
+                  locationAddress: patient?.homeAddress ?? '',
+                  locationArea: patient?.area ?? '',
+                  locationNotes: patient?.accessNotes ?? '',
+                })
+              }}
             >
               <option value="">{t.selectPlaceholder}</option>
               {patients.map((p) => (
@@ -199,6 +225,62 @@ export default function NewAppointmentPage() {
               onChange={(e) => setForm({ ...form, bufferAfterMinutes: e.target.value })}
             />
             <p className="text-xs text-gray-500 mt-1">{t.procedureBufferAfterHint}</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-3">
+            <h2 className="text-sm font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
+            <p className="text-xs text-emerald-800">{t.usePatientAddressHint}</p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.visitLocation}</label>
+              <textarea
+                rows={2}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                value={form.locationAddress}
+                onChange={(e) => setForm({ ...form, locationAddress: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.area}</label>
+              <input
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                value={form.locationArea}
+                onChange={(e) => setForm({ ...form, locationArea: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelBefore}</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={180}
+                  step={5}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                  value={form.travelBufferBeforeMinutes}
+                  onChange={(e) => setForm({ ...form, travelBufferBeforeMinutes: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelAfter}</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={180}
+                  step={5}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                  value={form.travelBufferAfterMinutes}
+                  onChange={(e) => setForm({ ...form, travelBufferAfterMinutes: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.accessNotes}</label>
+              <textarea
+                rows={2}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                value={form.locationNotes}
+                onChange={(e) => setForm({ ...form, locationNotes: e.target.value })}
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t.startsAt}</label>

@@ -3,6 +3,7 @@ import { ClinicAppointmentEventType, ClinicAppointmentStatus, ClinicVisitStatus 
 import { prisma } from '@/lib/prisma'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { applyProcedureLinkedInventoryDeduction } from '@/lib/clinic/inventory-visit-consume'
+import { applyPatientPackageDeduction } from '@/lib/clinic/patient-packages'
 import { getClinicSession } from '@/lib/clinic/session'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
 
@@ -38,6 +39,7 @@ export async function PATCH(
       id: true,
       status: true,
       appointmentId: true,
+      patientId: true,
       inventoryConsumedAt: true,
     },
   })
@@ -90,7 +92,7 @@ export async function PATCH(
     !existing.inventoryConsumedAt &&
     !!existing.appointmentId
 
-  const { visit, inventoryDeduction } = await prisma.$transaction(async (tx) => {
+  const { visit, inventoryDeduction, packageDeduction } = await prisma.$transaction(async (tx) => {
     let v = await tx.clinicVisit.update({
       where: { id },
       data,
@@ -131,6 +133,13 @@ export async function PATCH(
     }
 
     if (existing.appointmentId && data.status === ClinicVisitStatus.COMPLETED) {
+      const packageDeduction = await applyPatientPackageDeduction(tx, {
+        tenantId: session.tenantId,
+        patientId: existing.patientId,
+        visitId: id,
+        appointmentId: existing.appointmentId,
+        createdByUserId: session.userId,
+      })
       await tx.clinicAppointment.update({
         where: { id: existing.appointmentId },
         data: { status: ClinicAppointmentStatus.COMPLETED, completedAt: new Date() },
@@ -140,17 +149,28 @@ export async function PATCH(
         appointmentId: existing.appointmentId,
         type: ClinicAppointmentEventType.VISIT_COMPLETED,
         message: 'Visit completed',
-        after: { visitId: id },
+        after: { visitId: id, packageDeducted: packageDeduction.deducted },
         createdByUserId: session.userId,
       })
+      if (packageDeduction.deducted) {
+        await writeAppointmentEvent(tx, {
+          tenantId: session.tenantId,
+          appointmentId: existing.appointmentId,
+          type: ClinicAppointmentEventType.PACKAGE_DEBITED,
+          message: `Package session used: ${packageDeduction.deducted.name}`,
+          after: packageDeduction.deducted,
+          createdByUserId: session.userId,
+        })
+      }
+      return { visit: v, inventoryDeduction, packageDeduction }
     }
 
-    return { visit: v, inventoryDeduction }
+    return { visit: v, inventoryDeduction, packageDeduction: { deducted: null, skipped: null } }
   })
 
   for (const d of inventoryDeduction.deducted) {
     void handleLowStockNotificationsForItem(d.itemId).catch((e) => console.error(e))
   }
 
-  return NextResponse.json({ visit, inventoryDeduction })
+  return NextResponse.json({ visit, inventoryDeduction, packageDeduction })
 }

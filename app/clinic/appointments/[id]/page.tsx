@@ -15,6 +15,11 @@ type Appointment = {
   titleOverride: string | null
   internalNotes: string | null
   bufferAfterMinutes: number
+  travelBufferBeforeMinutes: number
+  travelBufferAfterMinutes: number
+  locationAddress: string | null
+  locationArea: string | null
+  locationNotes: string | null
   overrideReason: string | null
   patientId: string
   procedureId: string | null
@@ -68,6 +73,11 @@ export default function EditAppointmentPage() {
   const [status, setStatus] = useState('SCHEDULED')
   const [procedureId, setProcedureId] = useState('')
   const [bufferAfterMinutes, setBufferAfterMinutes] = useState('0')
+  const [travelBufferBeforeMinutes, setTravelBufferBeforeMinutes] = useState('0')
+  const [travelBufferAfterMinutes, setTravelBufferAfterMinutes] = useState('0')
+  const [locationAddress, setLocationAddress] = useState('')
+  const [locationArea, setLocationArea] = useState('')
+  const [locationNotes, setLocationNotes] = useState('')
   const [allowConflictOverride, setAllowConflictOverride] = useState(false)
   const [overrideReason, setOverrideReason] = useState('')
   const [titleOverride, setTitleOverride] = useState('')
@@ -103,6 +113,11 @@ export default function EditAppointmentPage() {
         setStatus(a.status)
         setProcedureId(a.procedureId ?? '')
         setBufferAfterMinutes(String(a.bufferAfterMinutes ?? 0))
+        setTravelBufferBeforeMinutes(String(a.travelBufferBeforeMinutes ?? 0))
+        setTravelBufferAfterMinutes(String(a.travelBufferAfterMinutes ?? 0))
+        setLocationAddress(a.locationAddress ?? '')
+        setLocationArea(a.locationArea ?? '')
+        setLocationNotes(a.locationNotes ?? '')
         setOverrideReason(a.overrideReason ?? '')
         setTitleOverride(a.titleOverride ?? '')
         setInternalNotes(a.internalNotes ?? '')
@@ -145,6 +160,11 @@ export default function EditAppointmentPage() {
           status,
           procedureId: procedureId || null,
           bufferAfterMinutes: parseInt(bufferAfterMinutes || '0', 10),
+          travelBufferBeforeMinutes: parseInt(travelBufferBeforeMinutes || '0', 10),
+          travelBufferAfterMinutes: parseInt(travelBufferAfterMinutes || '0', 10),
+          locationAddress: locationAddress.trim() || null,
+          locationArea: locationArea.trim() || null,
+          locationNotes: locationNotes.trim() || null,
           allowConflictOverride,
           overrideReason: overrideReason.trim() || null,
           titleOverride: titleOverride.trim() || null,
@@ -258,6 +278,61 @@ export default function EditAppointmentPage() {
             value={bufferAfterMinutes}
             onChange={(e) => setBufferAfterMinutes(e.target.value)}
           />
+        </div>
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.visitLocation}</label>
+            <textarea
+              rows={2}
+              className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900"
+              value={locationAddress}
+              onChange={(e) => setLocationAddress(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.area}</label>
+            <input
+              className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
+              value={locationArea}
+              onChange={(e) => setLocationArea(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelBefore}</label>
+              <input
+                type="number"
+                min={0}
+                max={180}
+                step={5}
+                className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
+                value={travelBufferBeforeMinutes}
+                onChange={(e) => setTravelBufferBeforeMinutes(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelAfter}</label>
+              <input
+                type="number"
+                min={0}
+                max={180}
+                step={5}
+                className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
+                value={travelBufferAfterMinutes}
+                onChange={(e) => setTravelBufferAfterMinutes(e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.accessNotes}</label>
+            <textarea
+              rows={2}
+              className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900"
+              value={locationNotes}
+              onChange={(e) => setLocationNotes(e.target.value)}
+            />
+          </div>
         </div>
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-3">
           <label className="flex items-start gap-3 text-sm font-semibold text-amber-950">

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { parseAnamnesisPatchBody } from '@/lib/clinic/anamnesis'
+import {
+  buildClientBalanceChargesFromAppointments,
+  buildClientBalanceSummary,
+} from '@/lib/clinic/client-balance'
 import { normalizePatientCategory, normalizePatientTags } from '@/lib/clinic/patient-tags'
 import { getClinicSession } from '@/lib/clinic/session'
 
@@ -47,7 +51,20 @@ export async function GET(
           status: true,
           titleOverride: true,
           internalNotes: true,
-          procedure: { select: { id: true, name: true } },
+          procedure: { select: { id: true, name: true, basePriceCents: true, currency: true } },
+          visits: {
+            select: {
+              payments: {
+                select: {
+                  amountCents: true,
+                  currency: true,
+                  status: true,
+                  reference: true,
+                  paidAt: true,
+                },
+              },
+            },
+          },
         },
       },
       visits: {
@@ -55,6 +72,27 @@ export async function GET(
         take: 40,
         include: {
           media: { orderBy: { createdAt: 'asc' }, select: { ...mediaSelect } },
+          packageRedemptions: {
+            orderBy: { redeemedAt: 'desc' },
+            include: {
+              patientPackage: {
+                select: { id: true, name: true, totalSessions: true, remainingSessions: true },
+              },
+            },
+          },
+        },
+      },
+      packages: {
+        orderBy: [{ status: 'asc' }, { purchasedAt: 'desc' }],
+        include: {
+          procedure: { select: { id: true, name: true } },
+          redemptions: {
+            orderBy: { redeemedAt: 'desc' },
+            include: {
+              visit: { select: { id: true, visitAt: true } },
+              appointment: { select: { id: true, startsAt: true } },
+            },
+          },
         },
       },
       media: {
@@ -96,7 +134,18 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  return NextResponse.json({ patient })
+  const clientBalance = buildClientBalanceSummary({
+    charges: buildClientBalanceChargesFromAppointments(patient.appointments),
+    standalonePayments: patient.payments.filter((payment) => payment.visitId === null),
+  })
+
+  return NextResponse.json({
+    patient: {
+      ...patient,
+      clientBalance,
+      appointments: patient.appointments.map(({ visits, ...appointment }) => appointment),
+    },
+  })
 }
 
 export async function PATCH(
@@ -131,6 +180,9 @@ export async function PATCH(
     dateOfBirth?: Date
     phone?: string | null
     email?: string | null
+    homeAddress?: string | null
+    area?: string | null
+    accessNotes?: string | null
     category?: string | null
     tags?: string[]
     internalNotes?: string | null
@@ -160,6 +212,15 @@ export async function PATCH(
   }
   if (body.email !== undefined) {
     data.email = body.email == null ? null : String(body.email).trim() || null
+  }
+  if (body.homeAddress !== undefined) {
+    data.homeAddress = body.homeAddress == null ? null : String(body.homeAddress).trim() || null
+  }
+  if (body.area !== undefined) {
+    data.area = body.area == null ? null : String(body.area).trim() || null
+  }
+  if (body.accessNotes !== undefined) {
+    data.accessNotes = body.accessNotes == null ? null : String(body.accessNotes).trim() || null
   }
   if (body.category !== undefined) {
     data.category = normalizePatientCategory(body.category)
@@ -194,6 +255,9 @@ export async function PATCH(
       dateOfBirth: true,
       phone: true,
       email: true,
+      homeAddress: true,
+      area: true,
+      accessNotes: true,
       category: true,
       tags: true,
       internalNotes: true,

@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import {
   appointmentOccupiedUntil,
+  appointmentOccupiedFrom,
   findAppointmentConflict,
   type AppointmentConflict,
 } from './appointments'
@@ -44,6 +45,8 @@ export async function findSchedulingConflict(
     startsAt: Date
     endsAt: Date | null
     bufferAfterMinutes: number
+    travelBufferBeforeMinutes?: number
+    travelBufferAfterMinutes?: number
     procedureId?: string | null
     excludeAppointmentId?: string
     now?: Date
@@ -54,24 +57,28 @@ export async function findSchedulingConflict(
     startsAt: params.startsAt,
     endsAt: params.endsAt,
     bufferAfterMinutes: params.bufferAfterMinutes,
+    travelBufferBeforeMinutes: params.travelBufferBeforeMinutes,
+    travelBufferAfterMinutes: params.travelBufferAfterMinutes,
     excludeAppointmentId: params.excludeAppointmentId,
   })
   if (appointmentConflict) {
     return { ...appointmentConflict, type: 'APPOINTMENT' }
   }
 
+  const occupiedFrom = appointmentOccupiedFrom(params.startsAt, params.travelBufferBeforeMinutes)
   const occupiedUntil = appointmentOccupiedUntil(
     params.startsAt,
     params.endsAt,
     60,
-    params.bufferAfterMinutes
+    params.bufferAfterMinutes,
+    params.travelBufferAfterMinutes
   )
 
   const blocked = await db.clinicBlockedTime.findFirst({
     where: {
       tenantId: params.tenantId,
       startsAt: { lt: occupiedUntil },
-      endsAt: { gt: params.startsAt },
+      endsAt: { gt: occupiedFrom },
     },
     orderBy: { startsAt: 'asc' },
   })
@@ -90,10 +97,10 @@ export async function findSchedulingConflict(
     orderBy: [{ dayOfWeek: 'asc' }, { startMinutes: 'asc' }],
   })
   const rules = rulesRaw.length > 0 ? rulesRaw : defaultAvailabilityRules()
-  const dayKey = dubaiDayKey(params.startsAt)
+  const dayKey = dubaiDayKey(occupiedFrom)
   const occupiedDayKey = dubaiDayKey(occupiedUntil)
-  const dayOfWeek = dubaiDayOfWeek(params.startsAt)
-  const startMinutes = dubaiMinutesSinceMidnight(params.startsAt)
+  const dayOfWeek = dubaiDayOfWeek(occupiedFrom)
+  const startMinutes = dubaiMinutesSinceMidnight(occupiedFrom)
   const endMinutes = dubaiMinutesSinceMidnight(occupiedUntil)
 
   const activeRules = applicableRulesForDay(rules, dayOfWeek, params.procedureId)
@@ -107,7 +114,7 @@ export async function findSchedulingConflict(
   if (!coveringRule) {
     return {
       type: 'WORKING_HOURS',
-      startsAt: params.startsAt.toISOString(),
+      startsAt: occupiedFrom.toISOString(),
       occupiedUntil: occupiedUntil.toISOString(),
       dayOfWeek,
       message: 'Appointment falls outside working hours',

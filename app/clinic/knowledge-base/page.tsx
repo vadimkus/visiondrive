@@ -171,6 +171,19 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/patients',
   },
+  {
+    id: 'prepaid-treatment-packages',
+    category: 'Finance',
+    title: 'Sell prepaid treatment packages',
+    summary: 'Use 3/5/10-session packages to stabilize repeat revenue and track remaining sessions.',
+    steps: [
+      'Open a patient record and go to Packages.',
+      'Create a package with a name, session count, price, expiry, and optional service restriction.',
+      'When a matching visit is completed, the system deducts one session automatically.',
+      'Check remaining sessions and the one-session-left warning before booking the next treatment.',
+    ],
+    link: '/clinic/patients',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -316,6 +329,19 @@ const articlesRu: Article[] = [
       'Добавьте теги вроде Нужен follow-up или Задержка оплаты для операционных задач.',
       'Используйте фильтры списка пациентов, чтобы быстро найти нужный сегмент.',
       'Проверяйте теги в карточке записи перед звонком, сообщением или оплатой.',
+    ],
+    link: '/clinic/patients',
+  },
+  {
+    id: 'prepaid-treatment-packages',
+    category: 'Финансы',
+    title: 'Продавайте предоплаченные пакеты процедур',
+    summary: 'Пакеты на 3/5/10 сеансов помогают удерживать повторную выручку и видеть остаток сеансов.',
+    steps: [
+      'Откройте карту пациента и вкладку Пакеты.',
+      'Создайте пакет с названием, количеством сеансов, ценой, сроком действия и ограничением по услуге при необходимости.',
+      'Когда подходящий визит завершён, система автоматически спишет один сеанс.',
+      'Проверяйте остаток и предупреждение об одном оставшемся сеансе перед следующей записью.',
     ],
     link: '/clinic/patients',
   },

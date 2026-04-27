@@ -314,6 +314,60 @@
 
 ---
 
+## Chunk 19 — 2026-04-27 (client balance and debt)
+
+**Shipped**
+
+- **Helper:** `lib/clinic/client-balance.ts` computes patient balance from existing rows without a schema change.
+- **Rules:** `ARRIVED`/`COMPLETED` appointment procedure prices are expected charges; linked `PAID`/`REFUNDED`/`PENDING` payments adjust due and credit; standalone paid payments count as deposits/credit.
+- **API:** patient list, patient detail, and appointment detail now include computed `clientBalance`.
+- **UI:** patient list shows debt/credit/clear chips; patient chart and payments tab show a balance summary card; appointment drawer shows global client balance next to the current appointment payment snapshot.
+
+**Validation**
+
+- Added focused helper tests for debt, clear balance, credit, pending payment, and billable appointment filtering.
+- No schema change in this chunk.
+
+---
+
+## Chunk 20 — 2026-04-27 (prepaid treatment packages)
+
+**Shipped**
+
+- **Schema:** `ClinicPatientPackage` stores prepaid course/package state; `ClinicPackageRedemption` stores visit-linked session usage.
+- **Helpers:** `lib/clinic/patient-packages.ts` normalizes package input, identifies package-sale payments, and auto-deducts one eligible session on completed visits.
+- **API:** `GET/POST /api/clinic/patients/[id]/packages` lists and sells patient packages; patient detail includes packages and redemption history.
+- **Automation:** appointment completion and direct visit completion now create package redemption events when a matching active package exists.
+- **UI:** patient chart has a Packages tab with sale form, service restriction, expiry, remaining-session cards, redemption history, and one-session-left warning.
+- **Finance safety:** package-sale payments are excluded from client balance deposit credit to avoid double-counting prepaid revenue.
+
+**Validation**
+
+- Added focused helper tests for package normalization, package payment references, and status derivation.
+- `npm run db:generate`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build` pass. Existing unrelated lint/build warnings remain.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
+## Chunk 21 — 2026-04-27 (home visit route and travel buffer)
+
+**Shipped**
+
+- **Schema:** patient records now store default `homeAddress`, `area`, and `accessNotes`; appointments snapshot `locationAddress`, `locationArea`, `locationNotes`, `travelBufferBeforeMinutes`, and `travelBufferAfterMinutes`.
+- **Scheduling:** travel buffers expand the occupied appointment window before/after the clinical slot, so route time participates in conflict, blocked-time, and working-hours checks.
+- **API:** patient create/edit and appointment create/edit persist home-visit location fields. New appointments default to the patient address when no appointment-specific location is provided.
+- **UI:** patient create/edit supports home address, area, and parking/access notes; appointment create/edit supports visit location and travel buffers.
+- **Day route:** Day view on `/clinic/appointments` now shows an ordered home-visit route card with map links and travel buffer context.
+- **Drawer:** appointment drawer shows visit location and travel buffers beside the appointment details.
+
+**Validation**
+
+- Added helper test coverage for travel buffer normalization and occupied-window calculation.
+- `npm run db:generate`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build` pass. Existing unrelated lint/build warnings remain.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

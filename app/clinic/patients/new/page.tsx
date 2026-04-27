@@ -36,6 +36,9 @@ export default function NewPatientPage() {
     dateOfBirth: '',
     phone: '',
     email: '',
+    homeAddress: '',
+    area: '',
+    accessNotes: '',
     category: '',
     tags: [] as PatientTag[],
     internalNotes: '',
@@ -66,6 +69,9 @@ export default function NewPatientPage() {
           dateOfBirth: form.dateOfBirth,
           phone: form.phone || undefined,
           email: form.email || undefined,
+          homeAddress: form.homeAddress || undefined,
+          area: form.area || undefined,
+          accessNotes: form.accessNotes || undefined,
           category: form.category || undefined,
           tags: form.tags,
           internalNotes: form.internalNotes || undefined,
@@ -152,6 +158,35 @@ export default function NewPatientPage() {
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
+        </div>
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.homeAddress}</label>
+            <textarea
+              rows={2}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+              value={form.homeAddress}
+              onChange={(e) => setForm({ ...form, homeAddress: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.area}</label>
+            <input
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+              value={form.area}
+              onChange={(e) => setForm({ ...form, area: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.accessNotes}</label>
+            <textarea
+              rows={2}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+              value={form.accessNotes}
+              onChange={(e) => setForm({ ...form, accessNotes: e.target.value })}
+            />
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t.patientCategory}</label>

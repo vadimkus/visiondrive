@@ -54,7 +54,11 @@
 | [2026-04-27_clinic-follow-up-automation.md](2026-04-27_clinic-follow-up-automation.md) | Clinic follow-up automation note |
 | [2026-04-27_clinic-reviews-reputation.md](2026-04-27_clinic-reviews-reputation.md) | Clinic reviews and reputation note |
 | [2026-04-27_clinic-client-categories-tags.md](2026-04-27_clinic-client-categories-tags.md) | Clinic client categories and tags note |
+| [2026-04-27_clinic-client-balance-debt.md](2026-04-27_clinic-client-balance-debt.md) | Clinic client balance and debt note |
+| [2026-04-27_clinic-prepaid-treatment-packages.md](2026-04-27_clinic-prepaid-treatment-packages.md) | Clinic prepaid treatment packages note |
+| [2026-04-27_clinic-home-visit-route-travel-buffer.md](2026-04-27_clinic-home-visit-route-travel-buffer.md) | Clinic home visit route and travel buffer note |
 | [2026-04-27_homepage-solo-practitioner-positioning.md](2026-04-27_homepage-solo-practitioner-positioning.md) | Homepage solo practitioner positioning note |
+| [clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md](clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md) | Altegio adaptation backlog for solo home-visit practitioners |
 
 ### Action Plan (Section 11)
 

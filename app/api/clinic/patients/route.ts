@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import {
+  buildClientBalanceChargesFromAppointments,
+  buildClientBalanceSummary,
+} from '@/lib/clinic/client-balance'
 import { normalizePatientCategory, normalizePatientTags } from '@/lib/clinic/patient-tags'
 import { getClinicSession } from '@/lib/clinic/session'
 
@@ -63,13 +67,53 @@ export async function GET(request: NextRequest) {
       dateOfBirth: true,
       phone: true,
       email: true,
+      homeAddress: true,
+      area: true,
+      accessNotes: true,
       category: true,
       tags: true,
       createdAt: true,
+      appointments: {
+        select: {
+          status: true,
+          procedure: { select: { basePriceCents: true, currency: true } },
+          visits: {
+            select: {
+              payments: {
+                select: {
+                  amountCents: true,
+                  currency: true,
+                  status: true,
+                  reference: true,
+                  paidAt: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      payments: {
+        where: { visitId: null },
+        select: {
+          amountCents: true,
+          currency: true,
+          status: true,
+          reference: true,
+          paidAt: true,
+        },
+      },
     },
   })
 
-  return NextResponse.json({ patients })
+  return NextResponse.json({
+    patients: patients.map(({ appointments, payments, ...patient }) => ({
+      ...patient,
+      clientBalance: buildClientBalanceSummary({
+        charges: buildClientBalanceChargesFromAppointments(appointments),
+        standalonePayments: payments,
+      }),
+    })),
+  })
 }
 
 export async function POST(request: NextRequest) {
@@ -91,6 +135,9 @@ export async function POST(request: NextRequest) {
   const dateOfBirthRaw = String(body.dateOfBirth ?? '')
   const phone = body.phone != null ? String(body.phone).trim() || null : null
   const email = body.email != null ? String(body.email).trim() || null : null
+  const homeAddress = body.homeAddress != null ? String(body.homeAddress).trim() || null : null
+  const area = body.area != null ? String(body.area).trim() || null : null
+  const accessNotes = body.accessNotes != null ? String(body.accessNotes).trim() || null : null
   const category = normalizePatientCategory(body.category)
   const tags = normalizePatientTags(body.tags)
   const internalNotes =
@@ -114,6 +161,9 @@ export async function POST(request: NextRequest) {
       dateOfBirth,
       phone,
       email,
+      homeAddress,
+      area,
+      accessNotes,
       category,
       tags,
       internalNotes,
@@ -126,6 +176,9 @@ export async function POST(request: NextRequest) {
       dateOfBirth: true,
       phone: true,
       email: true,
+      homeAddress: true,
+      area: true,
+      accessNotes: true,
       category: true,
       tags: true,
       createdAt: true,

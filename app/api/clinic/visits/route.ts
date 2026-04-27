@@ -3,6 +3,7 @@ import { ClinicAppointmentEventType, ClinicAppointmentStatus, ClinicVisitStatus 
 import { prisma } from '@/lib/prisma'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { applyProcedureLinkedInventoryDeduction } from '@/lib/clinic/inventory-visit-consume'
+import { applyPatientPackageDeduction } from '@/lib/clinic/patient-packages'
 import { getClinicSession } from '@/lib/clinic/session'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
 
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
   const staffNotes = body.staffNotes != null ? String(body.staffNotes).trim() || null : null
   const nextSteps = body.nextSteps != null ? String(body.nextSteps).trim() || null : null
 
-  const { visit, inventoryDeduction } = await prisma.$transaction(async (tx) => {
+  const { visit, inventoryDeduction, packageDeduction } = await prisma.$transaction(async (tx) => {
     let visit = await tx.clinicVisit.create({
       data: {
         tenantId: session.tenantId,
@@ -138,14 +139,32 @@ export async function POST(request: NextRequest) {
         where: { id: appointmentId },
         data: { status: ClinicAppointmentStatus.COMPLETED, completedAt: new Date() },
       })
+      const packageDeduction = await applyPatientPackageDeduction(tx, {
+        tenantId: session.tenantId,
+        patientId,
+        visitId: visit.id,
+        appointmentId,
+        createdByUserId: session.userId,
+      })
       await writeAppointmentEvent(tx, {
         tenantId: session.tenantId,
         appointmentId,
         type: ClinicAppointmentEventType.VISIT_COMPLETED,
         message: 'Visit completed',
-        after: { visitId: visit.id },
+        after: { visitId: visit.id, packageDeducted: packageDeduction.deducted },
         createdByUserId: session.userId,
       })
+      if (packageDeduction.deducted) {
+        await writeAppointmentEvent(tx, {
+          tenantId: session.tenantId,
+          appointmentId,
+          type: ClinicAppointmentEventType.PACKAGE_DEBITED,
+          message: `Package session used: ${packageDeduction.deducted.name}`,
+          after: packageDeduction.deducted,
+          createdByUserId: session.userId,
+        })
+      }
+      return { visit, inventoryDeduction, packageDeduction }
     } else if (visit.status === 'IN_PROGRESS' && appointmentId) {
       await tx.clinicAppointment.update({
         where: { id: appointmentId },
@@ -161,12 +180,12 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    return { visit, inventoryDeduction }
+    return { visit, inventoryDeduction, packageDeduction: { deducted: null, skipped: null } }
   })
 
   for (const d of inventoryDeduction.deducted) {
     void handleLowStockNotificationsForItem(d.itemId).catch((e) => console.error(e))
   }
 
-  return NextResponse.json({ visit, inventoryDeduction }, { status: 201 })
+  return NextResponse.json({ visit, inventoryDeduction, packageDeduction }, { status: 201 })
 }

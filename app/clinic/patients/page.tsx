@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Plus, Search } from 'lucide-react'
+import clsx from 'clsx'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { PATIENT_CATEGORIES, PATIENT_TAGS, type PatientCategory, type PatientTag } from '@/lib/clinic/patient-tags'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
@@ -20,10 +21,18 @@ type Patient = {
   email: string | null
   category: PatientCategory | null
   tags: PatientTag[]
+  clientBalance: ClientBalance
   createdAt?: string
 }
 
 type SortMode = 'nameAsc' | 'nameDesc' | 'newest'
+
+type ClientBalance = {
+  currency: string
+  dueCents: number
+  creditCents: number
+  status: 'CLEAR' | 'DEBT' | 'CREDIT'
+}
 
 function categoryLabel(t: ReturnType<typeof useClinicLocale>['t'], category: PatientCategory) {
   if (category === 'VIP') return t.categoryVip
@@ -47,6 +56,22 @@ function formatDob(iso: string, locale: string) {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function formatMoney(cents: number, currency: string) {
+  return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+function balanceLabel(t: ReturnType<typeof useClinicLocale>['t'], balance: ClientBalance) {
+  if (balance.status === 'DEBT') return `${t.balanceDebt}: ${formatMoney(balance.dueCents, balance.currency)}`
+  if (balance.status === 'CREDIT') return `${t.balanceCredit}: ${formatMoney(balance.creditCents, balance.currency)}`
+  return t.balanceClear
+}
+
+function balanceClass(balance: ClientBalance) {
+  if (balance.status === 'DEBT') return 'bg-red-50 text-red-700'
+  if (balance.status === 'CREDIT') return 'bg-emerald-50 text-emerald-700'
+  return 'bg-gray-100 text-gray-600'
 }
 
 export default function ClinicPatientsPage() {
@@ -260,6 +285,9 @@ export default function ClinicPatientsPage() {
                             {tagLabel(t, item)}
                           </span>
                         ))}
+                        <span className={clsx('rounded-full px-2 py-0.5 text-[11px] font-semibold', balanceClass(p.clientBalance))}>
+                          {balanceLabel(t, p.clientBalance)}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600">{formatDob(p.dateOfBirth, dateLocale)}</td>

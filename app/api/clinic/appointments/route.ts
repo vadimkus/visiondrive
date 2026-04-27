@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
 import {
   normalizeBufferMinutes,
+  normalizeTravelBufferMinutes,
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
 import {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       orderBy: { startsAt: 'asc' },
       include: {
         patient: {
-          select: { id: true, firstName: true, lastName: true },
+          select: { id: true, firstName: true, lastName: true, homeAddress: true, area: true, accessNotes: true },
         },
         procedure: {
           select: { id: true, name: true, defaultDurationMin: true, bufferAfterMinutes: true, basePriceCents: true, currency: true },
@@ -84,6 +85,10 @@ export async function POST(request: NextRequest) {
   const endsAtRaw = body.endsAt != null ? new Date(String(body.endsAt)) : null
   const titleOverride = body.titleOverride != null ? String(body.titleOverride).trim() || null : null
   const internalNotes = body.internalNotes != null ? String(body.internalNotes).trim() || null : null
+  const locationAddress =
+    body.locationAddress != null ? String(body.locationAddress).trim() || null : null
+  const locationArea = body.locationArea != null ? String(body.locationArea).trim() || null : null
+  const locationNotes = body.locationNotes != null ? String(body.locationNotes).trim() || null : null
   const allowConflictOverride = body.allowConflictOverride === true
   const overrideReason = normalizeOverrideReason(body.overrideReason)
   const sourceRaw = String(body.source ?? ClinicAppointmentSource.MANUAL).trim().toUpperCase()
@@ -125,6 +130,8 @@ export async function POST(request: NextRequest) {
     body.bufferAfterMinutes,
     procedure?.bufferAfterMinutes ?? 0
   )
+  const travelBufferBeforeMinutes = normalizeTravelBufferMinutes(body.travelBufferBeforeMinutes, 0)
+  const travelBufferAfterMinutes = normalizeTravelBufferMinutes(body.travelBufferAfterMinutes, 0)
 
   const appointment = await prisma.$transaction(async (tx) => {
     const conflict = await findSchedulingConflict(tx, {
@@ -132,6 +139,8 @@ export async function POST(request: NextRequest) {
       startsAt,
       endsAt,
       bufferAfterMinutes,
+      travelBufferBeforeMinutes,
+      travelBufferAfterMinutes,
       procedureId: procedure?.id ?? null,
     })
     if (!overrideAllowed({ conflict, allowConflictOverride, overrideReason })) {
@@ -147,6 +156,11 @@ export async function POST(request: NextRequest) {
         endsAt,
         source,
         bufferAfterMinutes,
+        travelBufferBeforeMinutes,
+        travelBufferAfterMinutes,
+        locationAddress: locationAddress ?? patient.homeAddress ?? null,
+        locationArea: locationArea ?? patient.area ?? null,
+        locationNotes: locationNotes ?? patient.accessNotes ?? null,
         overrideReason: conflict ? overrideReason : null,
         titleOverride,
         internalNotes,
@@ -159,6 +173,9 @@ export async function POST(request: NextRequest) {
             lastName: true,
             phone: true,
             email: true,
+            homeAddress: true,
+            area: true,
+            accessNotes: true,
             category: true,
             tags: true,
           },
@@ -177,6 +194,10 @@ export async function POST(request: NextRequest) {
         startsAt: startsAt.toISOString(),
         endsAt: endsAt?.toISOString() ?? null,
         bufferAfterMinutes,
+        travelBufferBeforeMinutes,
+        travelBufferAfterMinutes,
+        locationAddress: locationAddress ?? patient.homeAddress ?? null,
+        locationArea: locationArea ?? patient.area ?? null,
         source,
         overrideReason: conflict ? overrideReason : null,
         overrideConflictType: conflict?.type ?? null,

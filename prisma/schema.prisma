@@ -106,6 +106,8 @@ model Tenant {
   clinicReminderTemplates ClinicReminderTemplate[]
   clinicReminderDeliveries ClinicReminderDelivery[]
   clinicPatientReviews ClinicPatientReview[]
+  clinicPatientPackages ClinicPatientPackage[]
+  clinicPackageRedemptions ClinicPackageRedemption[]
 
   @@map("tenants")
 }
@@ -769,6 +771,7 @@ enum ClinicAppointmentEventType {
   FOLLOW_UP_CREATED
   NO_SHOW_FOLLOW_UP
   REVIEW_REQUESTED
+  PACKAGE_DEBITED
 }
 
 enum ClinicReminderKind {
@@ -801,6 +804,9 @@ model ClinicPatient {
   dateOfBirth    DateTime  @db.Date
   phone          String?
   email          String?
+  homeAddress    String?   @db.Text
+  area           String?
+  accessNotes    String?   @db.Text
   category       String?
   tags           String[]  @default([])
   /// Staff-only; never expose on patient-facing PDF exports
@@ -817,6 +823,7 @@ model ClinicPatient {
   payments       ClinicPatientPayment[]
   crmActivities  ClinicCrmActivity[]
   reviews        ClinicPatientReview[]
+  packages       ClinicPatientPackage[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -842,6 +849,7 @@ model ClinicProcedure {
   appointments  ClinicAppointment[]
   stockItems    ClinicStockItem[]
   availabilityRules ClinicAvailabilityRule[]
+  patientPackages ClinicPatientPackage[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -858,6 +866,13 @@ model ClinicAppointment {
   source        ClinicAppointmentSource @default(MANUAL)
   /// Hidden occupied time after the appointment. Used for conflict checks, not shown as service duration.
   bufferAfterMinutes Int                    @default(0)
+  /// Travel/prep time before a home visit. Used for conflict checks and route planning.
+  travelBufferBeforeMinutes Int             @default(0)
+  /// Travel time after a home visit. Used for conflict checks and route planning.
+  travelBufferAfterMinutes Int              @default(0)
+  locationAddress String?                   @db.Text
+  locationArea    String?
+  locationNotes   String?                   @db.Text
   titleOverride String?
   /// Required when staff intentionally books through a conflict, blocked time, or outside working hours.
   overrideReason String?                 @db.Text
@@ -876,6 +891,7 @@ model ClinicAppointment {
   visits    ClinicVisit[]
   events    ClinicAppointmentEvent[]
   reviews   ClinicPatientReview[]
+  packageRedemptions ClinicPackageRedemption[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1023,6 +1039,13 @@ enum ClinicPaymentStatus {
   VOID
 }
 
+enum ClinicPatientPackageStatus {
+  ACTIVE
+  USED_UP
+  EXPIRED
+  CANCELLED
+}
+
 enum ClinicCrmActivityType {
   NOTE
   CALL
@@ -1056,6 +1079,7 @@ model ClinicVisit {
   media       ClinicPatientMedia[]
   payments    ClinicPatientPayment[]
   reviews     ClinicPatientReview[]
+  packageRedemptions ClinicPackageRedemption[]
 
   @@index([tenantId, visitAt])
   @@index([patientId, visitAt])
@@ -1108,6 +1132,56 @@ model ClinicPatientPayment {
 
   @@index([tenantId, patientId, paidAt])
   @@map("clinic_patient_payments")
+}
+
+model ClinicPatientPackage {
+  id                String                     @id @default(cuid())
+  tenantId          String
+  patientId         String
+  procedureId       String?
+  name              String
+  totalSessions     Int
+  remainingSessions Int
+  priceCents        Int                        @default(0)
+  currency          String                     @default("AED")
+  status            ClinicPatientPackageStatus @default(ACTIVE)
+  purchasedAt       DateTime                   @default(now()) @db.Timestamptz(6)
+  expiresAt         DateTime?                  @db.Timestamptz(6)
+  note              String?                    @db.Text
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  createdByUserId   String?
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure   ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  redemptions ClinicPackageRedemption[]
+
+  @@index([tenantId, patientId, status])
+  @@index([tenantId, procedureId, status])
+  @@map("clinic_patient_packages")
+}
+
+model ClinicPackageRedemption {
+  id               String   @id @default(cuid())
+  tenantId         String
+  patientPackageId String
+  visitId          String
+  appointmentId    String?
+  sessionsDelta    Int      @default(-1)
+  note             String?  @db.Text
+  redeemedAt       DateTime @default(now()) @db.Timestamptz(6)
+  createdByUserId  String?
+
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patientPackage ClinicPatientPackage @relation(fields: [patientPackageId], references: [id], onDelete: Cascade)
+  visit          ClinicVisit          @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  appointment    ClinicAppointment?   @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, redeemedAt])
+  @@index([visitId])
+  @@index([patientPackageId, redeemedAt])
+  @@map("clinic_package_redemptions")
 }
 
 model ClinicPatientReview {

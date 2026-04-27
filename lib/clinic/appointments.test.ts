@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  appointmentOccupiedFrom,
   appointmentOccupiedUntil,
   normalizeBufferMinutes,
+  normalizeTravelBufferMinutes,
   rangesOverlap,
 } from './appointments'
 
@@ -18,6 +20,17 @@ describe('clinic appointment scheduling helpers', () => {
     const endsAt = new Date('2026-04-26T11:00:00.000Z')
     expect(appointmentOccupiedUntil(startsAt, endsAt, 60, 20).toISOString()).toBe(
       '2026-04-26T11:20:00.000Z'
+    )
+  })
+
+  it('tracks home-visit travel buffers around the clinical slot', () => {
+    const startsAt = new Date('2026-04-26T10:00:00.000Z')
+    const endsAt = new Date('2026-04-26T11:00:00.000Z')
+
+    expect(normalizeTravelBufferMinutes(240)).toBe(180)
+    expect(appointmentOccupiedFrom(startsAt, 30).toISOString()).toBe('2026-04-26T09:30:00.000Z')
+    expect(appointmentOccupiedUntil(startsAt, endsAt, 60, 15, 35).toISOString()).toBe(
+      '2026-04-26T11:50:00.000Z'
     )
   })
 
