@@ -61,6 +61,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `POST .../payments`, `POST .../crm`.
 - `PATCH .../payments/[paymentId]`, `GET .../payments/[paymentId]/receipt` — refund/void payment rows and export patient-safe receipt PDF.
 - `GET/POST .../product-sales` — record aftercare retail products from a visit, deduct inventory, and create finance revenue payment rows.
+- `GET /api/clinic/finance/overview` — finance dashboard data including P&L v2, direct material/product costs, product sales, operating expenses, and procedure profitability.
 - `GET/POST .../packages` — list/sell prepaid treatment packages; completed visits auto-debit one matching session.
 - `GET/POST /api/clinic/consents/templates`; `GET/POST .../patients/[id]/consents` — manage consent templates and signed patient consent records.
 - `GET/POST .../patients/[id]/treatment-plans`; `PATCH .../treatment-plans/[planId]` — create/update planned care courses and show progress from linked visits.

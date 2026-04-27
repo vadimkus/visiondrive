@@ -142,6 +142,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: revenue minus payment fees, materials, direct expenses, and refunds by procedure.
    - Why it matters: revenue is vanity if material-heavy procedures are underpriced.
    - Build shape: finance dashboard v2 with gross/net revenue, material cost, margin, profit per hour, expense categories.
+   - Shipped: Finance now separates net revenue, product sales, direct material/product costs, gross profit, operating expenses, operating profit, and procedure-level profitability with visits, expected revenue, paid/refunded revenue, material cost, margin, and profit per hour.
+   - Next improvements: capture processor fees separately from patient-facing fees, snapshot BOM cost at visit completion, and add exportable monthly P&L reports.
 
 20. Retention analytics
    - Altegio source: client retention, lost clients, returning clients.

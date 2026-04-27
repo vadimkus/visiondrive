@@ -159,13 +159,15 @@ const articlesEn: Article[] = [
   {
     id: 'finance',
     category: 'Finance',
-    title: 'Read profitability at a glance',
-    summary: 'Track revenue, refunds, expenses, profit, margin, and recent expense entries.',
+    title: 'Read true profitability, not only revenue',
+    summary:
+      'Track net revenue, product sales, direct material costs, operating expenses, profit, margin, and profit per procedure.',
     steps: [
       'Record payments from patient records or appointment flow.',
-      'Open Finance to review net revenue, paid revenue, pending payments, expenses, and profit.',
+      'Open Finance to review net revenue, direct costs, gross profit, operating profit, pending payments, and expenses.',
+      'Use P&L v2 to compare procedures by paid revenue, refunds, BOM material cost, gross profit, margin, and profit per hour.',
       'Add expenses with category, vendor, description, amount, and date.',
-      'Review category breakdown to see where money is going.',
+      'Review category breakdown to see where money is going and which services may need repricing.',
     ],
     link: '/clinic/finance',
   },
@@ -411,13 +413,15 @@ const articlesRu: Article[] = [
   {
     id: 'finance',
     category: 'Финансы',
-    title: 'Смотрите прибыльность без таблиц',
-    summary: 'Выручка, возвраты, расходы, прибыль, маржа и последние расходы.',
+    title: 'Смотрите реальную прибыльность, а не только выручку',
+    summary:
+      'Чистая выручка, продажи товаров, прямые материальные затраты, операционные расходы, прибыль, маржа и прибыльность процедур.',
     steps: [
       'Записывайте оплаты из карты пациента или процесса визита.',
-      'Откройте Финансы, чтобы увидеть выручку, ожидание оплат, расходы и прибыль.',
+      'Откройте Финансы, чтобы увидеть чистую выручку, прямые затраты, валовую прибыль, операционную прибыль, ожидание оплат и расходы.',
+      'Используйте P&L v2, чтобы сравнить процедуры по оплаченной выручке, возвратам, материалам BOM, валовой прибыли, марже и прибыли в час.',
       'Добавляйте расходы с категорией, поставщиком, описанием, суммой и датой.',
-      'Смотрите разбивку по категориям, чтобы понимать структуру затрат.',
+      'Смотрите разбивку по категориям, чтобы понимать структуру затрат и какие услуги пора переоценить.',
     ],
     link: '/clinic/finance',
   },

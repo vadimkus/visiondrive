@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ClinicPaymentStatus, ExpenseCategory } from '@prisma/client'
+import { ClinicPaymentStatus, ClinicVisitStatus, ExpenseCategory } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { isProductSalePaymentReference } from '@/lib/clinic/product-sales'
+import { buildProcedureProfitability } from '@/lib/clinic/profitability'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function parseDate(input: string | null, fallback: Date) {
@@ -28,7 +30,16 @@ export async function GET(request: NextRequest) {
   const start = parseDate(searchParams.get('start'), fallback.start)
   const end = parseDate(searchParams.get('end'), fallback.end)
 
-  const [paid, refunded, pending, expenses, expenseBreakdown, recentExpenses] = await Promise.all([
+  const [
+    paid,
+    refunded,
+    pending,
+    expenses,
+    expenseBreakdown,
+    recentExpenses,
+    productSales,
+    completedVisits,
+  ] = await Promise.all([
     prisma.clinicPatientPayment.aggregate({
       where: {
         tenantId: session.tenantId,
@@ -91,13 +102,106 @@ export async function GET(request: NextRequest) {
       orderBy: { occurredAt: 'desc' },
       take: 8,
     }),
+    prisma.clinicProductSale.findMany({
+      where: {
+        tenantId: session.tenantId,
+        soldAt: { gte: start, lte: end },
+      },
+      select: {
+        id: true,
+        totalCents: true,
+        paymentStatus: true,
+        lines: {
+          select: {
+            quantity: true,
+            unitCostCents: true,
+          },
+        },
+      },
+    }),
+    prisma.clinicVisit.findMany({
+      where: {
+        tenantId: session.tenantId,
+        status: ClinicVisitStatus.COMPLETED,
+        visitAt: { gte: start, lte: end },
+      },
+      select: {
+        id: true,
+        appointment: {
+          select: {
+            payments: {
+              select: {
+                id: true,
+                amountCents: true,
+                status: true,
+                reference: true,
+              },
+            },
+            procedure: {
+              select: {
+                id: true,
+                name: true,
+                defaultDurationMin: true,
+                basePriceCents: true,
+                materials: {
+                  select: {
+                    quantityPerVisit: true,
+                    unitCostCents: true,
+                    active: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        payments: {
+          select: {
+            id: true,
+            amountCents: true,
+            status: true,
+            reference: true,
+          },
+        },
+      },
+    }),
   ])
 
   const paidRevenueCents = paid._sum.amountCents ?? 0
   const refundsCents = refunded._sum.amountCents ?? 0
   const netRevenueCents = paidRevenueCents - refundsCents
+  const productSalesRevenueCents = productSales
+    .filter((sale) => sale.paymentStatus === ClinicPaymentStatus.PAID)
+    .reduce((sum, sale) => sum + sale.totalCents, 0)
+  const productSalesCostCents = productSales.reduce(
+    (sum, sale) =>
+      sum +
+      sale.lines.reduce((lineSum, line) => lineSum + line.quantity * line.unitCostCents, 0),
+    0
+  )
+  const procedureProfitability = buildProcedureProfitability(
+    completedVisits.map((visit) => {
+      const procedure = visit.appointment?.procedure
+      const linkedPayments = [...(visit.appointment?.payments ?? []), ...visit.payments].filter(
+        (payment) => !isProductSalePaymentReference(payment.reference)
+      )
+      return {
+        procedureId: procedure?.id ?? null,
+        procedureName: procedure?.name ?? 'Unassigned',
+        durationMinutes: procedure?.defaultDurationMin ?? 0,
+        expectedRevenueCents: procedure?.basePriceCents ?? 0,
+        materials: procedure?.materials ?? [],
+        payments: linkedPayments,
+      }
+    })
+  )
+  const procedureMaterialCostCents = procedureProfitability.reduce(
+    (sum, row) => sum + row.materialCostCents,
+    0
+  )
+  const directCostCents = procedureMaterialCostCents + productSalesCostCents
+  const grossProfitCents = netRevenueCents - directCostCents
   const expensesCents = expenses._sum.amountCents ?? 0
-  const profitCents = netRevenueCents - expensesCents
+  const profitCents = grossProfitCents - expensesCents
   const marginPct = netRevenueCents > 0 ? Number(((profitCents / netRevenueCents) * 100).toFixed(1)) : 0
 
   return NextResponse.json({
@@ -106,6 +210,11 @@ export async function GET(request: NextRequest) {
       paidRevenueCents,
       refundsCents,
       netRevenueCents,
+      productSalesRevenueCents,
+      procedureMaterialCostCents,
+      productSalesCostCents,
+      directCostCents,
+      grossProfitCents,
       pendingCents: pending._sum.amountCents ?? 0,
       expensesCents,
       profitCents,
@@ -114,6 +223,8 @@ export async function GET(request: NextRequest) {
       refundedPayments: refunded._count._all,
       pendingPayments: pending._count._all,
       expenseCount: expenses._count._all,
+      completedVisits: completedVisits.length,
+      productSales: productSales.length,
     },
     breakdown: {
       expensesByCategory: expenseBreakdown.map((row) => ({
@@ -121,6 +232,7 @@ export async function GET(request: NextRequest) {
         amountCents: row._sum.amountCents ?? 0,
       })),
       allExpenseCategories: Object.values(ExpenseCategory),
+      procedureProfitability,
     },
     recentExpenses: recentExpenses.map((expense) => ({
       ...expense,

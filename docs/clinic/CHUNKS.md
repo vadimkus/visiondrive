@@ -499,6 +499,24 @@
 
 ---
 
+## Chunk 29 — 2026-04-27 (P&L v2 and procedure profitability)
+
+**Shipped**
+
+- **Helper:** `lib/clinic/profitability.ts` calculates material cost per visit, deduped payment net totals, and procedure-level profit/margin/profit-per-hour rows.
+- **API:** `GET /api/clinic/finance/overview` now returns product-sale revenue, direct material/product costs, gross profit, operating expenses, operating profit, completed visit count, and procedure profitability.
+- **UI:** `/clinic/finance` has a P&L v2 block with gross profit, direct costs, product sales revenue/cost, operating profit, and a procedure profitability table.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article now explain true profitability instead of only top-line revenue.
+- **Docs/canvas:** Altegio backlog and canvas mark Point 19 as shipped and move the next recommendation to retention analytics.
+
+**Validation**
+
+- Added Vitest coverage for profitability helper calculations.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

@@ -27,6 +27,11 @@ type Overview = {
     paidRevenueCents: number
     refundsCents: number
     netRevenueCents: number
+    productSalesRevenueCents: number
+    procedureMaterialCostCents: number
+    productSalesCostCents: number
+    directCostCents: number
+    grossProfitCents: number
     pendingCents: number
     expensesCents: number
     profitCents: number
@@ -35,10 +40,26 @@ type Overview = {
     refundedPayments: number
     pendingPayments: number
     expenseCount: number
+    completedVisits: number
+    productSales: number
   }
   breakdown: {
     expensesByCategory: { category: ExpenseCategory; amountCents: number }[]
     allExpenseCategories: ExpenseCategory[]
+    procedureProfitability: {
+      procedureId: string | null
+      procedureName: string
+      visits: number
+      totalMinutes: number
+      expectedRevenueCents: number
+      paidRevenueCents: number
+      refundsCents: number
+      netRevenueCents: number
+      materialCostCents: number
+      grossProfitCents: number
+      marginPct: number
+      profitPerHourCents: number
+    }[]
   }
   recentExpenses: Expense[]
 }
@@ -270,6 +291,102 @@ export default function ClinicFinancePage() {
           </p>
         </div>
       </div>
+
+      <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">{t.financePnlV2}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t.financePnlV2Hint}</p>
+          </div>
+          <p className="text-xs text-gray-500">
+            {kpis?.completedVisits ?? 0} {t.financeCompletedVisits.toLowerCase()} · {kpis?.productSales ?? 0}{' '}
+            {t.productSales.toLowerCase()}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+          <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+            <p className="text-sm text-gray-500">{t.financeGrossProfit}</p>
+            <p className="text-xl font-semibold text-gray-900 mt-2 tabular-nums">
+              {money(kpis?.grossProfitCents ?? 0, 'AED', numberLocale)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">{t.financeNetAfterDirectCosts}</p>
+          </div>
+          <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+            <p className="text-sm text-gray-500">{t.financeDirectCosts}</p>
+            <p className="text-xl font-semibold text-gray-900 mt-2 tabular-nums">
+              {money(kpis?.directCostCents ?? 0, 'AED', numberLocale)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t.financeMaterialCost}: {money(kpis?.procedureMaterialCostCents ?? 0, 'AED', numberLocale)}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+            <p className="text-sm text-gray-500">{t.financeProductSalesRevenue}</p>
+            <p className="text-xl font-semibold text-gray-900 mt-2 tabular-nums">
+              {money(kpis?.productSalesRevenueCents ?? 0, 'AED', numberLocale)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t.financeProductSalesCost}: {money(kpis?.productSalesCostCents ?? 0, 'AED', numberLocale)}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+            <p className="text-sm text-gray-500">{t.financeOperatingProfit}</p>
+            <p className="text-xl font-semibold text-gray-900 mt-2 tabular-nums">
+              {money(kpis?.profitCents ?? 0, 'AED', numberLocale)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t.financeMargin}: {kpis?.marginPct ?? 0}%
+            </p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          {(overview?.breakdown.procedureProfitability.length ?? 0) > 0 ? (
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs text-gray-500">
+                <tr>
+                  <th className="py-2 pr-3 font-medium">{t.procedureColName}</th>
+                  <th className="py-2 px-3 font-medium">{t.financeCompletedVisits}</th>
+                  <th className="py-2 px-3 font-medium">{t.financeExpectedRevenue}</th>
+                  <th className="py-2 px-3 font-medium">{t.financeNetRevenue}</th>
+                  <th className="py-2 px-3 font-medium">{t.financeMaterialCost}</th>
+                  <th className="py-2 px-3 font-medium">{t.financeGrossProfit}</th>
+                  <th className="py-2 pl-3 font-medium">{t.financeProfitPerHour}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {overview?.breakdown.procedureProfitability.map((row) => (
+                  <tr key={row.procedureId ?? row.procedureName}>
+                    <td className="py-3 pr-3 font-medium text-gray-900">{row.procedureName}</td>
+                    <td className="py-3 px-3 tabular-nums text-gray-700">{row.visits}</td>
+                    <td className="py-3 px-3 tabular-nums text-gray-700">
+                      {money(row.expectedRevenueCents, 'AED', numberLocale)}
+                    </td>
+                    <td className="py-3 px-3 tabular-nums text-gray-700">
+                      {money(row.netRevenueCents, 'AED', numberLocale)}
+                    </td>
+                    <td className="py-3 px-3 tabular-nums text-gray-700">
+                      {money(row.materialCostCents, 'AED', numberLocale)}
+                    </td>
+                    <td className="py-3 px-3 tabular-nums font-semibold text-gray-900">
+                      {money(row.grossProfitCents, 'AED', numberLocale)}
+                      <span className="ml-1 text-xs font-normal text-gray-500">({row.marginPct}%)</span>
+                    </td>
+                    <td className="py-3 pl-3 tabular-nums text-gray-700">
+                      {money(row.profitPerHourCents, 'AED', numberLocale)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">
+              {t.financeNoProcedureProfitability}
+            </p>
+          )}
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4">
         <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
