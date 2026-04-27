@@ -10,6 +10,14 @@ export async function GET(request: NextRequest) {
 
   const procedures = await prisma.clinicProcedure.findMany({
     where: { tenantId: session.tenantId },
+    include: {
+      materials: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        include: {
+          stockItem: { select: { id: true, name: true, unit: true, quantityOnHand: true, active: true } },
+        },
+      },
+    },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
   })
 

@@ -118,6 +118,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: a procedure consumes multiple items with quantities, not just one simple stock item.
    - Why it matters: true profitability requires material cost per treatment.
    - Build shape: procedure material list, automatic multi-item consumption on visit complete, override actual quantity when needed.
+   - Shipped: procedure-level material rows with stock item, quantity per visit, unit cost, notes, material cost summary, automatic multi-item deduction on completed linked visits, and legacy single-item fallback when no BOM exists.
+   - Next improvements: per-visit quantity override, procedure profitability report using material cost, material templates, and low-stock forecast from future appointments.
 
 17. Stock-taking and variance
    - Altegio source: stock-taking, write-offs, inventory operations.

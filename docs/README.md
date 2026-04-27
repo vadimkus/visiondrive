@@ -61,6 +61,7 @@
 | [2026-04-27_clinic-inline-payments-receipts.md](2026-04-27_clinic-inline-payments-receipts.md) | Clinic inline payments and receipts note |
 | [2026-04-27_clinic-treatment-plans.md](2026-04-27_clinic-treatment-plans.md) | Clinic treatment plans note |
 | [2026-04-27_clinic-notification-center.md](2026-04-27_clinic-notification-center.md) | Clinic notification center note |
+| [2026-04-27_clinic-procedure-bill-of-materials.md](2026-04-27_clinic-procedure-bill-of-materials.md) | Clinic procedure bill of materials note |
 | [2026-04-27_homepage-solo-practitioner-positioning.md](2026-04-27_homepage-solo-practitioner-positioning.md) | Homepage solo practitioner positioning note |
 | [clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md](clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md) | Altegio adaptation backlog for solo home-visit practitioners |
 

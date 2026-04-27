@@ -441,6 +441,25 @@
 
 ---
 
+## Chunk 26 — 2026-04-27 (procedure bill of materials)
+
+**Shipped**
+
+- **Schema:** added `ClinicProcedureMaterial` linking procedure + stock item with quantity per visit, unit cost, active flag, note, and sort order.
+- **API:** `GET/POST /api/clinic/procedures/[id]/materials` and `PATCH/DELETE .../materials/[materialId]` manage BOM rows.
+- **Inventory deduction:** completed linked visits now deduct all active BOM rows when configured; legacy `ClinicStockItem.procedureId + consumePerVisit` remains as fallback for procedures without BOM rows.
+- **UI:** procedure catalog now shows material cost per procedure and an inline BOM editor for adding/removing consumables.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article for procedure materials.
+- **Lib:** `lib/clinic/procedure-materials.ts` normalizes material quantities/costs and computes material cost.
+
+**Validation**
+
+- Added Vitest coverage for procedure-material helper normalization and cost math.
+- Run `npm run db:generate`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

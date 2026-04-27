@@ -111,6 +111,7 @@ model Tenant {
   clinicConsentTemplates ClinicConsentTemplate[]
   clinicConsentRecords ClinicConsentRecord[]
   clinicTreatmentPlans ClinicTreatmentPlan[]
+  clinicProcedureMaterials ClinicProcedureMaterial[]
 
   @@map("tenants")
 }
@@ -865,6 +866,7 @@ model ClinicProcedure {
   consentTemplates ClinicConsentTemplate[]
   consentRecords ClinicConsentRecord[]
   treatmentPlans ClinicTreatmentPlan[]
+  materials ClinicProcedureMaterial[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -1381,12 +1383,37 @@ model ClinicStockItem {
   procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
   movements ClinicStockMovement[]
   purchaseOrderLines ClinicPurchaseOrderLine[]
+  procedureMaterials ClinicProcedureMaterial[]
 
   @@index([tenantId, active, name])
   @@index([tenantId, procedureId])
   @@index([tenantId, barcode])
   @@index([tenantId, sku])
   @@map("clinic_stock_items")
+}
+
+model ClinicProcedureMaterial {
+  id              String   @id @default(cuid())
+  tenantId        String
+  procedureId     String
+  stockItemId     String
+  quantityPerVisit Int     @default(1)
+  unitCostCents   Int      @default(0)
+  sortOrder       Int      @default(0)
+  active          Boolean  @default(true)
+  note            String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdByUserId String?
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+  stockItem ClinicStockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  @@unique([procedureId, stockItemId])
+  @@index([tenantId, procedureId, active])
+  @@index([tenantId, stockItemId])
+  @@map("clinic_procedure_materials")
 }
 
 model ClinicStockMovement {

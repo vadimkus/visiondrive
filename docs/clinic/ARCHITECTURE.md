@@ -11,7 +11,7 @@
 | Model | Purpose |
 |-------|---------|
 | `ClinicPatient` | Demographics + home-visit address/area/access notes + client `category`/`tags` + **`internalNotes`** (staff-only; never on patient PDF) + optional **`anamnesisJson`** (v1 structured intake: allergies, medications, conditions, social). |
-| `ClinicProcedure` | Catalog: name, duration, hidden **`bufferAfterMinutes`** (cleanup/prep/travel), base price, currency (default AED). |
+| `ClinicProcedure` | Catalog: name, duration, hidden **`bufferAfterMinutes`** (cleanup/prep/travel), base price, currency (default AED), and procedure materials/BOM. |
 | `ClinicAppointment` | Scheduled visit intent: patient, optional procedure, start/end, status, source, hidden buffer, home-visit location/travel buffers, lifecycle timestamps, **`internalNotes`**, and optional `overrideReason` for intentional scheduling exceptions. |
 | `ClinicAppointmentEvent` | Appointment change history: create/update/reschedule/status/reminder/visit/payment/follow-up events. |
 | `ClinicAvailabilityRule` | Working-hours and booking cadence per weekday: open/closed, start/end, fixed/dynamic slot mode, slot interval, minimum lead time, and optional procedure-specific overrides. |
@@ -27,6 +27,7 @@
 | `ClinicTreatmentPlan` | Planned patient course of care with expected sessions, cadence, target dates, service, goals, next steps, photo milestones, status, and linked visits. |
 | `ClinicCrmActivity` | CRM timeline: type (call, WhatsApp, note, …), **`body`**, **`occurredAt`**. |
 | `ClinicStockItem` | Inventory line: **`quantityOnHand`**, **`reorderPoint`** (low-stock when on-hand <= point and point &gt; 0), optional **`procedureId`**, `barcode`, `consumePerVisit`, and low-stock notification cooldown. |
+| `ClinicProcedureMaterial` | Bill of materials row linking a procedure to a stock item with quantity per visit, unit material cost, active flag, note, and sort order. |
 | `ClinicStockMovement` | **`RECEIPT` / `ADJUSTMENT` / `CONSUMPTION` / `RETURN`** with signed **`quantityDelta`**; updates item atomically in a transaction. |
 | `ClinicPurchaseOrder` / `ClinicPurchaseOrderLine` | Supplier orders and receipts; receiving creates `RECEIPT` stock movements and increments item quantities. |
 | `ClinicWebPushSubscription` | Browser push endpoints for low-stock alerts, scoped to user + tenant. |
@@ -48,6 +49,7 @@ Public booking: `/book/[tenant.slug]` is a private branded link, not a marketpla
 - Base path: **`/api/clinic/*`**.
 - **Patient-safe PDF:** `GET .../patients/[id]/summary-pdf` returns a minimal English summary for handout; staff-only fields are excluded by construction (not redacted — never loaded).
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
+- **Procedure materials:** `GET/POST /api/clinic/procedures/[id]/materials`, `PATCH/DELETE .../materials/[materialId]`; visit completion deducts active material rows before falling back to legacy stock-item procedure links.
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`.
 - **Availability:** `GET/PATCH /api/clinic/availability`, `GET /api/clinic/availability/slots`, `GET/POST /api/clinic/blocked-times`, `DELETE .../blocked-times/[id]`.
 - **Reminders/reputation:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`, `GET /api/clinic/reviews`, `PATCH /api/clinic/reviews/[id]`; appointment actions support `send_reminder`, `schedule_reminder`, `no_show_follow_up`, `schedule_rebooking_follow_up`, and `send_review_request`.

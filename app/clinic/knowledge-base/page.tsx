@@ -118,6 +118,19 @@ const articlesEn: Article[] = [
     link: '/clinic/purchase-orders',
   },
   {
+    id: 'procedure-bill-of-materials',
+    category: 'Inventory',
+    title: 'Attach a bill of materials to each procedure',
+    summary: 'Deduct multiple consumables automatically when a treatment visit is completed.',
+    steps: [
+      'Create stock items first in Inventory.',
+      'Open Procedures and find the service that consumes those materials.',
+      'In Bill of materials, add each item with quantity per visit and unit cost.',
+      'When a linked appointment visit is completed, the system deducts every active material row if enough stock is available.',
+    ],
+    link: '/clinic/procedures',
+  },
+  {
     id: 'finance',
     category: 'Finance',
     title: 'Read profitability at a glance',
@@ -329,6 +342,19 @@ const articlesRu: Article[] = [
       'Проверьте движения склада и статус низких остатков.',
     ],
     link: '/clinic/purchase-orders',
+  },
+  {
+    id: 'procedure-bill-of-materials',
+    category: 'Склад',
+    title: 'Привяжите состав материалов к каждой процедуре',
+    summary: 'Автоматически списывайте несколько расходников при завершении лечебного визита.',
+    steps: [
+      'Сначала создайте расходники в Складе.',
+      'Откройте Процедуры и найдите услугу, которая расходует эти материалы.',
+      'В блоке Состав процедуры добавьте каждую позицию, количество на визит и цену единицы.',
+      'Когда визит по связанной записи завершён, система спишет все активные материалы, если остатка достаточно.',
+    ],
+    link: '/clinic/procedures',
   },
   {
     id: 'finance',
