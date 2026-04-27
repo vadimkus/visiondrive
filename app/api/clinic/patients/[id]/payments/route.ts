@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ClinicAppointmentEventType, ClinicPaymentMethod, ClinicPaymentStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { calculateProcessorFeeForPayment, PAYMENT_FEE_METHODS } from '@/lib/clinic/payment-fees'
 import { getClinicSession } from '@/lib/clinic/session'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
 
 function parseMethod(v: string): ClinicPaymentMethod | null {
   const u = v.toUpperCase().trim()
-  const allowed: ClinicPaymentMethod[] = [
-    'CASH',
-    'CARD',
-    'TRANSFER',
-    'POS',
-    'OTHER',
-  ]
+  const allowed = PAYMENT_FEE_METHODS
   return allowed.includes(u as ClinicPaymentMethod) ? (u as ClinicPaymentMethod) : null
 }
 
@@ -64,6 +59,11 @@ export async function POST(
   const currency = body.currency != null ? String(body.currency).trim().toUpperCase() || 'AED' : 'AED'
   const method = parseMethod(String(body.method ?? 'OTHER')) ?? ClinicPaymentMethod.OTHER
   const status = parsePayStatus(String(body.status ?? 'PAID')) ?? ClinicPaymentStatus.PAID
+  const feeRule = await prisma.clinicPaymentFeeRule.findUnique({
+    where: { tenantId_method: { tenantId: session.tenantId, method } },
+    select: { percentBps: true, fixedFeeCents: true, active: true },
+  })
+  const processorFeeCents = calculateProcessorFeeForPayment({ amountCents, status, rule: feeRule })
 
   const paidAtRaw = String(body.paidAt ?? '')
   const paidAt = paidAtRaw ? new Date(paidAtRaw) : new Date()
@@ -112,6 +112,7 @@ export async function POST(
         amountCents,
         discountCents,
         feeCents,
+        processorFeeCents,
         currency,
         method,
         status,
@@ -125,6 +126,7 @@ export async function POST(
         amountCents: true,
         discountCents: true,
         feeCents: true,
+        processorFeeCents: true,
         currency: true,
         method: true,
         status: true,
@@ -142,7 +144,7 @@ export async function POST(
         appointmentId,
         type: ClinicAppointmentEventType.PAYMENT_RECORDED,
         message: `Payment recorded: ${(amountCents / 100).toFixed(2)} ${currency}`,
-        after: { paymentId: payment.id, amountCents, discountCents, feeCents, currency, status },
+        after: { paymentId: payment.id, amountCents, discountCents, feeCents, processorFeeCents, currency, status },
         createdByUserId: session.userId,
       })
     }

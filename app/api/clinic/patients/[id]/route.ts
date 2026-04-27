@@ -60,6 +60,7 @@ export async function GET(
                   amountCents: true,
                   discountCents: true,
                   feeCents: true,
+                  processorFeeCents: true,
                   currency: true,
                   status: true,
                   reference: true,
@@ -74,6 +75,7 @@ export async function GET(
               amountCents: true,
               discountCents: true,
               feeCents: true,
+              processorFeeCents: true,
               currency: true,
               status: true,
               reference: true,
@@ -151,6 +153,7 @@ export async function GET(
           amountCents: true,
           discountCents: true,
           feeCents: true,
+          processorFeeCents: true,
           currency: true,
           method: true,
           status: true,
@@ -167,7 +170,7 @@ export async function GET(
         take: 80,
         include: {
           payment: {
-            select: { id: true, status: true, amountCents: true, method: true, paidAt: true },
+            select: { id: true, status: true, amountCents: true, processorFeeCents: true, method: true, paidAt: true },
           },
           visit: { select: { id: true, visitAt: true } },
           appointment: { select: { id: true, startsAt: true } },

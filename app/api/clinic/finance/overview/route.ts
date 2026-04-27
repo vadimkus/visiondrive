@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     paid,
     refunded,
     pending,
+    processorFees,
     expenses,
     expenseBreakdown,
     recentExpenses,
@@ -66,6 +67,14 @@ export async function GET(request: NextRequest) {
       },
       _sum: { amountCents: true },
       _count: { _all: true },
+    }),
+    prisma.clinicPatientPayment.aggregate({
+      where: {
+        tenantId: session.tenantId,
+        status: { in: [ClinicPaymentStatus.PAID, ClinicPaymentStatus.REFUNDED] },
+        paidAt: { gte: start, lte: end },
+      },
+      _sum: { processorFeeCents: true },
     }),
     prisma.expense.aggregate({
       where: {
@@ -133,6 +142,7 @@ export async function GET(request: NextRequest) {
               select: {
                 id: true,
                 amountCents: true,
+                processorFeeCents: true,
                 status: true,
                 reference: true,
               },
@@ -158,6 +168,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             amountCents: true,
+            processorFeeCents: true,
             status: true,
             reference: true,
           },
@@ -198,7 +209,8 @@ export async function GET(request: NextRequest) {
     (sum, row) => sum + row.materialCostCents,
     0
   )
-  const directCostCents = procedureMaterialCostCents + productSalesCostCents
+  const processorFeeCents = processorFees._sum.processorFeeCents ?? 0
+  const directCostCents = procedureMaterialCostCents + productSalesCostCents + processorFeeCents
   const grossProfitCents = netRevenueCents - directCostCents
   const expensesCents = expenses._sum.amountCents ?? 0
   const profitCents = grossProfitCents - expensesCents
@@ -213,6 +225,7 @@ export async function GET(request: NextRequest) {
       productSalesRevenueCents,
       procedureMaterialCostCents,
       productSalesCostCents,
+      processorFeeCents,
       directCostCents,
       grossProfitCents,
       pendingCents: pending._sum.amountCents ?? 0,

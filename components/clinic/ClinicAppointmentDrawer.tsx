@@ -23,6 +23,7 @@ type Payment = {
   amountCents: number
   discountCents: number
   feeCents: number
+  processorFeeCents: number
   currency: string
   method: string
   status: string
@@ -43,7 +44,7 @@ type ProductSale = {
   paymentMethod: string
   paymentStatus: string
   note: string | null
-  payment: { id: string; status: string; amountCents: number; method: string; paidAt: string } | null
+  payment: { id: string; status: string; amountCents: number; processorFeeCents: number; method: string; paidAt: string } | null
   lines: Array<{
     id: string
     quantity: number
@@ -749,6 +750,7 @@ export function ClinicAppointmentDrawer({
                           <option value="CASH">{t.payMethodCash}</option>
                           <option value="TRANSFER">{t.payMethodTransfer}</option>
                           <option value="POS">{t.payMethodPos}</option>
+                          <option value="STRIPE">{t.payMethodStripe}</option>
                           <option value="OTHER">{t.payMethodOther}</option>
                         </select>
                       </label>
@@ -855,6 +857,7 @@ export function ClinicAppointmentDrawer({
                         <option value="CASH">{t.payMethodCash}</option>
                         <option value="TRANSFER">{t.payMethodTransfer}</option>
                         <option value="POS">{t.payMethodPos}</option>
+                        <option value="STRIPE">{t.payMethodStripe}</option>
                         <option value="OTHER">{t.payMethodOther}</option>
                       </select>
                     </label>
@@ -933,6 +936,11 @@ export function ClinicAppointmentDrawer({
                               <p>
                                 {t.paymentDiscount}: {money(item.discountCents, item.currency)} · {t.paymentFee}:{' '}
                                 {money(item.feeCents, item.currency)}
+                              </p>
+                            )}
+                            {item.processorFeeCents > 0 && (
+                              <p>
+                                {t.paymentProcessorFee}: {money(item.processorFeeCents, item.currency)}
                               </p>
                             )}
                           </div>

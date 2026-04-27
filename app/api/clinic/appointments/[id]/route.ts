@@ -94,7 +94,7 @@ export async function GET(
           productSales: {
             include: {
               payment: {
-                select: { id: true, status: true, amountCents: true, method: true, paidAt: true },
+                select: { id: true, status: true, amountCents: true, processorFeeCents: true, method: true, paidAt: true },
               },
               lines: {
                 include: {
@@ -110,6 +110,7 @@ export async function GET(
               amountCents: true,
               discountCents: true,
               feeCents: true,
+              processorFeeCents: true,
               currency: true,
               method: true,
               status: true,
@@ -130,6 +131,7 @@ export async function GET(
           amountCents: true,
           discountCents: true,
           feeCents: true,
+          processorFeeCents: true,
           currency: true,
           method: true,
           status: true,
@@ -217,6 +219,7 @@ export async function GET(
                   amountCents: true,
                   discountCents: true,
                   feeCents: true,
+                  processorFeeCents: true,
                   currency: true,
                   status: true,
                   reference: true,
@@ -231,6 +234,7 @@ export async function GET(
               amountCents: true,
               discountCents: true,
               feeCents: true,
+              processorFeeCents: true,
               currency: true,
               status: true,
               reference: true,
@@ -251,6 +255,7 @@ export async function GET(
           amountCents: true,
           discountCents: true,
           feeCents: true,
+          processorFeeCents: true,
           currency: true,
           status: true,
           reference: true,

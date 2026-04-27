@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ClinicPaymentMethod, ClinicPaymentStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
+import { calculateProcessorFeeForPayment, PAYMENT_FEE_METHODS } from '@/lib/clinic/payment-fees'
 import {
   normalizePackagePriceCents,
   normalizePackageSessions,
@@ -10,7 +11,7 @@ import {
 
 function parseMethod(v: string): ClinicPaymentMethod {
   const u = v.toUpperCase().trim()
-  const allowed: ClinicPaymentMethod[] = ['CASH', 'CARD', 'TRANSFER', 'POS', 'OTHER']
+  const allowed = PAYMENT_FEE_METHODS
   return allowed.includes(u as ClinicPaymentMethod) ? (u as ClinicPaymentMethod) : ClinicPaymentMethod.OTHER
 }
 
@@ -140,13 +141,22 @@ export async function POST(
       },
     })
 
-    const payment =
-      priceCents > 0
-        ? await tx.clinicPatientPayment.create({
+    let payment = null
+    if (priceCents > 0) {
+      const feeRule = await tx.clinicPaymentFeeRule.findUnique({
+        where: { tenantId_method: { tenantId: session.tenantId, method } },
+        select: { percentBps: true, fixedFeeCents: true, active: true },
+      })
+      payment = await tx.clinicPatientPayment.create({
             data: {
               tenantId: session.tenantId,
               patientId,
               amountCents: priceCents,
+              processorFeeCents: calculateProcessorFeeForPayment({
+                amountCents: priceCents,
+                status: paymentStatus,
+                rule: feeRule,
+              }),
               currency: currency.slice(0, 8),
               method,
               status: paymentStatus,
@@ -156,7 +166,7 @@ export async function POST(
               createdByUserId: session.userId,
             },
           })
-        : null
+    }
 
     return { package: patientPackage, payment }
   })

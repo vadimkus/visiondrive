@@ -96,6 +96,7 @@ model Tenant {
   clinicVisits                ClinicVisit[]
   clinicPatientMedia          ClinicPatientMedia[]
   clinicPatientPayments       ClinicPatientPayment[]
+  clinicPaymentFeeRules       ClinicPaymentFeeRule[]
   clinicProductSales          ClinicProductSale[]
   clinicProductSaleLines      ClinicProductSaleLine[]
   clinicCrmActivities         ClinicCrmActivity[]
@@ -1214,6 +1215,7 @@ enum ClinicPaymentMethod {
   CARD
   TRANSFER
   POS
+  STRIPE
   OTHER
 }
 
@@ -1302,22 +1304,23 @@ model ClinicPatientMedia {
 }
 
 model ClinicPatientPayment {
-  id              String              @id @default(cuid())
-  tenantId        String
-  patientId       String
-  visitId         String?
-  appointmentId   String?
-  amountCents     Int
-  discountCents   Int                 @default(0)
-  feeCents        Int                 @default(0)
-  currency        String              @default("AED")
-  method          ClinicPaymentMethod @default(OTHER)
-  status          ClinicPaymentStatus @default(PAID)
-  reference       String?
-  note            String?             @db.Text
-  paidAt          DateTime            @db.Timestamptz(6)
-  createdAt       DateTime            @default(now())
-  createdByUserId String?
+  id                String              @id @default(cuid())
+  tenantId          String
+  patientId         String
+  visitId           String?
+  appointmentId     String?
+  amountCents       Int
+  discountCents     Int                 @default(0)
+  feeCents          Int                 @default(0)
+  processorFeeCents Int                 @default(0)
+  currency          String              @default("AED")
+  method            ClinicPaymentMethod @default(OTHER)
+  status            ClinicPaymentStatus @default(PAID)
+  reference         String?
+  note              String?             @db.Text
+  paidAt            DateTime            @db.Timestamptz(6)
+  createdAt         DateTime            @default(now())
+  createdByUserId   String?
 
   tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient     ClinicPatient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -1328,6 +1331,24 @@ model ClinicPatientPayment {
   @@index([tenantId, patientId, paidAt])
   @@index([appointmentId, paidAt])
   @@map("clinic_patient_payments")
+}
+
+model ClinicPaymentFeeRule {
+  id              String              @id @default(cuid())
+  tenantId        String
+  method          ClinicPaymentMethod
+  percentBps      Int                 @default(0)
+  fixedFeeCents   Int                 @default(0)
+  active          Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  createdByUserId String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, method])
+  @@index([tenantId, active])
+  @@map("clinic_payment_fee_rules")
 }
 
 model ClinicProductSale {

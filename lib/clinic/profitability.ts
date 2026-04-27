@@ -1,6 +1,7 @@
 export type ProfitabilityPayment = {
   id?: string | null
   amountCents: number
+  processorFeeCents?: number | null
   status: string
 }
 
@@ -29,6 +30,7 @@ export type ProcedureProfitabilityRow = {
   refundsCents: number
   netRevenueCents: number
   materialCostCents: number
+  processorFeeCents: number
   grossProfitCents: number
   marginPct: number
   profitPerHourCents: number
@@ -56,6 +58,7 @@ export function paymentNetTotals(payments: ProfitabilityPayment[]) {
   const seen = new Set<string>()
   let paidRevenueCents = 0
   let refundsCents = 0
+  let processorFeeCents = 0
 
   for (const payment of payments) {
     if (payment.id) {
@@ -63,14 +66,17 @@ export function paymentNetTotals(payments: ProfitabilityPayment[]) {
       seen.add(payment.id)
     }
     const amountCents = positiveCents(payment.amountCents)
+    const paymentProcessorFeeCents = positiveCents(payment.processorFeeCents ?? 0)
     const status = payment.status.toUpperCase()
     if (status === 'PAID') paidRevenueCents += amountCents
     if (status === 'REFUNDED') refundsCents += amountCents
+    if (status === 'PAID' || status === 'REFUNDED') processorFeeCents += paymentProcessorFeeCents
   }
 
   return {
     paidRevenueCents,
     refundsCents,
+    processorFeeCents,
     netRevenueCents: paidRevenueCents - refundsCents,
   }
 }
@@ -94,6 +100,7 @@ export function buildProcedureProfitability(
         refundsCents: 0,
         netRevenueCents: 0,
         materialCostCents: 0,
+        processorFeeCents: 0,
         grossProfitCents: 0,
         marginPct: 0,
         profitPerHourCents: 0,
@@ -107,7 +114,9 @@ export function buildProcedureProfitability(
     existing.refundsCents += paymentTotals.refundsCents
     existing.netRevenueCents += paymentTotals.netRevenueCents
     existing.materialCostCents += materialCostPerVisit(visit.materials)
-    existing.grossProfitCents = existing.netRevenueCents - existing.materialCostCents
+    existing.processorFeeCents += paymentTotals.processorFeeCents
+    existing.grossProfitCents =
+      existing.netRevenueCents - existing.materialCostCents - existing.processorFeeCents
     existing.marginPct =
       existing.netRevenueCents > 0
         ? Number(((existing.grossProfitCents / existing.netRevenueCents) * 100).toFixed(1))

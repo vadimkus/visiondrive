@@ -21,10 +21,15 @@ describe('clinic profitability helpers', () => {
       paymentNetTotals([
         { id: 'p1', amountCents: 10000, status: 'PAID' },
         { id: 'p1', amountCents: 10000, status: 'PAID' },
-        { id: 'p2', amountCents: 2500, status: 'REFUNDED' },
+        { id: 'p2', amountCents: 2500, processorFeeCents: 200, status: 'REFUNDED' },
         { id: 'p3', amountCents: 9999, status: 'PENDING' },
       ])
-    ).toEqual({ paidRevenueCents: 10000, refundsCents: 2500, netRevenueCents: 7500 })
+    ).toEqual({
+      paidRevenueCents: 10000,
+      refundsCents: 2500,
+      processorFeeCents: 200,
+      netRevenueCents: 7500,
+    })
   })
 
   it('builds procedure-level profit, margin, and profit per hour', () => {
@@ -35,7 +40,7 @@ describe('clinic profitability helpers', () => {
         durationMinutes: 60,
         expectedRevenueCents: 50000,
         materials: [{ quantityPerVisit: 2, unitCostCents: 5000 }],
-        payments: [{ amountCents: 50000, status: 'PAID' }],
+        payments: [{ amountCents: 50000, processorFeeCents: 1500, status: 'PAID' }],
       },
       {
         procedureId: 'proc_1',
@@ -44,8 +49,8 @@ describe('clinic profitability helpers', () => {
         expectedRevenueCents: 50000,
         materials: [{ quantityPerVisit: 1, unitCostCents: 5000 }],
         payments: [
-          { amountCents: 25000, status: 'PAID' },
-          { amountCents: 5000, status: 'REFUNDED' },
+          { amountCents: 25000, processorFeeCents: 750, status: 'PAID' },
+          { amountCents: 5000, processorFeeCents: 150, status: 'REFUNDED' },
         ],
       },
     ])
@@ -57,9 +62,10 @@ describe('clinic profitability helpers', () => {
       expectedRevenueCents: 100000,
       netRevenueCents: 70000,
       materialCostCents: 15000,
-      grossProfitCents: 55000,
-      marginPct: 78.6,
-      profitPerHourCents: 36667,
+      processorFeeCents: 2400,
+      grossProfitCents: 52600,
+      marginPct: 75.1,
+      profitPerHourCents: 35067,
     })
   })
 })

@@ -9,6 +9,7 @@ import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import type { ClinicStrings } from '@/lib/clinic/strings'
 
 type ExpenseCategory = 'CLOUD' | 'HARDWARE' | 'OPS' | 'SUPPORT' | 'MARKETING' | 'SOFTWARE' | 'OTHER'
+type PaymentMethod = 'CASH' | 'CARD' | 'TRANSFER' | 'POS' | 'STRIPE' | 'OTHER'
 
 type Expense = {
   id: string
@@ -30,6 +31,7 @@ type Overview = {
     productSalesRevenueCents: number
     procedureMaterialCostCents: number
     productSalesCostCents: number
+    processorFeeCents: number
     directCostCents: number
     grossProfitCents: number
     pendingCents: number
@@ -56,12 +58,21 @@ type Overview = {
       refundsCents: number
       netRevenueCents: number
       materialCostCents: number
+      processorFeeCents: number
       grossProfitCents: number
       marginPct: number
       profitPerHourCents: number
     }[]
   }
   recentExpenses: Expense[]
+}
+
+type FeeRule = {
+  id: string | null
+  method: PaymentMethod
+  percentBps: number
+  fixedFeeCents: number
+  active: boolean
 }
 
 const CATEGORIES: ExpenseCategory[] = [
@@ -73,6 +84,8 @@ const CATEGORIES: ExpenseCategory[] = [
   'CLOUD',
   'OTHER',
 ]
+
+const PAYMENT_METHODS: PaymentMethod[] = ['CASH', 'CARD', 'TRANSFER', 'POS', 'STRIPE', 'OTHER']
 
 function money(cents: number, currency = 'AED', locale = 'en-GB') {
   return new Intl.NumberFormat(locale, {
@@ -108,13 +121,32 @@ function parseAedToCents(value: string) {
   return Number.isFinite(amount) ? Math.round(amount * 100) : NaN
 }
 
+function methodLabel(t: ClinicStrings, method: PaymentMethod) {
+  switch (method) {
+    case 'CASH':
+      return t.payMethodCash
+    case 'CARD':
+      return t.payMethodCard
+    case 'TRANSFER':
+      return t.payMethodTransfer
+    case 'POS':
+      return t.payMethodPos
+    case 'STRIPE':
+      return t.payMethodStripe
+    case 'OTHER':
+      return t.payMethodOther
+  }
+}
+
 export default function ClinicFinancePage() {
   const router = useRouter()
   const { locale, t } = useClinicLocale()
   const [range, setRange] = useState<'month' | '30d'>('month')
   const [overview, setOverview] = useState<Overview | null>(null)
+  const [feeRules, setFeeRules] = useState<FeeRule[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingFeeRule, setSavingFeeRule] = useState<PaymentMethod | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     category: 'OPS' as ExpenseCategory,
@@ -130,9 +162,12 @@ export default function ClinicFinancePage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/clinic/finance/overview?range=${range}`, {
-        credentials: 'include',
-      })
+      const [res, feeRes] = await Promise.all([
+        fetch(`/api/clinic/finance/overview?range=${range}`, {
+          credentials: 'include',
+        }),
+        fetch('/api/clinic/payment-fee-rules', { credentials: 'include' }),
+      ])
       if (res.status === 401) {
         router.replace('/login')
         return
@@ -142,6 +177,10 @@ export default function ClinicFinancePage() {
         throw new Error(data.error || t.failedToLoad)
       }
       setOverview(data)
+      if (feeRes.ok) {
+        const feeData = await feeRes.json()
+        setFeeRules(feeData.rules || [])
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t.failedToLoad)
     } finally {
@@ -192,6 +231,28 @@ export default function ClinicFinancePage() {
       setError(e instanceof Error ? e.message : t.saveFailed)
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function saveFeeRule(rule: FeeRule) {
+    setSavingFeeRule(rule.method)
+    setError(null)
+    try {
+      const res = await fetch('/api/clinic/payment-fee-rules', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rule),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.saveFailed)
+      }
+      setFeeRules(data.rules || [])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.saveFailed)
+    } finally {
+      setSavingFeeRule(null)
     }
   }
 
@@ -318,7 +379,8 @@ export default function ClinicFinancePage() {
               {money(kpis?.directCostCents ?? 0, 'AED', numberLocale)}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {t.financeMaterialCost}: {money(kpis?.procedureMaterialCostCents ?? 0, 'AED', numberLocale)}
+              {t.financeMaterialCost}: {money(kpis?.procedureMaterialCostCents ?? 0, 'AED', numberLocale)} ·{' '}
+              {t.financeProcessorFees}: {money(kpis?.processorFeeCents ?? 0, 'AED', numberLocale)}
             </p>
           </div>
           <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
@@ -351,6 +413,7 @@ export default function ClinicFinancePage() {
                   <th className="py-2 px-3 font-medium">{t.financeExpectedRevenue}</th>
                   <th className="py-2 px-3 font-medium">{t.financeNetRevenue}</th>
                   <th className="py-2 px-3 font-medium">{t.financeMaterialCost}</th>
+                  <th className="py-2 px-3 font-medium">{t.financeProcessorFees}</th>
                   <th className="py-2 px-3 font-medium">{t.financeGrossProfit}</th>
                   <th className="py-2 pl-3 font-medium">{t.financeProfitPerHour}</th>
                 </tr>
@@ -369,6 +432,9 @@ export default function ClinicFinancePage() {
                     <td className="py-3 px-3 tabular-nums text-gray-700">
                       {money(row.materialCostCents, 'AED', numberLocale)}
                     </td>
+                    <td className="py-3 px-3 tabular-nums text-gray-700">
+                      {money(row.processorFeeCents, 'AED', numberLocale)}
+                    </td>
                     <td className="py-3 px-3 tabular-nums font-semibold text-gray-900">
                       {money(row.grossProfitCents, 'AED', numberLocale)}
                       <span className="ml-1 text-xs font-normal text-gray-500">({row.marginPct}%)</span>
@@ -385,6 +451,92 @@ export default function ClinicFinancePage() {
               {t.financeNoProcedureProfitability}
             </p>
           )}
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">{t.paymentFeeRules}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t.paymentFeeRulesHint}</p>
+        </div>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {PAYMENT_METHODS.map((method) => {
+            const rule =
+              feeRules.find((item) => item.method === method) ?? {
+                id: null,
+                method,
+                percentBps: 0,
+                fixedFeeCents: 0,
+                active: method !== 'CASH',
+              }
+            return (
+              <div key={method} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-gray-900">{methodLabel(t, method)}</p>
+                  <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={rule.active}
+                      onChange={(e) =>
+                        setFeeRules((current) =>
+                          current.map((item) =>
+                            item.method === method ? { ...item, active: e.target.checked } : item
+                          )
+                        )
+                      }
+                    />
+                    {t.enabled}
+                  </label>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <label className="block text-xs font-medium text-gray-600">
+                    {t.paymentFeePercent}
+                    <input
+                      inputMode="decimal"
+                      value={(rule.percentBps / 100).toString()}
+                      onChange={(e) => {
+                        const percent = Number(e.target.value.replace(',', '.'))
+                        setFeeRules((current) =>
+                          current.map((item) =>
+                            item.method === method
+                              ? { ...item, percentBps: Number.isFinite(percent) ? Math.round(percent * 100) : 0 }
+                              : item
+                          )
+                        )
+                      }}
+                      className="mt-1 w-full min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm"
+                    />
+                  </label>
+                  <label className="block text-xs font-medium text-gray-600">
+                    {t.paymentFeeFixed}
+                    <input
+                      inputMode="decimal"
+                      value={(rule.fixedFeeCents / 100).toString()}
+                      onChange={(e) => {
+                        const amount = Number(e.target.value.replace(',', '.'))
+                        setFeeRules((current) =>
+                          current.map((item) =>
+                            item.method === method
+                              ? { ...item, fixedFeeCents: Number.isFinite(amount) ? Math.round(amount * 100) : 0 }
+                              : item
+                          )
+                        )
+                      }}
+                      className="mt-1 w-full min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm"
+                    />
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  disabled={savingFeeRule === method}
+                  onClick={() => saveFeeRule(rule)}
+                  className="mt-3 min-h-11 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-60"
+                >
+                  {savingFeeRule === method ? t.savingEllipsis : t.save}
+                </button>
+              </div>
+            )
+          })}
         </div>
       </section>
 

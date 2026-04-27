@@ -199,8 +199,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Next improvements: supplier import/backfill review, preferred reorder quantity per product, due-date aging buckets, and supplier-level export.
 
 27. Payment fee rules
+   - Status: shipped first pass.
    - Source: acquiring fees.
    - Solo version: method-level fee percent for card/POS/Stripe/bank, so reports show net profit.
+   - Shipped: `/clinic/finance` manages method-level percent/fixed fee rules; new paid payments snapshot processor fees separately from patient-facing fees, and Finance/P&L subtracts them from direct costs and procedure profit.
+   - Next improvements: historical fee backfill, processor-specific VAT/tax handling, and default presets for UAE payment providers.
 
 28. Daily close
    - Source: daily cash desk report.
@@ -328,7 +331,7 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Payment fee rules.
+1. Daily close.
 2. Data export/deletion tools.
 3. Booking source/UTM attribution and abandoned-booking follow-up.
 4. Dormant patient reactivation.
@@ -336,5 +339,5 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommendation
 
-The next point should be payment fee rules. Supplier profiles now cover purchase history and unpaid supplier amounts; method-level fees are the next finance gap because card/POS/Stripe charges currently require manual expense handling instead of automatic net margin.
+The next point should be daily close. Supplier profiles and payment fee rules now improve inventory cost and net margin; daily close is the next finance-control gap for solo practitioners who need to reconcile cash/card/bank totals at the end of the day.
 

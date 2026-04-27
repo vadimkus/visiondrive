@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ClinicPaymentMethod, ClinicPaymentStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
+import { calculateProcessorFeeForPayment, PAYMENT_FEE_METHODS } from '@/lib/clinic/payment-fees'
 import {
   normalizeSalePriceCents,
   normalizeSaleQuantity,
@@ -12,7 +13,7 @@ import { getClinicSession } from '@/lib/clinic/session'
 
 function parseMethod(v: string): ClinicPaymentMethod | null {
   const u = v.toUpperCase().trim()
-  const allowed: ClinicPaymentMethod[] = ['CASH', 'CARD', 'TRANSFER', 'POS', 'OTHER']
+  const allowed = PAYMENT_FEE_METHODS
   return allowed.includes(u as ClinicPaymentMethod) ? (u as ClinicPaymentMethod) : null
 }
 
@@ -52,7 +53,7 @@ export async function GET(
     take: 80,
     include: {
       payment: {
-        select: { id: true, status: true, amountCents: true, method: true, paidAt: true },
+        select: { id: true, status: true, amountCents: true, processorFeeCents: true, method: true, paidAt: true },
       },
       visit: { select: { id: true, visitAt: true } },
       appointment: { select: { id: true, startsAt: true } },
@@ -235,11 +236,20 @@ export async function POST(
 
       let payment = null
       if (totals.totalCents > 0) {
+        const feeRule = await tx.clinicPaymentFeeRule.findUnique({
+          where: { tenantId_method: { tenantId: session.tenantId, method: paymentMethod } },
+          select: { percentBps: true, fixedFeeCents: true, active: true },
+        })
         payment = await tx.clinicPatientPayment.create({
           data: {
             tenantId: session.tenantId,
             patientId,
             amountCents: totals.totalCents,
+            processorFeeCents: calculateProcessorFeeForPayment({
+              amountCents: totals.totalCents,
+              status: paymentStatus,
+              rule: feeRule,
+            }),
             currency,
             method: paymentMethod,
             status: paymentStatus,
@@ -259,7 +269,7 @@ export async function POST(
         where: { id: sale.id },
         include: {
           payment: {
-            select: { id: true, status: true, amountCents: true, method: true, paidAt: true },
+            select: { id: true, status: true, amountCents: true, processorFeeCents: true, method: true, paidAt: true },
           },
           visit: { select: { id: true, visitAt: true } },
           appointment: { select: { id: true, startsAt: true } },

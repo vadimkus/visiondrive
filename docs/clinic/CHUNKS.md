@@ -666,6 +666,24 @@
 
 ---
 
+## Chunk 38 — 2026-04-27 (payment fee rules)
+
+**Shipped**
+
+- **Schema:** `ClinicPaymentFeeRule` stores tenant method-level acquiring rules; `ClinicPatientPayment.processorFeeCents` snapshots the internal processing fee separately from patient-facing `feeCents`.
+- **API:** `GET/PATCH /api/clinic/payment-fee-rules`; payment, product-sale, and package-sale creation now calculate processor fees for new paid payments.
+- **Finance:** P&L v2 subtracts payment processing fees from direct costs, gross profit, operating profit, and procedure profitability.
+- **UI:** Finance page can configure percent/fixed fee rules for Cash, Card, Transfer, POS, Stripe, and Other. Payment history shows stored processing fees where present.
+- **i18n/Knowledge Base:** EN/RU strings and article explain that processor fees are internal costs and do not increase patient balance.
+
+**Validation**
+
+- Added Vitest coverage for payment fee rule normalization and fee calculations.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Schema change: run `npx prisma db push` on target databases after pull.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

@@ -67,6 +67,7 @@ type VisitRow = {
 type PaymentRow = {
   id: string
   amountCents: number
+  processorFeeCents: number
   currency: string
   method: string
   status: string
@@ -87,7 +88,7 @@ type ProductSaleRow = {
   paymentMethod: string
   paymentStatus: string
   note: string | null
-  payment: { id: string; status: string; amountCents: number; method: string; paidAt: string } | null
+  payment: { id: string; status: string; amountCents: number; processorFeeCents: number; method: string; paidAt: string } | null
   visit?: { id: string; visitAt: string } | null
   appointment?: { id: string; startsAt: string } | null
   lines: Array<{
@@ -2177,6 +2178,7 @@ function PackagesTab({
               <option value="CASH">{t.payMethodCash}</option>
               <option value="TRANSFER">{t.payMethodTransfer}</option>
               <option value="POS">{t.payMethodPos}</option>
+              <option value="STRIPE">{t.payMethodStripe}</option>
               <option value="OTHER">{t.payMethodOther}</option>
             </select>
           </div>
@@ -2740,6 +2742,7 @@ function PaymentsTab({
               <option value="CASH">{t.payMethodCash}</option>
               <option value="TRANSFER">{t.payMethodTransfer}</option>
               <option value="POS">{t.payMethodPos}</option>
+              <option value="STRIPE">{t.payMethodStripe}</option>
               <option value="OTHER">{t.payMethodOther}</option>
             </select>
           </div>
@@ -2839,6 +2842,11 @@ function PaymentsTab({
                 <p className="text-gray-600">
                   {pmt.method} · {pmt.status}
                 </p>
+                {pmt.processorFeeCents > 0 && (
+                  <p className="text-gray-500 text-xs mt-1">
+                    {t.paymentProcessorFee}: {formatMoney(pmt.processorFeeCents, pmt.currency)}
+                  </p>
+                )}
                 {pmt.note && <p className="text-gray-500 text-xs mt-1">{pmt.note}</p>}
               </div>
               <p className="text-gray-400 text-xs shrink-0">

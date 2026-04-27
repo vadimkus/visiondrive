@@ -59,6 +59,7 @@ export async function PATCH(
         amountCents: true,
         discountCents: true,
         feeCents: true,
+        processorFeeCents: true,
         currency: true,
         method: true,
         status: true,

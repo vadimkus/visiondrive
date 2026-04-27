@@ -73,6 +73,7 @@
 | [2026-04-27_clinic-client-import-excel.md](2026-04-27_clinic-client-import-excel.md) | Clinic client import from Excel note |
 | [2026-04-27_clinic-product-import-excel.md](2026-04-27_clinic-product-import-excel.md) | Clinic product import from Excel note |
 | [2026-04-27_clinic-supplier-profiles-settlements.md](2026-04-27_clinic-supplier-profiles-settlements.md) | Clinic supplier profiles and settlement history note |
+| [2026-04-27_clinic-payment-fee-rules.md](2026-04-27_clinic-payment-fee-rules.md) | Clinic payment fee rules note |
 | [2026-04-27_homepage-solo-practitioner-positioning.md](2026-04-27_homepage-solo-practitioner-positioning.md) | Homepage solo practitioner positioning note |
 | [clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md](clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md) | Altegio adaptation backlog for solo home-visit practitioners |
 
