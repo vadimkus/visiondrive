@@ -102,6 +102,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: planned course of care with expected number of sessions, target cadence, photos, outcomes, and next steps.
    - Why it matters: repeat treatment becomes structured care, not ad hoc rebooking.
    - Build shape: plan rows under patient, link visits to a plan, target dates, planned procedure, status, photo milestones.
+   - Shipped: patient treatment-plan tab, plan rows with expected sessions/cadence/target dates/service/goals/next steps/photo milestones, status actions, visit linking from the visit log, and automatic progress from completed linked visits.
+   - Next improvements: dedicated before/after milestone comparison view, plan-level outcome scoring, generated next appointment schedule, and WhatsApp progress summaries.
 
 15. Notification center
    - Altegio source: notification center, schedule event notifications.

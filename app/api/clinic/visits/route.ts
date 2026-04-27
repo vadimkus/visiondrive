@@ -34,6 +34,10 @@ export async function POST(request: NextRequest) {
     body.appointmentId != null && String(body.appointmentId).trim()
       ? String(body.appointmentId).trim()
       : null
+  const treatmentPlanId =
+    body.treatmentPlanId != null && String(body.treatmentPlanId).trim()
+      ? String(body.treatmentPlanId).trim()
+      : null
 
   if (!patientId || !visitAtRaw) {
     return NextResponse.json({ error: 'patientId and visitAt are required' }, { status: 400 })
@@ -66,6 +70,16 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  if (treatmentPlanId) {
+    const plan = await prisma.clinicTreatmentPlan.findFirst({
+      where: { id: treatmentPlanId, patientId, tenantId: session.tenantId },
+      select: { id: true },
+    })
+    if (!plan) {
+      return NextResponse.json({ error: 'Treatment plan not found for this patient' }, { status: 400 })
+    }
+  }
+
   const statusRaw = body.status != null ? String(body.status) : 'COMPLETED'
   const status = parseVisitStatus(statusRaw)
   if (!status) {
@@ -85,6 +99,7 @@ export async function POST(request: NextRequest) {
         tenantId: session.tenantId,
         patientId,
         appointmentId,
+        treatmentPlanId,
         visitAt,
         status,
         chiefComplaint,
@@ -96,6 +111,7 @@ export async function POST(request: NextRequest) {
         id: true,
         patientId: true,
         appointmentId: true,
+        treatmentPlanId: true,
         visitAt: true,
         status: true,
         chiefComplaint: true,
@@ -125,6 +141,7 @@ export async function POST(request: NextRequest) {
           id: true,
           patientId: true,
           appointmentId: true,
+          treatmentPlanId: true,
           visitAt: true,
           status: true,
           chiefComplaint: true,

@@ -40,6 +40,7 @@ export async function PATCH(
       status: true,
       appointmentId: true,
       patientId: true,
+      treatmentPlanId: true,
       inventoryConsumedAt: true,
     },
   })
@@ -54,6 +55,7 @@ export async function PATCH(
     procedureSummary?: string | null
     staffNotes?: string | null
     nextSteps?: string | null
+    treatmentPlanId?: string | null
   } = {}
 
   if (body.visitAt !== undefined) {
@@ -81,6 +83,22 @@ export async function PATCH(
   if (body.nextSteps !== undefined) {
     data.nextSteps = body.nextSteps == null ? null : String(body.nextSteps).trim() || null
   }
+  if (body.treatmentPlanId !== undefined) {
+    const treatmentPlanId =
+      body.treatmentPlanId != null && String(body.treatmentPlanId).trim()
+        ? String(body.treatmentPlanId).trim()
+        : null
+    if (treatmentPlanId) {
+      const plan = await prisma.clinicTreatmentPlan.findFirst({
+        where: { id: treatmentPlanId, patientId: existing.patientId, tenantId: session.tenantId },
+        select: { id: true },
+      })
+      if (!plan) {
+        return NextResponse.json({ error: 'Treatment plan not found for this patient' }, { status: 400 })
+      }
+    }
+    data.treatmentPlanId = treatmentPlanId
+  }
 
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
@@ -105,6 +123,7 @@ export async function PATCH(
         procedureSummary: true,
         staffNotes: true,
         nextSteps: true,
+        treatmentPlanId: true,
         inventoryConsumedAt: true,
         updatedAt: true,
         appointmentId: true,

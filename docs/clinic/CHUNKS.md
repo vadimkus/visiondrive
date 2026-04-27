@@ -405,6 +405,24 @@
 
 ---
 
+## Chunk 24 — 2026-04-27 (treatment plans)
+
+**Shipped**
+
+- **Schema:** added `ClinicTreatmentPlan` and `ClinicTreatmentPlanStatus`; `ClinicVisit` now has optional `treatmentPlanId`.
+- **API:** `GET/POST /api/clinic/patients/[id]/treatment-plans` creates/list planned care courses; `PATCH .../treatment-plans/[planId]` updates status and plan details; visit create/update accepts `treatmentPlanId`.
+- **UI:** patient record now has a Treatment plans tab with expected sessions, cadence, target dates, service restriction, goals, next steps, photo milestones, status actions, linked visits, and progress from completed visits.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article for treatment-plan workflows.
+- **Lib:** `lib/clinic/treatment-plans.ts` normalizes sessions, cadence, statuses, photo milestones, and progress.
+
+**Validation**
+
+- Added Vitest coverage for treatment-plan helper normalization and progress logic.
+- Run `npm run db:generate`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

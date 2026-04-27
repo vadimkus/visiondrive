@@ -19,11 +19,12 @@
 | `ClinicReminderTemplate` | Tenant-scoped WhatsApp/email/SMS template text for appointment reminders, no-show follow-ups, and rebooking nudges. |
 | `ClinicReminderDelivery` | Reminder schedule and delivery/preparation log; stores scheduled time, rendered body, WhatsApp URL, status, and errors. |
 | `ClinicPatientReview` | Internal reputation workflow: review request status, rating, private note, candidate public text, and request/reply/publish timestamps. |
-| `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional link to an appointment, **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
+| `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional links to an appointment and treatment plan, **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
 | `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); served via **`GET /api/clinic/media/[id]`** (tenant-scoped). |
 | `ClinicPatientPayment` | Patient-level payments (amount, discount, fee, method, status, optional **`visitId`** / **`appointmentId`**). Client balance is derived from billable appointments plus linked/standalone payment rows; no separate ledger table yet. |
 | `ClinicPatientPackage` / `ClinicPackageRedemption` | Prepaid treatment packages sold to a patient, with remaining session balance, optional service restriction, expiry, and automatic redemption rows when a completed visit consumes a session. |
 | `ClinicConsentTemplate` / `ClinicConsentRecord` | Reusable procedure-specific consent templates and immutable signed patient consent snapshots with contraindication checklist, aftercare acknowledgement, and optional visit/appointment links. |
+| `ClinicTreatmentPlan` | Planned patient course of care with expected sessions, cadence, target dates, service, goals, next steps, photo milestones, status, and linked visits. |
 | `ClinicCrmActivity` | CRM timeline: type (call, WhatsApp, note, …), **`body`**, **`occurredAt`**. |
 | `ClinicStockItem` | Inventory line: **`quantityOnHand`**, **`reorderPoint`** (low-stock when on-hand <= point and point &gt; 0), optional **`procedureId`**, `barcode`, `consumePerVisit`, and low-stock notification cooldown. |
 | `ClinicStockMovement` | **`RECEIPT` / `ADJUSTMENT` / `CONSUMPTION` / `RETURN`** with signed **`quantityDelta`**; updates item atomically in a transaction. |
@@ -54,6 +55,7 @@ Public booking: `/book/[tenant.slug]` is a private branded link, not a marketpla
 - **Inline payments/receipts:** appointment drawers can record appointment-linked payments, discounts, fees, method/status/reference/note, and download receipt PDFs from `GET /api/clinic/patients/[id]/payments/[paymentId]/receipt`. `PATCH /api/clinic/patients/[id]/payments/[paymentId]` supports refund/void status updates.
 - **Treatment packages:** `GET/POST /api/clinic/patients/[id]/packages` lists and sells prepaid packages. Completing a visit with a matching service automatically creates a package redemption and decrements one remaining session via `lib/clinic/patient-packages.ts`.
 - **Consents:** `GET/POST /api/clinic/consents/templates` manages reusable consent templates. `GET/POST /api/clinic/patients/[id]/consents` lists and signs consent snapshots for a patient, optionally linked to a visit or appointment.
+- **Treatment plans:** `GET/POST /api/clinic/patients/[id]/treatment-plans` and `PATCH .../treatment-plans/[planId]` manage planned care courses. Visit create/update accepts `treatmentPlanId`, and patient charts compute plan progress from linked completed visits.
 - **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).

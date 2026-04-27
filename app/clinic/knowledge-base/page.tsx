@@ -210,6 +210,19 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/patients',
   },
+  {
+    id: 'treatment-plans',
+    category: 'Patients',
+    title: 'Structure repeat care with treatment plans',
+    summary: 'Create a planned course with target sessions, cadence, service, photo checkpoints, and linked visits.',
+    steps: [
+      'Open a patient record and go to Treatment plans.',
+      'Create the plan with expected sessions, target dates, goals, next steps, and photo milestones.',
+      'When logging a visit, link it to the active treatment plan so progress updates automatically.',
+      'Pause, activate, or complete the plan as the course changes.',
+    ],
+    link: '/clinic/patients',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -394,6 +407,19 @@ const articlesRu: Article[] = [
       'Создайте шаблон согласия с текстом для процедуры, противопоказаниями и правилами ухода после.',
       'Перед процедурой выберите шаблон, проверьте противопоказания, при необходимости привяжите согласие к визиту и сохраните имя подписи пациента.',
       'Подписанная запись хранит снимок принятого текста, поэтому будущие изменения шаблона не меняют прошлые согласия.',
+    ],
+    link: '/clinic/patients',
+  },
+  {
+    id: 'treatment-plans',
+    category: 'Пациенты',
+    title: 'Ведите повторное лечение через планы',
+    summary: 'Создавайте курс с количеством сеансов, ритмом, услугой, фото-контролем и связанными визитами.',
+    steps: [
+      'Откройте карту пациента и вкладку Планы лечения.',
+      'Создайте план с ожидаемыми сеансами, датами, целями, следующими шагами и фото-этапами.',
+      'При логировании визита привяжите его к активному плану, чтобы прогресс обновлялся автоматически.',
+      'Ставьте план на паузу, активируйте или завершайте его по мере изменения курса.',
     ],
     link: '/clinic/patients',
   },

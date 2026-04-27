@@ -55,6 +55,7 @@ type VisitRow = {
   staffNotes: string | null
   nextSteps: string | null
   media: MediaMeta[]
+  treatmentPlan?: { id: string; title: string; status: string } | null
   packageRedemptions?: PackageRedemptionRow[]
 }
 
@@ -130,6 +131,37 @@ type ConsentRecordRow = {
   template?: { id: string; title: string; active: boolean } | null
 }
 
+type TreatmentPlanMilestone = {
+  title: string
+  targetSession?: number | null
+  note?: string | null
+}
+
+type TreatmentPlanRow = {
+  id: string
+  title: string
+  expectedSessions: number
+  cadenceDays: number
+  status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED'
+  targetStartAt: string | null
+  targetEndAt: string | null
+  goals: string | null
+  nextSteps: string | null
+  outcomeNotes: string | null
+  photoMilestones: TreatmentPlanMilestone[] | null
+  createdAt: string
+  updatedAt: string
+  procedure: ProcedureRef
+  visits: Array<{
+    id: string
+    visitAt: string
+    status: string
+    procedureSummary: string | null
+    nextSteps: string | null
+    media: Array<{ id: string; kind: string; caption: string | null; createdAt: string }>
+  }>
+}
+
 type ClientBalance = {
   currency: string
   expectedCents: number
@@ -170,11 +202,12 @@ export type PatientRecord = {
   payments: PaymentRow[]
   packages: PackageRow[]
   consentRecords: ConsentRecordRow[]
+  treatmentPlans: TreatmentPlanRow[]
   clientBalance: ClientBalance
   crmActivities: CrmRow[]
 }
 
-type Tab = 'overview' | 'timeline' | 'photos' | 'payments' | 'packages' | 'consents' | 'crm'
+type Tab = 'overview' | 'timeline' | 'photos' | 'payments' | 'packages' | 'treatment-plans' | 'consents' | 'crm'
 
 function categoryLabel(t: ReturnType<typeof useClinicLocale>['t'], category: PatientCategory) {
   if (category === 'VIP') return t.categoryVip
@@ -219,6 +252,26 @@ function packageStatusLabel(t: ReturnType<typeof useClinicLocale>['t'], status: 
   if (status === 'EXPIRED') return t.packageStatusExpired
   if (status === 'CANCELLED') return t.packageStatusCancelled
   return t.packageStatusActive
+}
+
+function treatmentPlanStatusLabel(
+  t: ReturnType<typeof useClinicLocale>['t'],
+  status: TreatmentPlanRow['status']
+) {
+  if (status === 'PAUSED') return t.treatmentPlanStatusPaused
+  if (status === 'COMPLETED') return t.treatmentPlanStatusCompleted
+  if (status === 'CANCELLED') return t.treatmentPlanStatusCancelled
+  return t.treatmentPlanStatusActive
+}
+
+function treatmentPlanProgress(plan: TreatmentPlanRow) {
+  const completed = plan.visits.filter((visit) => visit.status === 'COMPLETED').length
+  const expected = Math.max(plan.expectedSessions || 1, 1)
+  return {
+    completed: Math.min(completed, expected),
+    expected,
+    percent: Math.min(Math.round((completed / expected) * 100), 100),
+  }
 }
 
 function balanceTone(balance: ClientBalance) {
@@ -409,6 +462,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     { id: 'photos', label: t.photos, icon: Camera },
     { id: 'payments', label: t.payments, icon: CreditCard },
     { id: 'packages', label: t.packages, icon: PackageCheck },
+    { id: 'treatment-plans', label: t.treatmentPlans, icon: ClipboardList },
     { id: 'consents', label: t.consents, icon: ShieldCheck },
     { id: 'crm', label: t.crm, icon: MessageSquare },
   ]
@@ -605,6 +659,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
       {tab === 'photos' && <PhotosTab patient={patient} onRefresh={load} />}
       {tab === 'payments' && <PaymentsTab patient={patient} onRefresh={load} />}
       {tab === 'packages' && <PackagesTab patient={patient} onRefresh={load} />}
+      {tab === 'treatment-plans' && <TreatmentPlansTab patient={patient} onRefresh={load} />}
       {tab === 'consents' && <ConsentsTab patient={patient} onRefresh={load} />}
       {tab === 'crm' && <CrmTab patient={patient} onRefresh={load} />}
     </div>
@@ -730,7 +785,11 @@ function OverviewTab({
   const [summary, setSummary] = useState('')
   const [nextSteps, setNextSteps] = useState('')
   const [staffNotes, setStaffNotes] = useState('')
+  const [treatmentPlanId, setTreatmentPlanId] = useState('')
   const [logging, setLogging] = useState(false)
+  const activeTreatmentPlans = patient.treatmentPlans.filter((plan) =>
+    ['ACTIVE', 'PAUSED'].includes(plan.status)
+  )
 
   function toggleTag(tag: PatientTag) {
     setEditTags(
@@ -756,6 +815,7 @@ function OverviewTab({
           procedureSummary: summary || null,
           nextSteps: nextSteps || null,
           staffNotes: staffNotes || null,
+          treatmentPlanId: treatmentPlanId || null,
           status: 'COMPLETED',
         }),
       })
@@ -768,6 +828,7 @@ function OverviewTab({
       setSummary('')
       setNextSteps('')
       setStaffNotes('')
+      setTreatmentPlanId('')
       await onVisitLogged()
     } finally {
       setLogging(false)
@@ -1054,6 +1115,23 @@ function OverviewTab({
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
           />
         </div>
+        {activeTreatmentPlans.length > 0 && (
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.linkToTreatmentPlan}</label>
+            <select
+              value={treatmentPlanId}
+              onChange={(e) => setTreatmentPlanId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="">{t.emptyValue}</option>
+              {activeTreatmentPlans.map((plan) => (
+                <option key={plan.id} value={plan.id}>
+                  {plan.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.chiefComplaint}</label>
           <textarea
@@ -1260,6 +1338,349 @@ function PhotosTab({
       {allMedia.length === 0 && (
         <p className="text-center text-sm text-gray-500 py-8">{t.noPhotosYet}</p>
       )}
+    </div>
+  )
+}
+
+function TreatmentPlansTab({
+  patient,
+  onRefresh,
+}: {
+  patient: PatientRecord
+  onRefresh: () => Promise<void>
+}) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const [procedures, setProcedures] = useState<Array<{ id: string; name: string; active: boolean }>>([])
+  const [title, setTitle] = useState('')
+  const [procedureId, setProcedureId] = useState('')
+  const [expectedSessions, setExpectedSessions] = useState('4')
+  const [cadenceDays, setCadenceDays] = useState('14')
+  const [targetStartAt, setTargetStartAt] = useState('')
+  const [targetEndAt, setTargetEndAt] = useState('')
+  const [goals, setGoals] = useState('')
+  const [nextSteps, setNextSteps] = useState('')
+  const [photoMilestones, setPhotoMilestones] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [busyPlanId, setBusyPlanId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/clinic/procedures', { credentials: 'include' })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!cancelled) {
+        setProcedures((data.procedures || []).filter((procedure: { active: boolean }) => procedure.active))
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const createPlan = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim()) {
+      alert(t.treatmentPlanTitleRequired)
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/treatment-plans`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: title.trim(),
+          procedureId: procedureId || null,
+          expectedSessions: Number.parseInt(expectedSessions, 10),
+          cadenceDays: Number.parseInt(cadenceDays, 10),
+          targetStartAt: targetStartAt || null,
+          targetEndAt: targetEndAt || null,
+          goals: goals || null,
+          nextSteps: nextSteps || null,
+          photoMilestones: photoMilestones
+            .split('\n')
+            .map((item) => item.trim())
+            .filter(Boolean),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      setTitle('')
+      setProcedureId('')
+      setExpectedSessions('4')
+      setCadenceDays('14')
+      setTargetStartAt('')
+      setTargetEndAt('')
+      setGoals('')
+      setNextSteps('')
+      setPhotoMilestones('')
+      await onRefresh()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const updateStatus = async (planId: string, status: TreatmentPlanRow['status']) => {
+    setBusyPlanId(planId)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/treatment-plans/${planId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      await onRefresh()
+    } finally {
+      setBusyPlanId(null)
+    }
+  }
+
+  const plans = [...patient.treatmentPlans].sort((a, b) => {
+    if (a.status === 'ACTIVE' && b.status !== 'ACTIVE') return -1
+    if (a.status !== 'ACTIVE' && b.status === 'ACTIVE') return 1
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-purple-100 bg-purple-50 p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-wide text-purple-700">{t.treatmentPlans}</p>
+        <h2 className="mt-1 text-xl font-semibold text-purple-950">{t.createTreatmentPlan}</h2>
+        <p className="mt-1 text-sm text-purple-800">{t.treatmentPlanHint}</p>
+      </section>
+
+      <form onSubmit={createPlan} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.treatmentPlanTitle}</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t.treatmentPlanTitlePlaceholder}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.packageProcedure}</label>
+            <select
+              value={procedureId}
+              onChange={(e) => setProcedureId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="">{t.allServicesPackage}</option>
+              {procedures.map((procedure) => (
+                <option key={procedure.id} value={procedure.id}>
+                  {procedure.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.expectedSessions}</label>
+            <input
+              value={expectedSessions}
+              onChange={(e) => setExpectedSessions(e.target.value)}
+              inputMode="numeric"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.cadenceDays}</label>
+            <input
+              value={cadenceDays}
+              onChange={(e) => setCadenceDays(e.target.value)}
+              inputMode="numeric"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.targetStart}</label>
+            <input
+              type="date"
+              value={targetStartAt}
+              onChange={(e) => setTargetStartAt(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.targetEnd}</label>
+            <input
+              type="date"
+              value={targetEndAt}
+              onChange={(e) => setTargetEndAt(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.treatmentGoals}</label>
+          <textarea
+            value={goals}
+            onChange={(e) => setGoals(e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.treatmentPlanNextSteps}</label>
+          <textarea
+            value={nextSteps}
+            onChange={(e) => setNextSteps(e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.photoMilestones}</label>
+          <textarea
+            value={photoMilestones}
+            onChange={(e) => setPhotoMilestones(e.target.value)}
+            rows={2}
+            placeholder={t.photoMilestonesPlaceholder}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full sm:w-auto min-h-11 px-5 rounded-xl bg-purple-600 text-white font-semibold disabled:opacity-60"
+        >
+          {saving ? t.savingEllipsis : t.saveTreatmentPlan}
+        </button>
+      </form>
+
+      <div className="space-y-3">
+        {plans.length === 0 ? (
+          <ClinicEmptyState title={t.noTreatmentPlansYet} />
+        ) : (
+          plans.map((plan) => {
+            const progress = treatmentPlanProgress(plan)
+            const milestones = Array.isArray(plan.photoMilestones) ? plan.photoMilestones : []
+            return (
+              <article key={plan.id} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold text-gray-900">{plan.title}</h3>
+                      <span
+                        className={clsx(
+                          'rounded-full px-2.5 py-1 text-xs font-semibold',
+                          plan.status === 'ACTIVE'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-gray-100 text-gray-600'
+                        )}
+                      >
+                        {treatmentPlanStatusLabel(t, plan.status)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-gray-600">
+                      {plan.procedure?.name ?? t.allServicesPackage} · {plan.cadenceDays} {t.daysAbbr}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {plan.targetStartAt
+                        ? new Date(plan.targetStartAt).toLocaleDateString(dateLocale)
+                        : t.emptyValue}
+                      {' -> '}
+                      {plan.targetEndAt
+                        ? new Date(plan.targetEndAt).toLocaleDateString(dateLocale)
+                        : t.emptyValue}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-gray-50 px-4 py-3 text-center">
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {progress.completed}/{progress.expected}
+                    </p>
+                    <p className="text-xs text-gray-500">{t.sessionsCompleted}</p>
+                  </div>
+                </div>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-gray-100">
+                  <div className="h-full rounded-full bg-purple-500" style={{ width: `${progress.percent}%` }} />
+                </div>
+                {plan.goals && <p className="mt-4 text-sm text-gray-700 whitespace-pre-wrap">{plan.goals}</p>}
+                {plan.nextSteps && (
+                  <p className="mt-2 rounded-xl bg-purple-50 p-3 text-sm text-purple-900">
+                    {plan.nextSteps}
+                  </p>
+                )}
+                {milestones.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t.photoMilestones}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {milestones.map((milestone, index) => (
+                        <span key={`${milestone.title}-${index}`} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700">
+                          {milestone.targetSession ? `${milestone.targetSession}: ` : ''}
+                          {milestone.title}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {plan.visits.length > 0 && (
+                  <div className="mt-4 border-t border-gray-100 pt-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t.linkedVisits}</p>
+                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                      {plan.visits.slice(0, 5).map((visit) => (
+                        <p key={visit.id}>
+                          {new Date(visit.visitAt).toLocaleDateString(dateLocale, {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}{' '}
+                          · {visit.status}
+                          {visit.media.length > 0 ? ` · ${visit.media.length} ${t.photos}` : ''}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {plan.status !== 'PAUSED' && (
+                    <button
+                      type="button"
+                      disabled={busyPlanId === plan.id}
+                      onClick={() => updateStatus(plan.id, 'PAUSED')}
+                      className="min-h-10 rounded-xl border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:opacity-60"
+                    >
+                      {t.pausePlan}
+                    </button>
+                  )}
+                  {plan.status !== 'ACTIVE' && (
+                    <button
+                      type="button"
+                      disabled={busyPlanId === plan.id}
+                      onClick={() => updateStatus(plan.id, 'ACTIVE')}
+                      className="min-h-10 rounded-xl border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:opacity-60"
+                    >
+                      {t.activatePlan}
+                    </button>
+                  )}
+                  {plan.status !== 'COMPLETED' && (
+                    <button
+                      type="button"
+                      disabled={busyPlanId === plan.id}
+                      onClick={() => updateStatus(plan.id, 'COMPLETED')}
+                      className="min-h-10 rounded-xl border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:opacity-60"
+                    >
+                      {t.completePlan}
+                    </button>
+                  )}
+                </div>
+              </article>
+            )
+          })
+        )}
+      </div>
     </div>
   )
 }

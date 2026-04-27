@@ -86,6 +86,7 @@ export async function GET(
         orderBy: { visitAt: 'desc' },
         take: 40,
         include: {
+          treatmentPlan: { select: { id: true, title: true, status: true } },
           media: { orderBy: { createdAt: 'asc' }, select: { ...mediaSelect } },
           packageRedemptions: {
             orderBy: { redeemedAt: 'desc' },
@@ -93,6 +94,23 @@ export async function GET(
               patientPackage: {
                 select: { id: true, name: true, totalSessions: true, remainingSessions: true },
               },
+            },
+          },
+        },
+      },
+      treatmentPlans: {
+        orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+        include: {
+          procedure: { select: { id: true, name: true } },
+          visits: {
+            orderBy: { visitAt: 'desc' },
+            select: {
+              id: true,
+              visitAt: true,
+              status: true,
+              procedureSummary: true,
+              nextSteps: true,
+              media: { select: { id: true, kind: true, caption: true, createdAt: true } },
             },
           },
         },

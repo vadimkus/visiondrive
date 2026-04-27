@@ -110,6 +110,7 @@ model Tenant {
   clinicPackageRedemptions ClinicPackageRedemption[]
   clinicConsentTemplates ClinicConsentTemplate[]
   clinicConsentRecords ClinicConsentRecord[]
+  clinicTreatmentPlans ClinicTreatmentPlan[]
 
   @@map("tenants")
 }
@@ -797,6 +798,13 @@ enum ClinicReminderStatus {
   CANCELLED
 }
 
+enum ClinicTreatmentPlanStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
 model ClinicPatient {
   id             String    @id @default(cuid())
   tenantId       String
@@ -827,6 +835,7 @@ model ClinicPatient {
   reviews        ClinicPatientReview[]
   packages       ClinicPatientPackage[]
   consentRecords ClinicConsentRecord[]
+  treatmentPlans ClinicTreatmentPlan[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -855,6 +864,7 @@ model ClinicProcedure {
   patientPackages ClinicPatientPackage[]
   consentTemplates ClinicConsentTemplate[]
   consentRecords ClinicConsentRecord[]
+  treatmentPlans ClinicTreatmentPlan[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -1068,6 +1078,7 @@ model ClinicVisit {
   tenantId         String
   patientId        String
   appointmentId    String?
+  treatmentPlanId  String?
   visitAt          DateTime          @db.Timestamptz(6)
   status           ClinicVisitStatus @default(COMPLETED)
   chiefComplaint   String?           @db.Text
@@ -1083,6 +1094,7 @@ model ClinicVisit {
   tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient     ClinicPatient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
   appointment ClinicAppointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  treatmentPlan ClinicTreatmentPlan? @relation(fields: [treatmentPlanId], references: [id], onDelete: SetNull)
   media       ClinicPatientMedia[]
   payments    ClinicPatientPayment[]
   reviews     ClinicPatientReview[]
@@ -1091,6 +1103,7 @@ model ClinicVisit {
 
   @@index([tenantId, visitAt])
   @@index([patientId, visitAt])
+  @@index([treatmentPlanId, visitAt])
   @@map("clinic_visits")
 }
 
@@ -1252,6 +1265,35 @@ model ClinicConsentRecord {
   @@index([tenantId, acceptedAt])
   @@index([visitId, createdAt])
   @@map("clinic_consent_records")
+}
+
+model ClinicTreatmentPlan {
+  id              String                    @id @default(cuid())
+  tenantId        String
+  patientId       String
+  procedureId     String?
+  title           String
+  expectedSessions Int                     @default(1)
+  cadenceDays     Int                      @default(14)
+  status          ClinicTreatmentPlanStatus @default(ACTIVE)
+  targetStartAt   DateTime?                @db.Date
+  targetEndAt     DateTime?                @db.Date
+  goals           String?                  @db.Text
+  nextSteps       String?                  @db.Text
+  outcomeNotes    String?                  @db.Text
+  photoMilestones Json?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  createdByUserId String?
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient   ClinicPatient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  visits    ClinicVisit[]
+
+  @@index([tenantId, patientId, status])
+  @@index([tenantId, procedureId, status])
+  @@map("clinic_treatment_plans")
 }
 
 model ClinicPatientReview {

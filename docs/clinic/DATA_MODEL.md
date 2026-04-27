@@ -17,11 +17,12 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_reminder_templates` | Tenant WhatsApp/email/SMS templates for appointment reminders, no-show follow-up, rebooking follow-up, and review requests. |
 | `clinic_reminder_deliveries` | Reminder schedule and preparation log: status, scheduled time, body, WhatsApp URL, errors. |
 | `clinic_patient_reviews` | Internal review/reputation workflow: request status, rating, private note, candidate public text, requested/replied/published timestamps. |
-| `clinic_visits` | Completed encounters; **next_steps** drives “what to do next” on the chart; **inventory_consumed_at** prevents repeated auto-deduct. |
+| `clinic_visits` | Completed encounters; optional `treatment_plan_id`; **next_steps** drives “what to do next” on the chart; **inventory_consumed_at** prevents repeated auto-deduct. |
 | `clinic_patient_media` | Before/after images: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime + caption. |
 | `clinic_patient_payments` | Payments; optional `visit_id` / `appointment_id`, discount, fee, method, status, reference, note. Client balance is derived from completed/arrived appointment prices, linked payments, refunds, pending rows, and standalone deposits. |
 | `clinic_patient_packages` + `clinic_package_redemptions` | Prepaid patient packages/courses: total/remaining sessions, optional service restriction, expiry, payment reference, and visit-linked session usage rows. |
 | `clinic_consent_templates` + `clinic_consent_records` | Consent template library plus signed patient snapshots with contraindications, signature name, aftercare acknowledgement, and optional visit/appointment links. |
+| `clinic_treatment_plans` | Planned courses of care for a patient: expected sessions, cadence, target dates, procedure, goals, next steps, photo milestones, status, and linked visits. |
 | `clinic_crm_activities` | CRM timeline (type + body + occurred_at). |
 | `clinic_stock_items` | Inventory SKU: name, unit, `quantity_on_hand`, `reorder_point`, optional `procedure_id`, optional `barcode`, `consume_per_visit`, low-stock cooldown. |
 | `clinic_stock_movements` | Receipt / adjustment / consumption / return; signed `quantity_delta`; never allows negative on-hand. |
@@ -50,12 +51,13 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET /api/clinic/reviews`; `PATCH /api/clinic/reviews/[id]` — reputation inbox and internal rating/reply updates.
 - `GET/POST /api/clinic/public-booking/[slug]` — public service/slot lookup and online appointment creation by enabled tenant slug.
 - `GET/PATCH /api/clinic/public-booking/settings` — staff on/off control stored in `tenant_settings.thresholds.publicBooking.enabled`.
-- `POST /api/clinic/visits`, `PATCH /api/clinic/visits/[id]`.
+- `POST /api/clinic/visits`, `PATCH /api/clinic/visits/[id]` — visits may link to a treatment plan.
 - `POST /api/clinic/patients/[id]/media`, `GET /api/clinic/media/[id]`.
 - `POST .../payments`, `POST .../crm`.
 - `PATCH .../payments/[paymentId]`, `GET .../payments/[paymentId]/receipt` — refund/void payment rows and export patient-safe receipt PDF.
 - `GET/POST .../packages` — list/sell prepaid treatment packages; completed visits auto-debit one matching session.
 - `GET/POST /api/clinic/consents/templates`; `GET/POST .../patients/[id]/consents` — manage consent templates and signed patient consent records.
+- `GET/POST .../patients/[id]/treatment-plans`; `PATCH .../treatment-plans/[planId]` — create/update planned care courses and show progress from linked visits.
 - `GET/PATCH /api/clinic/me` — profile + password.
 
 All routes require **clinic session** (`getClinicSession`): `authToken` cookie + `portal=clinic`.
