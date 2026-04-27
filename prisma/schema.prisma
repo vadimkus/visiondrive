@@ -105,6 +105,7 @@ model Tenant {
   clinicBlockedTimes ClinicBlockedTime[]
   clinicReminderTemplates ClinicReminderTemplate[]
   clinicReminderDeliveries ClinicReminderDelivery[]
+  clinicPatientReviews ClinicPatientReview[]
 
   @@map("tenants")
 }
@@ -767,12 +768,14 @@ enum ClinicAppointmentEventType {
   PAYMENT_RECORDED
   FOLLOW_UP_CREATED
   NO_SHOW_FOLLOW_UP
+  REVIEW_REQUESTED
 }
 
 enum ClinicReminderKind {
   APPOINTMENT_REMINDER
   NO_SHOW_FOLLOW_UP
   REBOOKING_FOLLOW_UP
+  REVIEW_REQUEST
 }
 
 enum ClinicReminderChannel {
@@ -811,6 +814,7 @@ model ClinicPatient {
   media          ClinicPatientMedia[]
   payments       ClinicPatientPayment[]
   crmActivities  ClinicCrmActivity[]
+  reviews        ClinicPatientReview[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -868,6 +872,7 @@ model ClinicAppointment {
   procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
   visits    ClinicVisit[]
   events    ClinicAppointmentEvent[]
+  reviews   ClinicPatientReview[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -973,11 +978,19 @@ model ClinicReminderDelivery {
   updatedAt       DateTime              @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reviews ClinicPatientReview[]
 
   @@index([tenantId, status, scheduledFor])
   @@index([appointmentId, createdAt])
   @@index([patientId, createdAt])
   @@map("clinic_reminder_deliveries")
+}
+
+enum ClinicReviewStatus {
+  REQUESTED
+  REPLIED
+  PUBLISHED
+  ARCHIVED
 }
 
 enum ClinicVisitStatus {
@@ -1039,6 +1052,7 @@ model ClinicVisit {
   appointment ClinicAppointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   media       ClinicPatientMedia[]
   payments    ClinicPatientPayment[]
+  reviews     ClinicPatientReview[]
 
   @@index([tenantId, visitAt])
   @@index([patientId, visitAt])
@@ -1091,6 +1105,39 @@ model ClinicPatientPayment {
 
   @@index([tenantId, patientId, paidAt])
   @@map("clinic_patient_payments")
+}
+
+model ClinicPatientReview {
+  id                 String             @id @default(cuid())
+  tenantId           String
+  patientId          String
+  appointmentId      String?
+  visitId            String?
+  reminderDeliveryId String?
+  status             ClinicReviewStatus @default(REQUESTED)
+  rating             Int?
+  /// Internal feedback or triage notes. Not public-facing.
+  privateNote        String?            @db.Text
+  /// Candidate public review text. Staff decides if/when to publish externally.
+  publicComment      String?            @db.Text
+  requestedAt        DateTime?          @db.Timestamptz(6)
+  repliedAt          DateTime?          @db.Timestamptz(6)
+  publishedAt        DateTime?          @db.Timestamptz(6)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  createdByUserId    String?
+
+  tenant           Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient          ClinicPatient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment      ClinicAppointment?      @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  visit            ClinicVisit?            @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  reminderDelivery ClinicReminderDelivery? @relation(fields: [reminderDeliveryId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status, requestedAt])
+  @@index([tenantId, rating])
+  @@index([patientId, createdAt])
+  @@index([appointmentId, createdAt])
+  @@map("clinic_patient_reviews")
 }
 
 /// CRM / communication log (calls, WhatsApp, internal notes on the relationship).

@@ -80,6 +80,13 @@ type Appointment = {
     error: string | null
     body: string
   }[]
+  reviews: {
+    id: string
+    status: string
+    rating: number | null
+    requestedAt: string | null
+    repliedAt: string | null
+  }[]
   followUpAutomation: {
     nextAppointment: {
       id: string
@@ -218,7 +225,11 @@ export function ClinicAppointmentDrawer({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || t.saveFailed)
-      if (action === 'send_reminder' || action === 'no_show_follow_up') {
+      if (
+        action === 'send_reminder' ||
+        action === 'no_show_follow_up' ||
+        action === 'send_review_request'
+      ) {
         if (data.reminderText && typeof navigator !== 'undefined') {
           await navigator.clipboard?.writeText(data.reminderText).catch(() => undefined)
         }
@@ -236,6 +247,9 @@ export function ClinicAppointmentDrawer({
         } else {
           setNotice(t.rebookingReminderScheduled)
         }
+      }
+      if (action === 'send_review_request') {
+        setNotice(data.alreadyRequested ? t.reviewRequestAlreadySent : t.reviewRequestPrepared)
       }
       await load()
       onChanged()
@@ -482,6 +496,47 @@ export function ClinicAppointmentDrawer({
                     </div>
                   ) : null}
                 </div>
+              </section>
+
+              <section className="rounded-2xl border border-gray-200 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900">{t.reputation}</h3>
+                    <p className="mt-1 text-xs text-gray-500">{t.reviewRequestHint}</p>
+                  </div>
+                  {appointment.status === 'COMPLETED' ? (
+                    <ActionButton
+                      busy={busy === 'send_review_request'}
+                      onClick={() => runAction('send_review_request')}
+                    >
+                      {t.sendReviewRequest}
+                    </ActionButton>
+                  ) : (
+                    <p className="rounded-xl bg-gray-50 px-3 py-2 text-xs text-gray-500">
+                      {t.completeVisitBeforeReview}
+                    </p>
+                  )}
+                </div>
+                {appointment.reviews.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {appointment.reviews.map((review) => (
+                      <div key={review.id} className="rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+                        <p className="font-semibold text-gray-900">
+                          {review.status}
+                          {review.rating ? ` · ${review.rating}/5` : ''}
+                        </p>
+                        {review.requestedAt && (
+                          <p>
+                            {new Date(review.requestedAt).toLocaleString(dateLocale, {
+                              dateStyle: 'medium',
+                              timeStyle: 'short',
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section className="rounded-2xl border border-gray-200 p-4">

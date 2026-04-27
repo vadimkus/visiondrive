@@ -14,8 +14,9 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_appointment_events` | Appointment audit/change history for reschedules, reminders, visit actions, payments, and follow-ups. |
 | `clinic_availability_rules` | Tenant working-hours rules by weekday: start/end, `slot_mode` (`FIXED`/`DYNAMIC`), slot interval, minimum lead time, active/closed day, optional `procedure_id` for service-specific overrides. |
 | `clinic_blocked_times` | Manual private time / lunch / leave blocks that remove availability slots. |
-| `clinic_reminder_templates` | Tenant WhatsApp/email/SMS templates for appointment reminders, no-show follow-up, and rebooking follow-up. |
+| `clinic_reminder_templates` | Tenant WhatsApp/email/SMS templates for appointment reminders, no-show follow-up, rebooking follow-up, and review requests. |
 | `clinic_reminder_deliveries` | Reminder schedule and preparation log: status, scheduled time, body, WhatsApp URL, errors. |
+| `clinic_patient_reviews` | Internal review/reputation workflow: request status, rating, private note, candidate public text, requested/replied/published timestamps. |
 | `clinic_visits` | Completed encounters; **next_steps** drives “what to do next” on the chart; **inventory_consumed_at** prevents repeated auto-deduct. |
 | `clinic_patient_media` | Before/after images: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime + caption. |
 | `clinic_patient_payments` | Payments; optional `visit_id`. |
@@ -37,13 +38,14 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET /api/clinic/push/vapid-public`; `POST/DELETE /api/clinic/push/subscribe`.
 - `GET/POST /api/clinic/appointments` — range query + conflict-safe create; create checks existing appointments, blocked time, working hours, and minimum lead time.
 - `GET/PATCH /api/clinic/appointments/[id]` — read/update one appointment, including drawer context and event history; schedule changes require override reason when they violate scheduling rules.
-- `POST /api/clinic/appointments/[id]/actions` — reminder, start/complete visit, and follow-up actions.
+- `POST /api/clinic/appointments/[id]/actions` — reminder, start/complete visit, follow-up, and review-request actions.
 - `GET/PATCH /api/clinic/availability` — read/save general and service-specific working-hour rules.
 - `GET /api/clinic/availability/slots` — generate bookable slots from working hours, service-specific overrides, fixed/dynamic slot mode, blocked time, appointments, service duration, and buffers.
 - `GET/POST /api/clinic/blocked-times`; `DELETE /api/clinic/blocked-times/[id]` — manual private/closed time.
 - `GET/PATCH /api/clinic/reminders/templates` — read/save reminder templates.
 - `GET /api/clinic/reminders/deliveries` — delivery/preparation log.
 - `GET/POST /api/clinic/reminders/run` — prepare due scheduled reminders; cron may use `CRON_SECRET`.
+- `GET /api/clinic/reviews`; `PATCH /api/clinic/reviews/[id]` — reputation inbox and internal rating/reply updates.
 - `GET/POST /api/clinic/public-booking/[slug]` — public service/slot lookup and online appointment creation by enabled tenant slug.
 - `GET/PATCH /api/clinic/public-booking/settings` — staff on/off control stored in `tenant_settings.thresholds.publicBooking.enabled`.
 - `POST /api/clinic/visits`, `PATCH /api/clinic/visits/[id]`.

@@ -108,6 +108,20 @@ export async function GET(
         orderBy: { createdAt: 'desc' },
         take: 20,
       },
+      reviews: {
+        select: {
+          id: true,
+          status: true,
+          rating: true,
+          privateNote: true,
+          publicComment: true,
+          requestedAt: true,
+          repliedAt: true,
+          publishedAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+      },
     },
   })
 

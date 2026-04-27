@@ -52,6 +52,7 @@
 | [README_IMAGES.md](README_IMAGES.md) | Image guidelines |
 | [telemetry-component.md](telemetry-component.md) | Telemetry component docs |
 | [2026-04-27_clinic-follow-up-automation.md](2026-04-27_clinic-follow-up-automation.md) | Clinic follow-up automation note |
+| [2026-04-27_clinic-reviews-reputation.md](2026-04-27_clinic-reviews-reputation.md) | Clinic reviews and reputation note |
 
 ### Action Plan (Section 11)
 

@@ -47,9 +47,10 @@ Goal: adapt the useful parts of a mature salon/clinic platform for a solo/home p
    - Shipped: appointment drawer Follow-up automation panel, 2/4/6/8 week repeat booking shortcuts, scheduled rebooking nudges, and runner-time skip when a future appointment is later booked.
 
 7. Reviews and reputation
-   - Status: not built.
+   - Status: shipped first pass.
    - Adapt from Altegio: review request after visit.
    - Solo version: send WhatsApp/email review request after completed visit; track sent/replied; store rating internally first.
+   - Shipped: completed appointment drawer can prepare a WhatsApp review request; `/clinic/reputation` tracks requested/replied/published reviews, internal ratings, private notes, and candidate public text.
 
 8. Client categories and tags
    - Status: not built.

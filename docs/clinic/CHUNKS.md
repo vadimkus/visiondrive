@@ -280,6 +280,23 @@
 
 ---
 
+## Chunk 17 — 2026-04-27 (reviews and reputation)
+
+**Shipped**
+
+- **Schema:** `ClinicPatientReview` stores internal review workflow state, rating, private note, candidate public text, and request/reply/publish timestamps.
+- **Templates:** reminder templates now include `REVIEW_REQUEST` WhatsApp copy.
+- **Appointment drawer:** completed appointments can prepare a WhatsApp review request and create a tracked review row.
+- **Reputation tab:** `/clinic/reputation` lists requested/replied/published reviews, average rating, WhatsApp links, and editable rating/notes.
+- **Knowledge Base:** added EN/RU guidance for collecting reviews before publishing.
+
+**Validation**
+
+- Added focused helper tests for rating/status normalization and average rating.
+- Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

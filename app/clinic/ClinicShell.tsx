@@ -12,6 +12,7 @@ import {
   BookOpen,
   Calendar,
   Send,
+  Star,
   LogOut,
   Stethoscope,
   UserCircle,
@@ -30,6 +31,7 @@ const nav = [
   { href: '/clinic/finance', labelKey: 'finance' as const, icon: CircleDollarSign },
   { href: '/clinic/appointments', labelKey: 'appointments' as const, icon: Calendar },
   { href: '/clinic/reminders', labelKey: 'reminders' as const, icon: Send },
+  { href: '/clinic/reputation', labelKey: 'reputation' as const, icon: Star },
   { href: '/clinic/knowledge-base', labelKey: 'knowledgeBase' as const, icon: BookOpen },
   { href: '/clinic/account', labelKey: 'account' as const, icon: UserCircle },
 ]

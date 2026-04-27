@@ -7,6 +7,7 @@ import {
   ClinicReminderChannel,
   ClinicReminderKind,
   ClinicReminderStatus,
+  ClinicReviewStatus,
   ClinicVisitStatus,
 } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -224,6 +225,97 @@ export async function POST(
       reminderText: result.text,
       whatsappUrl: result.url,
       delivery: result.delivery,
+    })
+  }
+
+  if (action === 'send_review_request') {
+    if (existing.status !== ClinicAppointmentStatus.COMPLETED) {
+      return NextResponse.json(
+        { error: 'Complete the visit before requesting a review' },
+        { status: 409 }
+      )
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const template = await getReminderTemplate(
+        tx,
+        session.tenantId,
+        ClinicReminderKind.REVIEW_REQUEST
+      )
+      if (!template) return { disabled: true as const }
+
+      const existingReview = await tx.clinicPatientReview.findFirst({
+        where: {
+          tenantId: session.tenantId,
+          appointmentId: id,
+          status: { not: ClinicReviewStatus.ARCHIVED },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+      if (existingReview) return { review: existingReview, alreadyRequested: true as const }
+
+      const now = new Date()
+      const text = renderReminderTemplate(template.body || '', existing)
+      const url = whatsappUrl(existing.patient.phone, text)
+      const delivery = await tx.clinicReminderDelivery.create({
+        data: {
+          tenantId: session.tenantId,
+          appointmentId: id,
+          patientId: existing.patientId,
+          kind: ClinicReminderKind.REVIEW_REQUEST,
+          channel: ClinicReminderChannel.WHATSAPP,
+          status: ClinicReminderStatus.PREPARED,
+          scheduledFor: now,
+          preparedAt: now,
+          body: text,
+          whatsappUrl: url,
+          error: phoneForWhatsapp(existing.patient.phone) ? null : 'Missing WhatsApp phone number',
+          createdByUserId: session.userId,
+        },
+      })
+      const review = await tx.clinicPatientReview.create({
+        data: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          appointmentId: id,
+          visitId: existing.visits[0]?.id ?? null,
+          reminderDeliveryId: delivery.id,
+          status: ClinicReviewStatus.REQUESTED,
+          requestedAt: now,
+          createdByUserId: session.userId,
+        },
+      })
+      await tx.clinicCrmActivity.create({
+        data: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          type: ClinicCrmActivityType.WHATSAPP,
+          body: `Review request prepared: ${text}`,
+          occurredAt: now,
+          createdByUserId: session.userId,
+        },
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: id,
+        type: ClinicAppointmentEventType.REVIEW_REQUESTED,
+        message: 'Review WhatsApp request prepared',
+        after: { text, reminderDeliveryId: delivery.id, reviewId: review.id },
+        createdByUserId: session.userId,
+      })
+      return { text, url, delivery, review, alreadyRequested: false as const }
+    })
+    if ('disabled' in result) {
+      return NextResponse.json({ error: 'Reminder template is inactive' }, { status: 409 })
+    }
+    if (result.alreadyRequested) {
+      return NextResponse.json({ review: result.review, alreadyRequested: true })
+    }
+    return NextResponse.json({
+      reminderText: result.text,
+      whatsappUrl: result.url,
+      delivery: result.delivery,
+      review: result.review,
     })
   }
 

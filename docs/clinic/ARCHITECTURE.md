@@ -18,6 +18,7 @@
 | `ClinicBlockedTime` | Manual availability removals for lunch, leave, training, private time, or supplier errands. |
 | `ClinicReminderTemplate` | Tenant-scoped WhatsApp/email/SMS template text for appointment reminders, no-show follow-ups, and rebooking nudges. |
 | `ClinicReminderDelivery` | Reminder schedule and delivery/preparation log; stores scheduled time, rendered body, WhatsApp URL, status, and errors. |
+| `ClinicPatientReview` | Internal reputation workflow: review request status, rating, private note, candidate public text, and request/reply/publish timestamps. |
 | `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional link to an appointment, **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
 | `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); served via **`GET /api/clinic/media/[id]`** (tenant-scoped). |
 | `ClinicPatientPayment` | Patient-level payments (amount, method, status, optional **`visitId`**). |
@@ -33,7 +34,7 @@ Availability: `/api/clinic/availability/slots` combines `ClinicAvailabilityRule`
 
 Scheduling guard: appointment create/reschedule checks existing appointment occupancy, blocked time, working hours, and minimum lead time. Staff can override a violation only when `allowConflictOverride=true` and a non-empty `overrideReason` is provided; the reason is stored on the appointment and visible in the drawer.
 
-Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send WhatsApp messages. The runner prepares due messages and logs them; staff opens the generated `wa.me` link to send. Rebooking follow-up nudges can be scheduled from completed appointments and are skipped at runner time if the patient already has a future appointment. Future WhatsApp Business API integration can mark deliveries as sent automatically.
+Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send WhatsApp messages. The runner prepares due messages and logs them; staff opens the generated `wa.me` link to send. Rebooking follow-up nudges can be scheduled from completed appointments and are skipped at runner time if the patient already has a future appointment. Review requests create internal `ClinicPatientReview` rows so ratings/replies can be captured before publishing externally. Future WhatsApp Business API integration can mark deliveries as sent automatically.
 
 Public booking: `/book/[tenant.slug]` is a private branded link, not a marketplace. It is disabled by default and controlled from the clinic dashboard using `tenant_settings.thresholds.publicBooking.enabled`. When enabled, the public API exposes active services and generated slots only; booking creation stores DOB/contact/consent as a real patient + `ONLINE` appointment and still uses the scheduling guard. No public override is allowed.
 
@@ -44,7 +45,7 @@ Public booking: `/book/[tenant.slug]` is a private branded link, not a marketpla
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`.
 - **Availability:** `GET/PATCH /api/clinic/availability`, `GET /api/clinic/availability/slots`, `GET/POST /api/clinic/blocked-times`, `DELETE .../blocked-times/[id]`.
-- **Reminders:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`; appointment actions support `send_reminder`, `schedule_reminder`, `no_show_follow_up`, and `schedule_rebooking_follow_up`.
+- **Reminders/reputation:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`, `GET /api/clinic/reviews`, `PATCH /api/clinic/reviews/[id]`; appointment actions support `send_reminder`, `schedule_reminder`, `no_show_follow_up`, `schedule_rebooking_follow_up`, and `send_review_request`.
 - **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).

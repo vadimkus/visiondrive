@@ -145,6 +145,19 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/reminders',
   },
+  {
+    id: 'reviews-reputation',
+    category: 'Communication',
+    title: 'Capture reviews before publishing',
+    summary: 'Ask for feedback after completed visits and keep ratings internal first.',
+    steps: [
+      'Open a completed appointment and send a review request from the Reputation block.',
+      'WhatsApp opens with your review template and the request is tracked in Reputation.',
+      'When the client replies, record the internal rating and notes.',
+      'Only mark a review as published after you decide the text is safe to share externally.',
+    ],
+    link: '/clinic/reputation',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -266,6 +279,19 @@ const articlesRu: Article[] = [
       'Проверяйте журнал отправок и историю записи.',
     ],
     link: '/clinic/reminders',
+  },
+  {
+    id: 'reviews-reputation',
+    category: 'Коммуникации',
+    title: 'Собирайте отзывы до публикации',
+    summary: 'Запрашивайте обратную связь после визита и сначала храните оценки внутри.',
+    steps: [
+      'Откройте завершенную запись и отправьте запрос отзыва из блока Репутация.',
+      'Откроется WhatsApp с шаблоном, а запрос попадет в раздел Репутация.',
+      'Когда клиент ответит, внесите внутреннюю оценку и заметки.',
+      'Отмечайте отзыв опубликованным только после проверки текста.',
+    ],
+    link: '/clinic/reputation',
   },
 ]
 

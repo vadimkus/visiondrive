@@ -44,6 +44,13 @@ export function defaultReminderTemplates(): ReminderTemplateSeed[] {
       body:
         'Hi {{firstName}}, it may be time to plan your next {{service}}. Reply here if you want a few available options.',
     },
+    {
+      kind: ClinicReminderKind.REVIEW_REQUEST,
+      channel: ClinicReminderChannel.WHATSAPP,
+      name: 'Review request',
+      body:
+        'Hi {{firstName}}, thank you for visiting for {{service}}. If you are happy with the care, please reply with a 1-5 rating or a short review. We review feedback internally before sharing anything publicly.',
+    },
   ]
 }
 
