@@ -72,6 +72,28 @@ type PaymentRow = {
   createdAt: string
 }
 
+type ProductSaleRow = {
+  id: string
+  soldAt: string
+  subtotalCents: number
+  discountCents: number
+  totalCents: number
+  currency: string
+  paymentMethod: string
+  paymentStatus: string
+  note: string | null
+  payment: { id: string; status: string; amountCents: number; method: string; paidAt: string } | null
+  visit?: { id: string; visitAt: string } | null
+  appointment?: { id: string; startsAt: string } | null
+  lines: Array<{
+    id: string
+    quantity: number
+    unitPriceCents: number
+    lineTotalCents: number
+    stockItem: { id: string; name: string; sku: string | null; unit: string }
+  }>
+}
+
 type PackageRedemptionRow = {
   id: string
   sessionsDelta: number
@@ -200,6 +222,7 @@ export type PatientRecord = {
   visits: VisitRow[]
   media: MediaMeta[]
   payments: PaymentRow[]
+  productSales: ProductSaleRow[]
   packages: PackageRow[]
   consentRecords: ConsentRecordRow[]
   treatmentPlans: TreatmentPlanRow[]
@@ -2466,6 +2489,38 @@ function PaymentsTab({
           {saving ? t.savingEllipsis : t.addPayment}
         </button>
       </form>
+
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+        <div className="p-4">
+          <h2 className="text-lg font-semibold text-gray-900">{t.productSales}</h2>
+          <p className="mt-1 text-sm text-gray-500">{t.productSalesPatientHistoryHint}</p>
+        </div>
+        {patient.productSales.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500">{t.noProductSalesYet}</p>
+        ) : (
+          patient.productSales.map((sale) => (
+            <div key={sale.id} className="p-4 text-sm flex justify-between gap-4">
+              <div>
+                <p className="font-medium text-gray-900">
+                  {formatMoney(sale.totalCents, sale.currency)} · {sale.paymentStatus}
+                </p>
+                <p className="text-gray-600">
+                  {sale.lines.map((line) => `${line.stockItem.name} × ${line.quantity}`).join(', ')}
+                </p>
+                {sale.discountCents > 0 && (
+                  <p className="text-xs text-gray-500">
+                    {t.paymentDiscount}: {formatMoney(sale.discountCents, sale.currency)}
+                  </p>
+                )}
+                {sale.note && <p className="text-gray-500 text-xs mt-1">{sale.note}</p>}
+              </div>
+              <p className="text-gray-400 text-xs shrink-0">
+                {new Date(sale.soldAt).toLocaleDateString(dateLocale)}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
         {patient.payments.length === 0 ? (

@@ -91,6 +91,19 @@ export async function GET(
           chiefComplaint: true,
           procedureSummary: true,
           nextSteps: true,
+          productSales: {
+            include: {
+              payment: {
+                select: { id: true, status: true, amountCents: true, method: true, paidAt: true },
+              },
+              lines: {
+                include: {
+                  stockItem: { select: { id: true, name: true, sku: true, unit: true } },
+                },
+              },
+            },
+            orderBy: { soldAt: 'desc' },
+          },
           payments: {
             select: {
               id: true,

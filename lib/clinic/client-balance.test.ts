@@ -77,6 +77,19 @@ describe('clinic client balance', () => {
     expect(summary.paidCents).toBe(0)
   })
 
+  it('does not treat product sale payments as patient deposit credit', () => {
+    const summary = buildClientBalanceSummary({
+      charges: [],
+      standalonePayments: [
+        { amountCents: 15000, currency: 'AED', status: 'PAID', reference: 'PRODUCT_SALE:sale_1' },
+      ],
+    })
+
+    expect(summary.status).toBe('CLEAR')
+    expect(summary.creditCents).toBe(0)
+    expect(summary.paidCents).toBe(0)
+  })
+
   it('builds charges only from arrived or completed appointments', () => {
     const charges = buildClientBalanceChargesFromAppointments([
       {

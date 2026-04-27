@@ -1,4 +1,5 @@
 import { isPackagePaymentReference } from './patient-packages'
+import { isProductSalePaymentReference } from './product-sales'
 
 export const CLIENT_BALANCE_BILLABLE_APPOINTMENT_STATUSES = ['ARRIVED', 'COMPLETED'] as const
 
@@ -122,7 +123,8 @@ export function buildClientBalanceSummary({
   }
 
   const balanceStandalonePayments = standalonePayments.filter(
-    (payment) => !isPackagePaymentReference(payment.reference)
+    (payment) =>
+      !isPackagePaymentReference(payment.reference) && !isProductSalePaymentReference(payment.reference)
   )
   const standaloneTotals = paymentTotals(balanceStandalonePayments)
   paidCents += standaloneTotals.paidCents

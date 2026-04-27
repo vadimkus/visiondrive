@@ -144,6 +144,19 @@ const articlesEn: Article[] = [
     link: '/clinic/stock-takes',
   },
   {
+    id: 'product-sales-from-visit',
+    category: 'Inventory',
+    title: 'Sell aftercare products from a visit',
+    summary: 'Record retail products during the appointment, deduct stock, and count the sale as revenue.',
+    steps: [
+      'Open the appointment drawer after the visit has started or completed.',
+      'In Product sales, select the aftercare product, quantity, unit price, payment method, and status.',
+      'Save the sale. The product is deducted from inventory and a product-sale payment is created for finance revenue.',
+      'Review the patient Payments tab to see retail sales history without turning it into patient balance credit.',
+    ],
+    link: '/clinic/appointments',
+  },
+  {
     id: 'finance',
     category: 'Finance',
     title: 'Read profitability at a glance',
@@ -381,6 +394,19 @@ const articlesRu: Article[] = [
       'Завершайте инвентаризацию только после пересчета всех строк. Система создаст корректирующие движения и обновит остатки.',
     ],
     link: '/clinic/stock-takes',
+  },
+  {
+    id: 'product-sales-from-visit',
+    category: 'Склад',
+    title: 'Продавайте домашний уход из визита',
+    summary: 'Записывайте розничные товары во время записи, списывайте склад и учитывайте продажу как выручку.',
+    steps: [
+      'Откройте карточку записи после начала или завершения визита.',
+      'В блоке Продажи товаров выберите товар домашнего ухода, количество, цену, метод оплаты и статус.',
+      'Сохраните продажу. Товар спишется со склада, а платеж продажи попадет в финансовую выручку.',
+      'В карте пациента на вкладке Оплаты смотрите историю розничных продаж без превращения ее в кредит баланса пациента.',
+    ],
+    link: '/clinic/appointments',
   },
   {
     id: 'finance',

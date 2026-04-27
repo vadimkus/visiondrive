@@ -95,6 +95,8 @@ model Tenant {
   clinicVisits              ClinicVisit[]
   clinicPatientMedia      ClinicPatientMedia[]
   clinicPatientPayments   ClinicPatientPayment[]
+  clinicProductSales      ClinicProductSale[]
+  clinicProductSaleLines  ClinicProductSaleLine[]
   clinicCrmActivities     ClinicCrmActivity[]
   clinicStockItems          ClinicStockItem[]
   clinicStockMovements      ClinicStockMovement[]
@@ -834,6 +836,7 @@ model ClinicPatient {
   visits         ClinicVisit[]
   media          ClinicPatientMedia[]
   payments       ClinicPatientPayment[]
+  productSales   ClinicProductSale[]
   crmActivities  ClinicCrmActivity[]
   reviews        ClinicPatientReview[]
   packages       ClinicPatientPackage[]
@@ -913,6 +916,7 @@ model ClinicAppointment {
   packageRedemptions ClinicPackageRedemption[]
   consentRecords ClinicConsentRecord[]
   payments ClinicPatientPayment[]
+  productSales ClinicProductSale[]
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1101,6 +1105,7 @@ model ClinicVisit {
   treatmentPlan ClinicTreatmentPlan? @relation(fields: [treatmentPlanId], references: [id], onDelete: SetNull)
   media       ClinicPatientMedia[]
   payments    ClinicPatientPayment[]
+  productSales ClinicProductSale[]
   reviews     ClinicPatientReview[]
   packageRedemptions ClinicPackageRedemption[]
   consentRecords ClinicConsentRecord[]
@@ -1158,10 +1163,42 @@ model ClinicPatientPayment {
   patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
   visit   ClinicVisit?  @relation(fields: [visitId], references: [id], onDelete: SetNull)
   appointment ClinicAppointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  productSale ClinicProductSale?
 
   @@index([tenantId, patientId, paidAt])
   @@index([appointmentId, paidAt])
   @@map("clinic_patient_payments")
+}
+
+model ClinicProductSale {
+  id              String              @id @default(cuid())
+  tenantId        String
+  patientId       String
+  visitId         String?
+  appointmentId   String?
+  paymentId       String?             @unique
+  soldAt          DateTime            @default(now()) @db.Timestamptz(6)
+  subtotalCents   Int                 @default(0)
+  discountCents   Int                 @default(0)
+  totalCents      Int                 @default(0)
+  currency        String              @default("AED")
+  paymentMethod   ClinicPaymentMethod @default(OTHER)
+  paymentStatus   ClinicPaymentStatus @default(PAID)
+  note            String?             @db.Text
+  createdAt       DateTime            @default(now())
+  createdByUserId String?
+
+  tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visit       ClinicVisit?           @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  appointment ClinicAppointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  payment     ClinicPatientPayment?  @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  lines       ClinicProductSaleLine[]
+
+  @@index([tenantId, patientId, soldAt])
+  @@index([visitId, soldAt])
+  @@index([appointmentId, soldAt])
+  @@map("clinic_product_sales")
 }
 
 model ClinicPatientPackage {
@@ -1402,6 +1439,7 @@ model ClinicStockItem {
   purchaseOrderLines ClinicPurchaseOrderLine[]
   procedureMaterials ClinicProcedureMaterial[]
   stockCountLines ClinicStockCountLine[]
+  productSaleLines ClinicProductSaleLine[]
 
   @@index([tenantId, active, name])
   @@index([tenantId, procedureId])
@@ -1452,6 +1490,27 @@ model ClinicStockMovement {
   @@index([tenantId, createdAt])
   @@index([stockItemId, createdAt])
   @@map("clinic_stock_movements")
+}
+
+model ClinicProductSaleLine {
+  id             String   @id @default(cuid())
+  tenantId       String
+  productSaleId  String
+  stockItemId    String
+  quantity       Int
+  unitPriceCents Int      @default(0)
+  unitCostCents  Int      @default(0)
+  lineTotalCents Int      @default(0)
+  movementId     String?
+  createdAt      DateTime @default(now())
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productSale ClinicProductSale @relation(fields: [productSaleId], references: [id], onDelete: Cascade)
+  stockItem   ClinicStockItem   @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, productSaleId])
+  @@index([tenantId, stockItemId])
+  @@map("clinic_product_sale_lines")
 }
 
 model ClinicStockCountSession {

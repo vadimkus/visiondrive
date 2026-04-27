@@ -134,6 +134,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
    - Solo version: sell aftercare products from the visit screen.
    - Why it matters: aftercare retail can raise average check and improve clinical outcome.
    - Build shape: add product sale lines to visit, deduct stock, add revenue, show in patient history.
+   - Shipped: appointment drawer can sell aftercare products after a visit starts/completes, deduct stock via consumption movements, create finance revenue payments, and show retail sales in patient payment history without converting them into client balance credit.
+   - Next improvements: multi-line sale UI, suggested products by procedure/BOM, receipt section for product sales, and retail margin reporting.
 
 19. P&L v2 with true procedure profitability
    - Altegio source: P&L, financial report, service analytics.

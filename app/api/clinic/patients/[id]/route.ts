@@ -162,6 +162,22 @@ export async function GET(
           createdAt: true,
         },
       },
+      productSales: {
+        orderBy: { soldAt: 'desc' },
+        take: 80,
+        include: {
+          payment: {
+            select: { id: true, status: true, amountCents: true, method: true, paidAt: true },
+          },
+          visit: { select: { id: true, visitAt: true } },
+          appointment: { select: { id: true, startsAt: true } },
+          lines: {
+            include: {
+              stockItem: { select: { id: true, name: true, sku: true, unit: true } },
+            },
+          },
+        },
+      },
       crmActivities: {
         orderBy: { occurredAt: 'desc' },
         take: 80,

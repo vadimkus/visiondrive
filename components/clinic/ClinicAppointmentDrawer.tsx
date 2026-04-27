@@ -33,6 +33,35 @@ type Payment = {
   appointmentId: string | null
 }
 
+type ProductSale = {
+  id: string
+  soldAt: string
+  subtotalCents: number
+  discountCents: number
+  totalCents: number
+  currency: string
+  paymentMethod: string
+  paymentStatus: string
+  note: string | null
+  payment: { id: string; status: string; amountCents: number; method: string; paidAt: string } | null
+  lines: Array<{
+    id: string
+    quantity: number
+    unitPriceCents: number
+    lineTotalCents: number
+    stockItem: { id: string; name: string; sku: string | null; unit: string }
+  }>
+}
+
+type ProductStockItem = {
+  id: string
+  name: string
+  sku: string | null
+  unit: string
+  quantityOnHand: number
+  active: boolean
+}
+
 type ClientBalance = {
   currency: string
   expectedCents: number
@@ -51,6 +80,7 @@ type Visit = {
   chiefComplaint: string | null
   procedureSummary: string | null
   nextSteps: string | null
+  productSales: ProductSale[]
   payments: Payment[]
 }
 
@@ -215,18 +245,33 @@ export function ClinicAppointmentDrawer({
   const [paymentStatus, setPaymentStatus] = useState('PAID')
   const [paymentReference, setPaymentReference] = useState('')
   const [paymentNote, setPaymentNote] = useState('')
+  const [productItems, setProductItems] = useState<ProductStockItem[]>([])
+  const [saleProductId, setSaleProductId] = useState('')
+  const [saleQuantity, setSaleQuantity] = useState('1')
+  const [saleUnitPrice, setSaleUnitPrice] = useState('')
+  const [saleDiscount, setSaleDiscount] = useState('')
+  const [saleMethod, setSaleMethod] = useState('CARD')
+  const [saleStatus, setSaleStatus] = useState('PAID')
+  const [saleNote, setSaleNote] = useState('')
 
   const load = useCallback(async () => {
     if (!appointmentId) return
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/clinic/appointments/${appointmentId}`, { credentials: 'include' })
+      const [res, inventoryRes] = await Promise.all([
+        fetch(`/api/clinic/appointments/${appointmentId}`, { credentials: 'include' }),
+        fetch('/api/clinic/inventory', { credentials: 'include' }),
+      ])
       const data = await res.json()
       if (!res.ok) {
         throw new Error(data.error || t.failedToLoad)
       }
       setAppointment(data.appointment)
+      if (inventoryRes.ok) {
+        const inventoryData = await inventoryRes.json()
+        setProductItems((inventoryData.items || []).filter((item: ProductStockItem) => item.active))
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t.failedToLoad)
     } finally {
@@ -270,6 +315,11 @@ export function ClinicAppointmentDrawer({
       payments,
     }
   }, [appointment])
+
+  const productSales = useMemo(
+    () => appointment?.visits.flatMap((visit) => visit.productSales) ?? [],
+    [appointment]
+  )
 
   async function recordPayment(e: React.FormEvent) {
     e.preventDefault()
@@ -340,6 +390,63 @@ export function ClinicAppointmentDrawer({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || t.saveFailed)
       setNotice(status === 'REFUNDED' ? t.paymentRefunded : t.paymentVoided)
+      await load()
+      onChanged()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.saveFailed)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function recordProductSale(e: React.FormEvent) {
+    e.preventDefault()
+    if (!appointment) return
+    const visitId = appointment.visits[0]?.id
+    if (!visitId) {
+      setError(t.completeVisitBeforeProductSale)
+      return
+    }
+    const quantity = Number.parseInt(saleQuantity, 10)
+    const unitPriceCents = parseMajorToCents(saleUnitPrice)
+    const discountCents = parseMajorToCents(saleDiscount)
+    if (!saleProductId || !Number.isInteger(quantity) || quantity <= 0) {
+      setError(t.productSaleItemRequired)
+      return
+    }
+    if (!Number.isInteger(unitPriceCents) || unitPriceCents < 0 || !Number.isInteger(discountCents) || discountCents < 0) {
+      setError(t.enterValidAmount)
+      return
+    }
+
+    setBusy('record_product_sale')
+    setError('')
+    setNotice('')
+    try {
+      const res = await fetch(`/api/clinic/patients/${appointment.patient.id}/product-sales`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitId,
+          appointmentId: appointment.id,
+          lines: [{ stockItemId: saleProductId, quantity, unitPriceCents }],
+          discountCents,
+          currency: appointment.procedure?.currency ?? 'AED',
+          paymentMethod: saleMethod,
+          paymentStatus: saleStatus,
+          note: saleNote.trim() || null,
+          soldAt: new Date().toISOString(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || t.saveFailed)
+      setSaleProductId('')
+      setSaleQuantity('1')
+      setSaleUnitPrice('')
+      setSaleDiscount('')
+      setSaleNote('')
+      setNotice(t.productSaleRecorded)
       await load()
       onChanged()
     } catch (e) {
@@ -575,6 +682,129 @@ export function ClinicAppointmentDrawer({
                     ? `${appointment.visits[0].status} · ${new Date(appointment.visits[0].visitAt).toLocaleString(dateLocale)}`
                     : t.noHistory}
                 </p>
+              </section>
+
+              <section className="rounded-2xl border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-900">{t.productSales}</h3>
+                <p className="mt-1 text-xs text-gray-500">{t.productSalesHint}</p>
+                {!appointment.visits[0] ? (
+                  <p className="mt-3 rounded-xl bg-gray-50 p-3 text-xs text-gray-500">
+                    {t.completeVisitBeforeProductSale}
+                  </p>
+                ) : (
+                  <form onSubmit={recordProductSale} className="mt-4 space-y-3 rounded-2xl bg-gray-50 p-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="col-span-2 text-xs text-gray-600">
+                        {t.productSaleItem}
+                        <select
+                          value={saleProductId}
+                          onChange={(e) => setSaleProductId(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-base"
+                        >
+                          <option value="">{t.selectPlaceholder}</option>
+                          {productItems.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.name} · {item.quantityOnHand} {item.unit}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-xs text-gray-600">
+                        {t.productSaleQuantity}
+                        <input
+                          value={saleQuantity}
+                          onChange={(e) => setSaleQuantity(e.target.value)}
+                          inputMode="numeric"
+                          className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                        />
+                      </label>
+                      <label className="text-xs text-gray-600">
+                        {t.unitPrice}
+                        <input
+                          value={saleUnitPrice}
+                          onChange={(e) => setSaleUnitPrice(e.target.value)}
+                          inputMode="decimal"
+                          placeholder="0"
+                          className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                        />
+                      </label>
+                      <label className="text-xs text-gray-600">
+                        {t.paymentDiscount}
+                        <input
+                          value={saleDiscount}
+                          onChange={(e) => setSaleDiscount(e.target.value)}
+                          inputMode="decimal"
+                          placeholder="0"
+                          className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                        />
+                      </label>
+                      <label className="text-xs text-gray-600">
+                        {t.paymentMethod}
+                        <select
+                          value={saleMethod}
+                          onChange={(e) => setSaleMethod(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-base"
+                        >
+                          <option value="CARD">{t.payMethodCard}</option>
+                          <option value="CASH">{t.payMethodCash}</option>
+                          <option value="TRANSFER">{t.payMethodTransfer}</option>
+                          <option value="POS">{t.payMethodPos}</option>
+                          <option value="OTHER">{t.payMethodOther}</option>
+                        </select>
+                      </label>
+                      <label className="text-xs text-gray-600">
+                        {t.paymentStatusLabel}
+                        <select
+                          value={saleStatus}
+                          onChange={(e) => setSaleStatus(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-base"
+                        >
+                          <option value="PAID">{t.payStatusPaid}</option>
+                          <option value="PENDING">{t.payStatusPending}</option>
+                        </select>
+                      </label>
+                      <label className="text-xs text-gray-600">
+                        {t.note}
+                        <input
+                          value={saleNote}
+                          onChange={(e) => setSaleNote(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                        />
+                      </label>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={busy === 'record_product_sale'}
+                      className="min-h-11 w-full rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                    >
+                      {busy === 'record_product_sale' ? t.savingEllipsis : t.recordProductSale}
+                    </button>
+                  </form>
+                )}
+                {productSales.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      {t.productSaleHistory}
+                    </p>
+                    {productSales.slice(0, 5).map((sale) => (
+                      <div key={sale.id} className="rounded-xl border border-gray-100 bg-white p-3 text-xs text-gray-600">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {money(sale.totalCents, sale.currency)} · {sale.paymentStatus}
+                            </p>
+                            <p>
+                              {sale.lines.map((line) => `${line.stockItem.name} × ${line.quantity}`).join(', ')}
+                            </p>
+                          </div>
+                          <p className="shrink-0 text-gray-400">
+                            {new Date(sale.soldAt).toLocaleDateString(dateLocale)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section className="rounded-2xl border border-gray-200 p-4">

@@ -479,6 +479,26 @@
 
 ---
 
+## Chunk 28 — 2026-04-27 (product sales from visit)
+
+**Shipped**
+
+- **Schema:** added `ClinicProductSale` and `ClinicProductSaleLine` for aftercare/retail products sold to patients from a visit.
+- **API:** `GET/POST /api/clinic/patients/[id]/product-sales` lists and records product sales with patient, visit, appointment, payment, and stock line context.
+- **Inventory/revenue:** recording a sale deducts stock through `CONSUMPTION` movements and creates a `PRODUCT_SALE:*` payment row for finance revenue.
+- **Balance safety:** product-sale payments are excluded from client balance/deposit credit, like package-sale payments, so retail revenue does not distort treatment debt.
+- **UI:** appointment drawer has a Product sales block after visit start/completion; patient Payments tab shows retail sales history.
+- **i18n/Knowledge Base:** EN/RU strings and Knowledge Base article for selling aftercare products from visits.
+- **Lib:** `lib/clinic/product-sales.ts` normalizes quantities/prices, totals, and product-sale payment references.
+
+**Validation**
+
+- Added Vitest coverage for product-sale helper calculations and client-balance exclusion.
+- Run `npm run db:generate`, `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- Run `npm run db:push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**
