@@ -19,6 +19,7 @@ import {
   Repeat2,
   BarChart3,
   Gift,
+  MessageCircleReply,
   Share2,
   Send,
   Star,
@@ -53,6 +54,7 @@ const nav = [
   { href: '/clinic/whatsapp-assistant', labelKey: 'whatsappAssistant' as const, icon: Bot },
   { href: '/clinic/reminders', labelKey: 'reminders' as const, icon: Send },
   { href: '/clinic/reputation', labelKey: 'reputation' as const, icon: Star },
+  { href: '/clinic/review-analytics', labelKey: 'reviewAnalytics' as const, icon: MessageCircleReply },
   { href: '/clinic/knowledge-base', labelKey: 'knowledgeBase' as const, icon: BookOpen },
   { href: '/clinic/account', labelKey: 'account' as const, icon: UserCircle },
 ]

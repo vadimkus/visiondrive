@@ -79,6 +79,8 @@ Revenue plan: `/clinic/revenue-plan` stores a tenant's monthly target and option
 
 Occupancy report: `/clinic/occupancy` calls `GET /api/clinic/occupancy/overview` for derived capacity analytics. Planned time comes from general `ClinicAvailabilityRule` rows (with default availability fallback), active appointments consume time with service duration plus cleanup/travel buffers, and `ClinicBlockedTime` removes unavailable periods. The first pass reports next 7/14-day occupancy, free windows, blocked time, and travel-buffer pressure without adding a table.
 
+Review analytics: `/clinic/review-analytics` calls `GET /api/clinic/review-analytics/overview` for derived reputation metrics. It reuses `ClinicPatientReview` records from the Reputation workflow and reports request/reply/publish counts, average rating, rating distribution, and a low-rated private feedback queue. No separate analytics table is stored.
+
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.

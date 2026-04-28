@@ -372,6 +372,20 @@ const articlesEn: Article[] = [
     link: '/clinic/occupancy',
   },
   {
+    id: 'review-analytics',
+    category: 'Reputation',
+    title: 'Track review replies and private feedback',
+    summary: 'Use review analytics to see requested, replied, published, average rating, and low-rated private feedback.',
+    steps: [
+      'Open Review analytics from the sidebar or dashboard quick actions.',
+      'Choose the last 30 days, last 90 days, or all time.',
+      'Check request, reply, publish, and average-rating KPIs.',
+      'Review the rating mix to see whether client sentiment is improving.',
+      'Use the negative feedback queue to follow up privately before asking for public publication.',
+    ],
+    link: '/clinic/review-analytics',
+  },
+  {
     id: 'payment-fee-rules',
     category: 'Finance',
     title: 'Subtract payment fees automatically',
@@ -1049,6 +1063,20 @@ const articlesRu: Article[] = [
       'Следите за оценкой буферов поездок, чтобы видеть, когда выездная логистика съедает слишком много недели.',
     ],
     link: '/clinic/occupancy',
+  },
+  {
+    id: 'review-analytics',
+    category: 'Репутация',
+    title: 'Следите за ответами и приватной обратной связью',
+    summary: 'Аналитика отзывов показывает запросы, ответы, публикации, среднюю оценку и низкие приватные оценки.',
+    steps: [
+      'Откройте Аналитику отзывов в боковом меню или быстрых действиях дашборда.',
+      'Выберите последние 30 дней, последние 90 дней или весь период.',
+      'Смотрите KPI: запрошено, получено ответов, опубликовано и средняя оценка.',
+      'Проверяйте распределение оценок, чтобы понять динамику настроения клиентов.',
+      'Используйте очередь негативной обратной связи для личного follow-up перед публичной публикацией.',
+    ],
+    link: '/clinic/review-analytics',
   },
   {
     id: 'payment-fee-rules',

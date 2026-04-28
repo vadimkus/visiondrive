@@ -836,6 +836,25 @@ const table = {
     occupancyLargestGap: 'Largest gap',
     occupancyDayTravelHeavy:
       'Travel buffers are high on this day. Consider grouping visits by area or shortening the travel buffer where safe.',
+    reviewAnalytics: 'Review analytics',
+    reviewAnalyticsIntro:
+      'Track requested, replied, and published reviews, average rating, and private negative feedback that needs follow-up.',
+    reviewAnalyticsLast90Days: 'Last 90 days',
+    reviewAnalyticsAllTime: 'All time',
+    reviewAnalyticsReplies: 'replies',
+    reviewAnalyticsPublishedItems: 'published',
+    reviewAnalyticsAverageRating: 'Average rating',
+    reviewAnalyticsRated: 'rated reviews',
+    reviewAnalyticsRatingMix: 'Rating mix',
+    reviewAnalyticsNegativeQueue: 'Negative feedback queue',
+    reviewAnalyticsNegativeQueueHint:
+      'Ratings of 1-3 stay visible here so the practitioner can follow up privately before pushing for public reviews.',
+    reviewAnalyticsNegativeTotal: 'low-rated reviews in this range',
+    reviewAnalyticsPrivateQueue: 'Private follow-up queue',
+    reviewAnalyticsPrivateQueueHint:
+      'Low-rated replies with private notes should be handled directly with the patient before publication.',
+    reviewAnalyticsNoNegativeQueue: 'No low-rated private feedback in this range.',
+    reviewAnalyticsOpenReview: 'Open review',
     financeSubtitle: 'Revenue · expenses · profitability',
     financeThisMonth: 'This month',
     financeLast30Days: 'Last 30 days',
@@ -2489,6 +2508,25 @@ const ruOverrides: Partial<ClinicStrings> = {
   occupancyLargestGap: 'Самое большое окно',
   occupancyDayTravelHeavy:
     'В этот день буферы поездок высокие. Стоит группировать визиты по районам или сократить буфер, если это безопасно.',
+  reviewAnalytics: 'Аналитика отзывов',
+  reviewAnalyticsIntro:
+    'Следите за запрошенными, полученными и опубликованными отзывами, средней оценкой и негативной приватной обратной связью для follow-up.',
+  reviewAnalyticsLast90Days: 'Последние 90 дней',
+  reviewAnalyticsAllTime: 'За всё время',
+  reviewAnalyticsReplies: 'ответов',
+  reviewAnalyticsPublishedItems: 'опубликовано',
+  reviewAnalyticsAverageRating: 'Средняя оценка',
+  reviewAnalyticsRated: 'отзывов с оценкой',
+  reviewAnalyticsRatingMix: 'Распределение оценок',
+  reviewAnalyticsNegativeQueue: 'Очередь негативной обратной связи',
+  reviewAnalyticsNegativeQueueHint:
+    'Оценки 1-3 остаются здесь, чтобы врач мог сначала ответить пациенту лично, а не давить на публичный отзыв.',
+  reviewAnalyticsNegativeTotal: 'низких оценок в этом периоде',
+  reviewAnalyticsPrivateQueue: 'Очередь приватного follow-up',
+  reviewAnalyticsPrivateQueueHint:
+    'Низкие оценки с приватными заметками лучше разобрать напрямую с пациентом до публикации.',
+  reviewAnalyticsNoNegativeQueue: 'В этом периоде нет низких приватных оценок.',
+  reviewAnalyticsOpenReview: 'Открыть отзыв',
   financeSubtitle: 'Выручка · расходы · прибыльность',
   financeThisMonth: 'Этот месяц',
   financeLast30Days: 'Последние 30 дней',

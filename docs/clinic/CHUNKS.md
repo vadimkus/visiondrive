@@ -1107,6 +1107,24 @@
 
 ---
 
+## Chunk 63 — 2026-04-28 (review analytics)
+
+**Shipped**
+
+- **Report:** added `/clinic/review-analytics` for reputation metrics.
+- **API:** added `GET /api/clinic/review-analytics/overview`.
+- **Metrics:** requested, replied, published, archived, reply rate, publish rate, average rating, rated count, and rating distribution.
+- **Queue:** low-rated private feedback queue for ratings 1-3 that are not archived.
+- **Source of truth:** reuses `ClinicPatientReview` from the existing Reputation workflow; no new table.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, data-model, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

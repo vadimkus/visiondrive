@@ -363,6 +363,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 50. Review analytics
    - Source: reviews overview.
    - Solo version: requested, replied, published, average rating, negative-private-feedback queue.
+   - Status: shipped first pass.
+   - Shipped: added `/clinic/review-analytics` and `GET /api/clinic/review-analytics/overview` with 30-day, 90-day, and all-time filters. It shows request/reply/publish KPIs, average rating, rating distribution, and a low-rated private feedback queue using existing `ClinicPatientReview` records.
+   - Next improvements: external platform attribution, review trend chart, sentiment tagging, automatic follow-up tasks for low ratings, and source-level publish conversion.
 
 51. Knowledge base expansion
    - Source: Altegio support knowledge base format.
