@@ -77,6 +77,7 @@
 | [2026-04-28_clinic-voice-comments.md](2026-04-28_clinic-voice-comments.md) | Clinic voice comments note |
 | [2026-04-28_clinic-aftercare-document-library.md](2026-04-28_clinic-aftercare-document-library.md) | Clinic aftercare document library note |
 | [2026-04-28_clinic-patient-safe-exports.md](2026-04-28_clinic-patient-safe-exports.md) | Clinic patient-safe exports note |
+| [2026-04-28_clinic-account-notification-preferences.md](2026-04-28_clinic-account-notification-preferences.md) | Clinic account and notification preferences note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

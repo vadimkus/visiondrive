@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -53,6 +54,26 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const { locale, setLocale, t } = useClinicLocale()
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/clinic/me', { credentials: 'include' })
+        if (!res.ok) return
+        const data = await res.json()
+        const preferred = data?.preferences?.locale
+        if (!cancelled && (preferred === 'en' || preferred === 'ru')) {
+          setLocale(preferred)
+        }
+      } catch {
+        // Local storage remains the fallback when the preference endpoint is unavailable.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [setLocale])
 
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })

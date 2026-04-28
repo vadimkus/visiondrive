@@ -7,13 +7,38 @@ const RESEND_FROM =
   process.env.RESEND_ALERTS_FROM || 'VisionDrive Alerts <onboarding@resend.dev>'
 const COOLDOWN_MS = 24 * 60 * 60 * 1000
 
-function alertRecipients(): string[] {
+function fallbackAlertRecipients(): string[] {
   const raw =
     process.env.CLINIC_LOW_STOCK_EMAIL || process.env.CONTACT_EMAIL || 'tech@visiondrive.ae'
   return raw
     .split(/[,;]/)
     .map((s) => s.trim())
     .filter(Boolean)
+}
+
+async function lowStockPreferenceRecipients(tenantId: string) {
+  const rows = await prisma.clinicUserPreference.findMany({
+    where: { tenantId },
+    select: {
+      userId: true,
+      notifyEmail: true,
+      notifyPush: true,
+      notifyLowStock: true,
+      user: { select: { email: true, status: true } },
+    },
+  })
+  return {
+    rows,
+    emailTo: rows
+      .filter((row) => row.notifyEmail && row.notifyLowStock && row.user.status === 'ACTIVE')
+      .map((row) => row.user.email)
+      .filter(Boolean),
+    pushUserIds: new Set(
+      rows
+        .filter((row) => row.notifyPush && row.notifyLowStock && row.user.status === 'ACTIVE')
+        .map((row) => row.userId)
+    ),
+  }
 }
 
 function vapidConfigured(): boolean {
@@ -78,7 +103,11 @@ export async function handleLowStockNotificationsForItem(stockItemId: string): P
     return
   }
 
-  const recipients = alertRecipients()
+  const preferenceRecipients = await lowStockPreferenceRecipients(item.tenantId)
+  const recipients =
+    preferenceRecipients.rows.length > 0
+      ? preferenceRecipients.emailTo
+      : fallbackAlertRecipients()
   const subject = `[Practice OS] Low stock: ${item.name}`
   const html = `
     <h2>Low stock alert</h2>
@@ -103,7 +132,12 @@ export async function handleLowStockNotificationsForItem(stockItemId: string): P
       url: `/clinic/inventory/${item.id}`,
     })
     const subs = await prisma.clinicWebPushSubscription.findMany({
-      where: { tenantId: item.tenantId },
+      where: {
+        tenantId: item.tenantId,
+        ...(preferenceRecipients.rows.length > 0
+          ? { userId: { in: [...preferenceRecipients.pushUserIds] } }
+          : {}),
+      },
     })
     for (const sub of subs) {
       try {

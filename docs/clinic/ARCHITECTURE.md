@@ -44,7 +44,8 @@
 | `ClinicStockCountSession` / `ClinicStockCountLine` | Physical stock-taking workflow: count session snapshot, expected vs counted quantities, variance reason, note, and movement reference after finalization. |
 | `ClinicSupplier` / `ClinicSupplierSettlement` | Supplier profiles with contact/payment terms/reorder notes plus settlement rows; unpaid balance is derived from received PO line cost minus settlements. |
 | `ClinicPurchaseOrder` / `ClinicPurchaseOrderLine` | Supplier orders and receipts; receiving creates `RECEIPT` stock movements and increments item quantities. POs can link to a supplier profile while preserving the supplier name snapshot. |
-| `ClinicWebPushSubscription` | Browser push endpoints for low-stock alerts, scoped to user + tenant. |
+| `ClinicUserPreference` | Tenant-scoped practitioner preferences for saved UI language and notification channels/types. |
+| `ClinicWebPushSubscription` | Browser push endpoints for opted-in clinic alerts, scoped to user + tenant. |
 
 Relationships: `ClinicAppointment` → `ClinicPatient`, optional → `ClinicProcedure`; **`ClinicVisit`** optionally → `ClinicAppointment`; `ClinicAppointmentEvent` → `ClinicAppointment`; media and payments optionally → **`ClinicVisit`**. Cascade deletes are tenant-safe because patient belongs to tenant.
 
@@ -96,6 +97,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 - **Referral tracking:** patient create/edit stores `referredByName` and `referralNote`; `GET /api/clinic/referrals/overview` groups referred patients by source/person for 30/90/365-day and all-time windows.
 - **Patient portal lite:** `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` manages private portal links; `GET/POST /api/patient-portal/[token]` returns patient-safe portal data and creates reschedule/cancel/message requests; `GET /api/patient-portal/[token]/payments/[paymentId]/receipt` downloads receipt PDFs for that patient only.
 - **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot/intake discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
+- **Account/preferences:** `GET/PATCH /api/clinic/me` returns and updates practitioner profile, saved language, password, and notification preferences. Low-stock push/email delivery respects `ClinicUserPreference`; tenants with no preference rows keep the legacy env-recipient fallback.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.
 - Auth: **`Cookie` `authToken`** + **`portal=clinic`**; validated in each route (middleware does not cover API — handlers enforce).
 - Errors: JSON `{ error: string, code?: string }` with appropriate HTTP status.

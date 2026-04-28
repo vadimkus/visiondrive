@@ -286,6 +286,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 39. Account and notification preferences
    - Source: personal account.
    - Solo version: practitioner profile, language, notification preferences, password reset, push settings.
+   - Status: shipped first pass.
+   - Shipped: Account now persists display name plus preferred EN/RU language, password changes, browser push subscription state, email/push channel preferences, and alert-type toggles for bookings, reschedules, reminders, reviews, unpaid visits, low stock, and package expiry. Clinic shell applies saved language on sign-in; low-stock email/push delivery respects saved preferences.
+   - Next improvements: full password-reset email flow, per-time-window quiet hours, reminder digest frequency, and SMS/WhatsApp Business channel preferences.
 
 40. PWA practitioner mode
    - Source: employee mobile app.
@@ -367,11 +370,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 1. Booking source/UTM attribution and abandoned-booking follow-up.
 2. Patient-uploaded photos through the portal.
-3. Account and notification preferences.
-4. PWA practitioner mode.
-5. Birthday and personal occasion messages.
+3. PWA practitioner mode.
+4. Practitioner push notifications.
+5. Offline-safe visit draft.
 
 ## Recommendation
 
-Patient-safe exports now bundle the documents a solo practitioner can safely hand to a client without leaking staff-only context. The next point should be account and notification preferences: practitioner profile, language, password, push/email preferences, and practical notification controls.
+Account and notification preferences now give the solo practitioner a real control panel for identity, language, password, and alert types. The next point should be PWA practitioner mode: installable mobile app feel, today screen, quick actions, reminders, and offline note draft preparation.
 

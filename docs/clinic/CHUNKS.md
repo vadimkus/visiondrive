@@ -915,6 +915,24 @@
 
 ---
 
+## Chunk 52 — 2026-04-28 (account and notification preferences)
+
+**Shipped**
+
+- **Schema:** added `ClinicUserPreference` for tenant-scoped practitioner locale and notification preferences.
+- **Account:** `/clinic/account` now saves display name, preferred EN/RU language, password changes, email/push channels, alert-type toggles, and device push subscription state.
+- **Locale:** clinic shell applies the saved account language on sign-in while local storage remains the fallback.
+- **Notifications:** low-stock email and browser push delivery now respects saved low-stock/channel preferences; tenants with no preference rows keep the legacy env-recipient fallback.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, data model, architecture, backlog, and session note updated.
+
+**Validation**
+
+- Added Vitest coverage for preference normalization.
+- Run `npx prisma generate`, `npm run type-check`, focused preference tests, and `npm run lint`.
+- Run `npx prisma db push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

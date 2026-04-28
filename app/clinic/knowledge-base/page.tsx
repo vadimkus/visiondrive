@@ -135,6 +135,21 @@ const articlesEn: Article[] = [
     link: '/clinic/inventory',
   },
   {
+    id: 'account-notification-preferences',
+    category: 'Account',
+    title: 'Set account and notification preferences',
+    summary: 'Save your practitioner profile, language, password, alert channels, and alert types.',
+    steps: [
+      'Open Account from the Practice OS sidebar.',
+      'Save your display name and preferred EN/RU language.',
+      'Choose email and browser push channels.',
+      'Turn alert types on or off: bookings, reschedules, reminders, reviews, unpaid visits, low stock, and package expiry.',
+      'Enable browser push on each device where you want alerts.',
+      'Use Change password when you need to rotate credentials.',
+    ],
+    link: '/clinic/account',
+  },
+  {
     id: 'purchase-orders',
     category: 'Inventory',
     title: 'Receive supplier orders into stock',
@@ -656,6 +671,21 @@ const articlesRu: Article[] = [
       'Включите push-уведомления в Аккаунте, чтобы получать низкие остатки.',
     ],
     link: '/clinic/inventory',
+  },
+  {
+    id: 'account-notification-preferences',
+    category: 'Аккаунт',
+    title: 'Настройте аккаунт и уведомления',
+    summary: 'Сохраните профиль специалиста, язык, пароль, каналы и типы уведомлений.',
+    steps: [
+      'Откройте Аккаунт в боковом меню Practice OS.',
+      'Сохраните имя и предпочитаемый язык EN/RU.',
+      'Выберите каналы: email и push в браузере.',
+      'Включайте и выключайте типы уведомлений: записи, переносы, напоминания, отзывы, неоплаченные визиты, низкие остатки и истечение пакетов.',
+      'Включите push на каждом устройстве, где нужны уведомления.',
+      'Используйте смену пароля, когда нужно обновить доступ.',
+    ],
+    link: '/clinic/account',
   },
   {
     id: 'purchase-orders',

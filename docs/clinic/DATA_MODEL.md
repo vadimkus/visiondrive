@@ -8,6 +8,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 |-------|---------|
 | `tenants` | Practice / organization boundary. |
 | `users` + `tenant_memberships` | Staff accounts; clinic login uses `users.defaultTenantId` in JWT. |
+| `clinic_user_preferences` | Tenant-scoped practitioner language and notification channel/type preferences. |
 | `clinic_patients` | Demographics, contacts, home address / area / access notes, client `category` and `tags`, simple referral fields (`referred_by_name`, `referral_note`), **internal_notes** (staff only), optional **`anamnesis_json`** (v1 JSON: allergies, medications, conditions, social). |
 | `clinic_procedures` | Service catalog (duration, hidden buffer, price, currency), with procedure BOM, public intake questions, and aftercare templates. |
 | `clinic_appointments` | Scheduled slots; richer status; source; optional procedure; hidden buffer; home-visit location and travel buffers; lifecycle timestamps; **internal_notes**; optional override reason for intentional conflict/out-of-hours bookings. |
@@ -42,7 +43,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_stock_count_sessions` + `clinic_stock_count_lines` | Physical stock counts with expected vs counted quantities, variance reason/note, status, finalization timestamp, and adjustment movement references. |
 | `clinic_suppliers` + `clinic_supplier_settlements` | Supplier profiles, contact/payment terms/reorder notes, settlement history, and derived unpaid balance. |
 | `clinic_purchase_orders` + `clinic_purchase_order_lines` | Supplier ordering and receiving; receipts create `RECEIPT` stock movements; orders can link to supplier profiles while preserving the supplier name snapshot. |
-| `clinic_web_push_subscriptions` | Browser push subscriptions for low-stock alerts. |
+| `clinic_web_push_subscriptions` | Browser push subscriptions for opted-in clinic alerts. |
 
 ## API surface (high level)
 
@@ -62,6 +63,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/POST /api/clinic/stock-takes`; `GET/PATCH /api/clinic/stock-takes/[id]`; `PATCH .../lines/[lineId]`; `POST .../finalize` — create/count/finalize stock-taking sessions and post variance adjustments.
 - `GET/POST /api/clinic/suppliers`; `GET/PATCH /api/clinic/suppliers/[id]`; `POST /api/clinic/suppliers/[id]/settlements` — supplier contacts, purchase history, received value, payments, and unpaid balance.
 - `GET/POST /api/clinic/purchase-orders`; `GET/PATCH /api/clinic/purchase-orders/[id]`; `POST /api/clinic/purchase-orders/[id]/receive`.
+- `GET/PATCH /api/clinic/me` — account profile, saved language, password change, and notification preferences.
 - `GET /api/clinic/push/vapid-public`; `POST/DELETE /api/clinic/push/subscribe`.
 - `GET/POST /api/clinic/appointments` — range query + conflict-safe create; create checks existing appointments, blocked time, working hours, and minimum lead time.
 - `GET/PATCH /api/clinic/appointments/[id]` — read/update one appointment, including drawer context, patient balance, and event history; schedule changes require override reason when they violate scheduling rules.

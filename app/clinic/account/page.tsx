@@ -7,20 +7,34 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { urlBase64ToUint8Array } from '@/lib/clinic/web-push-encoding'
+import {
+  CLINIC_ACCOUNT_NOTIFICATION_KEYS,
+  DEFAULT_CLINIC_ACCOUNT_PREFERENCES,
+  type ClinicAccountPreferences,
+} from '@/lib/clinic/account-preferences'
+import type { ClinicLocale } from '@/lib/clinic/strings'
 
 type MeResponse = {
   user: { id: string; email: string; name: string | null; role: string }
   tenant: { id: string; name: string; slug: string }
+  preferences: ClinicAccountPreferences
 }
+
+type PreferenceBoolKey = Exclude<keyof ClinicAccountPreferences, 'locale'>
 
 export default function ClinicAccountPage() {
   const router = useRouter()
-  const { t } = useClinicLocale()
+  const { locale, setLocale, t } = useClinicLocale()
   const [me, setMe] = useState<MeResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
+  const [preferredLocale, setPreferredLocale] = useState<ClinicLocale>(locale)
+  const [preferences, setPreferences] = useState<ClinicAccountPreferences>(
+    DEFAULT_CLINIC_ACCOUNT_PREFERENCES
+  )
   const [savingProfile, setSavingProfile] = useState(false)
+  const [savingPreferences, setSavingPreferences] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [showCurrent, setShowCurrent] = useState(false)
@@ -49,6 +63,10 @@ export default function ClinicAccountPage() {
         if (!cancelled) {
           setMe(data)
           setName(data.user?.name ?? '')
+          const nextPrefs = data.preferences ?? DEFAULT_CLINIC_ACCOUNT_PREFERENCES
+          setPreferences(nextPrefs)
+          setPreferredLocale(nextPrefs.locale)
+          setLocale(nextPrefs.locale)
         }
       } catch {
         setError(t.networkError)
@@ -59,7 +77,7 @@ export default function ClinicAccountPage() {
     return () => {
       cancelled = true
     }
-  }, [router, t.failedToLoad, t.networkError])
+  }, [router, setLocale, t.failedToLoad, t.networkError])
 
   useEffect(() => {
     if (!me) return
@@ -182,6 +200,15 @@ export default function ClinicAccountPage() {
     }
   }
 
+  const setPreferredLanguage = (nextLocale: ClinicLocale) => {
+    setPreferredLocale(nextLocale)
+    setPreferences((current) => ({ ...current, locale: nextLocale }))
+  }
+
+  const updatePreference = (key: PreferenceBoolKey, value: boolean) => {
+    setPreferences((current) => ({ ...current, [key]: value }))
+  }
+
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage('')
@@ -191,7 +218,7 @@ export default function ClinicAccountPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, locale: preferredLocale }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -200,10 +227,37 @@ export default function ClinicAccountPage() {
       }
       setMessage(t.profileUpdated)
       setError('')
+      setLocale(preferredLocale)
     } catch {
       setError(t.networkError)
     } finally {
       setSavingProfile(false)
+    }
+  }
+
+  const saveNotificationPreferences = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage('')
+    setError('')
+    setSavingPreferences(true)
+    try {
+      const res = await fetch('/api/clinic/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ preferences: { ...preferences, locale: preferredLocale } }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.saveFailed)
+        return
+      }
+      setMessage(t.notificationPreferencesUpdated)
+      setError('')
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setSavingPreferences(false)
     }
   }
 
@@ -249,8 +303,21 @@ export default function ClinicAccountPage() {
     )
   }
 
+  const notificationPreferenceLabels: Record<
+    (typeof CLINIC_ACCOUNT_NOTIFICATION_KEYS)[number],
+    string
+  > = {
+    notifyNewBooking: t.inboxNewBooking,
+    notifyRescheduled: t.inboxRescheduled,
+    notifyReminderDue: t.inboxReminderDue,
+    notifyReviewRequest: t.inboxReviewRequest,
+    notifyUnpaidVisit: t.inboxUnpaidVisit,
+    notifyLowStock: t.inboxLowStock,
+    notifyPackageExpiry: t.packageExpiringSoon,
+  }
+
   return (
-    <div className="max-w-xl mx-auto space-y-8">
+    <div className="max-w-2xl mx-auto space-y-8">
       <div>
         <Link href="/clinic" className="text-sm text-orange-600 hover:text-orange-700">
           {t.backDashboard}
@@ -273,9 +340,67 @@ export default function ClinicAccountPage() {
         <div className="p-4 rounded-xl bg-red-50 text-red-700 text-sm border border-red-100">{error}</div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">{t.pushNotificationsHeading}</h2>
-        <p className="text-sm text-gray-600">{t.pushNotificationsHint}</p>
+      <form
+        onSubmit={saveNotificationPreferences}
+        className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-5"
+      >
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">{t.notificationPreferencesHeading}</h2>
+          <p className="text-sm text-gray-600 mt-1">{t.notificationPreferencesHint}</p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <label className="flex items-start gap-3 rounded-xl border border-gray-200 p-3">
+            <input
+              type="checkbox"
+              checked={preferences.notifyPush}
+              onChange={(e) => updatePreference('notifyPush', e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+            />
+            <span>
+              <span className="block text-sm font-medium text-gray-900">{t.notifyByPush}</span>
+              <span className="block text-xs text-gray-500">{t.notifyByPushHint}</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3 rounded-xl border border-gray-200 p-3">
+            <input
+              type="checkbox"
+              checked={preferences.notifyEmail}
+              onChange={(e) => updatePreference('notifyEmail', e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+            />
+            <span>
+              <span className="block text-sm font-medium text-gray-900">{t.notifyByEmail}</span>
+              <span className="block text-xs text-gray-500">{t.notifyByEmailHint}</span>
+            </span>
+          </label>
+        </div>
+
+        <div>
+          <p className="text-sm font-medium text-gray-900 mb-2">{t.notificationTypesHeading}</p>
+          <div className="grid sm:grid-cols-2 gap-2">
+            {CLINIC_ACCOUNT_NOTIFICATION_KEYS.map((key) => (
+              <label
+                key={key}
+                className="flex items-center gap-3 rounded-xl border border-gray-100 px-3 py-2 text-sm text-gray-700"
+              >
+                <input
+                  type="checkbox"
+                  checked={preferences[key]}
+                  onChange={(e) => updatePreference(key, e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                />
+                {notificationPreferenceLabels[key]}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-100 bg-gray-50 p-3 space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">{t.pushDeviceHeading}</h3>
+            <p className="text-sm text-gray-600">{t.pushNotificationsHint}</p>
+          </div>
         {!pushConfigured && (
           <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
             {t.pushNotConfigured}
@@ -306,7 +431,16 @@ export default function ClinicAccountPage() {
             </button>
           )}
         </div>
-      </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={savingPreferences}
+          className="w-full sm:w-auto px-5 py-3 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 disabled:opacity-60"
+        >
+          {savingPreferences ? t.savingEllipsis : t.saveNotificationPreferences}
+        </button>
+      </form>
 
       <form onSubmit={saveProfile} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">{t.profileHeading}</h2>
@@ -321,6 +455,21 @@ export default function ClinicAccountPage() {
             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 outline-none text-base"
             autoComplete="name"
           />
+        </div>
+        <div>
+          <label htmlFor="preferredLocale" className="block text-sm font-medium text-gray-700 mb-1">
+            {t.preferredLanguage}
+          </label>
+          <select
+            id="preferredLocale"
+            value={preferredLocale}
+            onChange={(e) => setPreferredLanguage(e.target.value === 'ru' ? 'ru' : 'en')}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 outline-none text-base bg-white"
+          >
+            <option value="en">{t.localeEn}</option>
+            <option value="ru">{t.localeRu}</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">{t.preferredLanguageHint}</p>
         </div>
         <button
           type="submit"
