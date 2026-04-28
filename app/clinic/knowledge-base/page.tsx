@@ -393,6 +393,20 @@ const articlesEn: Article[] = [
     link: '/clinic/occasions',
   },
   {
+    id: 'referral-tracking',
+    category: 'Patients',
+    title: 'Track who sends you new clients',
+    summary:
+      'Use a simple referred-by field and referral note before adding complex rewards or points.',
+    steps: [
+      'When creating or editing a patient, fill Referred by with the client, partner, Instagram source, or campaign that brought them.',
+      'Use Referral note for a small reward promise, context, or manual follow-up note.',
+      'Open Referrals from the clinic navigation to see referred clients by source/person.',
+      'Review recent referred patients and open the patient chart before sending any thank-you or reward message.',
+    ],
+    link: '/clinic/referrals',
+  },
+  {
     id: 'patient-portal-lite',
     category: 'Patients',
     title: 'Share a private patient portal link',
@@ -818,6 +832,20 @@ const articlesRu: Article[] = [
       'Скопируйте сообщение, откройте WhatsApp или сначала откройте карту пациента.',
     ],
     link: '/clinic/occasions',
+  },
+  {
+    id: 'referral-tracking',
+    category: 'Пациенты',
+    title: 'Отслеживайте, кто приводит новых клиентов',
+    summary:
+      'Используйте простое поле "кто рекомендовал" и заметку, не строя сложную систему баллов.',
+    steps: [
+      'При создании или редактировании пациента заполните Кто рекомендовал: клиент, партнер, Instagram-источник или кампания.',
+      'В заметке по рекомендации сохраните обещанный бонус, контекст или ручное follow-up действие.',
+      'Откройте Рекомендации в навигации клиники, чтобы увидеть клиентов по источникам/людям.',
+      'Проверяйте последние карты пациентов перед благодарностью или обещанным бонусом.',
+    ],
+    link: '/clinic/referrals',
   },
   {
     id: 'patient-portal-lite',

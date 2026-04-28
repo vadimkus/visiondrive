@@ -790,6 +790,24 @@
 
 ---
 
+## Chunk 45 — 2026-04-28 (referral tracking)
+
+**Shipped**
+
+- **Schema:** `ClinicPatient` now stores `referredByName` and `referralNote` for lightweight word-of-mouth tracking.
+- **Helper:** `lib/clinic/referrals.ts` normalizes referral fields, report ranges, source keys, and source/person summaries.
+- **API:** `GET /api/clinic/referrals/overview` returns 30/90/365-day and all-time referral summaries plus recent referred patients.
+- **UI:** patient create/edit forms capture referral details; `/clinic/referrals` shows source/person totals, completed-visit counts, recent referred patients, and patient-chart links.
+- **i18n/Knowledge Base:** EN/RU strings and article explain referral tracking without introducing a complex points program.
+- **Docs/canvas:** Altegio backlog and canvas mark referral tracking shipped and move the next recommendation to promotions/discount rules.
+
+**Validation**
+
+- Added Vitest coverage for referral text normalization, report ranges, source summaries, and patient-name formatting.
+- Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

@@ -10,7 +10,7 @@
 
 | Model | Purpose |
 |-------|---------|
-| `ClinicPatient` | Demographics + home-visit address/area/access notes + client `category`/`tags` + **`internalNotes`** (staff-only; never on patient PDF) + optional **`anamnesisJson`** (v1 structured intake: allergies, medications, conditions, social). |
+| `ClinicPatient` | Demographics + home-visit address/area/access notes + client `category`/`tags`, simple referral tracking (`referredByName`, `referralNote`), **`internalNotes`** (staff-only; never on patient PDF) + optional **`anamnesisJson`** (v1 structured intake: allergies, medications, conditions, social). |
 | `ClinicProcedure` | Catalog: name, duration, hidden **`bufferAfterMinutes`** (cleanup/prep/travel), base price, currency (default AED), and procedure materials/BOM. |
 | `ClinicAppointment` | Scheduled visit intent: patient, optional procedure, start/end, status, source, hidden buffer, home-visit location/travel buffers, lifecycle timestamps, **`internalNotes`**, and optional `overrideReason` for intentional scheduling exceptions. |
 | `ClinicAppointmentEvent` | Appointment change history: create/update/reschedule/status/reminder/visit/payment/follow-up events. |
@@ -87,6 +87,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 - **Retention analytics/reactivation:** `GET /api/clinic/retention/overview` derives rebook rate, returning-client rate, no-show rate, follow-up conversion, repeat interval by procedure, and 60/90/120-day dormant patient reactivation rows with localized WhatsApp message links.
 - **Booking funnel analytics:** `POST /api/clinic/public-booking/[slug]/funnel` records public booking step events with source/UTM metadata for enabled tenant links; `GET /api/clinic/booking-funnel/overview` summarizes conversion by stage, day, procedure, source, and abandoned sessions with localized WhatsApp follow-up copy.
 - **Occasion messages:** `GET /api/clinic/occasions/overview` derives upcoming birthdays from patient DOBs for 7/30/90-day windows and returns localized EN/RU WhatsApp greeting copy.
+- **Referral tracking:** patient create/edit stores `referredByName` and `referralNote`; `GET /api/clinic/referrals/overview` groups referred patients by source/person for 30/90/365-day and all-time windows.
 - **Patient portal lite:** `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` manages private portal links; `GET/POST /api/patient-portal/[token]` returns patient-safe portal data and creates reschedule/cancel/message requests; `GET /api/patient-portal/[token]/payments/[paymentId]/receipt` downloads receipt PDFs for that patient only.
 - **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot/intake discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.

@@ -8,7 +8,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 |-------|---------|
 | `tenants` | Practice / organization boundary. |
 | `users` + `tenant_memberships` | Staff accounts; clinic login uses `users.defaultTenantId` in JWT. |
-| `clinic_patients` | Demographics, contacts, home address / area / access notes, client `category` and `tags`, **internal_notes** (staff only), optional **`anamnesis_json`** (v1 JSON: allergies, medications, conditions, social). |
+| `clinic_patients` | Demographics, contacts, home address / area / access notes, client `category` and `tags`, simple referral fields (`referred_by_name`, `referral_note`), **internal_notes** (staff only), optional **`anamnesis_json`** (v1 JSON: allergies, medications, conditions, social). |
 | `clinic_procedures` | Service catalog (duration, hidden buffer, price, currency). |
 | `clinic_appointments` | Scheduled slots; richer status; source; optional procedure; hidden buffer; home-visit location and travel buffers; lifecycle timestamps; **internal_notes**; optional override reason for intentional conflict/out-of-hours bookings. |
 | `clinic_appointment_events` | Appointment audit/change history for reschedules, reminders, visit actions, payments, and follow-ups. |
@@ -86,6 +86,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `POST /api/clinic/public-booking/[slug]/funnel` — public booking step tracking for enabled tenant booking links, including source/UTM metadata from shared links.
 - `GET /api/clinic/booking-funnel/overview` — staff analytics for public booking conversion by stage, day, procedure, source, and abandoned sessions with localized WhatsApp follow-up messages.
 - `GET /api/clinic/occasions/overview` — derived birthday/occasion workflow from existing patient DOBs, returning 7/30/90-day birthday rows with localized WhatsApp greeting copy.
+- `GET /api/clinic/referrals/overview` — derived referral report from patient `referred_by_name`, grouped by source/person for 30/90/365-day and all-time windows.
 - `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` — staff creates, lists, and revokes private patient portal links.
 - `GET/POST /api/patient-portal/[token]` — public patient-safe portal data and reschedule/cancel/message request creation by private token.
 - `GET /api/patient-portal/[token]/payments/[paymentId]/receipt` — patient-safe receipt PDF download through an active portal token.

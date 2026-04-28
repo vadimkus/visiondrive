@@ -849,25 +849,27 @@ enum ClinicIntakeQuestionType {
 }
 
 model ClinicPatient {
-  id            String   @id @default(cuid())
-  tenantId      String
-  firstName     String
-  lastName      String
-  middleName    String?
-  dateOfBirth   DateTime @db.Date
-  phone         String?
-  email         String?
-  homeAddress   String?  @db.Text
-  area          String?
-  accessNotes   String?  @db.Text
-  category      String?
-  tags          String[] @default([])
+  id             String   @id @default(cuid())
+  tenantId       String
+  firstName      String
+  lastName       String
+  middleName     String?
+  dateOfBirth    DateTime @db.Date
+  phone          String?
+  email          String?
+  homeAddress    String?  @db.Text
+  area           String?
+  accessNotes    String?  @db.Text
+  category       String?
+  tags           String[] @default([])
+  referredByName String?
+  referralNote   String?  @db.Text
   /// Staff-only; never expose on patient-facing PDF exports
-  internalNotes String?  @db.Text
+  internalNotes  String?  @db.Text
   /// Structured intake / history (v1 object: allergies, medications, conditions, social)
-  anamnesisJson Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  anamnesisJson  Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   tenant             Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   appointments       ClinicAppointment[]
@@ -888,6 +890,7 @@ model ClinicPatient {
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
   @@index([tenantId, category])
+  @@index([tenantId, referredByName])
   @@map("clinic_patients")
 }
 

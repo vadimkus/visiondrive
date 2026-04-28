@@ -12,6 +12,7 @@ import {
   patientDeleteConfirmation,
 } from '@/lib/clinic/data-export'
 import { normalizePatientCategory, normalizePatientTags } from '@/lib/clinic/patient-tags'
+import { normalizeReferralNote, normalizeReferralText } from '@/lib/clinic/referrals'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function parseDateOnly(isoDate: string): Date | null {
@@ -331,6 +332,8 @@ export async function PATCH(
     accessNotes?: string | null
     category?: string | null
     tags?: string[]
+    referredByName?: string | null
+    referralNote?: string | null
     internalNotes?: string | null
     anamnesisJson?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
   } = {}
@@ -374,6 +377,12 @@ export async function PATCH(
   if (body.tags !== undefined) {
     data.tags = normalizePatientTags(body.tags)
   }
+  if (body.referredByName !== undefined) {
+    data.referredByName = normalizeReferralText(body.referredByName)
+  }
+  if (body.referralNote !== undefined) {
+    data.referralNote = normalizeReferralNote(body.referralNote)
+  }
   if (body.internalNotes !== undefined) {
     data.internalNotes = body.internalNotes == null ? null : String(body.internalNotes).trim() || null
   }
@@ -406,6 +415,8 @@ export async function PATCH(
       accessNotes: true,
       category: true,
       tags: true,
+      referredByName: true,
+      referralNote: true,
       internalNotes: true,
       anamnesisJson: true,
       updatedAt: true,

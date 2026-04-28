@@ -5,6 +5,7 @@ import {
   buildClientBalanceSummary,
 } from '@/lib/clinic/client-balance'
 import { normalizePatientCategory, normalizePatientTags } from '@/lib/clinic/patient-tags'
+import { normalizeReferralNote, normalizeReferralText } from '@/lib/clinic/referrals'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function parseDateOnly(isoDate: string): Date | null {
@@ -72,6 +73,8 @@ export async function GET(request: NextRequest) {
       accessNotes: true,
       category: true,
       tags: true,
+      referredByName: true,
+      referralNote: true,
       createdAt: true,
       appointments: {
         select: {
@@ -158,6 +161,8 @@ export async function POST(request: NextRequest) {
   const accessNotes = body.accessNotes != null ? String(body.accessNotes).trim() || null : null
   const category = normalizePatientCategory(body.category)
   const tags = normalizePatientTags(body.tags)
+  const referredByName = normalizeReferralText(body.referredByName)
+  const referralNote = normalizeReferralNote(body.referralNote)
   const internalNotes =
     body.internalNotes != null ? String(body.internalNotes).trim() || null : null
 
@@ -184,6 +189,8 @@ export async function POST(request: NextRequest) {
       accessNotes,
       category,
       tags,
+      referredByName,
+      referralNote,
       internalNotes,
     },
     select: {
@@ -199,6 +206,8 @@ export async function POST(request: NextRequest) {
       accessNotes: true,
       category: true,
       tags: true,
+      referredByName: true,
+      referralNote: true,
       createdAt: true,
     },
   })

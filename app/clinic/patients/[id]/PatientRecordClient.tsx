@@ -260,6 +260,8 @@ export type PatientRecord = {
   accessNotes: string | null
   category: PatientCategory | null
   tags: PatientTag[]
+  referredByName: string | null
+  referralNote: string | null
   internalNotes: string | null
   anamnesisJson?: unknown | null
   appointments: AppointmentRow[]
@@ -381,6 +383,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const [editAccessNotes, setEditAccessNotes] = useState('')
   const [editCategory, setEditCategory] = useState('')
   const [editTags, setEditTags] = useState<PatientTag[]>([])
+  const [editReferredByName, setEditReferredByName] = useState('')
+  const [editReferralNote, setEditReferralNote] = useState('')
   const [editInternal, setEditInternal] = useState('')
   const [editAllergies, setEditAllergies] = useState('')
   const [editMedications, setEditMedications] = useState('')
@@ -410,6 +414,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     setEditAccessNotes(p.accessNotes ?? '')
     setEditCategory(p.category ?? '')
     setEditTags(p.tags ?? [])
+    setEditReferredByName(p.referredByName ?? '')
+    setEditReferralNote(p.referralNote ?? '')
     setEditInternal(p.internalNotes ?? '')
     const am = anamnesisFromJson(p.anamnesisJson)
     setEditAllergies(am.allergies)
@@ -501,6 +507,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           accessNotes: editAccessNotes || null,
           category: editCategory || null,
           tags: editTags,
+          referredByName: editReferredByName || null,
+          referralNote: editReferralNote || null,
           internalNotes: editInternal || null,
           anamnesisJson,
         }),
@@ -734,6 +742,10 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           setEditCategory={setEditCategory}
           editTags={editTags}
           setEditTags={setEditTags}
+          editReferredByName={editReferredByName}
+          setEditReferredByName={setEditReferredByName}
+          editReferralNote={editReferralNote}
+          setEditReferralNote={setEditReferralNote}
           editInternal={editInternal}
           setEditInternal={setEditInternal}
           editAllergies={editAllergies}
@@ -1060,6 +1072,10 @@ function OverviewTab({
   setEditCategory,
   editTags,
   setEditTags,
+  editReferredByName,
+  setEditReferredByName,
+  editReferralNote,
+  setEditReferralNote,
   editInternal,
   setEditInternal,
   editAllergies,
@@ -1095,6 +1111,10 @@ function OverviewTab({
   setEditCategory: (v: string) => void
   editTags: PatientTag[]
   setEditTags: (v: PatientTag[]) => void
+  editReferredByName: string
+  setEditReferredByName: (v: string) => void
+  editReferralNote: string
+  setEditReferralNote: (v: string) => void
   editInternal: string
   setEditInternal: (v: string) => void
   editAllergies: string
@@ -1234,6 +1254,20 @@ function OverviewTab({
               </span>
             ))}
           </div>
+        </div>
+        <div className="rounded-2xl bg-orange-50/70 border border-orange-100 p-3">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-orange-700">
+            {t.referralTracking}
+          </p>
+          <p>
+            <span className="text-gray-500">{t.referredBy}:</span>{' '}
+            {patient.referredByName || t.emptyValue}
+          </p>
+          {patient.referralNote && (
+            <p className="mt-1">
+              <span className="text-gray-500">{t.referralNote}:</span> {patient.referralNote}
+            </p>
+          )}
         </div>
       </div>
 
@@ -1378,6 +1412,28 @@ function OverviewTab({
                   {tagLabel(t, tag)}
                 </button>
               ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4 space-y-3">
+            <p className="text-sm font-semibold text-orange-950">{t.referralTracking}</p>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.referredBy}</label>
+              <input
+                value={editReferredByName}
+                onChange={(e) => setEditReferredByName(e.target.value)}
+                placeholder={t.referredByPlaceholder}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">{t.referralNote}</label>
+              <textarea
+                value={editReferralNote}
+                onChange={(e) => setEditReferralNote(e.target.value)}
+                placeholder={t.referralNotePlaceholder}
+                rows={2}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+              />
             </div>
           </div>
           <div>

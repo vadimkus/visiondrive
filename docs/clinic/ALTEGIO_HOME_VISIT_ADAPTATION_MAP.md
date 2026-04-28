@@ -237,6 +237,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 32. Referral tracking
    - Source: referral program.
    - Solo version: "referred by" field, referral reward note, simple report. Avoid complex points early.
+   - Status: shipped first pass.
+   - Shipped: patient create/edit stores referred-by source/person and referral note; `/clinic/referrals` shows 30/90/365-day and all-time reports grouped by referral source with recent referred patient links.
+   - Next improvements: save thank-you/reward outreach to CRM, optionally link referrer to an existing patient record, and add reward-fulfilled tracking only if practitioners consistently use rewards.
 
 33. Promotions and discount rules
    - Source: promotions and discounts.
@@ -355,5 +358,5 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommendation
 
-Birthday and occasion messages now cover the light personal-touch workflow. The next point should be referral tracking: add a simple "referred by" field, referral note, and small report without building a complex points program.
+Referral tracking now covers the light word-of-mouth workflow. The next point should be promotions and discount rules: add simple named discounts on visits/packages, require a reason, and make discounts visible in margin/profit reports.
 

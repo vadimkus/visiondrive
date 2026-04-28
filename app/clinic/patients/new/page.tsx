@@ -41,6 +41,8 @@ export default function NewPatientPage() {
     accessNotes: '',
     category: '',
     tags: [] as PatientTag[],
+    referredByName: '',
+    referralNote: '',
     internalNotes: '',
   })
 
@@ -74,6 +76,8 @@ export default function NewPatientPage() {
           accessNotes: form.accessNotes || undefined,
           category: form.category || undefined,
           tags: form.tags,
+          referredByName: form.referredByName || undefined,
+          referralNote: form.referralNote || undefined,
           internalNotes: form.internalNotes || undefined,
         }),
       })
@@ -221,6 +225,28 @@ export default function NewPatientPage() {
                 {tagLabel(t, tag)}
               </button>
             ))}
+          </div>
+        </div>
+        <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-orange-950">{t.referralTracking}</h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.referredBy}</label>
+            <input
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+              value={form.referredByName}
+              onChange={(e) => setForm({ ...form, referredByName: e.target.value })}
+              placeholder={t.referredByPlaceholder}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.referralNote}</label>
+            <textarea
+              rows={2}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+              value={form.referralNote}
+              onChange={(e) => setForm({ ...form, referralNote: e.target.value })}
+              placeholder={t.referralNotePlaceholder}
+            />
           </div>
         </div>
         <div>
