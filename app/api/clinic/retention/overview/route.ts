@@ -7,7 +7,12 @@ import {
   buildRetentionSummary,
   type RetentionAppointment,
 } from '@/lib/clinic/retention'
-import { whatsappUrl } from '@/lib/clinic/reminders'
+import {
+  buildReactivationMessage,
+  buildReactivationWhatsappUrl,
+  normalizeReactivationLocale,
+  normalizeReactivationThreshold,
+} from '@/lib/clinic/reactivation'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function defaultRange(range: string | null) {
@@ -26,11 +31,6 @@ function patientName(patient: { firstName: string; lastName: string }) {
   return `${patient.lastName}, ${patient.firstName}`.trim()
 }
 
-function reactivationMessage(firstName: string, procedureName: string | null) {
-  const service = procedureName || 'your next visit'
-  return `Hi ${firstName}, hope you are well. It may be time to plan ${service}. Reply here if you would like a few available options.`
-}
-
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
   if (!session) {
@@ -44,10 +44,8 @@ export async function GET(request: NextRequest) {
   const now = new Date()
   const historyStart = new Date(Math.min(start.getTime(), now.getTime() - 540 * 24 * 60 * 60 * 1000))
   const futureEnd = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000)
-  const lostAfterDaysRaw = Number(searchParams.get('lostAfterDays') ?? 60)
-  const lostAfterDays = Number.isFinite(lostAfterDaysRaw)
-    ? Math.max(14, Math.min(Math.round(lostAfterDaysRaw), 365))
-    : 60
+  const lostAfterDays = normalizeReactivationThreshold(searchParams.get('lostAfterDays'))
+  const reactivationLocale = normalizeReactivationLocale(searchParams.get('locale'))
 
   const [appointments, reminders] = await Promise.all([
     prisma.clinicAppointment.findMany({
@@ -133,12 +131,26 @@ export async function GET(request: NextRequest) {
     repeatIntervals,
     lostPatients: lostPatients.slice(0, 25).map((patient) => {
       const firstName = patientFirstNames.get(patient.patientId) ?? patient.patientName.split(',').at(1)?.trim() ?? ''
+      const message = buildReactivationMessage(
+        {
+          firstName: firstName || patient.patientName,
+          lastProcedureName: patient.lastProcedureName,
+          daysSinceLastVisit: patient.daysSinceLastVisit,
+        },
+        reactivationLocale
+      )
       return {
         ...patient,
         lastVisitAt: patient.lastVisitAt.toISOString(),
-        whatsappUrl: whatsappUrl(
-          patient.patientPhone,
-          reactivationMessage(firstName || patient.patientName, patient.lastProcedureName)
+        reactivationMessage: message,
+        whatsappUrl: buildReactivationWhatsappUrl(
+          {
+            firstName: firstName || patient.patientName,
+            patientPhone: patient.patientPhone,
+            lastProcedureName: patient.lastProcedureName,
+            daysSinceLastVisit: patient.daysSinceLastVisit,
+          },
+          reactivationLocale
         ),
         actionHref: `/clinic/patients/${patient.patientId}`,
       }

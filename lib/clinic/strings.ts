@@ -644,6 +644,15 @@ const table = {
     retentionLostPatientsHint:
       'Completed patients with no future appointment and no visit for more than {days} days.',
     retentionNoLostPatients: 'No lost patients in this window.',
+    dormantReactivation: 'Dormant reactivation',
+    dormantReactivationHint:
+      'Clients with no future appointment and no completed visit for more than {days} days. Open WhatsApp with a low-pressure return message.',
+    reactivationDormant60: '60d dormant',
+    reactivationDormant90: '90d dormant',
+    reactivationDormant120: '120d dormant',
+    reactivationMessagePreview: 'Message preview',
+    reactivationNoWhatsappPhone: 'No WhatsApp phone',
+    openWhatsApp: 'Open WhatsApp',
     bookingFunnelAnalytics: 'Booking funnel',
     bookingFunnelAnalyticsIntro:
       'See how the public booking link converts from link views to service choice, slot choice, form submission, and completed online bookings.',
@@ -1929,6 +1938,15 @@ const ruOverrides: Partial<ClinicStrings> = {
   retentionLostPatientsHint:
     'Завершенные пациенты без будущей записи и без визита более {days} дней.',
   retentionNoLostPatients: 'В этом периоде потерянных пациентов нет.',
+  dormantReactivation: 'Возврат спящих пациентов',
+  dormantReactivationHint:
+    'Клиенты без будущей записи и без завершенного визита более {days} дней. Откройте WhatsApp с мягким сообщением для возврата.',
+  reactivationDormant60: '60 дн. без визита',
+  reactivationDormant90: '90 дн. без визита',
+  reactivationDormant120: '120 дн. без визита',
+  reactivationMessagePreview: 'Текст сообщения',
+  reactivationNoWhatsappPhone: 'Нет телефона WhatsApp',
+  openWhatsApp: 'Открыть WhatsApp',
   bookingFunnelAnalytics: 'Воронка записи',
   bookingFunnelAnalyticsIntro:
     'Смотрите, как публичная ссылка конвертирует просмотры в выбор услуги, выбор слота, отправку формы и завершенные онлайн-записи.',

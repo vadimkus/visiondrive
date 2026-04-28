@@ -222,6 +222,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 30. Dormant patient reactivation
    - Source: personal messages and lost-client filters.
    - Solo version: "not visited in 60/90/120 days" lists with WhatsApp templates.
+   - Status: shipped first pass.
+   - Shipped: Retention now has 60/90/120-day dormant filters, localized EN/RU reactivation message previews, copy action, WhatsApp deep links, and patient-chart links.
+   - Next improvements: save outreach as CRM activity, bulk review/send queue, result tracking, and automatic follow-up after no response.
 
 31. Birthday and personal occasion messages
    - Source: birthday greeting.
@@ -340,13 +343,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Dormant patient reactivation.
-2. Booking source/UTM attribution and abandoned-booking follow-up.
-3. Patient-uploaded photos through the portal.
-4. Aftercare document library.
-5. Account and notification preferences.
+1. Booking source/UTM attribution and abandoned-booking follow-up.
+2. Patient-uploaded photos through the portal.
+3. Aftercare document library.
+4. Account and notification preferences.
+5. Birthday and personal occasion messages.
 
 ## Recommendation
 
-Data export/deletion tools now give each patient card an internal JSON archive and guarded delete flow. The next point should be dormant patient reactivation, because retention analytics already identifies lost patients and the practitioner now needs a direct WhatsApp follow-up workflow.
+Dormant patient reactivation now turns retention analytics into a practical WhatsApp workflow. The next point should be booking source/UTM attribution and abandoned-booking follow-up, because public booking analytics can already see funnel drop-off but does not yet preserve source context or trigger recovery outreach.
 

@@ -357,8 +357,9 @@ const articlesEn: Article[] = [
     steps: [
       'Open Retention from the clinic navigation.',
       'Use 90 days, 180 days, or 1 year to compare rebook rate, returning clients, no-show rate, and follow-up conversion.',
+      'Switch dormant filters between 60, 90, and 120 days depending on how assertive you want the reactivation list to be.',
       'Review repeat interval by procedure to understand how often clients normally return for each service.',
-      'Use Lost patients to open the patient chart or start a WhatsApp reactivation message.',
+      'Use Dormant reactivation to preview the message, copy it, open WhatsApp, or review the patient chart before sending.',
     ],
     link: '/clinic/retention',
   },
@@ -768,8 +769,9 @@ const articlesRu: Article[] = [
     steps: [
       'Откройте Удержание в навигации клиники.',
       'Выберите 90 дней, 180 дней или 1 год, чтобы сравнить повторную запись, повторных клиентов, неявки и конверсию follow-up.',
+      'Переключайте фильтр спящих клиентов между 60, 90 и 120 днями в зависимости от того, насколько активно хотите возвращать клиентов.',
       'Смотрите интервалы повторов по процедурам, чтобы понимать нормальный ритм возврата клиентов по каждой услуге.',
-      'В блоке Потерянные пациенты открывайте карту пациента или запускайте WhatsApp-сообщение для реактивации.',
+      'В блоке Возврат спящих пациентов просматривайте текст, копируйте его, открывайте WhatsApp или проверяйте карту пациента перед отправкой.',
     ],
     link: '/clinic/retention',
   },

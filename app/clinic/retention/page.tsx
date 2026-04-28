@@ -47,6 +47,7 @@ type RetentionOverview = {
     lastVisitAt: string
     lastProcedureName: string | null
     daysSinceLastVisit: number
+    reactivationMessage: string
     whatsappUrl: string | null
     actionHref: string
   }>
@@ -61,17 +62,22 @@ export default function ClinicRetentionPage() {
   const isRu = locale === 'ru'
   const dateLocale = isRu ? 'ru-RU' : 'en-GB'
   const [range, setRange] = useState<'90d' | '180d' | 'year'>('180d')
+  const [lostAfterDays, setLostAfterDays] = useState<60 | 90 | 120>(60)
   const [overview, setOverview] = useState<RetentionOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [copiedPatientId, setCopiedPatientId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/clinic/retention/overview?range=${range}`, {
+      const res = await fetch(
+        `/api/clinic/retention/overview?range=${range}&lostAfterDays=${lostAfterDays}&locale=${locale}`,
+        {
         credentials: 'include',
-      })
+        }
+      )
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || t.failedToLoad)
@@ -83,7 +89,7 @@ export default function ClinicRetentionPage() {
     } finally {
       setLoading(false)
     }
-  }, [range, t.failedToLoad, t.networkError])
+  }, [locale, lostAfterDays, range, t.failedToLoad, t.networkError])
 
   useEffect(() => {
     void load()
@@ -120,6 +126,24 @@ export default function ClinicRetentionPage() {
                   range === value
                     ? 'bg-orange-500 text-white'
                     : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            {[
+              [60, t.reactivationDormant60],
+              [90, t.reactivationDormant90],
+              [120, t.reactivationDormant120],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setLostAfterDays(value as 60 | 90 | 120)}
+                className={`min-h-11 rounded-2xl px-4 text-sm font-semibold ${
+                  lostAfterDays === value
+                    ? 'bg-red-600 text-white'
+                    : 'border border-red-100 bg-white text-red-700 hover:bg-red-50'
                 }`}
               >
                 {label}
@@ -208,9 +232,9 @@ export default function ClinicRetentionPage() {
               <UserX className="h-5 w-5" aria-hidden />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-950">{t.retentionLostPatients}</h2>
+              <h2 className="text-lg font-semibold text-gray-950">{t.dormantReactivation}</h2>
               <p className="mt-1 text-sm text-gray-500">
-                {t.retentionLostPatientsHint.replace('{days}', String(overview?.range.lostAfterDays ?? 60))}
+                {t.dormantReactivationHint.replace('{days}', String(overview?.range.lostAfterDays ?? 60))}
               </p>
             </div>
           </div>
@@ -231,6 +255,10 @@ export default function ClinicRetentionPage() {
                       )}
                     </div>
                   </div>
+                  <div className="mt-3 rounded-xl border border-white bg-white p-3 text-xs leading-relaxed text-gray-700">
+                    <p className="mb-1 font-semibold text-gray-900">{t.reactivationMessagePreview}</p>
+                    <p>{patient.reactivationMessage}</p>
+                  </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Link
                       href={patient.actionHref}
@@ -239,6 +267,16 @@ export default function ClinicRetentionPage() {
                       {t.viewPatientChart}
                       <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void navigator.clipboard?.writeText(patient.reactivationMessage)
+                        setCopiedPatientId(patient.patientId)
+                      }}
+                      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-white px-3 text-xs font-semibold text-gray-800 ring-1 ring-gray-200 hover:bg-gray-100"
+                    >
+                      {copiedPatientId === patient.patientId ? t.patientPortalCopied : t.copy}
+                    </button>
                     {patient.whatsappUrl && (
                       <a
                         href={patient.whatsappUrl}
@@ -246,8 +284,13 @@ export default function ClinicRetentionPage() {
                         rel="noreferrer"
                         className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
                       >
-                        WhatsApp
+                        {t.openWhatsApp}
                       </a>
+                    )}
+                    {!patient.whatsappUrl && (
+                      <span className="inline-flex min-h-10 items-center justify-center rounded-xl bg-amber-50 px-3 text-xs font-semibold text-amber-800">
+                        {t.reactivationNoWhatsappPhone}
+                      </span>
                     )}
                   </div>
                 </article>

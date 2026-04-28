@@ -738,6 +738,24 @@
 
 ---
 
+## Chunk 42 — 2026-04-28 (dormant patient reactivation)
+
+**Shipped**
+
+- **Helper:** `lib/clinic/reactivation.ts` normalizes 60/90/120-day dormant thresholds, localizes EN/RU reactivation messages, and builds WhatsApp deep links.
+- **API:** `GET /api/clinic/retention/overview` now accepts `lostAfterDays=60|90|120` and `locale=en|ru`, and returns message previews plus WhatsApp links for dormant patients.
+- **UI:** `/clinic/retention` now has 60/90/120 dormant filters, localized message preview, copy-message action, WhatsApp open action, missing-phone state, and patient-chart links.
+- **i18n/Knowledge Base:** EN/RU strings and article guidance explain how to use dormant reactivation without sounding pushy.
+- **Docs/canvas:** Altegio backlog and canvas mark dormant reactivation shipped and move the next recommendation to booking source/UTM attribution and abandoned-booking follow-up.
+
+**Validation**
+
+- Added Vitest coverage for reactivation threshold normalization, localized messages, and WhatsApp link creation.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

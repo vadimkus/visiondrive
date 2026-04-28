@@ -68,6 +68,7 @@
 | [2026-04-27_clinic-mobile-photos-seo-llms.md](2026-04-27_clinic-mobile-photos-seo-llms.md) | Clinic mobile photos plus SEO/LLM files note |
 | [2026-04-27_clinic-retention-analytics.md](2026-04-27_clinic-retention-analytics.md) | Clinic retention analytics note |
 | [2026-04-27_clinic-booking-funnel-analytics.md](2026-04-27_clinic-booking-funnel-analytics.md) | Clinic booking funnel analytics note |
+| [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |
 | [2026-04-27_clinic-client-import-excel.md](2026-04-27_clinic-client-import-excel.md) | Clinic client import from Excel note |

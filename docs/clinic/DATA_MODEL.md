@@ -82,7 +82,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/POST /api/clinic/consents/templates`; `GET/POST .../patients/[id]/consents` — manage consent templates and signed patient consent records.
 - `GET/POST .../patients/[id]/treatment-plans`; `PATCH .../treatment-plans/[planId]` — create/update planned care courses and show progress from linked visits.
 - `GET /api/clinic/inbox` — derived notification center for reminders due, online bookings, recent reschedules, review requests, unpaid visits, and low-stock items.
-- `GET /api/clinic/retention/overview` — derived retention analytics for rebook rate, returning clients, no-shows, follow-up conversion, lost patients, and repeat intervals.
+- `GET /api/clinic/retention/overview` — derived retention analytics for rebook rate, returning clients, no-shows, follow-up conversion, repeat intervals, and 60/90/120-day dormant patient reactivation rows with localized WhatsApp links.
 - `POST /api/clinic/public-booking/[slug]/funnel` — anonymous public booking step tracking for enabled tenant booking links.
 - `GET /api/clinic/booking-funnel/overview` — staff analytics for public booking conversion by stage, day, and procedure.
 - `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` — staff creates, lists, and revokes private patient portal links.
