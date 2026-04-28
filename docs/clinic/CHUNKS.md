@@ -1195,6 +1195,23 @@
 
 ---
 
+## Chunk 68 — 2026-04-28 (solo practitioner assignment)
+
+**Shipped**
+
+- **Solo replacement:** treated multi-staff "any professional" routing as not useful for one-practitioner practices.
+- **Account:** added a Solo practitioner mode panel to `/clinic/account`, showing the signed-in practitioner and single-practitioner assignment mode.
+- **Model boundary:** appointments, visits, reminders, and follow-ups remain owned by the signed-in practitioner/tenant context; no assignee/routing table added.
+- **Assistant handling:** assistants are treated as support/expense helpers, not appointment owners.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, data-model, docs index, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check`, `npm run lint`, `npm run test`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

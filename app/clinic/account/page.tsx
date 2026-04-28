@@ -341,6 +341,21 @@ export default function ClinicAccountPage() {
         <div className="p-4 rounded-xl bg-red-50 text-red-700 text-sm border border-red-100">{error}</div>
       )}
 
+      <section className="bg-orange-50 rounded-2xl border border-orange-100 p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-orange-950">{t.soloPractitionerMode}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-orange-900">{t.soloPractitionerModeHint}</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl bg-white p-4 border border-orange-100">
+            <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{t.practitioner}</p>
+            <p className="mt-1 text-sm font-medium text-gray-900">{me?.user.name || me?.user.email}</p>
+          </div>
+          <div className="rounded-xl bg-white p-4 border border-orange-100">
+            <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{t.assignmentMode}</p>
+            <p className="mt-1 text-sm font-medium text-gray-900">{t.assignmentModeSolo}</p>
+          </div>
+        </div>
+      </section>
+
       <form
         onSubmit={saveNotificationPreferences}
         className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-5"

@@ -393,6 +393,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 4. Multi-staff "any professional" assignment
    - Not useful for a one-practitioner practice.
+   - Status: shipped solo replacement.
+   - Shipped: added a Solo practitioner mode panel to `/clinic/account` and EN/RU Knowledge Base guidance. The signed-in practitioner remains the owner of appointments, visits, reminders, and follow-ups; assistants are handled as support cost, not appointment assignees.
 
 5. Deep IP telephony integrations
    - Too heavy. Manual call log and WhatsApp links are enough.

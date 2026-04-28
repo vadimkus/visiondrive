@@ -79,6 +79,8 @@ Owner income: `/clinic/finance` is also the solo-practitioner replacement for mu
 
 Group classes/events: no group-booking model exists in the solo first pass. Occasional workshops are handled manually with `ClinicBlockedTime`, Finance expenses, patient notes/CRM/tags, and normal patient payments only when there is a real patient record. Capacity, attendee rosters, waitlists, and course products are deferred until workshops become a recurring product line.
 
+Solo assignment: `/clinic/account` shows Solo practitioner mode as the replacement for multi-staff "any professional" routing. The signed-in practitioner is the operational owner for appointments, visits, reminders, and follow-ups. Assistants are treated as support/expense helpers, not appointment assignees. No staff assignment or routing table is stored.
+
 Revenue plan: `/clinic/revenue-plan` stores a tenant's monthly target and optional expected average visit value in `tenant_settings.thresholds.revenuePlan` via `GET/PATCH /api/clinic/revenue-plan`. The page calculates current-month achieved revenue from paid patient payments minus refunds, then derives gap, required visits, daily pace, required daily pace, projected month, and completed visits. No new table is introduced in the first pass.
 
 Occupancy report: `/clinic/occupancy` calls `GET /api/clinic/occupancy/overview` for derived capacity analytics. Planned time comes from general `ClinicAvailabilityRule` rows (with default availability fallback), active appointments consume time with service duration plus cleanup/travel buffers, and `ClinicBlockedTime` removes unavailable periods. The first pass reports next 7/14-day occupancy, free windows, blocked time, and travel-buffer pressure without adding a table.

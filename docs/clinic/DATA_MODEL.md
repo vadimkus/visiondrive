@@ -53,6 +53,8 @@ Offline-safe visit drafts are intentionally device-local in this first pass. Tex
 
 Group classes/events are intentionally not modeled yet. Occasional workshops should use blocked time, notes/CRM/tags, normal finance expenses, and normal patient payments only when a real patient record exists. There is no course, class capacity, attendee roster, or waitlist table in the solo first pass.
 
+Multi-staff appointment assignment is intentionally not modeled in the solo first pass. The signed-in practitioner is treated as the operational owner; assistants are represented through support expenses and notes rather than appointment assignee rows.
+
 ## API surface (high level)
 
 - `GET/POST /api/clinic/patients` — list (+ `?q=`, `?category=`, `?tag=` filters), create; list rows include computed `clientBalance`.
