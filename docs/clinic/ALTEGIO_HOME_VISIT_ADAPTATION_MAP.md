@@ -383,6 +383,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 2. Multi-employee payroll
    - Replace with owner income, assistant cost if needed, and simple expense tracking.
+   - Status: shipped solo replacement.
+   - Shipped: added an Owner income panel to `/clinic/finance`. It treats operating profit as the owner take-home estimate, surfaces Assistant / support expense category spend, shows owner income per completed visit, and avoids employee payroll tables.
 
 3. Group classes and events
    - Skip unless the product later supports courses/workshops.

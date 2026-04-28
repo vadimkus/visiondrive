@@ -551,6 +551,15 @@ export default function ClinicFinancePage() {
   }
 
   const kpis = overview?.kpis
+  const assistantCostCents =
+    overview?.breakdown.expensesByCategory.find((row) => row.category === 'SUPPORT')?.amountCents ?? 0
+  const ownerIncomeCents = kpis?.profitCents ?? 0
+  const ownerIncomePerVisitCents =
+    (kpis?.completedVisits ?? 0) > 0 ? Math.round(ownerIncomeCents / (kpis?.completedVisits ?? 1)) : 0
+  const assistantCostSharePct =
+    (kpis?.grossProfitCents ?? 0) > 0
+      ? Number(((assistantCostCents / (kpis?.grossProfitCents ?? 1)) * 100).toFixed(1))
+      : 0
   const expectedByMethod = dailyClose?.summary.expectedByMethod ?? EMPTY_METHOD_TOTALS
   const countedByMethod = PAYMENT_METHODS.reduce((acc, method) => {
     const amountCents = parseAedToCents(dailyCloseCounts[method] || '0')
@@ -834,6 +843,49 @@ export default function ClinicFinancePage() {
           </p>
         </div>
       </div>
+
+      <section className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-5 shadow-sm">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-emerald-950">{t.ownerIncome}</h2>
+            <p className="mt-1 text-sm text-emerald-900">{t.ownerIncomeHint}</p>
+          </div>
+          <p className="text-xs text-emerald-800">{t.ownerIncomeNoPayroll}</p>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+            <p className="text-sm text-gray-500">{t.ownerTakeHomeEstimate}</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-gray-950">
+              {money(ownerIncomeCents, 'AED', numberLocale)}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">{t.financeOperatingProfit}</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+            <p className="text-sm text-gray-500">{t.assistantSupportCost}</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-gray-950">
+              {money(assistantCostCents, 'AED', numberLocale)}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">{t.assistantSupportCostHint}</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+            <p className="text-sm text-gray-500">{t.ownerIncomePerVisit}</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-gray-950">
+              {money(ownerIncomePerVisitCents, 'AED', numberLocale)}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              {kpis?.completedVisits ?? 0} {t.financeCompletedVisits.toLowerCase()}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+            <p className="text-sm text-gray-500">{t.assistantCostShare}</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-gray-950">
+              {assistantCostSharePct}%
+            </p>
+            <p className="mt-1 text-xs text-gray-500">{t.ofGrossProfit}</p>
+          </div>
+        </div>
+      </section>
 
       <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">

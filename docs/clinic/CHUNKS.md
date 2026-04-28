@@ -1160,6 +1160,24 @@
 
 ---
 
+## Chunk 66 — 2026-04-28 (owner income)
+
+**Shipped**
+
+- **Solo replacement:** treated multi-employee payroll as too heavy for solo practitioners and shipped owner-income tracking inside Finance.
+- **Finance:** added an Owner income panel to `/clinic/finance`.
+- **Metrics:** owner take-home estimate from operating profit, Assistant / support expense spend, owner income per completed visit, and assistant-cost share of gross profit.
+- **Source of truth:** reuses existing payments, direct costs, expenses, and completed visit counts from `GET /api/clinic/finance/overview`.
+- **Expense model:** `ExpenseCategory.SUPPORT` is labeled as Assistant / support for helper, assistant, or freelancer costs.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, data-model, docs index, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

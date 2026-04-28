@@ -359,6 +359,20 @@ const articlesEn: Article[] = [
     link: '/clinic/revenue-plan',
   },
   {
+    id: 'owner-income',
+    category: 'Finance',
+    title: 'Use owner income instead of payroll',
+    summary: 'For a solo practice, track owner take-home and assistant costs without a payroll module.',
+    steps: [
+      'Open Finance and choose this month or the last 30 days.',
+      'Review Owner income to see operating profit as the owner take-home estimate.',
+      'Record assistant, freelancer, or helper payments as expenses in the Assistant / support category.',
+      'Watch owner income per visit to understand whether the schedule is worth the time.',
+      'Use this instead of multi-employee payroll until the practice truly has staff.',
+    ],
+    link: '/clinic/finance',
+  },
+  {
     id: 'occupancy-report',
     category: 'Finance',
     title: 'Find free slots and wasted capacity',
@@ -1128,6 +1142,20 @@ const articlesRu: Article[] = [
       'Обновляйте отчёт в течение дня после записи оплат, чтобы видеть актуальный разрыв.',
     ],
     link: '/clinic/revenue-plan',
+  },
+  {
+    id: 'owner-income',
+    category: 'Финансы',
+    title: 'Используйте доход владельца вместо payroll',
+    summary: 'Для соло-практики достаточно видеть доход владельца и затраты на помощника без модуля зарплат.',
+    steps: [
+      'Откройте Финансы и выберите текущий месяц или последние 30 дней.',
+      'Смотрите Доход владельца: это операционная прибыль как ориентир take-home.',
+      'Платежи ассистенту, фрилансеру или помощнику записывайте как расходы в категории Помощник / поддержка.',
+      'Следите за доходом владельца на визит, чтобы понимать, окупается ли загрузка.',
+      'Используйте это вместо multi-employee payroll, пока в практике реально нет команды сотрудников.',
+    ],
+    link: '/clinic/finance',
   },
   {
     id: 'occupancy-report',
