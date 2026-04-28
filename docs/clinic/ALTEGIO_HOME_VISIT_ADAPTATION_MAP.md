@@ -370,6 +370,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 51. Knowledge base expansion
    - Source: Altegio support knowledge base format.
    - Solo version: in-app help articles for each Practice OS feature in EN/RU, written around home-visit workflows.
+   - Status: shipped first pass.
+   - Shipped: expanded `/clinic/knowledge-base` with workflow guide cards, category overview cards, improved section icons, and four EN/RU solo-practitioner guides: day-one setup, daily iPhone/iPad workflow, patient journey, and monthly business review.
+   - Next improvements: per-article deep links, admin article editor, versioned article updates, screenshots, and short embedded videos.
 
 ## Deprioritize Or Skip
 

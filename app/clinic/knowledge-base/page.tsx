@@ -10,6 +10,7 @@ import {
   Package,
   Search,
   Send,
+  Star,
   Stethoscope,
   Users,
 } from 'lucide-react'
@@ -716,6 +717,70 @@ const articlesEn: Article[] = [
     ],
     link: '/clinic/inventory/import',
   },
+  {
+    id: 'solo-practice-day-one',
+    category: 'Account',
+    title: 'Day-one setup for a solo home-visit practice',
+    summary:
+      'A launch checklist for turning the empty console into a working mobile practice system.',
+    steps: [
+      'Open Account first: set the practitioner name, language, and notification preferences.',
+      'Create core procedures with duration, price, buffers, materials, and any service-specific intake questions.',
+      'Set Availability so online booking and manual scheduling use real working hours, private time, and minimum lead time.',
+      'Import existing clients or create the first patient cards manually before booking visits.',
+      'Add key stock items and suppliers if you need inventory, low-stock alerts, purchase orders, or material costing.',
+      'Enable the private booking link only after services, availability, reminders, and intake questions are reviewed.',
+    ],
+    link: '/clinic/account',
+  },
+  {
+    id: 'solo-mobile-daily-workflow',
+    category: 'Appointments',
+    title: 'Daily iPhone/iPad workflow',
+    summary:
+      'Run the day without a PC: agenda, patient card, visit draft, photos, payments, and follow-up from one mobile flow.',
+    steps: [
+      'Start from Dashboard or install the PWA so Practice OS opens directly to the mobile practitioner screen.',
+      'Use Today screen to see the next appointment and open the patient card before the visit.',
+      'During treatment, use offline-safe visit drafts, voice comments, and before/after photos from the patient card.',
+      'Record payment or package redemption before leaving the client.',
+      'Send aftercare, review request, reminder, or follow-up via WhatsApp while the context is fresh.',
+      'Check Inbox at the end of the day for unpaid visits, low stock, review replies, portal requests, and follow-ups.',
+    ],
+    link: '/clinic',
+  },
+  {
+    id: 'solo-patient-journey',
+    category: 'Patients',
+    title: 'Patient journey from price question to rebooking',
+    summary:
+      'A compact workflow for handling WhatsApp enquiries, quotes, booking, consent, treatment, aftercare, and reactivation.',
+    steps: [
+      'Use WhatsApp Assistant or a patient price quote when someone asks about services and prices.',
+      'Send the private booking link when the patient is ready, or create the appointment manually from the clinic panel.',
+      'Capture intake answers, contraindications, and consent before treatment.',
+      'Complete the visit with notes, photos, payment, package usage, and inventory consumption.',
+      'Share aftercare and, when appropriate, a patient-safe export or private patient portal link.',
+      'Use retention, occasions, referrals, and dormant-patient reactivation reports to bring the patient back.',
+    ],
+    link: '/clinic/whatsapp-assistant',
+  },
+  {
+    id: 'monthly-business-review',
+    category: 'Finance',
+    title: 'Monthly business review routine',
+    summary:
+      'A simple management cadence for solo practitioners: target, occupancy, service profit, cash, stock, and reviews.',
+    steps: [
+      'Open Revenue plan to compare achieved revenue, daily pace, and the remaining gap.',
+      'Open Occupancy to find unused free windows and excessive travel-buffer pressure.',
+      'Open Service analytics and Finance to compare profit per hour, material costs, payment fees, expenses, and refunds.',
+      'Review inventory low-stock alerts, purchase orders, stock-taking variance, and supplier balances.',
+      'Check Review analytics for reply rate, public review candidates, and private negative-feedback follow-up.',
+      'Adjust prices, availability, promotions, reminders, and follow-up messages before the next month starts.',
+    ],
+    link: '/clinic/revenue-plan',
+  },
 ]
 
 const articlesRu: Article[] = [
@@ -1411,6 +1476,70 @@ const articlesRu: Article[] = [
     ],
     link: '/clinic/inventory/import',
   },
+  {
+    id: 'solo-practice-day-one',
+    category: 'Аккаунт',
+    title: 'Настройка первого дня для solo home-visit практики',
+    summary:
+      'Чеклист запуска: как превратить пустой портал в рабочую мобильную систему практики.',
+    steps: [
+      'Сначала откройте Аккаунт: укажите имя врача, язык и предпочтения уведомлений.',
+      'Создайте основные процедуры с длительностью, ценой, буферами, материалами и вопросами анкеты под услугу.',
+      'Настройте Доступность, чтобы онлайн-запись и ручное расписание учитывали реальные часы, личное время и минимальный срок записи.',
+      'Импортируйте существующих клиентов или создайте первые карты пациентов вручную до записи визитов.',
+      'Добавьте ключевые товары и поставщиков, если нужны склад, минимальные остатки, заказы поставщикам или себестоимость материалов.',
+      'Включайте приватную ссылку записи только после проверки услуг, доступности, напоминаний и вопросов анкеты.',
+    ],
+    link: '/clinic/account',
+  },
+  {
+    id: 'solo-mobile-daily-workflow',
+    category: 'Записи',
+    title: 'Ежедневный сценарий с iPhone/iPad',
+    summary:
+      'Ведите день без ПК: повестка, карта пациента, черновик визита, фото, оплата и follow-up в одном мобильном потоке.',
+    steps: [
+      'Начинайте с Дашборда или установите PWA, чтобы Practice OS открывался сразу на мобильном экране врача.',
+      'Откройте Today screen, посмотрите следующую запись и перейдите в карту пациента до визита.',
+      'Во время процедуры используйте offline-safe черновик визита, голосовые комментарии и before/after фото из карты пациента.',
+      'Запишите оплату или списание пакета до ухода от клиента.',
+      'Отправьте уходовые рекомендации, запрос отзыва, напоминание или follow-up через WhatsApp, пока контекст свежий.',
+      'В конце дня проверьте Inbox: неоплаченные визиты, низкие остатки, ответы на отзывы, запросы из кабинета и follow-up.',
+    ],
+    link: '/clinic',
+  },
+  {
+    id: 'solo-patient-journey',
+    category: 'Пациенты',
+    title: 'Путь пациента от вопроса о цене до повторной записи',
+    summary:
+      'Короткий сценарий для WhatsApp-запросов, смет, записи, согласия, процедуры, рекомендаций и реактивации.',
+    steps: [
+      'Используйте WhatsApp Assistant или смету, когда пациент спрашивает об услугах и ценах.',
+      'Отправьте приватную ссылку записи, когда пациент готов, или создайте запись вручную в панели.',
+      'Соберите ответы анкеты, противопоказания и согласие до процедуры.',
+      'Завершите визит с заметками, фото, оплатой, списанием пакета и расходом материалов.',
+      'Отправьте рекомендации, а при необходимости patient-safe export или приватную ссылку кабинета пациента.',
+      'Используйте Retention, события, рефералы и реактивацию спящих пациентов, чтобы вернуть пациента.',
+    ],
+    link: '/clinic/whatsapp-assistant',
+  },
+  {
+    id: 'monthly-business-review',
+    category: 'Финансы',
+    title: 'Ежемесячный бизнес-разбор',
+    summary:
+      'Простой управленческий ритм для solo врача: цель, занятость, прибыль услуг, деньги, склад и отзывы.',
+    steps: [
+      'Откройте План выручки и сравните достигнутую сумму, дневной темп и оставшийся разрыв.',
+      'Откройте Занятость, чтобы найти свободные окна и чрезмерные буферы поездок.',
+      'Откройте Аналитику услуг и Финансы, чтобы сравнить прибыль в час, материалы, комиссии оплат, расходы и возвраты.',
+      'Проверьте низкие остатки, заказы поставщикам, расхождения инвентаризации и балансы поставщиков.',
+      'Откройте Аналитику отзывов: доля ответов, кандидаты на публикацию и приватный follow-up по низким оценкам.',
+      'Настройте цены, доступность, акции, напоминания и follow-up сообщения до начала следующего месяца.',
+    ],
+    link: '/clinic/revenue-plan',
+  },
 ]
 
 const categoryIcons = {
@@ -1424,7 +1553,22 @@ const categoryIcons = {
   Финансы: CircleDollarSign,
   Communication: Send,
   Коммуникации: Send,
+  Messages: Send,
+  Сообщения: Send,
+  Account: Users,
+  Аккаунт: Users,
+  Clinical: Stethoscope,
+  Клиника: Stethoscope,
+  Reputation: Star,
+  Репутация: Star,
 }
+
+const workflowArticleIds = [
+  'solo-practice-day-one',
+  'solo-mobile-daily-workflow',
+  'solo-patient-journey',
+  'monthly-business-review',
+]
 
 export default function ClinicKnowledgeBasePage() {
   const { locale, t } = useClinicLocale()
@@ -1443,6 +1587,10 @@ export default function ClinicKnowledgeBasePage() {
     open: isRu ? 'Открыть раздел' : 'Open section',
     empty: isRu ? 'Ничего не найдено.' : 'No matching articles.',
     featured: isRu ? 'Рекомендуемые статьи' : 'Featured articles',
+    workflowGuides: isRu ? 'Рабочие сценарии' : 'Workflow guides',
+    categoryOverview: isRu ? 'Разделы помощи' : 'Help sections',
+    articleCount: isRu ? 'статей' : 'articles',
+    showing: isRu ? 'Показано' : 'Showing',
   }
 
   const categories = useMemo(
@@ -1455,6 +1603,14 @@ export default function ClinicKnowledgeBasePage() {
     const matchesCategory = category === 'all' || article.category === category
     return matchesSearch && matchesCategory
   })
+  const workflowArticles = workflowArticleIds
+    .map((id) => articles.find((article) => article.id === id))
+    .filter((article): article is Article => !!article)
+  const categoryCards = categories.map((cat) => ({
+    name: cat,
+    count: articles.filter((article) => article.category === cat).length,
+    icon: categoryIcons[cat as keyof typeof categoryIcons] || FileText,
+  }))
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -1478,6 +1634,60 @@ export default function ClinicKnowledgeBasePage() {
           </div>
         </div>
       </div>
+
+      <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-950">{copy.workflowGuides}</h2>
+            <p className="mt-1 text-sm text-gray-500">{copy.showing} {articles.length} {copy.articleCount}</p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {workflowArticles.map((article) => (
+            <button
+              key={article.id}
+              type="button"
+              onClick={() => {
+                setCategory(article.category)
+                setQuery(article.title)
+              }}
+              className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4 text-left transition-colors hover:bg-orange-100/70"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{article.category}</p>
+              <h3 className="mt-2 text-sm font-semibold text-gray-950">{article.title}</h3>
+              <p className="mt-1 text-xs leading-relaxed text-gray-600">{article.summary}</p>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-950">{copy.categoryOverview}</h2>
+        <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
+          {categoryCards.map(({ name, count, icon: Icon }) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => {
+                setCategory(name)
+                setQuery('')
+              }}
+              className={clsx(
+                'flex min-h-20 flex-col items-start justify-between rounded-2xl border p-3 text-left transition-colors',
+                category === name
+                  ? 'border-orange-200 bg-orange-50 text-orange-950'
+                  : 'border-gray-100 bg-gray-50/70 text-gray-800 hover:bg-gray-100'
+              )}
+            >
+              <Icon className="h-4 w-4" aria-hidden />
+              <span>
+                <span className="block text-sm font-semibold">{name}</span>
+                <span className="text-xs text-gray-500">{count} {copy.articleCount}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
         <aside className="rounded-2xl bg-white border border-gray-200 p-3 shadow-sm h-fit">
@@ -1516,7 +1726,10 @@ export default function ClinicKnowledgeBasePage() {
         </aside>
 
         <section className="space-y-4">
-          <h2 className="font-semibold text-gray-900">{copy.featured}</h2>
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <h2 className="font-semibold text-gray-900">{copy.featured}</h2>
+            <p className="text-xs text-gray-500">{copy.showing} {filtered.length} / {articles.length}</p>
+          </div>
           {filtered.length === 0 ? (
             <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
               {copy.empty}

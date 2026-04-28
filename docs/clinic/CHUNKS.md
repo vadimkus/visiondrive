@@ -1125,6 +1125,23 @@
 
 ---
 
+## Chunk 64 — 2026-04-28 (knowledge base expansion)
+
+**Shipped**
+
+- **Help center:** expanded `/clinic/knowledge-base` into a richer in-app help center.
+- **Workflow guides:** added EN/RU guides for day-one setup, daily iPhone/iPad workflow, patient journey, and monthly business review.
+- **Navigation:** added workflow guide cards, category overview cards, article counts, and improved icons for Account, Messages, Clinical, and Reputation sections.
+- **Search/filtering:** preserved existing search and category filtering while making article coverage easier to scan on mobile.
+- **Docs/backlog:** updated backlog, architecture, docs index, and session note.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

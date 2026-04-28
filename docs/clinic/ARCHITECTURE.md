@@ -81,6 +81,8 @@ Occupancy report: `/clinic/occupancy` calls `GET /api/clinic/occupancy/overview`
 
 Review analytics: `/clinic/review-analytics` calls `GET /api/clinic/review-analytics/overview` for derived reputation metrics. It reuses `ClinicPatientReview` records from the Reputation workflow and reports request/reply/publish counts, average rating, rating distribution, and a low-rated private feedback queue. No separate analytics table is stored.
 
+Knowledge base: `/clinic/knowledge-base` is a static in-app help center with EN/RU article arrays, local search, category filters, workflow guide cards, and section overview cards. The first pass intentionally keeps help content in code so article updates can ship with product changes; a CMS/editor is deferred.
+
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.
