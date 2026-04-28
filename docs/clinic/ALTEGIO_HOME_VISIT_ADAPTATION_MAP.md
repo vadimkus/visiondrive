@@ -254,6 +254,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 38. Data export and deletion request
    - Source: personal data management.
    - Solo version: admin tools to export patient data and mark/delete/anonymize where legally appropriate.
+   - Status: shipped first pass.
+   - Shipped: patient charts now include full internal JSON export, patient-safe PDF, and guarded irreversible deletion with exact typed confirmation and best-effort private blob cleanup.
+   - Next improvements: anonymize-instead-of-delete mode, tenant-level full export, deletion approval/signature, and media ZIP packaging.
 
 39. Account and notification preferences
    - Source: personal account.
@@ -337,13 +340,13 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommended Implementation Order From Here
 
-1. Data export/deletion tools.
+1. Dormant patient reactivation.
 2. Booking source/UTM attribution and abandoned-booking follow-up.
-3. Dormant patient reactivation.
-4. Patient-uploaded photos through the portal.
-5. Aftercare document library.
+3. Patient-uploaded photos through the portal.
+4. Aftercare document library.
+5. Account and notification preferences.
 
 ## Recommendation
 
-Refund and correction workflow now protects the ledger after daily close. The next point should be data export/deletion tools, because the product is now storing richer patient, finance, photo, consent, and payment-correction data that needs clean portability and deletion controls.
+Data export/deletion tools now give each patient card an internal JSON archive and guarded delete flow. The next point should be dormant patient reactivation, because retention analytics already identifies lost patients and the practitioner now needs a direct WhatsApp follow-up workflow.
 

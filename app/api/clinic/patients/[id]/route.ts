@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
+import { del } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { parseAnamnesisPatchBody } from '@/lib/clinic/anamnesis'
 import {
   buildClientBalanceChargesFromAppointments,
   buildClientBalanceSummary,
 } from '@/lib/clinic/client-balance'
+import {
+  isPatientDeleteConfirmationValid,
+  patientDeleteConfirmation,
+} from '@/lib/clinic/data-export'
 import { normalizePatientCategory, normalizePatientTags } from '@/lib/clinic/patient-tags'
 import { getClinicSession } from '@/lib/clinic/session'
 
@@ -408,4 +413,77 @@ export async function PATCH(
   })
 
   return NextResponse.json({ patient })
+}
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const session = getClinicSession(request)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await context.params
+
+  let body: Record<string, unknown>
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const patient = await prisma.clinicPatient.findFirst({
+    where: { id, tenantId: session.tenantId },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      middleName: true,
+      media: {
+        select: {
+          id: true,
+          blobPathname: true,
+        },
+      },
+    },
+  })
+
+  if (!patient) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  if (!isPatientDeleteConfirmationValid(patient, body.confirmation)) {
+    return NextResponse.json(
+      {
+        error: 'Confirmation mismatch',
+        requiredConfirmation: patientDeleteConfirmation(patient),
+      },
+      { status: 400 }
+    )
+  }
+
+  const blobPathnames = patient.media
+    .map((media) => media.blobPathname)
+    .filter((pathname): pathname is string => Boolean(pathname))
+
+  await prisma.clinicPatient.delete({
+    where: { id: patient.id },
+  })
+
+  const blobCleanupFailures: string[] = []
+  for (const pathname of blobPathnames) {
+    try {
+      await del(pathname)
+    } catch {
+      blobCleanupFailures.push(pathname)
+    }
+  }
+
+  return NextResponse.json({
+    deleted: true,
+    patientId: patient.id,
+    deletedMediaCount: patient.media.length,
+    blobCleanupFailures,
+  })
 }

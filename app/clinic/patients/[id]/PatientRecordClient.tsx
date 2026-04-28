@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
+import { patientDeleteConfirmation } from '@/lib/clinic/data-export'
 import { buildTimelineItems, filterTimelineItems, type TimelineFilter } from '@/lib/clinic/timeline'
 import { PATIENT_CATEGORIES, PATIENT_TAGS, type PatientCategory, type PatientTag } from '@/lib/clinic/patient-tags'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
@@ -369,6 +370,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('all')
   const [editOpen, setEditOpen] = useState(false)
   const [savingPatient, setSavingPatient] = useState(false)
+  const [deletingPatient, setDeletingPatient] = useState(false)
 
   const [editFirst, setEditFirst] = useState('')
   const [editLast, setEditLast] = useState('')
@@ -517,6 +519,39 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     }
   }
 
+  const deletePatientRecord = async () => {
+    if (!patient) return
+    const confirmation = patientDeleteConfirmation(patient)
+    const typed = window.prompt(
+      t.deletePatientConfirmationPrompt.replace('{confirmation}', confirmation)
+    )
+    if (typed == null) return
+    if (typed.trim() !== confirmation) {
+      setError(t.deletePatientFailed)
+      return
+    }
+
+    setDeletingPatient(true)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ confirmation: typed }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.deletePatientFailed)
+      }
+      window.alert(t.patientRecordDeleted)
+      router.replace('/clinic/patients')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.deletePatientFailed)
+    } finally {
+      setDeletingPatient(false)
+    }
+  }
+
   if (loading) {
     return <ClinicSpinner label={t.loading} />
   }
@@ -576,16 +611,36 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           })}
           {age != null ? ` · ${age} ${t.ageYears}` : ''}
         </p>
-        <a
-          href={`/api/clinic/patients/${patient.id}/summary-pdf`}
-          className="mt-3 inline-flex items-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <FileDown className="w-4 h-4 text-orange-600 shrink-0" aria-hidden />
-          {t.downloadPatientSummaryPdf}
-        </a>
+        <div className="mt-3 flex flex-col sm:flex-row gap-2">
+          <a
+            href={`/api/clinic/patients/${patient.id}/summary-pdf`}
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FileDown className="w-4 h-4 text-orange-600 shrink-0" aria-hidden />
+            {t.downloadPatientSummaryPdf}
+          </a>
+          <a
+            href={`/api/clinic/patients/${patient.id}/export`}
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
+          >
+            <FileDown className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden />
+            {t.downloadPatientFullExport}
+          </a>
+          <button
+            type="button"
+            onClick={() => void deletePatientRecord()}
+            disabled={deletingPatient}
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-red-200 bg-white text-sm font-medium text-red-700 hover:bg-red-50 shadow-sm disabled:opacity-60"
+          >
+            <Trash2 className="w-4 h-4 shrink-0" aria-hidden />
+            {deletingPatient ? t.deletingEllipsis : t.deletePatientRecord}
+          </button>
+        </div>
         <p className="text-xs text-gray-500 mt-2 max-w-xl">{t.patientSummaryPdfHint}</p>
+        <p className="text-xs text-gray-500 mt-1 max-w-xl">{t.patientFullExportHint}</p>
+        <p className="text-xs text-red-600 mt-1 max-w-xl">{t.deletePatientRecordHint}</p>
       </div>
 
       {/* Next actions — tuned for returning patient on iPad */}

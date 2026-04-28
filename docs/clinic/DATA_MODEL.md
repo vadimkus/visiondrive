@@ -44,9 +44,10 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 ## API surface (high level)
 
 - `GET/POST /api/clinic/patients` — list (+ `?q=`, `?category=`, `?tag=` filters), create; list rows include computed `clientBalance`.
-- `GET/PATCH /api/clinic/patients/[id]` — full chart for GET (includes related collections and computed `clientBalance`).
+- `GET/PATCH/DELETE /api/clinic/patients/[id]` — full chart for GET (includes related collections and computed `clientBalance`); DELETE requires exact typed confirmation and hard-deletes the tenant-scoped patient with linked records.
 - `POST /api/clinic/patients/import` — preview and commit client spreadsheet imports from `.xlsx` / `.csv`; duplicate rows are detected by phone/email before creation.
 - `GET /api/clinic/patients/[id]/summary-pdf` — **patient-safe** PDF (demographics, anamnesis, appointment/visit dates only; no internal notes, CRM, payments, media, clinical visit text).
+- `GET /api/clinic/patients/[id]/export` — internal full JSON archive for portability, including clinical/finance/consent/package/portal/CRM data and media metadata (media binaries are downloaded separately via authenticated media paths).
 - `GET/POST /api/clinic/inventory` — list (`?lowStock=1`, `?includeInactive=1`), create (optional opening `RECEIPT` movement).
 - `GET/PATCH /api/clinic/inventory/[id]` — detail + metadata; `GET/POST .../movements` — history + record movement (transactional qty update).
 - `GET /api/clinic/inventory/lookup?q=` — scanner lookup by barcode, SKU, or exact item name.

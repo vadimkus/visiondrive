@@ -76,6 +76,7 @@
 | [2026-04-27_clinic-payment-fee-rules.md](2026-04-27_clinic-payment-fee-rules.md) | Clinic payment fee rules note |
 | [2026-04-27_clinic-daily-close.md](2026-04-27_clinic-daily-close.md) | Clinic daily close reconciliation note |
 | [2026-04-27_clinic-refund-correction-workflow.md](2026-04-27_clinic-refund-correction-workflow.md) | Clinic refund and correction workflow note |
+| [2026-04-28_clinic-data-export-deletion-tools.md](2026-04-28_clinic-data-export-deletion-tools.md) | Clinic patient data export and deletion tools note |
 | [2026-04-27_homepage-solo-practitioner-positioning.md](2026-04-27_homepage-solo-practitioner-positioning.md) | Homepage solo practitioner positioning note |
 | [clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md](clinic/ALTEGIO_HOME_VISIT_ADAPTATION_MAP.md) | Altegio adaptation backlog for solo home-visit practitioners |
 

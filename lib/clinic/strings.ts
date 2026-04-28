@@ -217,6 +217,15 @@ const table = {
     downloadPatientSummaryPdf: 'Patient summary (PDF)',
     patientSummaryPdfHint:
       'Patient-safe export: no internal notes, payments, photos, or clinical visit text.',
+    downloadPatientFullExport: 'Full data export (JSON)',
+    patientFullExportHint:
+      'Internal export for portability: includes appointments, visits, clinical notes, payments, consents, packages, photos metadata, portal requests, and CRM history.',
+    deletePatientRecord: 'Delete patient record',
+    deletePatientRecordHint:
+      'Irreversible. Export the record first. This deletes the patient card and linked appointments, visits, payments, photos, consents, packages, portal links, and CRM history.',
+    deletePatientConfirmationPrompt: 'To delete this patient, type exactly: {confirmation}',
+    deletePatientFailed: 'Could not delete patient record',
+    patientRecordDeleted: 'Patient record deleted.',
     savePatient: 'Save patient',
     logVisit: 'Log a visit',
     logVisitHint:
@@ -1364,6 +1373,15 @@ const ruOverrides: Partial<ClinicStrings> = {
   downloadPatientSummaryPdf: 'Сводка пациента (PDF)',
   patientSummaryPdfHint:
     'Безопасный экспорт для пациента: без внутренних заметок, платежей, фото и клинического текста визитов.',
+  downloadPatientFullExport: 'Полный экспорт данных (JSON)',
+  patientFullExportHint:
+    'Внутренний экспорт для переноса данных: включает записи, визиты, клинические заметки, платежи, согласия, пакеты, метаданные фото, запросы из кабинета и CRM-историю.',
+  deletePatientRecord: 'Удалить карту пациента',
+  deletePatientRecordHint:
+    'Необратимо. Сначала экспортируйте карту. Будут удалены карта пациента и связанные записи, визиты, платежи, фото, согласия, пакеты, ссылки кабинета и CRM-история.',
+  deletePatientConfirmationPrompt: 'Чтобы удалить пациента, введите точно: {confirmation}',
+  deletePatientFailed: 'Не удалось удалить карту пациента',
+  patientRecordDeleted: 'Карта пациента удалена.',
   savePatient: 'Сохранить пациента',
   logVisit: 'Записать визит',
   logVisitHint: 'Зафиксируйте, что сделано сегодня и что дальше. Фото до/после добавляются во вкладке Фото.',

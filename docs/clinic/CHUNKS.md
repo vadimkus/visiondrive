@@ -720,6 +720,24 @@
 
 ---
 
+## Chunk 41 — 2026-04-28 (patient data export and deletion tools)
+
+**Shipped**
+
+- **Helper:** `lib/clinic/data-export.ts` centralizes safe export filenames, patient delete confirmation phrases, and media binary stripping for JSON archives.
+- **API:** `GET /api/clinic/patients/[id]/export` returns a tenant-scoped full JSON archive with patient demographics, appointments, visits, clinical text, payments/corrections, product sales, packages, consent records, treatment plans, portal links/requests, reviews, CRM activities, intake responses, and media metadata.
+- **Deletion:** `DELETE /api/clinic/patients/[id]` requires the exact typed phrase `DELETE Last First`, hard-deletes the patient and linked rows through existing cascade relations, and performs best-effort cleanup of private Vercel Blob media.
+- **UI:** patient record header now offers patient-safe PDF, full internal JSON export, and guarded record deletion.
+- **i18n/Knowledge Base:** EN/RU strings and article explain export scope, media handling, and irreversible deletion.
+
+**Validation**
+
+- Added Vitest coverage for data export helper behavior.
+- Run `npm run type-check`, `npm run test`, `npm run lint`, and `npm run build`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**
