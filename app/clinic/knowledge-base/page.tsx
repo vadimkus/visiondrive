@@ -358,6 +358,20 @@ const articlesEn: Article[] = [
     link: '/clinic/revenue-plan',
   },
   {
+    id: 'occupancy-report',
+    category: 'Finance',
+    title: 'Find free slots and wasted capacity',
+    summary: 'Use occupancy to see booked working time, free windows, blocked time, and travel-buffer pressure.',
+    steps: [
+      'Open Occupancy from the sidebar or dashboard quick actions.',
+      'Choose the next 7 or 14 days.',
+      'Review booked time versus planned working time from your availability rules.',
+      'Use the best free windows to add follow-ups, short services, or reactivation appointments.',
+      'Watch the travel-buffer readout to see when home-visit travel is consuming too much of the week.',
+    ],
+    link: '/clinic/occupancy',
+  },
+  {
     id: 'payment-fee-rules',
     category: 'Finance',
     title: 'Subtract payment fees automatically',
@@ -1021,6 +1035,20 @@ const articlesRu: Article[] = [
       'Обновляйте отчёт в течение дня после записи оплат, чтобы видеть актуальный разрыв.',
     ],
     link: '/clinic/revenue-plan',
+  },
+  {
+    id: 'occupancy-report',
+    category: 'Финансы',
+    title: 'Находите свободные окна и потерянную ёмкость',
+    summary: 'Загрузка показывает занятые рабочие часы, свободные окна, блокировки и давление буферов поездок.',
+    steps: [
+      'Откройте Занятость в боковом меню или быстрых действиях дашборда.',
+      'Выберите следующие 7 или 14 дней.',
+      'Сравните занятое время с плановым рабочим временем из правил доступности.',
+      'Используйте лучшие свободные окна для follow-up, коротких услуг или реактивации пациентов.',
+      'Следите за оценкой буферов поездок, чтобы видеть, когда выездная логистика съедает слишком много недели.',
+    ],
+    link: '/clinic/occupancy',
   },
   {
     id: 'payment-fee-rules',

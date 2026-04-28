@@ -356,6 +356,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 49. Occupancy and free-slot report
    - Source: occupancy analytics.
    - Solo version: how much planned working time is booked, where free slots exist, and whether travel buffers are excessive.
+   - Status: shipped first pass.
+   - Shipped: added `/clinic/occupancy` and `GET /api/clinic/occupancy/overview` for 7/14-day capacity analytics. It derives planned time from availability rules, booked time from active appointments including cleanup/travel buffers, free windows from remaining working time after appointments/blocked time, and highlights travel-heavy days.
+   - Next improvements: service-specific free slot matching, map-based route clustering, custom date ranges, CSV export, and alerts when occupancy falls below target.
 
 50. Review analytics
    - Source: reviews overview.

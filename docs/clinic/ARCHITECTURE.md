@@ -77,6 +77,8 @@ Service analytics: `/clinic/service-analytics` is a focused view over the existi
 
 Revenue plan: `/clinic/revenue-plan` stores a tenant's monthly target and optional expected average visit value in `tenant_settings.thresholds.revenuePlan` via `GET/PATCH /api/clinic/revenue-plan`. The page calculates current-month achieved revenue from paid patient payments minus refunds, then derives gap, required visits, daily pace, required daily pace, projected month, and completed visits. No new table is introduced in the first pass.
 
+Occupancy report: `/clinic/occupancy` calls `GET /api/clinic/occupancy/overview` for derived capacity analytics. Planned time comes from general `ClinicAvailabilityRule` rows (with default availability fallback), active appointments consume time with service duration plus cleanup/travel buffers, and `ClinicBlockedTime` removes unavailable periods. The first pass reports next 7/14-day occupancy, free windows, blocked time, and travel-buffer pressure without adding a table.
+
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.

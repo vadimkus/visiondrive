@@ -1089,6 +1089,24 @@
 
 ---
 
+## Chunk 62 — 2026-04-28 (occupancy and free slots)
+
+**Shipped**
+
+- **Report:** added `/clinic/occupancy` for next-7/next-14-day capacity analytics.
+- **API:** added `GET /api/clinic/occupancy/overview`.
+- **Metrics:** planned working time, booked/occupied time, service time, free time, blocked time, appointment count, free-slot count, largest daily gap, cleanup buffers, travel buffers, and occupancy percentage.
+- **Free windows:** day cards show meaningful open windows derived from availability minus active appointments and blocked time.
+- **Travel pressure:** report flags travel-heavy days when stored travel buffers consume a high share of service time.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, data-model, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**
