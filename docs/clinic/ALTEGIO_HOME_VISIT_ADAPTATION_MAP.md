@@ -378,6 +378,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 1. Chain/location management
    - Not relevant to a solo practitioner.
+   - Status: shipped solo replacement.
+   - Shipped: added `/clinic/service-areas` and `GET /api/clinic/service-areas/overview` as a lightweight substitute. It derives neighborhood demand, upcoming visit clusters, patients missing area, and next visit per area from existing patient/appointment location fields without adding chain, branch, or location tables.
 
 2. Multi-employee payroll
    - Replace with owner income, assistant cost if needed, and simple expense tracking.

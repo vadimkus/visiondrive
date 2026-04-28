@@ -97,6 +97,7 @@ Offline-safe visit drafts are intentionally device-local in this first pass. Tex
 - `/clinic/service-analytics` reuses `GET /api/clinic/finance/overview` for a focused service report; no separate analytics table is stored.
 - `GET/PATCH /api/clinic/revenue-plan` — current-month target planning. Settings are stored in `tenant_settings.thresholds.revenuePlan`; achieved revenue is calculated from paid/refunded patient payments and completed visits.
 - `GET /api/clinic/occupancy/overview` — derived capacity report using availability rules, appointments, travel/cleanup buffers, and blocked times; no separate occupancy table is stored.
+- `GET /api/clinic/service-areas/overview` — derived service-area report using patient `area` values and appointment `locationArea` snapshots; no chain/location table is stored.
 - `GET /api/clinic/review-analytics/overview` — derived review analytics using `clinic_patient_reviews`; no separate review analytics table is stored.
 - `GET/POST .../packages` — list/sell prepaid treatment packages with optional discount rule/reason; completed visits auto-debit one matching session.
 - `GET/POST /api/clinic/consents/templates`; `GET/POST .../patients/[id]/consents` — manage consent templates and signed patient consent records.

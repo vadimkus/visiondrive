@@ -27,6 +27,7 @@ import {
   LogOut,
   Target,
   UserCircle,
+  MapPin,
 } from 'lucide-react'
 import clsx from 'clsx'
 import Logo from '@/app/components/common/Logo'
@@ -45,6 +46,7 @@ const nav = [
   { href: '/clinic/service-analytics', labelKey: 'serviceAnalytics' as const, icon: BarChart3 },
   { href: '/clinic/revenue-plan', labelKey: 'revenuePlan' as const, icon: Target },
   { href: '/clinic/occupancy', labelKey: 'occupancyReport' as const, icon: CalendarClock },
+  { href: '/clinic/service-areas', labelKey: 'serviceAreas' as const, icon: MapPin },
   { href: '/clinic/appointments', labelKey: 'appointments' as const, icon: Calendar },
   { href: '/clinic/inbox', labelKey: 'inbox' as const, icon: Inbox },
   { href: '/clinic/retention', labelKey: 'retentionAnalytics' as const, icon: Repeat2 },

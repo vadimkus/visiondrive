@@ -91,6 +91,7 @@
 | [2026-04-28_clinic-occupancy-free-slots.md](2026-04-28_clinic-occupancy-free-slots.md) | Clinic occupancy and free slots note |
 | [2026-04-28_clinic-review-analytics.md](2026-04-28_clinic-review-analytics.md) | Clinic review analytics note |
 | [2026-04-28_clinic-knowledge-base-expansion.md](2026-04-28_clinic-knowledge-base-expansion.md) | Clinic knowledge base expansion note |
+| [2026-04-28_clinic-service-areas.md](2026-04-28_clinic-service-areas.md) | Clinic service areas note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

@@ -1142,6 +1142,24 @@
 
 ---
 
+## Chunk 65 — 2026-04-28 (service areas)
+
+**Shipped**
+
+- **Solo replacement:** treated chain/location management as not relevant for solo practitioners and shipped a lightweight service-area view instead.
+- **Report:** added `/clinic/service-areas` for next-30/next-90-day neighborhood demand and route planning.
+- **API:** added `GET /api/clinic/service-areas/overview`.
+- **Source of truth:** derives area counts from `ClinicPatient.area` and appointment `locationArea` snapshots; no chain, branch, or location table.
+- **Metrics:** areas served, patients with area, patients missing area, upcoming visits, completed visits in the last 90 days, busiest areas, and next visit per area.
+- **i18n/Knowledge Base/docs:** EN/RU strings, navigation, dashboard quick action, Knowledge Base article, backlog, architecture, docs index, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

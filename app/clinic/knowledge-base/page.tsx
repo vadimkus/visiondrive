@@ -373,6 +373,20 @@ const articlesEn: Article[] = [
     link: '/clinic/occupancy',
   },
   {
+    id: 'service-areas',
+    category: 'Appointments',
+    title: 'Use service areas instead of branches',
+    summary: 'See which neighborhoods create demand and where upcoming home visits are clustered.',
+    steps: [
+      'Open Service areas from the sidebar or dashboard quick actions.',
+      'Use the 30-day or 90-day view to see area demand.',
+      'Check busiest areas before adding follow-ups or opening extra availability.',
+      'Fix patient cards without an area so route planning and occupancy analysis stay useful.',
+      'This replaces chain/location management for solo work; no branch table is needed.',
+    ],
+    link: '/clinic/service-areas',
+  },
+  {
     id: 'review-analytics',
     category: 'Reputation',
     title: 'Track review replies and private feedback',
@@ -1128,6 +1142,20 @@ const articlesRu: Article[] = [
       'Следите за оценкой буферов поездок, чтобы видеть, когда выездная логистика съедает слишком много недели.',
     ],
     link: '/clinic/occupancy',
+  },
+  {
+    id: 'service-areas',
+    category: 'Записи',
+    title: 'Используйте районы выезда вместо филиалов',
+    summary: 'Смотрите, какие районы дают спрос и где сгруппированы ближайшие выездные визиты.',
+    steps: [
+      'Откройте Районы выезда в боковом меню или быстрых действиях дашборда.',
+      'Выберите 30 или 90 дней, чтобы увидеть спрос по районам.',
+      'Проверяйте самые активные районы перед follow-up сообщениями или расширением доступности.',
+      'Исправляйте карты пациентов без района, чтобы маршруты и отчёты оставались полезными.',
+      'Это заменяет управление сетью филиалов для соло-работы; отдельная таблица филиалов не нужна.',
+    ],
+    link: '/clinic/service-areas',
   },
   {
     id: 'review-analytics',
