@@ -24,7 +24,7 @@ import {
   UserCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
-import { visiondriveSlogan } from '@/lib/brand'
+import Logo from '@/app/components/common/Logo'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import type { ClinicLocale } from '@/lib/clinic/strings'
 
@@ -60,8 +60,6 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
     router.refresh()
   }
 
-  const slogan = locale === 'ru' ? visiondriveSlogan.ru : visiondriveSlogan.en
-
   return (
     <div
       className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.16),transparent_34rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_42%,#eef2ff_100%)] flex flex-col lg:flex-row pb-[env(safe-area-inset-bottom)]"
@@ -75,13 +73,12 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
             className="flex items-center gap-2 lg:px-2 min-h-11 min-w-11 lg:min-w-0"
             aria-label={t.dashboard}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-sm font-black tracking-tight text-white shadow-lg shadow-orange-500/20">
-              VD
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-orange-100">
+              <Logo className="h-9 w-9" priority />
             </div>
             <div className="hidden lg:block min-w-0">
               <p className="text-sm font-semibold text-gray-900 leading-tight">{t.practiceOsTitle}</p>
               <p className="text-[11px] text-gray-500 leading-snug">{t.practiceOsBrand}</p>
-              <p className="text-[10px] text-gray-400 leading-snug mt-0.5">{slogan}</p>
             </div>
           </Link>
 
