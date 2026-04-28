@@ -93,6 +93,7 @@
 | [2026-04-28_clinic-knowledge-base-expansion.md](2026-04-28_clinic-knowledge-base-expansion.md) | Clinic knowledge base expansion note |
 | [2026-04-28_clinic-service-areas.md](2026-04-28_clinic-service-areas.md) | Clinic service areas note |
 | [2026-04-28_clinic-owner-income.md](2026-04-28_clinic-owner-income.md) | Clinic owner income note |
+| [2026-04-28_clinic-group-classes-events-decision.md](2026-04-28_clinic-group-classes-events-decision.md) | Clinic group classes/events decision note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

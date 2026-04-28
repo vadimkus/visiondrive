@@ -388,6 +388,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 3. Group classes and events
    - Skip unless the product later supports courses/workshops.
+   - Status: deferred with lightweight guidance.
+   - Shipped: added an EN/RU Knowledge Base guide explaining how to handle occasional workshops manually with blocked time, finance expenses, patient notes/CRM/tags, and normal patient payments only when a real patient record exists. No group booking, attendee roster, capacity, or waitlist tables added.
 
 4. Multi-staff "any professional" assignment
    - Not useful for a one-practitioner practice.

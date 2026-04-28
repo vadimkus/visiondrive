@@ -51,6 +51,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 
 Offline-safe visit drafts are intentionally device-local in this first pass. Text visit drafts live in browser `localStorage` under patient-scoped keys, then sync through the normal `POST /api/clinic/visits` path after practitioner review. Failed/offline photo uploads live in browser IndexedDB and sync through the normal `POST /api/clinic/patients/[id]/media` path. There is no server-side draft table yet.
 
+Group classes/events are intentionally not modeled yet. Occasional workshops should use blocked time, notes/CRM/tags, normal finance expenses, and normal patient payments only when a real patient record exists. There is no course, class capacity, attendee roster, or waitlist table in the solo first pass.
+
 ## API surface (high level)
 
 - `GET/POST /api/clinic/patients` — list (+ `?q=`, `?category=`, `?tag=` filters), create; list rows include computed `clientBalance`.

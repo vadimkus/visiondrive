@@ -1178,6 +1178,23 @@
 
 ---
 
+## Chunk 67 — 2026-04-28 (group classes/events decision)
+
+**Shipped**
+
+- **Decision:** kept group classes/events deferred because the product is still focused on solo 1:1 home-visit practice operations.
+- **Guidance:** added an EN/RU Knowledge Base article for occasional workshops without group booking.
+- **Operational path:** use blocked time for the event, Finance expenses for costs, patient notes/CRM/tags for interest, and normal patient payments only when a real patient record exists.
+- **Avoided scope:** no class capacity, attendee roster, waitlist, course product, or group booking tables.
+- **Docs/backlog:** updated backlog, architecture, data-model, docs index, and session note.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

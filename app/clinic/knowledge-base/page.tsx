@@ -67,6 +67,20 @@ const articlesEn: Article[] = [
     link: '/clinic',
   },
   {
+    id: 'group-classes-events',
+    category: 'Appointments',
+    title: 'Handle workshops without group booking',
+    summary: 'Group classes are deferred; use simple one-to-one workflows until courses become a real product line.',
+    steps: [
+      'For now, keep normal appointments as the source of truth for paid treatment time.',
+      'If you run a small workshop, create a blocked time for the event and record expenses in Finance.',
+      'Keep interested clients in patient notes, CRM notes, or a simple tag until there is enough demand.',
+      'Collect payments as normal patient payments only when the workshop has a clear patient record.',
+      'Do not add class capacity, attendee rosters, or waitlists until courses/workshops are a recurring revenue stream.',
+    ],
+    link: '/clinic/appointments/availability',
+  },
+  {
     id: 'patients',
     category: 'Patients',
     title: 'Keep the patient record clean and private',
@@ -850,6 +864,20 @@ const articlesRu: Article[] = [
       'Новая запись создаётся как онлайн-запись и планирует WhatsApp-напоминание за 24 часа.',
     ],
     link: '/clinic',
+  },
+  {
+    id: 'group-classes-events',
+    category: 'Записи',
+    title: 'Проводите воркшопы без групповой записи',
+    summary: 'Групповые занятия отложены; используйте простые 1:1 процессы, пока курсы не станут отдельным продуктом.',
+    steps: [
+      'Пока платное лечебное время должно оставаться в обычных записях.',
+      'Если проводите небольшой воркшоп, создайте заблокированное время под событие и внесите расходы в Финансы.',
+      'Интересующихся клиентов фиксируйте в заметках пациента, CRM или простым тегом, пока спрос не станет регулярным.',
+      'Оплаты проводите как обычные платежи пациента только когда есть понятная карта клиента.',
+      'Не добавляйте вместимость класса, списки участников и waitlist, пока курсы/воркшопы не станут повторяемой выручкой.',
+    ],
+    link: '/clinic/appointments/availability',
   },
   {
     id: 'patients',
