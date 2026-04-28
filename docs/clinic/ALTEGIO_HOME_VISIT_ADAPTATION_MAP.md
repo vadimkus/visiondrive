@@ -342,6 +342,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 47. Service analytics
    - Source: service reports and main dashboard.
    - Solo version: revenue, count, average price, material cost, profit per hour per procedure.
+   - Status: shipped first pass.
+   - Shipped: added `/clinic/service-analytics` as a focused procedure analytics report using the existing Finance / P&L v2 source of truth. It shows net revenue, completed visit count, average price, material cost, booked time, gross profit, margin, and profit per hour by procedure, with sorting by gross profit, profit/hour, or visit count. Added sidebar navigation and dashboard quick action.
+   - Next improvements: custom date ranges, CSV export, service-level trend chart, pricing recommendations, and per-practitioner comparison if multi-staff support is added.
 
 48. Revenue plan
    - Source: revenue plans.

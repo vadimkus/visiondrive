@@ -39,6 +39,7 @@ const nav = [
   { href: '/clinic/purchase-orders', labelKey: 'purchaseOrders' as const, icon: ShoppingCart },
   { href: '/clinic/suppliers', labelKey: 'suppliers' as const, icon: Truck },
   { href: '/clinic/finance', labelKey: 'finance' as const, icon: CircleDollarSign },
+  { href: '/clinic/service-analytics', labelKey: 'serviceAnalytics' as const, icon: BarChart3 },
   { href: '/clinic/appointments', labelKey: 'appointments' as const, icon: Calendar },
   { href: '/clinic/inbox', labelKey: 'inbox' as const, icon: Inbox },
   { href: '/clinic/retention', labelKey: 'retentionAnalytics' as const, icon: Repeat2 },

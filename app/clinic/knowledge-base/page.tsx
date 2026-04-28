@@ -330,6 +330,20 @@ const articlesEn: Article[] = [
     link: '/clinic/finance',
   },
   {
+    id: 'service-analytics',
+    category: 'Finance',
+    title: 'Compare services by profit per hour',
+    summary: 'Use a focused procedure report for revenue, count, average price, material cost, and profit per hour.',
+    steps: [
+      'Open Service analytics from the sidebar or dashboard quick actions.',
+      'Choose this month or the last 30 days.',
+      'Sort procedures by gross profit, profit per hour, or completed visit count.',
+      'Watch average price versus material cost to find services that need repricing.',
+      'Use Finance when you need the full P&L, expenses, discounts, gift cards, and payment fees.',
+    ],
+    link: '/clinic/service-analytics',
+  },
+  {
     id: 'payment-fee-rules',
     category: 'Finance',
     title: 'Subtract payment fees automatically',
@@ -965,6 +979,20 @@ const articlesRu: Article[] = [
       'Смотрите разбивку по категориям, чтобы понимать структуру затрат и какие услуги пора переоценить.',
     ],
     link: '/clinic/finance',
+  },
+  {
+    id: 'service-analytics',
+    category: 'Финансы',
+    title: 'Сравнивайте услуги по прибыли в час',
+    summary: 'Отдельный отчёт по процедурам: выручка, количество, средний чек, материалы и прибыль в час.',
+    steps: [
+      'Откройте Аналитику услуг в боковом меню или быстрых действиях дашборда.',
+      'Выберите этот месяц или последние 30 дней.',
+      'Сортируйте процедуры по валовой прибыли, прибыли в час или количеству завершённых визитов.',
+      'Сравнивайте средний чек и стоимость материалов, чтобы увидеть услуги для пересмотра цены.',
+      'Используйте Финансы, когда нужен полный P&L, расходы, скидки, подарочные карты и комиссии оплат.',
+    ],
+    link: '/clinic/service-analytics',
   },
   {
     id: 'payment-fee-rules',

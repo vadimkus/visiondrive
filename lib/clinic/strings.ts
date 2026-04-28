@@ -772,6 +772,19 @@ const table = {
     expenses: 'Expenses',
     profit: 'Profit',
     profitability: 'Profitability',
+    serviceAnalytics: 'Service analytics',
+    serviceAnalyticsIntro:
+      'See which procedures actually earn money: revenue, visit count, average price, material cost, and profit per hour.',
+    serviceAnalyticsAveragePrice: 'Average price',
+    serviceAnalyticsPerCompletedVisit: 'Per completed visit',
+    serviceAnalyticsAcrossServices: 'Across completed services',
+    serviceAnalyticsBookedTime: 'booked time',
+    serviceAnalyticsByProcedure: 'Service analytics by procedure',
+    serviceAnalyticsByProcedureHint:
+      'Use this to reprice weak services, protect high-margin treatments, and spot procedures that consume too much time or material.',
+    serviceAnalyticsTime: 'Time',
+    serviceAnalyticsFinanceHint:
+      'This report uses the same source of truth as Finance / P&L v2, including linked payments, refunds, material BOM, and processing fees.',
     financeSubtitle: 'Revenue · expenses · profitability',
     financeThisMonth: 'This month',
     financeLast30Days: 'Last 30 days',
@@ -2361,6 +2374,19 @@ const ruOverrides: Partial<ClinicStrings> = {
   expenses: 'Расходы',
   profit: 'Прибыль',
   profitability: 'Рентабельность',
+  serviceAnalytics: 'Аналитика услуг',
+  serviceAnalyticsIntro:
+    'Смотрите, какие процедуры действительно зарабатывают: выручка, количество визитов, средний чек, материалы и прибыль в час.',
+  serviceAnalyticsAveragePrice: 'Средний чек',
+  serviceAnalyticsPerCompletedVisit: 'За завершённый визит',
+  serviceAnalyticsAcrossServices: 'По завершённым услугам',
+  serviceAnalyticsBookedTime: 'занятого времени',
+  serviceAnalyticsByProcedure: 'Аналитика услуг по процедурам',
+  serviceAnalyticsByProcedureHint:
+    'Используйте это для пересмотра цен, защиты маржинальных услуг и выявления процедур, которые съедают слишком много времени или материалов.',
+  serviceAnalyticsTime: 'Время',
+  serviceAnalyticsFinanceHint:
+    'Отчёт использует тот же источник данных, что и Финансы / P&L v2: платежи, возвраты, состав процедуры, материалы и комиссии.',
   financeSubtitle: 'Выручка · расходы · прибыльность',
   financeThisMonth: 'Этот месяц',
   financeLast30Days: 'Последние 30 дней',

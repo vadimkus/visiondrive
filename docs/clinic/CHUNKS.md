@@ -1055,6 +1055,23 @@
 
 ---
 
+## Chunk 60 — 2026-04-28 (service analytics)
+
+**Shipped**
+
+- **Report:** added `/clinic/service-analytics` as a focused procedure analytics page.
+- **Metrics:** shows service revenue, completed count, average price, material cost, booked time, gross profit, margin, and profit per hour by procedure.
+- **Source of truth:** reuses `GET /api/clinic/finance/overview` and `lib/clinic/profitability.ts`; no duplicate analytics table.
+- **Navigation:** added sidebar entry and dashboard quick action.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, data-model, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

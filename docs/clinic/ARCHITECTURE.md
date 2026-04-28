@@ -71,6 +71,8 @@ Message history: patient profiles reuse `ClinicCrmActivity` instead of introduci
 
 Call log: patient profiles also reuse `ClinicCrmActivity` for a manual call-log first pass. The CRM tab provides a structured call form for direction, outcome, summary, and next action, formats those fields into a `CALL` activity body, and shows recent calls separately above message history. A `tel:` link is offered when the patient has a phone number, but there is no call recording, device call-log import, or telephony integration yet.
 
+Service analytics: `/clinic/service-analytics` is a focused view over the existing Finance / P&L v2 procedure profitability data. It calls `GET /api/clinic/finance/overview` and presents procedure-level revenue, completed visit count, average price, material cost, booked time, gross profit, margin, and profit per hour with sort controls. It does not introduce a separate analytics table; `lib/clinic/profitability.ts` remains the source for procedure calculations.
+
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.

@@ -65,6 +65,7 @@
 | [2026-04-27_clinic-stock-taking-variance.md](2026-04-27_clinic-stock-taking-variance.md) | Clinic stock-taking and variance note |
 | [2026-04-27_clinic-product-sales-from-visit.md](2026-04-27_clinic-product-sales-from-visit.md) | Clinic product sales from visit note |
 | [2026-04-27_clinic-pnl-v2-profitability.md](2026-04-27_clinic-pnl-v2-profitability.md) | Clinic P&L v2 and procedure profitability note |
+| [2026-04-28_clinic-service-analytics.md](2026-04-28_clinic-service-analytics.md) | Clinic service analytics note |
 | [2026-04-27_clinic-mobile-photos-seo-llms.md](2026-04-27_clinic-mobile-photos-seo-llms.md) | Clinic mobile photos plus SEO/LLM files note |
 | [2026-04-27_clinic-retention-analytics.md](2026-04-27_clinic-retention-analytics.md) | Clinic retention analytics note |
 | [2026-04-27_clinic-booking-funnel-analytics.md](2026-04-27_clinic-booking-funnel-analytics.md) | Clinic booking funnel analytics note |
