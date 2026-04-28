@@ -51,6 +51,7 @@ model User {
   clinicPractitionerPushes   ClinicPractitionerPushDelivery[]
   clinicAppointmentEvents    ClinicAppointmentEvent[]         @relation("ClinicAppointmentEventActor")
   clinicPatientPortalLinks   ClinicPatientPortalLink[]        @relation("ClinicPatientPortalLinkCreator")
+  clinicPriceQuotesCreated   ClinicPriceQuote[]               @relation("ClinicPriceQuoteCreator")
 
   @@map("users")
 }
@@ -98,6 +99,8 @@ model Tenant {
   clinicVisits                ClinicVisit[]
   clinicPatientMedia          ClinicPatientMedia[]
   clinicPatientPayments       ClinicPatientPayment[]
+  clinicPriceQuotes           ClinicPriceQuote[]
+  clinicPriceQuoteLines       ClinicPriceQuoteLine[]
   clinicPaymentCorrections    ClinicPaymentCorrection[]
   clinicPaymentFeeRules       ClinicPaymentFeeRule[]
   clinicDiscountRules         ClinicDiscountRule[]
@@ -896,6 +899,7 @@ model ClinicPatient {
   portalLinks         ClinicPatientPortalLink[]
   portalRequests      ClinicPatientPortalRequest[]
   intakeResponses     ClinicIntakeResponse[]
+  priceQuotes         ClinicPriceQuote[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -931,6 +935,7 @@ model ClinicProcedure {
   bookingFunnelEvents ClinicBookingFunnelEvent[]
   intakeQuestions     ClinicIntakeQuestion[]
   intakeResponses     ClinicIntakeResponse[]
+  priceQuoteLines     ClinicPriceQuoteLine[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -1244,6 +1249,14 @@ enum ClinicPaymentStatus {
   VOID
 }
 
+enum ClinicPriceQuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
 enum ClinicGiftCardStatus {
   PENDING
   ACTIVE
@@ -1397,6 +1410,57 @@ model ClinicPatientPayment {
   @@index([appointmentId, paidAt])
   @@index([discountRuleId, paidAt])
   @@map("clinic_patient_payments")
+}
+
+model ClinicPriceQuote {
+  id              String                 @id @default(cuid())
+  tenantId        String
+  patientId       String
+  quoteNumber     String
+  title           String
+  status          ClinicPriceQuoteStatus @default(DRAFT)
+  currency        String                 @default("AED")
+  subtotalCents   Int                    @default(0)
+  discountCents   Int                    @default(0)
+  totalCents      Int                    @default(0)
+  validUntil      DateTime?              @db.Date
+  note            String?                @db.Text
+  terms           String?                @db.Text
+  sentAt          DateTime?              @db.Timestamptz(6)
+  acceptedAt      DateTime?              @db.Timestamptz(6)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  createdByUserId String?
+
+  tenant        Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient       ClinicPatient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdByUser User?                  @relation("ClinicPriceQuoteCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  lines         ClinicPriceQuoteLine[]
+
+  @@index([tenantId, patientId, createdAt])
+  @@index([tenantId, quoteNumber])
+  @@map("clinic_price_quotes")
+}
+
+model ClinicPriceQuoteLine {
+  id             String   @id @default(cuid())
+  tenantId       String
+  quoteId        String
+  procedureId    String?
+  description    String
+  quantity       Int      @default(1)
+  unitPriceCents Int      @default(0)
+  totalCents     Int      @default(0)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quote     ClinicPriceQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, quoteId])
+  @@index([procedureId])
+  @@map("clinic_price_quote_lines")
 }
 
 model ClinicPaymentCorrection {

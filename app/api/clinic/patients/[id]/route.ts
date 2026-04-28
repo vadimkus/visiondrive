@@ -245,6 +245,16 @@ export async function GET(
           },
         },
       },
+      priceQuotes: {
+        orderBy: { createdAt: 'desc' },
+        take: 40,
+        include: {
+          lines: {
+            orderBy: { sortOrder: 'asc' },
+            include: { procedure: { select: { id: true, name: true } } },
+          },
+        },
+      },
       productSales: {
         orderBy: { soldAt: 'desc' },
         take: 80,

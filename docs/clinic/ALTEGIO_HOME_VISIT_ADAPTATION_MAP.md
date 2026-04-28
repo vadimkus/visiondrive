@@ -307,36 +307,46 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 42. Offline-safe visit draft
    - Source: mobile app pattern, adapted for field work.
    - Solo version: draft clinical notes/photos locally if connectivity is bad, then sync when online.
+   - Status: shipped first pass.
+   - Shipped: patient-card visit forms now autosave a device-local draft keyed to the patient, preserve clinical fields/aftercare/treatment-plan choices through refresh or failed sync, import the dashboard scratchpad into the selected patient, queue failed/offline photo uploads in IndexedDB, and clear the local text draft only after the normal visit save succeeds.
+   - Next improvements: background sync after service-worker route caching, draft encryption at rest, and a visible drafts list across patients/devices.
 
-43. WhatsApp bot intake
+43. Patient price quotes / treatment estimates
+   - Source: repeated price questions, service estimates, and pre-treatment sales handoff.
+   - Solo version: create a polished patient quote from the patient card, using procedure prices or custom lines, then share as PDF, WhatsApp text, or email text.
+   - Status: shipped first pass.
+   - Shipped: added quote ledger models, patient Quotes tab, procedure-backed quote builder, totals/discount/validity/terms, PDF export, WhatsApp-ready text copy/open, email handoff, and sent/accepted status support.
+   - Next improvements: public quote acceptance link, deposit/payment request from quote, branded logo image in PDF, and reusable quote templates.
+
+44. WhatsApp bot intake
    - Source: chatbot integrations.
    - Solo version: later-stage bot for FAQs, booking link, appointment status, intake link, and reminder replies.
 
-44. Message history
+45. Message history
    - Source: chat features and sent messages history.
    - Solo version: manual log first, integration later. Attach message history to patient profile.
 
-45. Call log
+46. Call log
    - Source: call logs and telephony.
    - Solo version: manual call note with outcome and next action. Skip deep telephony integration for now.
 
-46. Service analytics
+47. Service analytics
    - Source: service reports and main dashboard.
    - Solo version: revenue, count, average price, material cost, profit per hour per procedure.
 
-47. Revenue plan
+48. Revenue plan
    - Source: revenue plans.
    - Solo version: monthly target, required visits, achieved revenue, daily pace, gap.
 
-48. Occupancy and free-slot report
+49. Occupancy and free-slot report
    - Source: occupancy analytics.
    - Solo version: how much planned working time is booked, where free slots exist, and whether travel buffers are excessive.
 
-49. Review analytics
+50. Review analytics
    - Source: reviews overview.
    - Solo version: requested, replied, published, average rating, negative-private-feedback queue.
 
-50. Knowledge base expansion
+51. Knowledge base expansion
    - Source: Altegio support knowledge base format.
    - Solo version: in-app help articles for each Practice OS feature in EN/RU, written around home-visit workflows.
 

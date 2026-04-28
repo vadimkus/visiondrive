@@ -970,6 +970,40 @@
 
 ---
 
+## Chunk 55 — 2026-04-28 (offline-safe visit draft)
+
+**Shipped**
+
+- **Patient card:** `Log a visit` now autosaves a device-local draft keyed to the patient, including clinical fields, treatment-plan link, and aftercare selection.
+- **Sync safety:** if the browser is offline or the visit save fails, the draft remains on the device for retry; successful visit creation clears the local draft.
+- **PWA handoff:** the dashboard scratchpad can be moved into the selected patient visit draft for explicit review before saving.
+- **Photos:** failed/offline patient photo uploads are queued in IndexedDB with caption/protocol metadata and can be synced manually from the Photos tab.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base entry, architecture, data-model note, backlog, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
+## Chunk 56 — 2026-04-28 (patient price quotes)
+
+**Shipped**
+
+- **Schema:** added `ClinicPriceQuote`, `ClinicPriceQuoteLine`, and quote status enum for patient treatment estimates.
+- **API:** added patient quote list/create/status update routes plus PDF download route.
+- **Patient card:** added a Quotes tab with a quick builder using procedure prices or custom rows, validity date, discount, note, terms, and saved quote history.
+- **Sharing:** each quote can be downloaded as a polished PDF, copied as WhatsApp-ready text, opened in WhatsApp, or opened as an email draft.
+- **Tests/docs:** added quote helper/PDF tests, EN/RU strings, Knowledge Base article, architecture/data-model notes, backlog entry, and session note.
+
+**Validation**
+
+- Run `npx prisma format`, `npx prisma generate`, focused quote tests, `npm run type-check`, and `npm run lint`.
+- Run `npx prisma db push` before using this chunk against a database because it changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

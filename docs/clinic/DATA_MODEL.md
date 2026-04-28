@@ -27,6 +27,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_visits` | Completed encounters; optional `treatment_plan_id`; **next_steps** drives “what to do next” on the chart; aftercare template snapshots store patient-facing message/document references; **inventory_consumed_at** prevents repeated auto-deduct. |
 | `clinic_patient_media` | Before/after/other images captured from camera or uploaded from file picker: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime/caption plus capture-protocol JSON and marketing-consent marker. |
 | `clinic_patient_payments` | Payments; optional `visit_id` / `appointment_id`, discount amount plus `discount_rule_id` / snapshot name / required reason, patient-facing fee, internal `processor_fee_cents`, method, status, reference, note. Refunds are separate `REFUNDED` adjustment payment rows that point back to the original via correction records. |
+| `clinic_price_quotes` + `clinic_price_quote_lines` | Patient treatment estimates: quote number, status, validity, terms, subtotal/discount/total, and service/custom line items for PDF/WhatsApp/email sharing before booking. |
 | `clinic_payment_corrections` | Audit trail for refunds and voids: original payment, optional adjustment payment, type, amount, method, reason, note, actor, and timestamp. |
 | `clinic_payment_fee_rules` | Tenant method-level acquiring rules: payment method, percent bps, fixed fee, active flag. New paid payments snapshot processing fees automatically. |
 | `clinic_discount_rules` | Tenant named promotions/discounts for visits and packages: percent/fixed value, active flag, and notes. Applied discounts snapshot the rule name and require a reason. |
@@ -46,6 +47,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_purchase_orders` + `clinic_purchase_order_lines` | Supplier ordering and receiving; receipts create `RECEIPT` stock movements; orders can link to supplier profiles while preserving the supplier name snapshot. |
 | `clinic_web_push_subscriptions` | Browser push subscriptions for opted-in clinic alerts. |
 
+Offline-safe visit drafts are intentionally device-local in this first pass. Text visit drafts live in browser `localStorage` under patient-scoped keys, then sync through the normal `POST /api/clinic/visits` path after practitioner review. Failed/offline photo uploads live in browser IndexedDB and sync through the normal `POST /api/clinic/patients/[id]/media` path. There is no server-side draft table yet.
+
 ## API surface (high level)
 
 - `GET/POST /api/clinic/patients` — list (+ `?q=`, `?category=`, `?tag=` filters), create; list rows include computed `clientBalance`.
@@ -54,6 +57,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET /api/clinic/patients/[id]/summary-pdf` — **minimal patient-safe** PDF (demographics, anamnesis, appointment/visit dates only; no internal notes, CRM, payments, media, clinical visit text).
 - `GET /api/clinic/patients/[id]/patient-safe-export` — richer patient-facing PDF with treatment summaries, aftercare, receipt summaries, and accepted consent snapshots; excludes internal/staff notes, CRM, private appointment notes, and photos.
 - `GET /api/clinic/patients/[id]/export` — internal full JSON archive for portability, including clinical/finance/consent/package/portal/CRM data and media metadata (media binaries are downloaded separately via authenticated media paths).
+- `GET/POST /api/clinic/patients/[id]/quotes`; `PATCH .../quotes/[quoteId]`; `GET .../quotes/[quoteId]/pdf` — create/list/update patient price quotes and download polished treatment-estimate PDFs.
 - `GET/POST /api/clinic/inventory` — list (`?lowStock=1`, `?includeInactive=1`), create (optional opening `RECEIPT` movement).
 - `GET/PATCH /api/clinic/inventory/[id]` — detail + metadata; `GET/POST .../movements` — history + record movement (transactional qty update).
 - `GET /api/clinic/inventory/lookup?q=` — scanner lookup by barcode, SKU, or exact item name.

@@ -80,6 +80,8 @@
 | [2026-04-28_clinic-account-notification-preferences.md](2026-04-28_clinic-account-notification-preferences.md) | Clinic account and notification preferences note |
 | [2026-04-28_clinic-pwa-practitioner-mode.md](2026-04-28_clinic-pwa-practitioner-mode.md) | Clinic PWA practitioner mode note |
 | [2026-04-28_clinic-practitioner-push-notifications.md](2026-04-28_clinic-practitioner-push-notifications.md) | Clinic practitioner push notifications note |
+| [2026-04-28_clinic-offline-safe-visit-draft.md](2026-04-28_clinic-offline-safe-visit-draft.md) | Clinic offline-safe visit draft note |
+| [2026-04-28_clinic-patient-price-quotes.md](2026-04-28_clinic-patient-price-quotes.md) | Clinic patient price quotes note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

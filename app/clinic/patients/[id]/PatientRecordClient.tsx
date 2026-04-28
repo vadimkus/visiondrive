@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -9,6 +10,7 @@ import {
   MessageSquare,
   Camera,
   Clock,
+  Send,
   Pencil,
   ChevronUp,
   ClipboardList,
@@ -21,6 +23,8 @@ import {
   Copy,
   Mic,
   MicOff,
+  Wifi,
+  WifiOff,
   XCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -28,12 +32,123 @@ import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
 import { patientDeleteConfirmation } from '@/lib/clinic/data-export'
 import { buildTimelineItems, filterTimelineItems, type TimelineFilter } from '@/lib/clinic/timeline'
 import { PATIENT_CATEGORIES, PATIENT_TAGS, type PatientCategory, type PatientTag } from '@/lib/clinic/patient-tags'
+import { buildPriceQuoteMessage } from '@/lib/clinic/price-quotes'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
 
 type ProcedureRef = { id: string; name: string } | null
+
+const PWA_SCRATCHPAD_DRAFT_KEY = 'clinic:pwa-offline-note-draft'
+const OFFLINE_MEDIA_DB_NAME = 'clinic-offline-media-drafts'
+const OFFLINE_MEDIA_STORE = 'mediaDrafts'
+
+type OfflineVisitDraft = {
+  patientId: string
+  visitAt: string
+  chiefComplaint: string
+  procedureSummary: string
+  nextSteps: string
+  staffNotes: string
+  treatmentPlanId: string
+  aftercareTemplateId: string
+  updatedAt: string
+}
+
+type OfflineMediaDraft = {
+  id: string
+  patientId: string
+  visitId: string
+  kind: string
+  caption: string
+  protocolChecked: PhotoProtocolItemId[]
+  marketingConsent: boolean
+  protocolNote: string
+  protocolProcedureName: string | null
+  fileName: string
+  mimeType: string
+  dataUrl: string
+  createdAt: string
+}
+
+function defaultVisitDateTimeInput() {
+  const d = new Date()
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+  return d.toISOString().slice(0, 16)
+}
+
+function openOfflineMediaDb() {
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = window.indexedDB.open(OFFLINE_MEDIA_DB_NAME, 1)
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains(OFFLINE_MEDIA_STORE)) {
+        db.createObjectStore(OFFLINE_MEDIA_STORE, { keyPath: 'id' })
+      }
+    }
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+}
+
+async function readOfflineMediaDrafts(patientId: string) {
+  const db = await openOfflineMediaDb()
+  return new Promise<OfflineMediaDraft[]>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_MEDIA_STORE, 'readonly')
+    const request = tx.objectStore(OFFLINE_MEDIA_STORE).getAll()
+    request.onsuccess = () => {
+      const drafts = (request.result as OfflineMediaDraft[])
+        .filter((draft) => draft.patientId === patientId)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      resolve(drafts)
+    }
+    request.onerror = () => reject(request.error)
+    tx.oncomplete = () => db.close()
+    tx.onerror = () => db.close()
+  })
+}
+
+async function saveOfflineMediaDraft(draft: OfflineMediaDraft) {
+  const db = await openOfflineMediaDb()
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_MEDIA_STORE, 'readwrite')
+    tx.objectStore(OFFLINE_MEDIA_STORE).put(draft)
+    tx.oncomplete = () => {
+      db.close()
+      resolve()
+    }
+    tx.onerror = () => {
+      db.close()
+      reject(tx.error)
+    }
+  })
+}
+
+async function deleteOfflineMediaDraft(id: string) {
+  const db = await openOfflineMediaDb()
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_MEDIA_STORE, 'readwrite')
+    tx.objectStore(OFFLINE_MEDIA_STORE).delete(id)
+    tx.oncomplete = () => {
+      db.close()
+      resolve()
+    }
+    tx.onerror = () => {
+      db.close()
+      reject(tx.error)
+    }
+  })
+}
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
 
 type AppointmentRow = {
   id: string
@@ -130,6 +245,42 @@ type ProductSaleRow = {
     lineTotalCents: number
     stockItem: { id: string; name: string; sku: string | null; unit: string }
   }>
+}
+
+type PriceQuoteLineRow = {
+  id: string
+  procedureId: string | null
+  description: string
+  quantity: number
+  unitPriceCents: number
+  totalCents: number
+  procedure?: { id: string; name: string } | null
+}
+
+type PriceQuoteRow = {
+  id: string
+  quoteNumber: string
+  title: string
+  status: 'DRAFT' | 'SENT' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED'
+  currency: string
+  subtotalCents: number
+  discountCents: number
+  totalCents: number
+  validUntil: string | null
+  note: string | null
+  terms: string | null
+  sentAt: string | null
+  acceptedAt: string | null
+  createdAt: string
+  lines: PriceQuoteLineRow[]
+}
+
+type QuoteProcedureOption = {
+  id: string
+  name: string
+  basePriceCents: number
+  currency: string
+  active: boolean
 }
 
 type PackageRedemptionRow = {
@@ -351,6 +502,7 @@ export type PatientRecord = {
   visits: VisitRow[]
   media: MediaMeta[]
   payments: PaymentRow[]
+  priceQuotes: PriceQuoteRow[]
   productSales: ProductSaleRow[]
   packages: PackageRow[]
   giftCardRedemptions: GiftCardRedemptionRow[]
@@ -362,7 +514,7 @@ export type PatientRecord = {
   crmActivities: CrmRow[]
 }
 
-type Tab = 'overview' | 'timeline' | 'photos' | 'payments' | 'packages' | 'treatment-plans' | 'consents' | 'crm'
+type Tab = 'overview' | 'timeline' | 'photos' | 'quotes' | 'payments' | 'packages' | 'treatment-plans' | 'consents' | 'crm'
 
 function categoryLabel(t: ReturnType<typeof useClinicLocale>['t'], category: PatientCategory) {
   if (category === 'VIP') return t.categoryVip
@@ -412,6 +564,12 @@ function photoProtocolItemLabel(t: ReturnType<typeof useClinicLocale>['t'], item
   if (item === 'same_distance') return t.photoProtocolSameDistance
   if (item === 'clean_background') return t.photoProtocolCleanBackground
   return t.photoProtocolAreaLabel
+}
+
+function photoKindLabel(t: ReturnType<typeof useClinicLocale>['t'], kind: string) {
+  if (kind === 'BEFORE') return t.photoKindBefore
+  if (kind === 'AFTER') return t.photoKindAfter
+  return t.photoKindOther
 }
 
 function photoProtocolCheckedFromJson(value: unknown): PhotoProtocolItemId[] {
@@ -699,6 +857,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
     { id: 'overview', label: t.overview, icon: ClipboardList },
     { id: 'timeline', label: t.timeline, icon: Clock },
     { id: 'photos', label: t.photos, icon: Camera },
+    { id: 'quotes', label: t.priceQuotes, icon: Send },
     { id: 'payments', label: t.payments, icon: CreditCard },
     { id: 'packages', label: t.packages, icon: PackageCheck },
     { id: 'treatment-plans', label: t.treatmentPlans, icon: ClipboardList },
@@ -932,6 +1091,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
         </div>
       )}
       {tab === 'photos' && <PhotosTab patient={patient} onRefresh={load} />}
+      {tab === 'quotes' && <PriceQuotesTab patient={patient} onRefresh={load} />}
       {tab === 'payments' && <PaymentsTab patient={patient} onRefresh={load} />}
       {tab === 'packages' && <PackagesTab patient={patient} onRefresh={load} />}
       {tab === 'treatment-plans' && <TreatmentPlansTab patient={patient} onRefresh={load} />}
@@ -1262,11 +1422,7 @@ function OverviewTab({
   const amDisplay = anamnesisFromJson(patient.anamnesisJson)
   const hasAnamnesis =
     !!(amDisplay.allergies || amDisplay.medications || amDisplay.conditions || amDisplay.social)
-  const [visitAt, setVisitAt] = useState(() => {
-    const d = new Date()
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
-    return d.toISOString().slice(0, 16)
-  })
+  const [visitAt, setVisitAt] = useState(defaultVisitDateTimeInput)
   const [chief, setChief] = useState('')
   const [summary, setSummary] = useState('')
   const [nextSteps, setNextSteps] = useState('')
@@ -1275,9 +1431,15 @@ function OverviewTab({
   const [aftercareTemplates, setAftercareTemplates] = useState<AftercareTemplateRow[]>([])
   const [aftercareTemplateId, setAftercareTemplateId] = useState('')
   const [logging, setLogging] = useState(false)
+  const [online, setOnline] = useState(true)
+  const [draftHydrated, setDraftHydrated] = useState(false)
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null)
+  const [scratchpadDraft, setScratchpadDraft] = useState('')
+  const [visitSaveMessage, setVisitSaveMessage] = useState('')
   const activeTreatmentPlans = patient.treatmentPlans.filter((plan) =>
     ['ACTIVE', 'PAUSED'].includes(plan.status)
   )
+  const offlineDraftKey = useMemo(() => `clinic:visit-draft:${patient.id}`, [patient.id])
 
   useEffect(() => {
     let cancelled = false
@@ -1294,6 +1456,106 @@ function OverviewTab({
     }
   }, [])
 
+  useEffect(() => {
+    setOnline(typeof navigator === 'undefined' ? true : navigator.onLine)
+    const onOnline = () => setOnline(true)
+    const onOffline = () => setOnline(false)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
+    }
+  }, [])
+
+  useEffect(() => {
+    setDraftHydrated(false)
+    setVisitSaveMessage('')
+    const resetVisitDraftForm = () => {
+      setVisitAt(defaultVisitDateTimeInput())
+      setChief('')
+      setSummary('')
+      setNextSteps('')
+      setStaffNotes('')
+      setTreatmentPlanId('')
+      setAftercareTemplateId('')
+    }
+    try {
+      const stored = window.localStorage.getItem(offlineDraftKey)
+      if (stored) {
+        const draft = JSON.parse(stored) as Partial<OfflineVisitDraft>
+        if (draft.patientId === patient.id) {
+          setVisitAt(typeof draft.visitAt === 'string' && draft.visitAt ? draft.visitAt : defaultVisitDateTimeInput())
+          setChief(typeof draft.chiefComplaint === 'string' ? draft.chiefComplaint : '')
+          setSummary(typeof draft.procedureSummary === 'string' ? draft.procedureSummary : '')
+          setNextSteps(typeof draft.nextSteps === 'string' ? draft.nextSteps : '')
+          setStaffNotes(typeof draft.staffNotes === 'string' ? draft.staffNotes : '')
+          setTreatmentPlanId(typeof draft.treatmentPlanId === 'string' ? draft.treatmentPlanId : '')
+          setAftercareTemplateId(typeof draft.aftercareTemplateId === 'string' ? draft.aftercareTemplateId : '')
+          setDraftSavedAt(typeof draft.updatedAt === 'string' ? draft.updatedAt : null)
+        } else {
+          resetVisitDraftForm()
+          setDraftSavedAt(null)
+        }
+      } else {
+        resetVisitDraftForm()
+        setDraftSavedAt(null)
+      }
+      setScratchpadDraft(window.localStorage.getItem(PWA_SCRATCHPAD_DRAFT_KEY) ?? '')
+    } catch {
+      setDraftSavedAt(null)
+      setScratchpadDraft('')
+    } finally {
+      setDraftHydrated(true)
+    }
+  }, [offlineDraftKey, patient.id])
+
+  useEffect(() => {
+    if (!draftHydrated) return
+    const hasDraft =
+      chief.trim() ||
+      summary.trim() ||
+      nextSteps.trim() ||
+      staffNotes.trim() ||
+      treatmentPlanId ||
+      aftercareTemplateId
+
+    try {
+      if (!hasDraft) {
+        window.localStorage.removeItem(offlineDraftKey)
+        setDraftSavedAt(null)
+        return
+      }
+      const updatedAt = new Date().toISOString()
+      const draft: OfflineVisitDraft = {
+        patientId: patient.id,
+        visitAt,
+        chiefComplaint: chief,
+        procedureSummary: summary,
+        nextSteps,
+        staffNotes,
+        treatmentPlanId,
+        aftercareTemplateId,
+        updatedAt,
+      }
+      window.localStorage.setItem(offlineDraftKey, JSON.stringify(draft))
+      setDraftSavedAt(updatedAt)
+    } catch {
+      /* local storage can fail in private mode; keep the in-memory form intact */
+    }
+  }, [
+    aftercareTemplateId,
+    chief,
+    draftHydrated,
+    nextSteps,
+    offlineDraftKey,
+    patient.id,
+    staffNotes,
+    summary,
+    treatmentPlanId,
+    visitAt,
+  ])
+
   const selectedAftercareTemplate = aftercareTemplates.find((template) => template.id === aftercareTemplateId)
 
   function toggleTag(tag: PatientTag) {
@@ -1304,9 +1566,39 @@ function OverviewTab({
     )
   }
 
+  const importScratchpadDraft = () => {
+    if (!scratchpadDraft.trim()) return
+    setSummary((current) => (current.trim() ? `${current.trim()}\n\n${scratchpadDraft.trim()}` : scratchpadDraft.trim()))
+    setScratchpadDraft('')
+    try {
+      window.localStorage.removeItem(PWA_SCRATCHPAD_DRAFT_KEY)
+    } catch {
+      /* ignore */
+    }
+    setVisitSaveMessage(t.offlineVisitDraftImported)
+  }
+
+  const clearOfflineVisitDraft = () => {
+    if (!window.confirm(t.offlineVisitDraftClearConfirm)) return
+    setChief('')
+    setSummary('')
+    setNextSteps('')
+    setStaffNotes('')
+    setTreatmentPlanId('')
+    setAftercareTemplateId('')
+    setVisitSaveMessage(t.offlineVisitDraftCleared)
+    try {
+      window.localStorage.removeItem(offlineDraftKey)
+    } catch {
+      /* ignore */
+    }
+    setDraftSavedAt(null)
+  }
+
   const logVisit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLogging(true)
+    setVisitSaveMessage('')
     try {
       const iso = new Date(visitAt).toISOString()
       const res = await fetch('/api/clinic/visits', {
@@ -1336,7 +1628,16 @@ function OverviewTab({
       setStaffNotes('')
       setTreatmentPlanId('')
       setAftercareTemplateId('')
+      try {
+        window.localStorage.removeItem(offlineDraftKey)
+      } catch {
+        /* ignore */
+      }
+      setDraftSavedAt(null)
+      setVisitSaveMessage(t.offlineVisitDraftSynced)
       await onVisitLogged()
+    } catch {
+      setVisitSaveMessage(t.offlineVisitDraftKept)
     } finally {
       setLogging(false)
     }
@@ -1647,8 +1948,63 @@ function OverviewTab({
         onSubmit={logVisit}
         className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4"
       >
-        <h2 className="text-lg font-semibold text-gray-900">{t.logVisit}</h2>
-        <p className="text-sm text-gray-500">{t.logVisitHint}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{t.logVisit}</h2>
+            <p className="text-sm text-gray-500">{t.logVisitHint}</p>
+          </div>
+          <div
+            className={clsx(
+              'inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold',
+              online ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+            )}
+          >
+            {online ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
+            {online ? t.offlineVisitOnline : t.offlineVisitOffline}
+          </div>
+        </div>
+        <div className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4 text-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="font-semibold text-orange-950">{t.offlineVisitDraftTitle}</p>
+              <p className="mt-1 text-orange-800/80">{t.offlineVisitDraftHint}</p>
+              {draftSavedAt && (
+                <p className="mt-2 text-xs font-medium text-orange-700">
+                  {t.offlineVisitDraftSaved}:{' '}
+                  {new Date(draftSavedAt).toLocaleString(dateLocale, {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              )}
+              {visitSaveMessage && (
+                <p className="mt-2 text-xs font-medium text-orange-700">{visitSaveMessage}</p>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {scratchpadDraft.trim() && (
+                <button
+                  type="button"
+                  onClick={importScratchpadDraft}
+                  className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-orange-700 shadow-sm hover:bg-orange-100"
+                >
+                  {t.offlineVisitImportScratchpad}
+                </button>
+              )}
+              {draftSavedAt && (
+                <button
+                  type="button"
+                  onClick={clearOfflineVisitDraft}
+                  className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm hover:bg-gray-50"
+                >
+                  {t.offlineVisitDiscardDraft}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.visitDateTime}</label>
           <input
@@ -1748,7 +2104,7 @@ function OverviewTab({
           disabled={logging}
           className="w-full py-3.5 rounded-xl bg-gray-900 text-white font-semibold disabled:opacity-60"
         >
-          {logging ? t.savingEllipsis : t.saveVisit}
+          {logging ? t.savingEllipsis : online ? t.saveVisit : t.offlineVisitSyncWhenOnline}
         </button>
       </form>
 
@@ -1801,8 +2157,11 @@ function PhotosTab({
   const [marketingConsent, setMarketingConsent] = useState(false)
   const [protocolNote, setProtocolNote] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [syncingOfflinePhotoId, setSyncingOfflinePhotoId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [offlinePhotos, setOfflinePhotos] = useState<OfflineMediaDraft[]>([])
 
   const selectedVisit = useMemo(
     () => (visitId ? patient.visits.find((visit) => visit.id === visitId) ?? null : null),
@@ -1811,10 +2170,108 @@ function PhotosTab({
   const selectedProcedureName =
     selectedVisit?.appointment?.procedure?.name ?? selectedVisit?.treatmentPlan?.title ?? null
 
+  const loadOfflinePhotos = useCallback(async () => {
+    try {
+      setOfflinePhotos(await readOfflineMediaDrafts(patient.id))
+    } catch {
+      setOfflinePhotos([])
+    }
+  }, [patient.id])
+
+  useEffect(() => {
+    void loadOfflinePhotos()
+  }, [loadOfflinePhotos])
+
   const toggleProtocolItem = (item: PhotoProtocolItemId) => {
     setProtocolChecked((current) =>
       current.includes(item) ? current.filter((value) => value !== item) : [...current, item]
     )
+  }
+
+  const appendPhotoFormFields = (
+    fd: FormData,
+    values: {
+      visitId: string
+      kind: string
+      caption: string
+      protocolChecked: PhotoProtocolItemId[]
+      protocolProcedureName: string | null
+      protocolNote: string
+      marketingConsent: boolean
+    }
+  ) => {
+    fd.append('kind', values.kind)
+    if (values.visitId) fd.append('visitId', values.visitId)
+    if (values.caption.trim()) fd.append('caption', values.caption.trim())
+    fd.append('protocolChecked', JSON.stringify(values.protocolChecked))
+    if (values.protocolProcedureName) fd.append('protocolProcedureName', values.protocolProcedureName)
+    if (values.protocolNote.trim()) fd.append('protocolNote', values.protocolNote.trim())
+    if (values.marketingConsent) fd.append('marketingConsent', 'true')
+  }
+
+  const queueOfflinePhoto = async (file: File) => {
+    const draft: OfflineMediaDraft = {
+      id: `${patient.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+      patientId: patient.id,
+      visitId,
+      kind,
+      caption,
+      protocolChecked,
+      marketingConsent,
+      protocolNote,
+      protocolProcedureName: selectedProcedureName,
+      fileName: file.name || 'clinic-photo.jpg',
+      mimeType: file.type || 'image/jpeg',
+      dataUrl: await fileToDataUrl(file),
+      createdAt: new Date().toISOString(),
+    }
+    await saveOfflineMediaDraft(draft)
+    setCaption('')
+    setProtocolNote('')
+    setMarketingConsent(false)
+    await loadOfflinePhotos()
+    setNotice(t.offlinePhotoQueued)
+  }
+
+  const uploadQueuedPhoto = async (draft: OfflineMediaDraft) => {
+    setSyncingOfflinePhotoId(draft.id)
+    setError(null)
+    try {
+      const blob = await fetch(draft.dataUrl).then((res) => res.blob())
+      const fd = new FormData()
+      fd.append('file', blob, draft.fileName)
+      appendPhotoFormFields(fd, draft)
+      const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
+        method: 'POST',
+        body: fd,
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.uploadFailed)
+      }
+      await deleteOfflineMediaDraft(draft.id)
+      await loadOfflinePhotos()
+      await onRefresh()
+      setNotice(t.offlinePhotoSynced)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.offlinePhotoSyncFailed)
+    } finally {
+      setSyncingOfflinePhotoId(null)
+    }
+  }
+
+  const syncAllQueuedPhotos = async () => {
+    for (const draft of offlinePhotos) {
+      await uploadQueuedPhoto(draft)
+    }
+  }
+
+  const deleteQueuedPhoto = async (draftId: string) => {
+    if (!window.confirm(t.offlinePhotoDeleteConfirm)) return
+    await deleteOfflineMediaDraft(draftId)
+    await loadOfflinePhotos()
+    setNotice(null)
   }
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1823,16 +2280,23 @@ function PhotosTab({
     if (!file) return
     setUploading(true)
     setError(null)
+    setNotice(null)
     try {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        await queueOfflinePhoto(file)
+        return
+      }
       const fd = new FormData()
       fd.append('file', file)
-      fd.append('kind', kind)
-      if (visitId) fd.append('visitId', visitId)
-      if (caption.trim()) fd.append('caption', caption.trim())
-      fd.append('protocolChecked', JSON.stringify(protocolChecked))
-      if (selectedProcedureName) fd.append('protocolProcedureName', selectedProcedureName)
-      if (protocolNote.trim()) fd.append('protocolNote', protocolNote.trim())
-      if (marketingConsent) fd.append('marketingConsent', 'true')
+      appendPhotoFormFields(fd, {
+        visitId,
+        kind,
+        caption,
+        protocolChecked,
+        protocolProcedureName: selectedProcedureName,
+        protocolNote,
+        marketingConsent,
+      })
       const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
         method: 'POST',
         body: fd,
@@ -1848,7 +2312,11 @@ function PhotosTab({
       setMarketingConsent(false)
       await onRefresh()
     } catch (e) {
-      setError(e instanceof Error ? e.message : t.uploadFailed)
+      try {
+        await queueOfflinePhoto(file)
+      } catch {
+        setError(e instanceof Error ? e.message : t.uploadFailed)
+      }
     } finally {
       setUploading(false)
     }
@@ -1898,6 +2366,78 @@ function PhotosTab({
         </h2>
         <p className="text-sm text-gray-500">{t.addPhotoHint}</p>
         {error && <ClinicAlert variant="error">{error}</ClinicAlert>}
+        {notice && (
+          <ClinicAlert variant="success" role="status">
+            {notice}
+          </ClinicAlert>
+        )}
+        {offlinePhotos.length > 0 && (
+          <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-amber-950">{t.offlinePhotoDraftsTitle}</p>
+                <p className="mt-1 text-xs text-amber-800">{t.offlinePhotoDraftsHint}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void syncAllQueuedPhotos()}
+                disabled={!!syncingOfflinePhotoId}
+                className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-amber-800 shadow-sm hover:bg-amber-100 disabled:opacity-60"
+              >
+                {syncingOfflinePhotoId ? t.uploadingEllipsis : t.offlinePhotoSyncAll}
+              </button>
+            </div>
+            <div className="mt-3 space-y-2">
+              {offlinePhotos.map((draft) => (
+                <div
+                  key={draft.id}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-white p-2 text-xs text-gray-700"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Image
+                      src={draft.dataUrl}
+                      alt=""
+                      width={48}
+                      height={48}
+                      unoptimized
+                      className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-gray-900">
+                        {photoKindLabel(t, draft.kind)} ·{' '}
+                        {new Date(draft.createdAt).toLocaleString(dateLocale, {
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                      <p className="truncate text-gray-500">{draft.caption || t.offlinePhotoNoCaption}</p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void uploadQueuedPhoto(draft)}
+                      disabled={!!syncingOfflinePhotoId}
+                      className="rounded-lg bg-amber-600 px-2.5 py-1.5 font-semibold text-white disabled:opacity-60"
+                    >
+                      {syncingOfflinePhotoId === draft.id ? t.uploadingEllipsis : t.offlinePhotoSync}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void deleteQueuedPhoto(draft.id)}
+                      disabled={!!syncingOfflinePhotoId}
+                      className="rounded-lg bg-gray-100 px-2.5 py-1.5 font-semibold text-gray-600 disabled:opacity-60"
+                    >
+                      {t.deletePhoto}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-gray-600 mb-1">{t.linkToVisit}</label>
@@ -3120,6 +3660,444 @@ function ConsentsTab({
               </p>
             </article>
           ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+type QuoteDraftLine = {
+  procedureId: string
+  description: string
+  quantity: string
+  unitPrice: string
+}
+
+function defaultQuoteValidUntil() {
+  const date = new Date()
+  date.setDate(date.getDate() + 7)
+  return date.toISOString().slice(0, 10)
+}
+
+function quoteStatusLabel(t: ReturnType<typeof useClinicLocale>['t'], status: PriceQuoteRow['status']) {
+  if (status === 'SENT') return t.quoteStatusSent
+  if (status === 'ACCEPTED') return t.quoteStatusAccepted
+  if (status === 'DECLINED') return t.quoteStatusDeclined
+  if (status === 'EXPIRED') return t.quoteStatusExpired
+  return t.quoteStatusDraft
+}
+
+function quoteStatusClass(status: PriceQuoteRow['status']) {
+  if (status === 'ACCEPTED') return 'bg-emerald-100 text-emerald-800'
+  if (status === 'SENT') return 'bg-blue-100 text-blue-800'
+  if (status === 'DECLINED' || status === 'EXPIRED') return 'bg-gray-100 text-gray-700'
+  return 'bg-orange-100 text-orange-800'
+}
+
+function patientWhatsAppUrl(patient: PatientRecord, text: string) {
+  const digits = (patient.phone || '').replace(/\D/g, '')
+  const encoded = encodeURIComponent(text)
+  return digits ? `https://wa.me/${digits}?text=${encoded}` : `https://wa.me/?text=${encoded}`
+}
+
+function quoteMessage(practiceName: string, patient: PatientRecord, quote: PriceQuoteRow) {
+  return buildPriceQuoteMessage({
+    practiceName,
+    patientName: [patient.firstName, patient.lastName].filter(Boolean).join(' '),
+    quoteNumber: quote.quoteNumber,
+    title: quote.title,
+    currency: quote.currency,
+    subtotalCents: quote.subtotalCents,
+    discountCents: quote.discountCents,
+    totalCents: quote.totalCents,
+    validUntil: quote.validUntil,
+    lines: quote.lines.map((line) => ({
+      description: line.description,
+      quantity: line.quantity,
+      totalCents: line.totalCents,
+    })),
+  })
+}
+
+function PriceQuotesTab({
+  patient,
+  onRefresh,
+}: {
+  patient: PatientRecord
+  onRefresh: () => Promise<void>
+}) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const [procedures, setProcedures] = useState<QuoteProcedureOption[]>([])
+  const [title, setTitle] = useState(t.quoteDefaultTitle)
+  const [validUntil, setValidUntil] = useState(defaultQuoteValidUntil)
+  const [discount, setDiscount] = useState('')
+  const [note, setNote] = useState('')
+  const [terms, setTerms] = useState(t.quoteDefaultTerms)
+  const [lines, setLines] = useState<QuoteDraftLine[]>([
+    { procedureId: '', description: '', quantity: '1', unitPrice: '' },
+  ])
+  const [saving, setSaving] = useState(false)
+  const [notice, setNotice] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/clinic/procedures', { credentials: 'include' })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!cancelled) {
+        setProcedures(
+          ((data.procedures || []) as QuoteProcedureOption[]).filter((procedure) => procedure.active)
+        )
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const draftTotals = useMemo(() => {
+    const subtotal = lines.reduce((sum, line) => {
+      const quantity = Math.max(1, Math.round(Number(line.quantity) || 1))
+      const unitPriceCents = Math.max(0, Math.round((Number.parseFloat(line.unitPrice || '0') || 0) * 100))
+      return sum + quantity * unitPriceCents
+    }, 0)
+    const discountCents = Math.min(
+      subtotal,
+      Math.max(0, Math.round((Number.parseFloat(discount || '0') || 0) * 100))
+    )
+    return { subtotal, discountCents, total: Math.max(0, subtotal - discountCents) }
+  }, [discount, lines])
+
+  const updateLine = (index: number, patch: Partial<QuoteDraftLine>) => {
+    setLines((current) => current.map((line, i) => (i === index ? { ...line, ...patch } : line)))
+  }
+
+  const chooseProcedure = (index: number, procedureId: string) => {
+    const procedure = procedures.find((item) => item.id === procedureId)
+    updateLine(index, {
+      procedureId,
+      description: procedure?.name ?? lines[index]?.description ?? '',
+      unitPrice: procedure ? (procedure.basePriceCents / 100).toFixed(2) : lines[index]?.unitPrice ?? '',
+    })
+  }
+
+  const addLine = () => {
+    setLines((current) => [
+      ...current,
+      { procedureId: '', description: '', quantity: '1', unitPrice: '' },
+    ])
+  }
+
+  const removeLine = (index: number) => {
+    setLines((current) => (current.length === 1 ? current : current.filter((_, i) => i !== index)))
+  }
+
+  const createQuote = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const payloadLines = lines
+      .map((line) => ({
+        procedureId: line.procedureId || null,
+        description: line.description.trim(),
+        quantity: Math.max(1, Math.round(Number(line.quantity) || 1)),
+        unitPriceCents: Math.max(0, Math.round((Number.parseFloat(line.unitPrice || '0') || 0) * 100)),
+      }))
+      .filter((line) => line.description)
+    if (payloadLines.length === 0) {
+      alert(t.quoteLineRequired)
+      return
+    }
+    setSaving(true)
+    setNotice('')
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/quotes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          title,
+          validUntil: validUntil || null,
+          discountCents: draftTotals.discountCents,
+          currency: 'AED',
+          note: note || null,
+          terms: terms || null,
+          lines: payloadLines,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      setLines([{ procedureId: '', description: '', quantity: '1', unitPrice: '' }])
+      setDiscount('')
+      setNote('')
+      setValidUntil(defaultQuoteValidUntil())
+      setNotice(t.quoteCreated)
+      await onRefresh()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const copyQuoteText = async (quote: PriceQuoteRow) => {
+    const text = quoteMessage('your practitioner', patient, quote)
+    await navigator.clipboard.writeText(text)
+    setNotice(t.quoteTextCopied)
+  }
+
+  const markQuoteSent = async (quote: PriceQuoteRow) => {
+    await fetch(`/api/clinic/patients/${patient.id}/quotes/${quote.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status: 'SENT' }),
+    })
+    await onRefresh()
+  }
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={createQuote} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{t.createPriceQuote}</h2>
+            <p className="mt-1 text-sm text-gray-500">{t.createPriceQuoteHint}</p>
+          </div>
+          <Send className="h-5 w-5 shrink-0 text-orange-500" />
+        </div>
+
+        {notice && (
+          <ClinicAlert variant="success" role="status" className="mt-4">
+            {notice}
+          </ClinicAlert>
+        )}
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block text-sm text-gray-600">{t.quoteTitle}</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm text-gray-600">{t.quoteValidUntil}</span>
+            <input
+              type="date"
+              value={validUntil}
+              onChange={(e) => setValidUntil(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
+            />
+          </label>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {lines.map((line, index) => (
+            <div key={index} className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
+              <div className="grid gap-3 sm:grid-cols-[1.2fr_1.5fr_0.6fr_0.8fr_auto] sm:items-end">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-gray-500">{t.service}</span>
+                  <select
+                    value={line.procedureId}
+                    onChange={(e) => chooseProcedure(index, e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm"
+                  >
+                    <option value="">{t.customLine}</option>
+                    {procedures.map((procedure) => (
+                      <option key={procedure.id} value={procedure.id}>
+                        {procedure.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-gray-500">{t.quoteLineDescription}</span>
+                  <input
+                    value={line.description}
+                    onChange={(e) => updateLine(index, { description: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm"
+                    required
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-gray-500">{t.quantity}</span>
+                  <input
+                    value={line.quantity}
+                    onChange={(e) => updateLine(index, { quantity: e.target.value })}
+                    inputMode="numeric"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-gray-500">{t.unitPrice}</span>
+                  <input
+                    value={line.unitPrice}
+                    onChange={(e) => updateLine(index, { unitPrice: e.target.value })}
+                    inputMode="decimal"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => removeLine(index)}
+                  disabled={lines.length === 1}
+                  className="rounded-xl px-3 py-2 text-xs font-semibold text-gray-500 hover:bg-white disabled:opacity-40"
+                >
+                  {t.removeMaterial}
+                </button>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addLine}
+            className="rounded-xl border border-dashed border-orange-200 px-4 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-50"
+          >
+            {t.addQuoteLine}
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block text-sm text-gray-600">{t.quoteDiscount}</span>
+            <input
+              value={discount}
+              onChange={(e) => setDiscount(e.target.value)}
+              inputMode="decimal"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
+            />
+          </label>
+          <div className="rounded-2xl bg-orange-50 p-4 text-sm">
+            <div className="flex justify-between">
+              <span>{t.subtotal}</span>
+              <strong>{formatMoney(draftTotals.subtotal, 'AED')}</strong>
+            </div>
+            <div className="mt-1 flex justify-between">
+              <span>{t.discount}</span>
+              <strong>{formatMoney(draftTotals.discountCents, 'AED')}</strong>
+            </div>
+            <div className="mt-2 flex justify-between text-base text-orange-950">
+              <span>{t.estimatedTotal}</span>
+              <strong>{formatMoney(draftTotals.total, 'AED')}</strong>
+            </div>
+          </div>
+        </div>
+
+        <label className="mt-4 block">
+          <span className="mb-1 block text-sm text-gray-600">{t.quoteNote}</span>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
+          />
+        </label>
+        <label className="mt-4 block">
+          <span className="mb-1 block text-sm text-gray-600">{t.quoteTerms}</span>
+          <textarea
+            value={terms}
+            onChange={(e) => setTerms(e.target.value)}
+            rows={2}
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={saving}
+          className="mt-4 w-full rounded-xl bg-gray-900 py-3.5 font-semibold text-white disabled:opacity-60"
+        >
+          {saving ? t.savingEllipsis : t.saveQuote}
+        </button>
+      </form>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-gray-900">{t.savedQuotes}</h2>
+        {patient.priceQuotes.length === 0 ? (
+          <ClinicEmptyState title={t.noQuotesYet} />
+        ) : (
+          patient.priceQuotes.map((quote) => {
+            const text = quoteMessage('your practitioner', patient, quote)
+            const mailSubject = encodeURIComponent(`${quote.title} ${quote.quoteNumber}`)
+            const mailBody = encodeURIComponent(text)
+            return (
+              <article key={quote.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold text-gray-900">{quote.title}</p>
+                      <span className={clsx('rounded-full px-2.5 py-1 text-xs font-semibold', quoteStatusClass(quote.status))}>
+                        {quoteStatusLabel(t, quote.status)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {quote.quoteNumber} ·{' '}
+                      {new Date(quote.createdAt).toLocaleDateString(dateLocale, {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                      {quote.validUntil
+                        ? ` · ${t.quoteValidUntil}: ${new Date(quote.validUntil).toLocaleDateString(dateLocale)}`
+                        : ''}
+                    </p>
+                  </div>
+                  <p className="text-xl font-semibold text-gray-950">
+                    {formatMoney(quote.totalCents, quote.currency)}
+                  </p>
+                </div>
+                <div className="mt-3 space-y-1 text-sm text-gray-700">
+                  {quote.lines.map((line) => (
+                    <div key={line.id} className="flex justify-between gap-3">
+                      <span>
+                        {line.description}
+                        {line.quantity > 1 ? ` x${line.quantity}` : ''}
+                      </span>
+                      <span className="font-medium">{formatMoney(line.totalCents, quote.currency)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <a
+                    href={`/api/clinic/patients/${patient.id}/quotes/${quote.id}/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-gray-200 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    <FileDown className="h-4 w-4" />
+                    {t.downloadQuotePdf}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => void copyQuoteText(quote)}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-gray-200 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    <Copy className="h-4 w-4" />
+                    {t.copyQuoteText}
+                  </button>
+                  <a
+                    href={patientWhatsAppUrl(patient, text)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => void markQuoteSent(quote)}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-600 px-3 text-sm font-semibold text-white hover:bg-emerald-700"
+                  >
+                    <Send className="h-4 w-4" />
+                    {t.shareWhatsApp}
+                  </a>
+                  <a
+                    href={`mailto:${patient.email || ''}?subject=${mailSubject}&body=${mailBody}`}
+                    onClick={() => void markQuoteSent(quote)}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700"
+                  >
+                    {t.shareEmail}
+                  </a>
+                </div>
+              </article>
+            )
+          })
         )}
       </div>
     </div>
