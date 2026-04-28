@@ -220,6 +220,9 @@ const table = {
     downloadPatientSummaryPdf: 'Patient summary (PDF)',
     patientSummaryPdfHint:
       'Patient-safe export: no internal notes, payments, photos, or clinical visit text.',
+    downloadPatientSafeExportPdf: 'Patient-safe treatment export (PDF)',
+    patientSafeExportPdfHint:
+      'Patient-facing export: treatment summaries, receipts, accepted consents, and aftercare only. No internal notes or CRM.',
     downloadPatientFullExport: 'Full data export (JSON)',
     patientFullExportHint:
       'Internal export for portability: includes appointments, visits, clinical notes, payments, consents, packages, photos metadata, portal requests, and CRM history.',
@@ -1513,6 +1516,9 @@ const ruOverrides: Partial<ClinicStrings> = {
   downloadPatientSummaryPdf: 'Сводка пациента (PDF)',
   patientSummaryPdfHint:
     'Безопасный экспорт для пациента: без внутренних заметок, платежей, фото и клинического текста визитов.',
+  downloadPatientSafeExportPdf: 'Безопасный экспорт лечения (PDF)',
+  patientSafeExportPdfHint:
+    'Экспорт для пациента: резюме процедур, чеки, принятые согласия и рекомендации. Без внутренних заметок и CRM.',
   downloadPatientFullExport: 'Полный экспорт данных (JSON)',
   patientFullExportHint:
     'Внутренний экспорт для переноса данных: включает записи, визиты, клинические заметки, платежи, согласия, пакеты, метаданные фото, запросы из кабинета и CRM-историю.',

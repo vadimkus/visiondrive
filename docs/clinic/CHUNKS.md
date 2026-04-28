@@ -897,6 +897,24 @@
 
 ---
 
+## Chunk 51 — 2026-04-28 (patient-safe exports)
+
+**Shipped**
+
+- **PDF:** added `GET /api/clinic/patients/[id]/patient-safe-export` for a richer patient-facing treatment export.
+- **Content:** demographics/anamnesis, completed treatment summaries, aftercare text/document references, receipt summaries, and accepted consent snapshots.
+- **Privacy:** internal notes, staff visit notes, CRM history, private appointment notes, photos/media, and full internal JSON data are excluded by construction.
+- **UI:** patient card header now has a dedicated Patient-safe treatment export PDF action beside the minimal summary and internal JSON export.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, data-model, and session note updated.
+
+**Validation**
+
+- Added Vitest coverage for the patient-safe export PDF builder.
+- Run `npm run type-check`, focused PDF tests, and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

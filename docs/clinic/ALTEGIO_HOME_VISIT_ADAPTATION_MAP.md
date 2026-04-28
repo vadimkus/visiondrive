@@ -272,6 +272,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 37. Patient-safe exports
    - Source: data export and documents.
    - Solo version: export treatment summary, receipts, consent, aftercare; never include internal notes.
+   - Status: shipped first pass.
+   - Shipped: patient cards now offer a richer patient-safe treatment PDF with demographics/anamnesis, completed treatment summaries, aftercare text/document links, receipt summaries, and accepted consent snapshots. The export excludes internal notes, staff notes, CRM history, private appointment notes, and photos by construction.
+   - Next improvements: date-range filters, selectable sections, media ZIP for consented photos, and patient-portal self-download.
 
 38. Data export and deletion request
    - Source: personal data management.
@@ -364,11 +367,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 1. Booking source/UTM attribution and abandoned-booking follow-up.
 2. Patient-uploaded photos through the portal.
-3. Patient-safe exports.
-4. Account and notification preferences.
+3. Account and notification preferences.
+4. PWA practitioner mode.
 5. Birthday and personal occasion messages.
 
 ## Recommendation
 
-Aftercare document library now turns ad hoc next-step notes into reusable procedure-based patient instructions. The next point should be patient-safe exports: bundle treatment summary, receipts, consent, and aftercare without exposing internal notes.
+Patient-safe exports now bundle the documents a solo practitioner can safely hand to a client without leaking staff-only context. The next point should be account and notification preferences: practitioner profile, language, password, push/email preferences, and practical notification controls.
 

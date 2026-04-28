@@ -748,6 +748,15 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
             {t.downloadPatientSummaryPdf}
           </a>
           <a
+            href={`/api/clinic/patients/${patient.id}/patient-safe-export`}
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FileDown className="w-4 h-4 text-blue-600 shrink-0" aria-hidden />
+            {t.downloadPatientSafeExportPdf}
+          </a>
+          <a
             href={`/api/clinic/patients/${patient.id}/export`}
             className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
           >
@@ -765,6 +774,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-2 max-w-xl">{t.patientSummaryPdfHint}</p>
+        <p className="text-xs text-gray-500 mt-1 max-w-xl">{t.patientSafeExportPdfHint}</p>
         <p className="text-xs text-gray-500 mt-1 max-w-xl">{t.patientFullExportHint}</p>
         <p className="text-xs text-red-600 mt-1 max-w-xl">{t.deletePatientRecordHint}</p>
       </div>

@@ -64,7 +64,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 
 - Base path: **`/api/clinic/*`**.
 - **Patient media:** `POST .../patients/[id]/media` uploads before/after/other images from camera or file picker with optional visit links, capture-protocol checklist, procedure snapshot, and marketing-consent marker; `GET/DELETE /api/clinic/media/[id]` serves/removes private tenant-scoped media.
-- **Patient-safe PDF:** `GET .../patients/[id]/summary-pdf` returns a minimal English summary for handout; staff-only fields are excluded by construction (not redacted — never loaded).
+- **Patient-safe PDFs:** `GET .../patients/[id]/summary-pdf` returns a minimal English handout; `GET .../patients/[id]/patient-safe-export` returns a fuller patient-facing treatment export with summaries, aftercare, receipts, and accepted consent snapshots. Staff-only fields are excluded by construction (not redacted — never loaded).
 - **Patient data portability/deletion:** `GET .../patients/[id]/export` returns a full tenant-scoped JSON archive for internal portability; `DELETE .../patients/[id]` requires an exact typed confirmation and deletes the patient plus linked rows, with best-effort private blob cleanup.
 - **Patient import:** `POST /api/clinic/patients/import` accepts `.xlsx`/`.csv` uploads for preview, detects invalid rows and phone/email duplicates, and commits only clean patient rows when called with `action=commit`.
 - **Inventory:** `GET/POST /api/clinic/inventory`, `GET/PATCH /api/clinic/inventory/[id]`, `POST .../movements`, `GET .../lookup?q=`.
