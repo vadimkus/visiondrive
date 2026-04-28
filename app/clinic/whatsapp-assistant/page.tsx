@@ -73,6 +73,9 @@ export default function WhatsAppAssistantPage() {
   const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>([])
   const [customQuestion, setCustomQuestion] = useState('')
   const [copied, setCopied] = useState(false)
+  const [savingHistory, setSavingHistory] = useState(false)
+  const [historySaved, setHistorySaved] = useState(false)
+  const [historyNotice, setHistoryNotice] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -218,6 +221,50 @@ export default function WhatsAppAssistantPage() {
     window.setTimeout(() => setCopied(false), 1800)
   }
 
+  useEffect(() => {
+    setHistorySaved(false)
+    setHistoryNotice('')
+  }, [message, selectedPatientId])
+
+  const saveMessageHistory = async () => {
+    if (!selectedPatientId) {
+      setHistoryNotice(t.whatsappAssistantHistoryNeedsPatient)
+      return false
+    }
+    setSavingHistory(true)
+    setHistoryNotice('')
+    try {
+      const res = await fetch(`/api/clinic/patients/${selectedPatientId}/crm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          type: 'WHATSAPP',
+          body: `${t.whatsappAssistantSavedPrefix}: ${t[`whatsappAssistantMode_${mode}`]}\n\n${message}`,
+          occurredAt: new Date().toISOString(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setHistoryNotice(data.error || t.operationFailed)
+        return false
+      }
+      setHistorySaved(true)
+      setHistoryNotice(t.whatsappAssistantSavedToHistory)
+      return true
+    } finally {
+      setSavingHistory(false)
+    }
+  }
+
+  const openWhatsAppAndSave = async () => {
+    if (selectedPatientId) {
+      const saved = await saveMessageHistory()
+      if (!saved) return
+    }
+    window.open(whatsappUrl(selectedPatientOption?.phone, message), '_blank', 'noopener,noreferrer')
+  }
+
   const toggleProcedure = (procedureId: string) => {
     setSelectedProcedureIds((current) =>
       current.includes(procedureId)
@@ -344,10 +391,20 @@ export default function WhatsAppAssistantPage() {
                 {t.copied}
               </span>
             )}
+            {historySaved && (
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                {t.whatsappAssistantSavedToHistory}
+              </span>
+            )}
           </div>
           <pre className="mt-4 min-h-80 whitespace-pre-wrap rounded-2xl bg-gray-950 p-4 text-sm leading-relaxed text-white">
             {message}
           </pre>
+          {historyNotice && (
+            <p className="mt-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-800">
+              {historyNotice}
+            </p>
+          )}
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <button
               type="button"
@@ -357,15 +414,23 @@ export default function WhatsAppAssistantPage() {
               <Copy className="h-4 w-4" />
               {t.copy}
             </button>
-            <a
-              href={whatsappUrl(selectedPatientOption?.phone, message)}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => void saveMessageHistory()}
+              disabled={savingHistory || !selectedPatientId}
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-800 hover:bg-blue-100 disabled:opacity-50"
+            >
+              <MessageSquare className="h-4 w-4" />
+              {savingHistory ? t.savingEllipsis : t.saveToMessageHistory}
+            </button>
+            <button
+              type="button"
+              onClick={() => void openWhatsAppAndSave()}
               className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               <Send className="h-4 w-4" />
-              {t.openWhatsApp}
-            </a>
+              {t.openWhatsappAndSave}
+            </button>
           </div>
         </section>
       </div>

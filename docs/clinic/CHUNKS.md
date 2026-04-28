@@ -1021,6 +1021,23 @@
 
 ---
 
+## Chunk 58 — 2026-04-28 (message history)
+
+**Shipped**
+
+- **WhatsApp Assistant:** selected-patient replies can be saved to patient history as `WHATSAPP` CRM activities.
+- **Handoff:** `Open WhatsApp + save` logs the reviewed generated text before opening `wa.me`; final send remains manual.
+- **Patient card:** CRM tab now shows a dedicated Message history section for WhatsApp/email touchpoints above the full CRM activity log.
+- **Manual capture:** practitioners can still log WhatsApp/email touchpoints from the existing CRM form; no separate chat table yet.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

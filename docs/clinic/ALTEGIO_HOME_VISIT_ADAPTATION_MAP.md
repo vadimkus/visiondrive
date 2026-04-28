@@ -328,6 +328,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 45. Message history
    - Source: chat features and sent messages history.
    - Solo version: manual log first, integration later. Attach message history to patient profile.
+   - Status: shipped first pass.
+   - Shipped: WhatsApp Assistant can save prepared outgoing replies into the selected patient's CRM history as `WHATSAPP` activities, and `Open WhatsApp + save` logs the reviewed message before handoff. The patient CRM tab now has a dedicated Message history section for WhatsApp/email touchpoints above the full CRM log, while manual WhatsApp/email entries still use the existing CRM form.
+   - Next improvements: inbound WhatsApp capture, reusable message templates, delivery status, and WhatsApp Business API sync when volume justifies it.
 
 46. Call log
    - Source: call logs and telephony.

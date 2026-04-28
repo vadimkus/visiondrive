@@ -4723,6 +4723,36 @@ function CrmTab({
     }
   }
 
+  const messageActivities = patient.crmActivities.filter((activity) =>
+    ['WHATSAPP', 'EMAIL'].includes(activity.type)
+  )
+
+  const crmTypeLabel = (activityType: string) => {
+    switch (activityType) {
+      case 'CALL':
+        return t.crmTypeCall
+      case 'EMAIL':
+        return t.crmTypeEmail
+      case 'WHATSAPP':
+        return t.crmTypeWhatsapp
+      case 'FOLLOW_UP':
+        return t.crmTypeFollowUp
+      case 'OTHER':
+        return t.crmTypeOther
+      case 'NOTE':
+      default:
+        return t.crmTypeNote
+    }
+  }
+
+  const activityTimestamp = (activity: CrmRow) =>
+    new Date(activity.occurredAt).toLocaleString(dateLocale, {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
   return (
     <div className="space-y-6">
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
@@ -4789,6 +4819,35 @@ function CrmTab({
         </button>
       </form>
 
+      <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+            <MessageSquare className="h-5 w-5" aria-hidden />
+          </span>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{t.messageHistory}</h2>
+            <p className="mt-1 text-sm text-gray-500">{t.messageHistoryHint}</p>
+          </div>
+        </div>
+        <div className="mt-4 divide-y divide-gray-100 rounded-2xl border border-gray-100">
+          {messageActivities.length === 0 ? (
+            <p className="p-4 text-sm text-gray-500">{t.noMessageHistory}</p>
+          ) : (
+            messageActivities.map((activity) => (
+              <div key={activity.id} className="p-4 text-sm">
+                <p className="font-medium text-gray-900">
+                  {crmTypeLabel(activity.type)}{' '}
+                  <span className="text-gray-400 font-normal text-xs">
+                    {activityTimestamp(activity)}
+                  </span>
+                </p>
+                <p className="text-gray-700 mt-1 whitespace-pre-wrap">{activity.body}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
         {patient.crmActivities.length === 0 ? (
           <p className="p-4 text-sm text-gray-500">{t.noCrmHistory}</p>
@@ -4796,14 +4855,9 @@ function CrmTab({
           patient.crmActivities.map((c) => (
             <div key={c.id} className="p-4 text-sm">
               <p className="font-medium text-gray-900">
-                {c.type}{' '}
+                {crmTypeLabel(c.type)}{' '}
                 <span className="text-gray-400 font-normal text-xs">
-                  {new Date(c.occurredAt).toLocaleString(dateLocale, {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {activityTimestamp(c)}
                 </span>
               </p>
               <p className="text-gray-700 mt-1 whitespace-pre-wrap">{c.body}</p>
