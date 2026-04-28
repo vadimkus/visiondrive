@@ -933,6 +933,43 @@
 
 ---
 
+## Chunk 53 — 2026-04-28 (PWA practitioner mode)
+
+**Shipped**
+
+- **Manifest:** `/site.webmanifest` now starts installed sessions at `/clinic`, adds Today/New appointment/Patients shortcuts, and uses a dedicated clinic app icon.
+- **Service worker:** `/clinic-push-sw.js` now supports app activation/claim and uses the clinic icon for notifications; the dashboard registers it.
+- **Dashboard:** added a PWA practitioner card with install prompt, online/offline status, today agenda, fast actions, and a device-local offline note draft.
+- **i18n/Knowledge Base/docs:** EN/RU strings, architecture, backlog, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+**Next**
+
+- Add true offline route caching only after a clear invalidation strategy.
+- Convert local note draft into patient-linked visit draft sync.
+
+---
+
+## Chunk 54 — 2026-04-28 (practitioner push notifications)
+
+**Shipped**
+
+- **Schema:** added `ClinicPractitionerPushDelivery` and `notifyCancelled` preference support.
+- **Push scanner:** `GET/POST /api/clinic/practitioner-push/run` sends idempotent browser push alerts for reminders due, new online bookings, cancellations, reschedules, review requests, unpaid visits, low stock, and package expiry.
+- **Preferences:** scanner honors account push toggles and alert-type preferences; stale browser subscriptions are deleted on 404/410.
+- **Inbox:** notification item derivation is shared between `/api/clinic/inbox` and the push scanner; inbox now includes cancellations and expiring packages.
+- **Tests/docs:** helper tests, docs, backlog, architecture, and data-model notes updated.
+
+**Validation**
+
+- Run `npx prisma format`, `npx prisma generate`, `npx prisma db push`, `npm run type-check`, focused push/preference tests, and `npm run lint`.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

@@ -36,20 +36,21 @@ model User {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
-  defaultTenant              Tenant?                     @relation("DefaultTenant", fields: [defaultTenantId], references: [id])
+  defaultTenant              Tenant?                          @relation("DefaultTenant", fields: [defaultTenantId], references: [id])
   memberships                TenantMembership[]
-  auditLogs                  AuditLog[]                  @relation("AuditActor")
+  auditLogs                  AuditLog[]                       @relation("AuditActor")
   ingestFiles                IngestFile[]
-  maintenanceNotes           MaintenanceNote[]           @relation("MaintenanceAuthor")
-  alertsAcknowledged         Alert[]                     @relation("AlertAcknowledgedBy")
-  alertsAssigned             Alert[]                     @relation("AlertAssignedTo")
-  alertEvents                AlertEvent[]                @relation("AlertEventActor")
-  reportSubscriptions        ReportSubscription[]        @relation("ReportCreatedBy")
-  expenses                   Expense[]                   @relation("ExpenseCreatedBy")
+  maintenanceNotes           MaintenanceNote[]                @relation("MaintenanceAuthor")
+  alertsAcknowledged         Alert[]                          @relation("AlertAcknowledgedBy")
+  alertsAssigned             Alert[]                          @relation("AlertAssignedTo")
+  alertEvents                AlertEvent[]                     @relation("AlertEventActor")
+  reportSubscriptions        ReportSubscription[]             @relation("ReportCreatedBy")
+  expenses                   Expense[]                        @relation("ExpenseCreatedBy")
   clinicWebPushSubscriptions ClinicWebPushSubscription[]
   clinicUserPreferences      ClinicUserPreference[]
-  clinicAppointmentEvents    ClinicAppointmentEvent[]    @relation("ClinicAppointmentEventActor")
-  clinicPatientPortalLinks   ClinicPatientPortalLink[]   @relation("ClinicPatientPortalLinkCreator")
+  clinicPractitionerPushes   ClinicPractitionerPushDelivery[]
+  clinicAppointmentEvents    ClinicAppointmentEvent[]         @relation("ClinicAppointmentEventActor")
+  clinicPatientPortalLinks   ClinicPatientPortalLink[]        @relation("ClinicPatientPortalLinkCreator")
 
   @@map("users")
 }
@@ -115,6 +116,7 @@ model Tenant {
   clinicSupplierSettlements   ClinicSupplierSettlement[]
   clinicWebPushSubscriptions  ClinicWebPushSubscription[]
   clinicUserPreferences       ClinicUserPreference[]
+  clinicPractitionerPushes    ClinicPractitionerPushDelivery[]
   clinicAppointmentEvents     ClinicAppointmentEvent[]
   clinicAvailabilityRules     ClinicAvailabilityRule[]
   clinicBlockedTimes          ClinicBlockedTime[]
@@ -2104,6 +2106,7 @@ model ClinicUserPreference {
   notifyPush          Boolean  @default(true)
   notifyEmail         Boolean  @default(true)
   notifyNewBooking    Boolean  @default(true)
+  notifyCancelled     Boolean  @default(true)
   notifyRescheduled   Boolean  @default(true)
   notifyReminderDue   Boolean  @default(true)
   notifyReviewRequest Boolean  @default(true)
@@ -2119,6 +2122,27 @@ model ClinicUserPreference {
   @@unique([userId, tenantId])
   @@index([tenantId])
   @@map("clinic_user_preferences")
+}
+
+/// Idempotency log for practitioner browser push notifications.
+model ClinicPractitionerPushDelivery {
+  id        String   @id @default(cuid())
+  userId    String
+  tenantId  String
+  kind      String
+  sourceKey String
+  title     String
+  body      String   @db.Text
+  url       String
+  sentAt    DateTime @default(now()) @db.Timestamptz(6)
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId, kind, sourceKey])
+  @@index([tenantId, sentAt])
+  @@map("clinic_practitioner_push_deliveries")
 }
 
 // Rate limiting table for brute force protection

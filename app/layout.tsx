@@ -18,6 +18,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
+  themeColor: '#f97316',
 }
 
 export const metadata: Metadata = {
@@ -90,6 +91,10 @@ export const metadata: Metadata = {
   other: {
     'geo.region': 'AE',
     'geo.placename': 'Ras Al Khaimah',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-title': 'VisionDrive',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'mobile-web-app-capable': 'yes',
   },
 }
 

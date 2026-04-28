@@ -12,9 +12,17 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(data.title || 'Practice OS', {
       body: data.body || '',
       data: { url: data.url || '/clinic' },
-      icon: '/favicon.ico',
+      icon: '/clinic-app-icon.svg',
     })
   )
+})
+
+self.addEventListener('install', () => {
+  self.skipWaiting()
+})
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim())
 })
 
 self.addEventListener('notificationclick', (event) => {

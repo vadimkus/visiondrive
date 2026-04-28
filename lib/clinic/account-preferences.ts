@@ -1,5 +1,6 @@
 export const CLINIC_ACCOUNT_NOTIFICATION_KEYS = [
   'notifyNewBooking',
+  'notifyCancelled',
   'notifyRescheduled',
   'notifyReminderDue',
   'notifyReviewRequest',
@@ -21,6 +22,7 @@ export const DEFAULT_CLINIC_ACCOUNT_PREFERENCES: ClinicAccountPreferences = {
   notifyPush: true,
   notifyEmail: true,
   notifyNewBooking: true,
+  notifyCancelled: true,
   notifyRescheduled: true,
   notifyReminderDue: true,
   notifyReviewRequest: true,
@@ -47,6 +49,7 @@ export function normalizeClinicAccountPreferences(
     notifyPush: booleanPreference(raw.notifyPush, fallback.notifyPush),
     notifyEmail: booleanPreference(raw.notifyEmail, fallback.notifyEmail),
     notifyNewBooking: booleanPreference(raw.notifyNewBooking, fallback.notifyNewBooking),
+    notifyCancelled: booleanPreference(raw.notifyCancelled, fallback.notifyCancelled),
     notifyRescheduled: booleanPreference(raw.notifyRescheduled, fallback.notifyRescheduled),
     notifyReminderDue: booleanPreference(raw.notifyReminderDue, fallback.notifyReminderDue),
     notifyReviewRequest: booleanPreference(raw.notifyReviewRequest, fallback.notifyReviewRequest),

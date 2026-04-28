@@ -46,6 +46,7 @@
 | `ClinicPurchaseOrder` / `ClinicPurchaseOrderLine` | Supplier orders and receipts; receiving creates `RECEIPT` stock movements and increments item quantities. POs can link to a supplier profile while preserving the supplier name snapshot. |
 | `ClinicUserPreference` | Tenant-scoped practitioner preferences for saved UI language and notification channels/types. |
 | `ClinicWebPushSubscription` | Browser push endpoints for opted-in clinic alerts, scoped to user + tenant. |
+| `ClinicPractitionerPushDelivery` | Per-user idempotency log so cron/manual push scans do not resend the same operational alert. |
 
 Relationships: `ClinicAppointment` → `ClinicPatient`, optional → `ClinicProcedure`; **`ClinicVisit`** optionally → `ClinicAppointment`; `ClinicAppointmentEvent` → `ClinicAppointment`; media and payments optionally → **`ClinicVisit`**. Cascade deletes are tenant-safe because patient belongs to tenant.
 
@@ -60,6 +61,8 @@ Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send
 Public booking: `/book/[tenant.slug]` is a private branded link, not a marketplace. It is disabled by default and controlled from the clinic dashboard using `tenant_settings.thresholds.publicBooking.enabled`. When enabled, the public API exposes active services, generated slots, and active service-specific intake questions. Booking creation stores DOB/contact/consent as a real patient + `ONLINE` appointment, validates required intake answers, snapshots answers into `ClinicIntakeResponse`, and still uses the scheduling guard. No public override is allowed.
 
 Patient portal lite: `/patient-portal/[token]` is a private, token-based patient view. Tokens are stored as SHA-256 hashes, expire, and can be revoked from the patient chart. The portal exposes patient-safe operational data only: upcoming appointments, aftercare/next steps, aftercare document links, package balances, receipts, accepted consent titles, and treatment-plan progress. Requests from the portal do not mutate appointments directly; they create a `ClinicPatientPortalRequest`, CRM note, and appointment event for staff review.
+
+PWA practitioner mode: `/site.webmanifest` starts installed app sessions at `/clinic`, exposes shortcuts for Today/New appointment/Patients, and uses the clinic app icon. The clinic dashboard registers `/clinic-push-sw.js` and shows an installable mobile-first practitioner card with online/offline status, today's agenda, quick actions, and a device-local offline note draft. The first pass does not cache authenticated clinic routes; offline clinical sync remains a later feature.
 
 ## API conventions
 
@@ -91,6 +94,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 - **Consents:** `GET/POST /api/clinic/consents/templates` manages reusable consent templates. `GET/POST /api/clinic/patients/[id]/consents` lists and signs consent snapshots for a patient, optionally linked to a visit or appointment.
 - **Treatment plans:** `GET/POST /api/clinic/patients/[id]/treatment-plans` and `PATCH .../treatment-plans/[planId]` manage planned care courses. Visit create/update accepts `treatmentPlanId`, and patient charts compute plan progress from linked completed visits.
 - **Notification center:** `GET /api/clinic/inbox` returns derived operational tasks for reminders due, online bookings, recent reschedules, review requests, unpaid visits, and low-stock inventory. It does not persist notifications; it aggregates live source-of-truth rows.
+- **Practitioner push:** `GET/POST /api/clinic/practitioner-push/run` derives the same operational tasks plus cancellations and expiring packages, filters by saved user preferences, sends browser push to active subscriptions, deletes stale subscriptions, and records `ClinicPractitionerPushDelivery` rows for idempotency. Cron can call it with `CRON_SECRET`; signed-in users run their own tenant.
 - **Retention analytics/reactivation:** `GET /api/clinic/retention/overview` derives rebook rate, returning-client rate, no-show rate, follow-up conversion, repeat interval by procedure, and 60/90/120-day dormant patient reactivation rows with localized WhatsApp message links.
 - **Booking funnel analytics:** `POST /api/clinic/public-booking/[slug]/funnel` records public booking step events with source/UTM metadata for enabled tenant links; `GET /api/clinic/booking-funnel/overview` summarizes conversion by stage, day, procedure, source, and abandoned sessions with localized WhatsApp follow-up copy.
 - **Occasion messages:** `GET /api/clinic/occasions/overview` derives upcoming birthdays from patient DOBs for 7/30/90-day windows and returns localized EN/RU WhatsApp greeting copy.

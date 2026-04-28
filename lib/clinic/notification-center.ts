@@ -1,10 +1,12 @@
 export const NOTIFICATION_CENTER_KINDS = [
   'REMINDER_DUE',
   'NEW_BOOKING',
+  'CANCELLED',
   'RESCHEDULED',
   'REVIEW_REQUEST',
   'UNPAID_VISIT',
   'LOW_STOCK',
+  'PACKAGE_EXPIRING',
 ] as const
 
 export type NotificationCenterKind = (typeof NOTIFICATION_CENTER_KINDS)[number]

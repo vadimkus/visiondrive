@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="VisionDrive Practice OS">
+  <rect width="512" height="512" rx="112" fill="#f97316"/>
+  <circle cx="374" cy="132" r="74" fill="#fff7ed" opacity="0.72"/>
+  <path d="M112 150h72l72 194 72-194h72L292 392h-72L112 150z" fill="#ffffff"/>
+  <path d="M342 258h38c34 0 58 23 58 55s-24 55-58 55h-38V258zm36 34v42h3c13 0 22-8 22-21s-9-21-22-21h-3z" fill="#fff7ed"/>
+</svg>

@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
             notifyPush: true,
             notifyEmail: true,
             notifyNewBooking: true,
+            notifyCancelled: true,
             notifyRescheduled: true,
             notifyReminderDue: true,
             notifyReviewRequest: true,

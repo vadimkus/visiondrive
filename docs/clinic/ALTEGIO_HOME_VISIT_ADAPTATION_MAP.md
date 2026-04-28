@@ -293,10 +293,16 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 40. PWA practitioner mode
    - Source: employee mobile app.
    - Solo version: installable mobile app feel: today screen, quick actions, reminders, offline note draft.
+   - Status: shipped first pass.
+   - Shipped: manifest now starts installed sessions at `/clinic`, includes app shortcuts and a clinic icon; dashboard registers the clinic service worker and shows a PWA practitioner card with install prompt, online/offline state, today agenda, quick actions, and a device-local offline note draft.
+   - Next improvements: true offline route caching, local visit drafts that sync into a selected patient, iOS install guidance, and dedicated bottom-nav mobile shell.
 
 41. Practitioner push notifications
    - Source: mobile push notifications.
    - Solo version: new booking, cancellation, reschedule, reminder due, unpaid visit, low stock, package expiring.
+   - Status: shipped first pass.
+   - Shipped: added an idempotent practitioner push scanner at `/api/clinic/practitioner-push/run`; it derives reminders due, new online bookings, cancellations, reschedules, review requests, unpaid visits, low stock, and package-expiry alerts from source-of-truth rows, respects saved account preferences, cleans stale subscriptions, and logs sent alerts to avoid repeats.
+   - Next improvements: direct event-triggered push on booking/cancel/reschedule mutations, visible delivery history, quiet hours, and per-alert snooze.
 
 42. Offline-safe visit draft
    - Source: mobile app pattern, adapted for field work.
@@ -370,11 +376,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 1. Booking source/UTM attribution and abandoned-booking follow-up.
 2. Patient-uploaded photos through the portal.
-3. PWA practitioner mode.
-4. Practitioner push notifications.
-5. Offline-safe visit draft.
+3. Offline-safe visit draft.
+4. WhatsApp bot intake.
+5. Message history.
 
 ## Recommendation
 
-Account and notification preferences now give the solo practitioner a real control panel for identity, language, password, and alert types. The next point should be PWA practitioner mode: installable mobile app feel, today screen, quick actions, reminders, and offline note draft preparation.
+Practitioner push notifications now cover the operational inbox alerts beyond low stock and can be run safely from cron without duplicate spam. The next point should be offline-safe visit draft: turn the local PWA note draft into patient/visit-linked drafts with explicit review and sync.
 

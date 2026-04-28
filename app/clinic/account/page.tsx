@@ -308,6 +308,7 @@ export default function ClinicAccountPage() {
     string
   > = {
     notifyNewBooking: t.inboxNewBooking,
+    notifyCancelled: t.inboxCancelled,
     notifyRescheduled: t.inboxRescheduled,
     notifyReminderDue: t.inboxReminderDue,
     notifyReviewRequest: t.inboxReviewRequest,

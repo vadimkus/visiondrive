@@ -1,24 +1,43 @@
 {
   "name": "VisionDrive — Practice OS",
   "short_name": "VisionDrive",
-  "description": "VisionDrive — practice operations, made clear. For professional teams in the UAE.",
+  "description": "VisionDrive Practice OS for UAE solo practitioners.",
   "icons": [
     {
-      "src": "/favicon/android-chrome-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/favicon/android-chrome-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "/clinic-app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
   "theme_color": "#f97316",
   "background_color": "#ffffff",
   "display": "standalone",
-  "start_url": "/",
-  "orientation": "portrait"
+  "start_url": "/clinic",
+  "scope": "/",
+  "orientation": "portrait",
+  "categories": ["productivity", "business", "medical"],
+  "shortcuts": [
+    {
+      "name": "Today",
+      "short_name": "Today",
+      "description": "Open today's practitioner dashboard",
+      "url": "/clinic",
+      "icons": [{ "src": "/clinic-app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "New appointment",
+      "short_name": "New appt",
+      "description": "Create a new appointment",
+      "url": "/clinic/appointments/new",
+      "icons": [{ "src": "/clinic-app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Patients",
+      "short_name": "Patients",
+      "description": "Open patient cards",
+      "url": "/clinic/patients",
+      "icons": [{ "src": "/clinic-app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
 }

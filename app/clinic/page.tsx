@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Users, ListOrdered, Calendar, CalendarClock, ArrowRight, Package, Send, Sparkles, Link as LinkIcon } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
+import { ClinicPwaPractitionerCard } from '@/components/clinic/ClinicPwaPractitionerCard'
 import clsx from 'clsx'
 
 type Stats = {
@@ -151,6 +152,8 @@ export default function ClinicDashboardPage() {
           {error}
         </div>
       )}
+
+      <ClinicPwaPractitionerCard />
 
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">

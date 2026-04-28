@@ -22,10 +22,12 @@ import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 type InboxKind =
   | 'REMINDER_DUE'
   | 'NEW_BOOKING'
+  | 'CANCELLED'
   | 'RESCHEDULED'
   | 'REVIEW_REQUEST'
   | 'UNPAID_VISIT'
   | 'LOW_STOCK'
+  | 'PACKAGE_EXPIRING'
 
 type InboxItem = {
   id: string
@@ -72,10 +74,12 @@ export default function ClinicInboxPage() {
     () => ({
       REMINDER_DUE: t.inboxReminderDue,
       NEW_BOOKING: t.inboxNewBooking,
+      CANCELLED: t.inboxCancelled,
       RESCHEDULED: t.inboxRescheduled,
       REVIEW_REQUEST: t.inboxReviewRequest,
       UNPAID_VISIT: t.inboxUnpaidVisit,
       LOW_STOCK: t.inboxLowStock,
+      PACKAGE_EXPIRING: t.packageExpiringSoon,
     }),
     [t]
   )
@@ -83,10 +87,12 @@ export default function ClinicInboxPage() {
   const icons: Record<InboxKind, typeof Bell> = {
     REMINDER_DUE: MessageCircle,
     NEW_BOOKING: CalendarClock,
+    CANCELLED: AlertTriangle,
     RESCHEDULED: RefreshCw,
     REVIEW_REQUEST: Star,
     UNPAID_VISIT: CreditCard,
     LOW_STOCK: Package,
+    PACKAGE_EXPIRING: Package,
   }
 
   const load = useCallback(async () => {
