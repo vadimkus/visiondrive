@@ -230,6 +230,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 31. Birthday and personal occasion messages
    - Source: birthday greeting.
    - Solo version: optional low-pressure birthday message or yearly check-in, localized EN/RU.
+   - Status: shipped first pass.
+   - Shipped: `/clinic/occasions` shows upcoming birthdays for 7/30/90-day windows, localized EN/RU message previews, copy action, WhatsApp deep links, missing-phone state, and patient-chart links.
+   - Next improvements: save sent greetings to CRM, custom personal dates, opt-out flags, and yearly check-in rules for patients without birthday outreach.
 
 32. Referral tracking
    - Source: referral program.
@@ -352,5 +355,5 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommendation
 
-Booking source attribution now turns the public booking funnel into a practical lead-recovery workflow. The next point should be birthday and personal occasion messages, kept deliberately simple: optional low-pressure EN/RU WhatsApp templates for solo practitioners, not a heavy loyalty engine.
+Birthday and occasion messages now cover the light personal-touch workflow. The next point should be referral tracking: add a simple "referred by" field, referral note, and small report without building a complex points program.
 

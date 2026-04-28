@@ -774,6 +774,22 @@
 
 ---
 
+## Chunk 44 — 2026-04-28 (birthday and occasion messages)
+
+**Shipped**
+
+- **Helper:** `lib/clinic/occasions.ts` normalizes 7/30/90-day windows, derives upcoming birthdays from `ClinicPatient.dateOfBirth`, handles Feb 29 birthdays in non-leap years, and builds EN/RU WhatsApp greeting copy.
+- **API:** `GET /api/clinic/occasions/overview` returns tenant-scoped birthday rows, WhatsApp availability counts, message previews, and patient chart links.
+- **UI:** `/clinic/occasions` adds a lightweight solo-practitioner workflow with range filters, birthday cards, copy-message action, WhatsApp open action, missing-phone state, and patient-chart links.
+- **i18n/Knowledge Base:** EN/RU strings and article explain using personal occasion messages without turning them into aggressive promotions.
+
+**Validation**
+
+- Added Vitest coverage for range normalization, next-birthday calculation, leap-day handling, upcoming-row filtering, localized messages, and WhatsApp links.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

@@ -379,6 +379,20 @@ const articlesEn: Article[] = [
     link: '/clinic/booking-funnel',
   },
   {
+    id: 'occasion-messages',
+    category: 'Patients',
+    title: 'Send birthday and occasion messages',
+    summary:
+      'Use upcoming birthdays to send personal, low-pressure WhatsApp greetings without building a heavy loyalty program.',
+    steps: [
+      'Open Occasions from the clinic navigation.',
+      'Choose the next 7, 30, or 90 days depending on how far ahead you want to prepare.',
+      'Review the birthday message preview and adjust manually in WhatsApp if needed.',
+      'Copy the message, open WhatsApp, or open the patient chart before sending.',
+    ],
+    link: '/clinic/occasions',
+  },
+  {
     id: 'patient-portal-lite',
     category: 'Patients',
     title: 'Share a private patient portal link',
@@ -790,6 +804,20 @@ const articlesRu: Article[] = [
       'Смотрите конверсию по источникам и услугам, затем копируйте или открывайте WhatsApp follow-up для теплых лидов.',
     ],
     link: '/clinic/booking-funnel',
+  },
+  {
+    id: 'occasion-messages',
+    category: 'Пациенты',
+    title: 'Отправляйте сообщения ко дню рождения и личным поводам',
+    summary:
+      'Используйте ближайшие дни рождения для личных мягких WhatsApp-сообщений без тяжелой программы лояльности.',
+    steps: [
+      'Откройте Поводы в навигации клиники.',
+      'Выберите следующие 7, 30 или 90 дней в зависимости от того, насколько заранее хотите готовиться.',
+      'Проверьте текст сообщения и при необходимости поправьте его вручную в WhatsApp.',
+      'Скопируйте сообщение, откройте WhatsApp или сначала откройте карту пациента.',
+    ],
+    link: '/clinic/occasions',
   },
   {
     id: 'patient-portal-lite',

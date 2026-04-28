@@ -85,6 +85,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET /api/clinic/retention/overview` — derived retention analytics for rebook rate, returning clients, no-shows, follow-up conversion, repeat intervals, and 60/90/120-day dormant patient reactivation rows with localized WhatsApp links.
 - `POST /api/clinic/public-booking/[slug]/funnel` — public booking step tracking for enabled tenant booking links, including source/UTM metadata from shared links.
 - `GET /api/clinic/booking-funnel/overview` — staff analytics for public booking conversion by stage, day, procedure, source, and abandoned sessions with localized WhatsApp follow-up messages.
+- `GET /api/clinic/occasions/overview` — derived birthday/occasion workflow from existing patient DOBs, returning 7/30/90-day birthday rows with localized WhatsApp greeting copy.
 - `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` — staff creates, lists, and revokes private patient portal links.
 - `GET/POST /api/patient-portal/[token]` — public patient-safe portal data and reschedule/cancel/message request creation by private token.
 - `GET /api/patient-portal/[token]/payments/[paymentId]/receipt` — patient-safe receipt PDF download through an active portal token.
