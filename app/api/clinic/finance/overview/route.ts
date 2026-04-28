@@ -43,6 +43,10 @@ export async function GET(request: NextRequest) {
     productSales,
     packageDiscounts,
     recentDiscounts,
+    giftCardSales,
+    giftCardRedemptions,
+    giftCardOutstanding,
+    recentGiftCards,
     completedVisits,
   ] = await Promise.all([
     prisma.clinicPatientPayment.aggregate({
@@ -173,6 +177,52 @@ export async function GET(request: NextRequest) {
       orderBy: { paidAt: 'desc' },
       take: 8,
     }),
+    prisma.clinicGiftCard.aggregate({
+      where: {
+        tenantId: session.tenantId,
+        paymentStatus: ClinicPaymentStatus.PAID,
+        purchasedAt: { gte: start, lte: end },
+      },
+      _sum: { initialBalanceCents: true, processorFeeCents: true },
+      _count: { _all: true },
+    }),
+    prisma.clinicGiftCardRedemption.aggregate({
+      where: {
+        tenantId: session.tenantId,
+        redeemedAt: { gte: start, lte: end },
+      },
+      _sum: { amountCents: true },
+      _count: { _all: true },
+    }),
+    prisma.clinicGiftCard.aggregate({
+      where: {
+        tenantId: session.tenantId,
+        status: { in: ['ACTIVE', 'PENDING'] },
+        remainingBalanceCents: { gt: 0 },
+      },
+      _sum: { remainingBalanceCents: true },
+      _count: { _all: true },
+    }),
+    prisma.clinicGiftCard.findMany({
+      where: {
+        tenantId: session.tenantId,
+        purchasedAt: { gte: start, lte: end },
+      },
+      select: {
+        id: true,
+        code: true,
+        buyerName: true,
+        recipientName: true,
+        initialBalanceCents: true,
+        remainingBalanceCents: true,
+        currency: true,
+        status: true,
+        paymentStatus: true,
+        purchasedAt: true,
+      },
+      orderBy: { purchasedAt: 'desc' },
+      take: 8,
+    }),
     prisma.clinicVisit.findMany({
       where: {
         tenantId: session.tenantId,
@@ -260,7 +310,9 @@ export async function GET(request: NextRequest) {
     0
   )
   const processorFeeCents = processorFees._sum.processorFeeCents ?? 0
-  const directCostCents = procedureMaterialCostCents + productSalesCostCents + processorFeeCents
+  const giftCardProcessorFeeCents = giftCardSales._sum.processorFeeCents ?? 0
+  const directCostCents =
+    procedureMaterialCostCents + productSalesCostCents + processorFeeCents + giftCardProcessorFeeCents
   const grossProfitCents = netRevenueCents - directCostCents
   const expensesCents = expenses._sum.amountCents ?? 0
   const profitCents = grossProfitCents - expensesCents
@@ -277,9 +329,13 @@ export async function GET(request: NextRequest) {
       productSaleDiscountCents,
       totalDiscountCents: paymentDiscountCents + packageDiscountCents + productSaleDiscountCents,
       productSalesRevenueCents,
+      giftCardSalesCents: giftCardSales._sum.initialBalanceCents ?? 0,
+      giftCardRedeemedCents: giftCardRedemptions._sum.amountCents ?? 0,
+      giftCardOutstandingCents: giftCardOutstanding._sum.remainingBalanceCents ?? 0,
       procedureMaterialCostCents,
       productSalesCostCents,
       processorFeeCents,
+      giftCardProcessorFeeCents,
       directCostCents,
       grossProfitCents,
       pendingCents: pending._sum.amountCents ?? 0,
@@ -291,6 +347,9 @@ export async function GET(request: NextRequest) {
       pendingPayments: pending._count._all,
       discountedPayments: discounts._count._all,
       discountedPackages: packageDiscounts._count._all,
+      giftCardsSold: giftCardSales._count._all,
+      giftCardsRedeemed: giftCardRedemptions._count._all,
+      giftCardsOpen: giftCardOutstanding._count._all,
       expenseCount: expenses._count._all,
       completedVisits: completedVisits.length,
       productSales: productSales.length,
@@ -313,6 +372,10 @@ export async function GET(request: NextRequest) {
       status: payment.status,
       paidAt: payment.paidAt.toISOString(),
       patientName: `${payment.patient.lastName}, ${payment.patient.firstName}`.trim(),
+    })),
+    recentGiftCards: recentGiftCards.map((card) => ({
+      ...card,
+      purchasedAt: card.purchasedAt.toISOString(),
     })),
     recentExpenses: recentExpenses.map((expense) => ({
       ...expense,

@@ -63,6 +63,7 @@ type VisitRow = {
   media: MediaMeta[]
   treatmentPlan?: { id: string; title: string; status: string } | null
   packageRedemptions?: PackageRedemptionRow[]
+  giftCardRedemptions?: GiftCardRedemptionRow[]
 }
 
 type PaymentRow = {
@@ -132,6 +133,22 @@ type PackageRedemptionRow = {
     totalSessions: number
     remainingSessions: number
   }
+}
+
+type GiftCardRedemptionRow = {
+  id: string
+  amountCents: number
+  currency: string
+  note: string | null
+  redeemedAt: string
+  giftCard: {
+    id: string
+    code: string
+    buyerName: string
+    recipientName: string | null
+    remainingBalanceCents: number
+  }
+  payment?: { id: string; amountCents: number; currency: string; paidAt: string; reference: string | null } | null
 }
 
 type PackageRow = {
@@ -289,6 +306,7 @@ export type PatientRecord = {
   payments: PaymentRow[]
   productSales: ProductSaleRow[]
   packages: PackageRow[]
+  giftCardRedemptions: GiftCardRedemptionRow[]
   consentRecords: ConsentRecordRow[]
   treatmentPlans: TreatmentPlanRow[]
   portalLinks: PortalLinkRow[]
@@ -2914,6 +2932,11 @@ function PaymentsTab({
   const [note, setNote] = useState('')
   const [visitId, setVisitId] = useState('')
   const [saving, setSaving] = useState(false)
+  const [giftCardCode, setGiftCardCode] = useState('')
+  const [giftCardAmount, setGiftCardAmount] = useState('')
+  const [giftCardVisitId, setGiftCardVisitId] = useState('')
+  const [giftCardNote, setGiftCardNote] = useState('')
+  const [redeemingGiftCard, setRedeemingGiftCard] = useState(false)
   const [correctingId, setCorrectingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -3025,6 +3048,47 @@ function PaymentsTab({
       await onRefresh()
     } finally {
       setCorrectingId(null)
+    }
+  }
+
+  const redeemGiftCard = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const major = Number.parseFloat(giftCardAmount)
+    if (Number.isNaN(major) || major <= 0) {
+      alert(t.enterValidAmount)
+      return
+    }
+    if (!giftCardCode.trim()) {
+      alert(t.giftCardCodeRequired)
+      return
+    }
+    setRedeemingGiftCard(true)
+    try {
+      const res = await fetch('/api/clinic/gift-cards/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          patientId: patient.id,
+          code: giftCardCode,
+          amountCents: Math.round(major * 100),
+          visitId: giftCardVisitId || null,
+          note: giftCardNote || null,
+          redeemedAt: new Date().toISOString(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      setGiftCardCode('')
+      setGiftCardAmount('')
+      setGiftCardVisitId('')
+      setGiftCardNote('')
+      await onRefresh()
+    } finally {
+      setRedeemingGiftCard(false)
     }
   }
 
@@ -3151,6 +3215,99 @@ function PaymentsTab({
           {saving ? t.savingEllipsis : t.addPayment}
         </button>
       </form>
+
+      <form onSubmit={redeemGiftCard} className="bg-white rounded-2xl border border-emerald-100 p-5 shadow-sm space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">{t.redeemGiftCard}</h2>
+          <p className="mt-1 text-sm text-gray-500">{t.giftCardRedemptionHint}</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.giftCardCode}</label>
+            <input
+              value={giftCardCode}
+              onChange={(e) => setGiftCardCode(e.target.value)}
+              placeholder="GC-..."
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.giftCardAmountToRedeem}</label>
+            <input
+              value={giftCardAmount}
+              onChange={(e) => setGiftCardAmount(e.target.value)}
+              inputMode="decimal"
+              placeholder={t.amountPlaceholder}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.linkToVisitOptional}</label>
+            <select
+              value={giftCardVisitId}
+              onChange={(e) => setGiftCardVisitId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="">{t.emptyValue}</option>
+              {patient.visits.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {new Date(v.visitAt).toLocaleString(dateLocale, {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.note}</label>
+            <input
+              value={giftCardNote}
+              onChange={(e) => setGiftCardNote(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+        </div>
+        <button
+          type="submit"
+          disabled={redeemingGiftCard}
+          className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold disabled:opacity-60"
+        >
+          {redeemingGiftCard ? t.savingEllipsis : t.redeemGiftCard}
+        </button>
+      </form>
+
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+        <div className="p-4">
+          <h2 className="text-lg font-semibold text-gray-900">{t.giftCardRedemptions}</h2>
+        </div>
+        {patient.giftCardRedemptions.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500">{t.noGiftCardRedemptions}</p>
+        ) : (
+          patient.giftCardRedemptions.map((redemption) => (
+            <div key={redemption.id} className="p-4 text-sm flex justify-between gap-4">
+              <div>
+                <p className="font-medium text-gray-900">
+                  {formatMoney(redemption.amountCents, redemption.currency)} · {redemption.giftCard.code}
+                </p>
+                <p className="text-gray-600">
+                  {t.giftCardSoldBy}: {redemption.giftCard.buyerName}
+                  {redemption.giftCard.recipientName ? ` · ${t.giftCardRecipient}: ${redemption.giftCard.recipientName}` : ''}
+                </p>
+                <p className="text-gray-500 text-xs mt-1">
+                  {t.giftCardBalance}: {formatMoney(redemption.giftCard.remainingBalanceCents, redemption.currency)}
+                </p>
+                {redemption.note && <p className="text-gray-500 text-xs mt-1">{redemption.note}</p>}
+              </div>
+              <p className="text-gray-400 text-xs shrink-0">
+                {new Date(redemption.redeemedAt).toLocaleDateString(dateLocale)}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
         <div className="p-4">

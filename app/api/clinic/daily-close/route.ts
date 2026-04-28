@@ -78,7 +78,7 @@ function closeToJson(close: Awaited<ReturnType<typeof prisma.clinicDailyClose.fi
 
 async function buildDailyCloseForDate(tenantId: string, businessDate: Date, countedByMethod = emptyDailyCloseMethodTotals()) {
   const { start, end } = businessDayRange(businessDate)
-  const [payments, appointmentCount] = await Promise.all([
+  const [payments, giftCards, appointmentCount] = await Promise.all([
     prisma.clinicPatientPayment.findMany({
       where: {
         tenantId,
@@ -89,6 +89,18 @@ async function buildDailyCloseForDate(tenantId: string, businessDate: Date, coun
         processorFeeCents: true,
         method: true,
         status: true,
+      },
+    }),
+    prisma.clinicGiftCard.findMany({
+      where: {
+        tenantId,
+        purchasedAt: { gte: start, lt: end },
+      },
+      select: {
+        initialBalanceCents: true,
+        processorFeeCents: true,
+        paymentMethod: true,
+        paymentStatus: true,
       },
     }),
     prisma.clinicAppointment.count({
@@ -102,7 +114,19 @@ async function buildDailyCloseForDate(tenantId: string, businessDate: Date, coun
     }),
   ])
 
-  return buildDailyCloseSummary(payments, countedByMethod, appointmentCount)
+  return buildDailyCloseSummary(
+    [
+      ...payments,
+      ...giftCards.map((card) => ({
+        amountCents: card.initialBalanceCents,
+        processorFeeCents: card.processorFeeCents,
+        method: card.paymentMethod,
+        status: card.paymentStatus,
+      })),
+    ],
+    countedByMethod,
+    appointmentCount
+  )
 }
 
 export async function GET(request: NextRequest) {

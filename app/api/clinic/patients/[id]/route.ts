@@ -138,6 +138,14 @@ export async function GET(
               },
             },
           },
+          giftCardRedemptions: {
+            orderBy: { redeemedAt: 'desc' },
+            include: {
+              giftCard: {
+                select: { id: true, code: true, buyerName: true, recipientName: true, remainingBalanceCents: true },
+              },
+            },
+          },
         },
       },
       treatmentPlans: {
@@ -267,6 +275,18 @@ export async function GET(
               titleOverride: true,
               procedure: { select: { name: true } },
             },
+          },
+        },
+      },
+      giftCardRedemptions: {
+        orderBy: { redeemedAt: 'desc' },
+        take: 40,
+        include: {
+          giftCard: {
+            select: { id: true, code: true, buyerName: true, recipientName: true, remainingBalanceCents: true },
+          },
+          payment: {
+            select: { id: true, amountCents: true, currency: true, paidAt: true, reference: true },
           },
         },
       },

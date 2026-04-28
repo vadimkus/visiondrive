@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
-import { ArrowDownRight, ArrowUpRight, BadgePercent, CircleDollarSign, Plus, ReceiptText } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, BadgePercent, CircleDollarSign, Gift, Plus, ReceiptText } from 'lucide-react'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import type { ClinicStrings } from '@/lib/clinic/strings'
@@ -33,9 +33,13 @@ type Overview = {
     productSaleDiscountCents: number
     totalDiscountCents: number
     productSalesRevenueCents: number
+    giftCardSalesCents: number
+    giftCardRedeemedCents: number
+    giftCardOutstandingCents: number
     procedureMaterialCostCents: number
     productSalesCostCents: number
     processorFeeCents: number
+    giftCardProcessorFeeCents: number
     directCostCents: number
     grossProfitCents: number
     pendingCents: number
@@ -47,6 +51,9 @@ type Overview = {
     pendingPayments: number
     discountedPayments: number
     discountedPackages: number
+    giftCardsSold: number
+    giftCardsRedeemed: number
+    giftCardsOpen: number
     expenseCount: number
     completedVisits: number
     productSales: number
@@ -81,6 +88,18 @@ type Overview = {
     currency: string
     status: string
     paidAt: string
+  }[]
+  recentGiftCards: {
+    id: string
+    code: string
+    buyerName: string
+    recipientName: string | null
+    initialBalanceCents: number
+    remainingBalanceCents: number
+    currency: string
+    status: string
+    paymentStatus: string
+    purchasedAt: string
   }[]
   recentExpenses: Expense[]
 }
@@ -237,6 +256,7 @@ export default function ClinicFinancePage() {
   const [savingDiscountRule, setSavingDiscountRule] = useState<string | null>(null)
   const [savingFeeRule, setSavingFeeRule] = useState<PaymentMethod | null>(null)
   const [savingDailyClose, setSavingDailyClose] = useState<'draft' | 'finalized' | null>(null)
+  const [savingGiftCard, setSavingGiftCard] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     category: 'OPS' as ExpenseCategory,
@@ -250,6 +270,17 @@ export default function ClinicFinancePage() {
     type: 'PERCENT' as 'PERCENT' | 'FIXED',
     percent: '10',
     fixed: '',
+    note: '',
+  })
+  const [giftCardForm, setGiftCardForm] = useState({
+    buyerName: '',
+    buyerPhone: '',
+    buyerEmail: '',
+    recipientName: '',
+    amount: '',
+    code: '',
+    paymentMethod: 'CARD' as PaymentMethod,
+    expiresAt: '',
     note: '',
   })
 
@@ -380,6 +411,57 @@ export default function ClinicFinancePage() {
       setError(e instanceof Error ? e.message : t.saveFailed)
     } finally {
       setSavingDiscountRule(null)
+    }
+  }
+
+  async function createGiftCard(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const amountCents = parseAedToCents(giftCardForm.amount)
+    if (!Number.isInteger(amountCents) || amountCents <= 0) {
+      setError(t.enterValidAmount)
+      return
+    }
+
+    setSavingGiftCard(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/clinic/gift-cards', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          buyerName: giftCardForm.buyerName,
+          buyerPhone: giftCardForm.buyerPhone || null,
+          buyerEmail: giftCardForm.buyerEmail || null,
+          recipientName: giftCardForm.recipientName || null,
+          initialBalanceCents: amountCents,
+          code: giftCardForm.code || null,
+          paymentMethod: giftCardForm.paymentMethod,
+          paymentStatus: 'PAID',
+          expiresAt: giftCardForm.expiresAt ? `${giftCardForm.expiresAt}T23:59:59.000Z` : null,
+          note: giftCardForm.note || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.saveFailed)
+      }
+      setGiftCardForm({
+        buyerName: '',
+        buyerPhone: '',
+        buyerEmail: '',
+        recipientName: '',
+        amount: '',
+        code: '',
+        paymentMethod: 'CARD',
+        expiresAt: '',
+        note: '',
+      })
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.saveFailed)
+    } finally {
+      setSavingGiftCard(false)
     }
   }
 
@@ -752,6 +834,173 @@ export default function ClinicFinancePage() {
           </p>
         </div>
       </div>
+
+      <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">{t.giftCards}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t.giftCardsHint}</p>
+          </div>
+          <p className="text-xs text-gray-500">
+            {kpis?.giftCardsOpen ?? 0} {t.giftCardsOpen.toLowerCase()} ·{' '}
+            {money(kpis?.giftCardOutstandingCents ?? 0, 'AED', numberLocale)}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_340px]">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">{t.giftCardSold}</p>
+                <p className="mt-2 text-xl font-semibold text-gray-900 tabular-nums">
+                  {money(kpis?.giftCardSalesCents ?? 0, 'AED', numberLocale)}
+                </p>
+                <p className="mt-1 text-xs text-gray-500">{kpis?.giftCardsSold ?? 0} {t.giftCards.toLowerCase()}</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">{t.giftCardRedeemed}</p>
+                <p className="mt-2 text-xl font-semibold text-gray-900 tabular-nums">
+                  {money(kpis?.giftCardRedeemedCents ?? 0, 'AED', numberLocale)}
+                </p>
+                <p className="mt-1 text-xs text-gray-500">{kpis?.giftCardsRedeemed ?? 0} {t.payments.toLowerCase()}</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">{t.giftCardOutstanding}</p>
+                <p className="mt-2 text-xl font-semibold text-gray-900 tabular-nums">
+                  {money(kpis?.giftCardOutstandingCents ?? 0, 'AED', numberLocale)}
+                </p>
+                <p className="mt-1 text-xs text-gray-500">{t.financeProcessorFees}: {money(kpis?.giftCardProcessorFeeCents ?? 0, 'AED', numberLocale)}</p>
+              </div>
+            </div>
+
+            {(overview?.recentGiftCards.length ?? 0) === 0 ? (
+              <p className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">{t.noGiftCardsYet}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-xs text-gray-500">
+                    <tr>
+                      <th className="py-2 pr-3 font-medium">{t.giftCardCode}</th>
+                      <th className="py-2 px-3 font-medium">{t.buyerName}</th>
+                      <th className="py-2 px-3 font-medium">{t.giftCardRecipient}</th>
+                      <th className="py-2 px-3 font-medium">{t.giftCardBalance}</th>
+                      <th className="py-2 pl-3 font-medium">{t.paymentStatusLabel}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {overview?.recentGiftCards.map((card) => (
+                      <tr key={card.id}>
+                        <td className="py-3 pr-3 font-semibold text-gray-900">{card.code}</td>
+                        <td className="py-3 px-3 text-gray-700">{card.buyerName}</td>
+                        <td className="py-3 px-3 text-gray-700">{card.recipientName || t.emptyValue}</td>
+                        <td className="py-3 px-3 tabular-nums text-gray-700">
+                          {money(card.remainingBalanceCents, card.currency, numberLocale)} /{' '}
+                          {money(card.initialBalanceCents, card.currency, numberLocale)}
+                        </td>
+                        <td className="py-3 pl-3 text-gray-700">{card.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={createGiftCard} className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-emerald-900">
+              <Gift className="h-5 w-5" aria-hidden />
+              <h3 className="text-sm font-semibold">{t.addGiftCard}</h3>
+            </div>
+            <label className="block text-xs font-medium text-emerald-900">
+              {t.buyerName}
+              <input
+                value={giftCardForm.buyerName}
+                onChange={(e) => setGiftCardForm((current) => ({ ...current, buyerName: e.target.value }))}
+                className="mt-1 w-full min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block text-xs font-medium text-emerald-900">
+                {t.buyerPhone}
+                <input
+                  value={giftCardForm.buyerPhone}
+                  onChange={(e) => setGiftCardForm((current) => ({ ...current, buyerPhone: e.target.value }))}
+                  className="mt-1 w-full min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm"
+                />
+              </label>
+              <label className="block text-xs font-medium text-emerald-900">
+                {t.recipientName}
+                <input
+                  value={giftCardForm.recipientName}
+                  onChange={(e) => setGiftCardForm((current) => ({ ...current, recipientName: e.target.value }))}
+                  className="mt-1 w-full min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm"
+                />
+              </label>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block text-xs font-medium text-emerald-900">
+                {t.amountAed}
+                <input
+                  value={giftCardForm.amount}
+                  onChange={(e) => setGiftCardForm((current) => ({ ...current, amount: e.target.value }))}
+                  inputMode="decimal"
+                  placeholder={t.amountPlaceholder}
+                  className="mt-1 w-full min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm"
+                />
+              </label>
+              <label className="block text-xs font-medium text-emerald-900">
+                {t.paymentMethod}
+                <select
+                  value={giftCardForm.paymentMethod}
+                  onChange={(e) =>
+                    setGiftCardForm((current) => ({ ...current, paymentMethod: e.target.value as PaymentMethod }))
+                  }
+                  className="mt-1 w-full min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm"
+                >
+                  {PAYMENT_METHODS.map((method) => (
+                    <option key={method} value={method}>{methodLabel(t, method)}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block text-xs font-medium text-emerald-900">
+                {t.giftCardCodeOptional}
+                <input
+                  value={giftCardForm.code}
+                  onChange={(e) => setGiftCardForm((current) => ({ ...current, code: e.target.value }))}
+                  placeholder="GC-..."
+                  className="mt-1 w-full min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm"
+                />
+              </label>
+              <label className="block text-xs font-medium text-emerald-900">
+                {t.packageExpires}
+                <input
+                  type="date"
+                  value={giftCardForm.expiresAt}
+                  onChange={(e) => setGiftCardForm((current) => ({ ...current, expiresAt: e.target.value }))}
+                  className="mt-1 w-full min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm"
+                />
+              </label>
+            </div>
+            <label className="block text-xs font-medium text-emerald-900">
+              {t.note}
+              <input
+                value={giftCardForm.note}
+                onChange={(e) => setGiftCardForm((current) => ({ ...current, note: e.target.value }))}
+                className="mt-1 w-full min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={savingGiftCard}
+              className="w-full min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {savingGiftCard ? t.savingEllipsis : t.addGiftCard}
+            </button>
+          </form>
+        </div>
+      </section>
 
       <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">

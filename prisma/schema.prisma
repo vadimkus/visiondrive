@@ -99,6 +99,8 @@ model Tenant {
   clinicPaymentCorrections    ClinicPaymentCorrection[]
   clinicPaymentFeeRules       ClinicPaymentFeeRule[]
   clinicDiscountRules         ClinicDiscountRule[]
+  clinicGiftCards             ClinicGiftCard[]
+  clinicGiftCardRedemptions   ClinicGiftCardRedemption[]
   clinicDailyCloses           ClinicDailyClose[]
   clinicProductSales          ClinicProductSale[]
   clinicProductSaleLines      ClinicProductSaleLine[]
@@ -882,6 +884,8 @@ model ClinicPatient {
   crmActivities      ClinicCrmActivity[]
   reviews            ClinicPatientReview[]
   packages           ClinicPatientPackage[]
+  giftCardsPurchased ClinicGiftCard[]           @relation("GiftCardBuyer")
+  giftCardRedemptions ClinicGiftCardRedemption[]
   consentRecords     ClinicConsentRecord[]
   treatmentPlans     ClinicTreatmentPlan[]
   portalLinks        ClinicPatientPortalLink[]
@@ -963,6 +967,7 @@ model ClinicAppointment {
   events              ClinicAppointmentEvent[]
   reviews             ClinicPatientReview[]
   packageRedemptions  ClinicPackageRedemption[]
+  giftCardRedemptions ClinicGiftCardRedemption[]
   consentRecords      ClinicConsentRecord[]
   payments            ClinicPatientPayment[]
   productSales        ClinicProductSale[]
@@ -1233,6 +1238,14 @@ enum ClinicPaymentStatus {
   VOID
 }
 
+enum ClinicGiftCardStatus {
+  PENDING
+  ACTIVE
+  REDEEMED
+  EXPIRED
+  CANCELLED
+}
+
 enum ClinicDailyCloseStatus {
   DRAFT
   FINALIZED
@@ -1292,6 +1305,7 @@ model ClinicVisit {
   productSales       ClinicProductSale[]
   reviews            ClinicPatientReview[]
   packageRedemptions ClinicPackageRedemption[]
+  giftCardRedemptions ClinicGiftCardRedemption[]
   consentRecords     ClinicConsentRecord[]
 
   @@index([tenantId, visitAt])
@@ -1353,6 +1367,7 @@ model ClinicPatientPayment {
   appointment            ClinicAppointment?        @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   discountRule           ClinicDiscountRule?       @relation(fields: [discountRuleId], references: [id], onDelete: SetNull)
   productSale            ClinicProductSale?
+  giftCardRedemption     ClinicGiftCardRedemption?
   correctionsAsOriginal  ClinicPaymentCorrection[] @relation("OriginalPaymentCorrections")
   correctionAsAdjustment ClinicPaymentCorrection?  @relation("AdjustmentPaymentCorrection")
 
@@ -1426,6 +1441,69 @@ model ClinicDiscountRule {
   @@unique([tenantId, name])
   @@index([tenantId, active, name])
   @@map("clinic_discount_rules")
+}
+
+model ClinicGiftCard {
+  id                    String               @id @default(cuid())
+  tenantId              String
+  code                  String
+  buyerPatientId        String?
+  buyerName             String
+  buyerPhone            String?
+  buyerEmail            String?
+  recipientName         String?
+  initialBalanceCents   Int
+  remainingBalanceCents Int
+  currency              String               @default("AED")
+  status                ClinicGiftCardStatus @default(ACTIVE)
+  paymentMethod         ClinicPaymentMethod  @default(OTHER)
+  paymentStatus         ClinicPaymentStatus  @default(PAID)
+  processorFeeCents     Int                  @default(0)
+  purchasedAt           DateTime             @default(now()) @db.Timestamptz(6)
+  expiresAt             DateTime?            @db.Timestamptz(6)
+  note                  String?              @db.Text
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  createdByUserId       String?
+
+  tenant       Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  buyerPatient ClinicPatient?              @relation("GiftCardBuyer", fields: [buyerPatientId], references: [id], onDelete: SetNull)
+  redemptions  ClinicGiftCardRedemption[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId, status, purchasedAt])
+  @@index([buyerPatientId, purchasedAt])
+  @@map("clinic_gift_cards")
+}
+
+model ClinicGiftCardRedemption {
+  id              String   @id @default(cuid())
+  tenantId        String
+  giftCardId      String
+  patientId       String
+  appointmentId   String?
+  visitId         String?
+  paymentId       String?  @unique
+  amountCents     Int
+  currency        String   @default("AED")
+  note            String?  @db.Text
+  redeemedAt      DateTime @default(now()) @db.Timestamptz(6)
+  createdAt       DateTime @default(now())
+  createdByUserId String?
+
+  tenant      Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  giftCard    ClinicGiftCard        @relation(fields: [giftCardId], references: [id], onDelete: Cascade)
+  patient     ClinicPatient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment ClinicAppointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  visit       ClinicVisit?          @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  payment     ClinicPatientPayment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, redeemedAt])
+  @@index([giftCardId, redeemedAt])
+  @@index([patientId, redeemedAt])
+  @@index([appointmentId, redeemedAt])
+  @@index([visitId, redeemedAt])
+  @@map("clinic_gift_card_redemptions")
 }
 
 model ClinicDailyClose {

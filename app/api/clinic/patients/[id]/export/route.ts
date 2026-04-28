@@ -54,6 +54,10 @@ export async function GET(
             },
           },
           packageRedemptions: { orderBy: { redeemedAt: 'desc' } },
+          giftCardRedemptions: {
+            orderBy: { redeemedAt: 'desc' },
+            include: { giftCard: true, payment: true },
+          },
           consentRecords: { orderBy: { createdAt: 'desc' } },
           payments: {
             orderBy: { paidAt: 'desc' },
@@ -133,6 +137,10 @@ export async function GET(
       portalLinks: { orderBy: { createdAt: 'desc' } },
       portalRequests: { orderBy: { createdAt: 'desc' } },
       intakeResponses: { orderBy: { createdAt: 'desc' } },
+      giftCardRedemptions: {
+        orderBy: { redeemedAt: 'desc' },
+        include: { giftCard: true, payment: true },
+      },
     },
   })
 

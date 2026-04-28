@@ -72,6 +72,7 @@
 | [2026-04-28_clinic-occasion-messages.md](2026-04-28_clinic-occasion-messages.md) | Clinic birthday and occasion messages note |
 | [2026-04-28_clinic-referral-tracking.md](2026-04-28_clinic-referral-tracking.md) | Clinic referral tracking note |
 | [2026-04-28_clinic-promotions-discount-rules.md](2026-04-28_clinic-promotions-discount-rules.md) | Clinic promotions and discount rules note |
+| [2026-04-28_clinic-gift-cards.md](2026-04-28_clinic-gift-cards.md) | Clinic gift cards note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

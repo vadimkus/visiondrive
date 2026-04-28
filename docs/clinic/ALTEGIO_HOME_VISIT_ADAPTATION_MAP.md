@@ -251,6 +251,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 34. Gift cards
    - Source: gift cards.
    - Solo version: prepaid voucher sold to a buyer and redeemed by patient. Lower priority than packages.
+   - Status: shipped first pass.
+   - Shipped: `ClinicGiftCard` tracks buyer/recipient/code/balance/payment status; Finance sells and monitors voucher liability; patient Payments tab redeems active balances with a `GIFT_CARD:*` payment and redemption audit row.
+   - Next improvements: printable branded gift-card PDF, public purchase link, expiry reminders, and campaign attribution only after manual voucher usage is proven.
 
 35. Before/after photo protocol
    - Source: client card files and visit history.
@@ -361,5 +364,5 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommendation
 
-Promotions and discount rules now cover the light solo-practitioner workflow without a complex loyalty engine. The next point should be gift cards: prepaid voucher sold to a buyer, redeemed by a patient, and kept separate from treatment packages.
+Gift cards now cover the simple prepaid-voucher workflow without mixing it into treatment packages. The next point should be before/after photo protocol: procedure-specific capture prompts, consistent lighting/angle checklist, and marketing-consent tracking.
 

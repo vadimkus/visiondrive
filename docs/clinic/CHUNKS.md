@@ -826,6 +826,25 @@
 
 ---
 
+## Chunk 47 — 2026-04-28 (gift cards)
+
+**Shipped**
+
+- **Schema:** `ClinicGiftCard` and `ClinicGiftCardRedemption` store prepaid voucher sales, buyer/recipient details, code, original and remaining balance, sale method/status, expiry, and redemption audit rows.
+- **Helper:** `lib/clinic/gift-cards.ts` normalizes codes/amounts, generates human-readable codes, derives status, and validates active/non-expired balances before redemption.
+- **API:** `GET/POST /api/clinic/gift-cards` sells/lists vouchers; `POST /api/clinic/gift-cards/redeem` decrements balance transactionally and creates a `GIFT_CARD:*` patient payment.
+- **UI:** Finance sells and monitors gift cards; patient Payments tab redeems codes and shows redemption history.
+- **Finance/daily close:** Finance reports sold/redeemed/outstanding gift-card balances; daily close includes gift-card sale cash by method.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, and architecture/data-model docs updated.
+
+**Validation**
+
+- Added Vitest coverage for gift-card helper normalization, references, status derivation, and redemption validation.
+- Run `npx prisma generate`, `npm run type-check`, and focused clinic tests.
+- Run `npx prisma db push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**
