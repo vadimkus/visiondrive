@@ -18,7 +18,7 @@
 | `ClinicBlockedTime` | Manual availability removals for lunch, leave, training, private time, or supplier errands. |
 | `ClinicReminderTemplate` | Tenant-scoped WhatsApp/email/SMS template text for appointment reminders, no-show follow-ups, and rebooking nudges. |
 | `ClinicReminderDelivery` | Reminder schedule and delivery/preparation log; stores scheduled time, rendered body, WhatsApp URL, status, and errors. |
-| `ClinicBookingFunnelEvent` | Anonymous tenant-scoped public booking analytics events for link views, service/slot selection, form activity, and completed online booking. |
+| `ClinicBookingFunnelEvent` | Anonymous tenant-scoped public booking analytics events for link views, service/slot selection, form activity, completed online booking, source/UTM metadata, and recoverable submitted-contact metadata for abandoned booking follow-up. |
 | `ClinicPatientPortalLink` | Hashed private patient portal token with expiry/revocation and last-access tracking; plaintext link is only returned at creation time. |
 | `ClinicPatientPortalRequest` | Patient-submitted portal requests for reschedule, cancellation, or message, attached to patient and optional appointment. |
 | `ClinicIntakeQuestion` | Procedure-scoped public booking question with type, help text, required/active flags, and sort order. |
@@ -85,7 +85,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 - **Treatment plans:** `GET/POST /api/clinic/patients/[id]/treatment-plans` and `PATCH .../treatment-plans/[planId]` manage planned care courses. Visit create/update accepts `treatmentPlanId`, and patient charts compute plan progress from linked completed visits.
 - **Notification center:** `GET /api/clinic/inbox` returns derived operational tasks for reminders due, online bookings, recent reschedules, review requests, unpaid visits, and low-stock inventory. It does not persist notifications; it aggregates live source-of-truth rows.
 - **Retention analytics/reactivation:** `GET /api/clinic/retention/overview` derives rebook rate, returning-client rate, no-show rate, follow-up conversion, repeat interval by procedure, and 60/90/120-day dormant patient reactivation rows with localized WhatsApp message links.
-- **Booking funnel analytics:** `POST /api/clinic/public-booking/[slug]/funnel` records anonymous public booking step events; `GET /api/clinic/booking-funnel/overview` summarizes conversion by stage, day, and procedure.
+- **Booking funnel analytics:** `POST /api/clinic/public-booking/[slug]/funnel` records public booking step events with source/UTM metadata for enabled tenant links; `GET /api/clinic/booking-funnel/overview` summarizes conversion by stage, day, procedure, source, and abandoned sessions with localized WhatsApp follow-up copy.
 - **Patient portal lite:** `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` manages private portal links; `GET/POST /api/patient-portal/[token]` returns patient-safe portal data and creates reschedule/cancel/message requests; `GET /api/patient-portal/[token]/payments/[paymentId]/receipt` downloads receipt PDFs for that patient only.
 - **Public booking:** `GET/POST /api/clinic/public-booking/[slug]` — unauthenticated service/slot/intake discovery and online appointment request for an enabled tenant slug. `GET/PATCH /api/clinic/public-booking/settings` controls the on/off switch for staff.
 - **Push alerts:** `GET /api/clinic/push/vapid-public`, `POST/DELETE /api/clinic/push/subscribe`.

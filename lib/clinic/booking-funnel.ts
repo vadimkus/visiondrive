@@ -14,7 +14,23 @@ export type BookingFunnelEventInput = {
   eventType: string
   procedureId?: string | null
   procedureName?: string | null
+  startsAt?: Date | null
   occurredAt?: Date
+  referrer?: string | null
+  metadata?: BookingFunnelEventMetadata | null
+}
+
+export type BookingFunnelEventMetadata = {
+  source?: string | null
+  utmSource?: string | null
+  utmMedium?: string | null
+  utmCampaign?: string | null
+  ref?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  email?: string | null
+  consentAccepted?: boolean | null
 }
 
 export type BookingFunnelStageSummary = {
@@ -33,12 +49,58 @@ export type BookingFunnelProcedureSummary = {
   completionRatePct: number
 }
 
+export type BookingFunnelSourceSummary = {
+  sourceKey: string
+  sourceLabel: string
+  sessions: number
+  bookings: number
+  completionRatePct: number
+}
+
+export type AbandonedBookingSession = {
+  sessionId: string
+  sourceLabel: string
+  lastEventType: BookingFunnelStage
+  lastOccurredAt: Date
+  procedureId: string | null
+  procedureName: string | null
+  startsAt: Date | null
+  firstName: string | null
+  lastName: string | null
+  phone: string | null
+  email: string | null
+}
+
 export function isBookingFunnelStage(value: string): value is BookingFunnelStage {
   return BOOKING_FUNNEL_STAGES.includes(value as BookingFunnelStage)
 }
 
 function pct(numerator: number, denominator: number) {
   return denominator > 0 ? Number(((numerator / denominator) * 100).toFixed(1)) : 0
+}
+
+function cleanSourcePart(value: string | null | undefined) {
+  return String(value ?? '').trim().slice(0, 80) || null
+}
+
+function hostFromReferrer(value: string | null | undefined) {
+  if (!value) return null
+  try {
+    return new URL(value).hostname.replace(/^www\./, '') || null
+  } catch {
+    return null
+  }
+}
+
+export function bookingFunnelSourceLabel(event: Pick<BookingFunnelEventInput, 'metadata' | 'referrer'>) {
+  const metadata = event.metadata ?? null
+  const explicit = cleanSourcePart(metadata?.utmSource) ?? cleanSourcePart(metadata?.source) ?? cleanSourcePart(metadata?.ref)
+  if (explicit) return explicit
+  return hostFromReferrer(event.referrer) ?? 'direct'
+}
+
+export function bookingFunnelSourceKey(label: string) {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'direct'
 }
 
 export function buildBookingFunnelSummary(events: BookingFunnelEventInput[]) {
@@ -117,4 +179,88 @@ export function buildBookingFunnelProcedureSummary(
     }))
     .filter((row) => row.selectedSessions > 0 || row.completedSessions > 0)
     .sort((a, b) => b.selectedSessions - a.selectedSessions || b.completedSessions - a.completedSessions)
+}
+
+export function buildBookingFunnelSourceSummary(
+  events: BookingFunnelEventInput[]
+): BookingFunnelSourceSummary[] {
+  const sources = new Map<string, { sourceKey: string; sourceLabel: string; sessions: Set<string>; bookings: Set<string> }>()
+
+  for (const event of events) {
+    if (!isBookingFunnelStage(event.eventType)) continue
+    const sourceLabel = bookingFunnelSourceLabel(event)
+    const sourceKey = bookingFunnelSourceKey(sourceLabel)
+    const existing =
+      sources.get(sourceKey) ??
+      {
+        sourceKey,
+        sourceLabel,
+        sessions: new Set<string>(),
+        bookings: new Set<string>(),
+      }
+    existing.sessions.add(event.sessionId)
+    if (event.eventType === 'BOOKING_COMPLETED') existing.bookings.add(event.sessionId)
+    sources.set(sourceKey, existing)
+  }
+
+  return [...sources.values()]
+    .map((source) => ({
+      sourceKey: source.sourceKey,
+      sourceLabel: source.sourceLabel,
+      sessions: source.sessions.size,
+      bookings: source.bookings.size,
+      completionRatePct: pct(source.bookings.size, source.sessions.size),
+    }))
+    .sort((a, b) => b.sessions - a.sessions || b.bookings - a.bookings)
+}
+
+export function buildAbandonedBookingSessions(events: BookingFunnelEventInput[]): AbandonedBookingSession[] {
+  const sessions = new Map<string, BookingFunnelEventInput[]>()
+  for (const event of events) {
+    if (!event.sessionId || !isBookingFunnelStage(event.eventType)) continue
+    sessions.set(event.sessionId, [...(sessions.get(event.sessionId) ?? []), event])
+  }
+
+  const rows: AbandonedBookingSession[] = []
+  for (const [sessionId, sessionEvents] of sessions.entries()) {
+    if (sessionEvents.some((event) => event.eventType === 'BOOKING_COMPLETED')) continue
+    const sorted = [...sessionEvents].sort(
+      (a, b) => (a.occurredAt?.getTime() ?? 0) - (b.occurredAt?.getTime() ?? 0)
+    )
+    const last = sorted.at(-1)
+    if (!last || !isBookingFunnelStage(last.eventType)) continue
+    if (!['SLOT_SELECTED', 'FORM_STARTED', 'FORM_SUBMITTED'].includes(last.eventType)) continue
+    const latestWithContact = [...sorted]
+      .reverse()
+      .find((event) => event.metadata?.phone || event.metadata?.email || event.metadata?.firstName)
+    const latestWithProcedure = [...sorted].reverse().find((event) => event.procedureId || event.procedureName)
+    rows.push({
+      sessionId,
+      sourceLabel: bookingFunnelSourceLabel(last),
+      lastEventType: last.eventType,
+      lastOccurredAt: last.occurredAt ?? new Date(0),
+      procedureId: latestWithProcedure?.procedureId ?? null,
+      procedureName: latestWithProcedure?.procedureName ?? null,
+      startsAt: last.startsAt ?? latestWithProcedure?.startsAt ?? null,
+      firstName: latestWithContact?.metadata?.firstName?.trim() || null,
+      lastName: latestWithContact?.metadata?.lastName?.trim() || null,
+      phone: latestWithContact?.metadata?.phone?.trim() || null,
+      email: latestWithContact?.metadata?.email?.trim() || null,
+    })
+  }
+
+  return rows.sort((a, b) => b.lastOccurredAt.getTime() - a.lastOccurredAt.getTime())
+}
+
+export function abandonedBookingFollowUpMessage(
+  row: Pick<AbandonedBookingSession, 'firstName' | 'procedureName' | 'startsAt'>,
+  locale: 'en' | 'ru' = 'en'
+) {
+  const firstName = row.firstName?.trim() || (locale === 'ru' ? 'Здравствуйте' : 'there')
+  if (locale === 'ru') {
+    const service = row.procedureName ? ` по услуге "${row.procedureName}"` : ''
+    return `Здравствуйте, ${firstName}. Вы начинали запись${service}, но она не завершилась. Если удобно, напишите сюда — я помогу подобрать время.`
+  }
+  const service = row.procedureName ? ` for ${row.procedureName}` : ''
+  return `Hi ${firstName}, you started a booking${service} but it did not finish. Reply here if you would like help finding a time.`
 }

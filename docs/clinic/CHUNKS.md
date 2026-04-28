@@ -756,6 +756,24 @@
 
 ---
 
+## Chunk 43 — 2026-04-28 (booking source attribution and abandoned follow-up)
+
+**Shipped**
+
+- **Helper:** `lib/clinic/booking-funnel.ts` now derives source labels from UTM/source/ref metadata, summarizes source conversion, finds abandoned sessions, and builds localized EN/RU follow-up messages.
+- **Tracking:** public booking captures `source`, `utm_source`, `utm_medium`, `utm_campaign`, and `ref` from shared links into funnel event metadata; submitted forms store minimal contact metadata for recovery only.
+- **API:** `GET /api/clinic/booking-funnel/overview` now accepts `locale=en|ru` and returns source conversion plus abandoned sessions with message previews and WhatsApp deep links.
+- **UI:** `/clinic/booking-funnel` now shows conversion by source, abandoned booking cards, copy-message actions, WhatsApp open actions, locale-aware numbers, and no hardcoded English in the new panel.
+- **Portal UI:** post-login clinic shell now uses a VD mark, simplified solo-practitioner slogan, and dashboard copy focused on one-person practices.
+- **i18n/Knowledge Base:** EN/RU strings and booking-funnel article explain source tracking and abandoned-session follow-up.
+
+**Validation**
+
+- Added Vitest coverage for source summary, abandoned-session detection, and localized abandoned follow-up copy.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

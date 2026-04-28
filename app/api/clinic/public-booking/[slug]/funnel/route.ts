@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ClinicBookingFunnelEventType, TenantStatus } from '@prisma/client'
+import { ClinicBookingFunnelEventType, Prisma, TenantStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isBookingFunnelStage } from '@/lib/clinic/booking-funnel'
 import { getPublicBookingEnabled } from '@/lib/clinic/public-booking-settings'
@@ -15,6 +15,32 @@ function cleanText(value: unknown, max = 500) {
   if (typeof value !== 'string') return null
   const trimmed = value.trim()
   return trimmed ? trimmed.slice(0, max) : null
+}
+
+function cleanBoolean(value: unknown) {
+  return typeof value === 'boolean' ? value : null
+}
+
+function cleanMetadata(body: Record<string, unknown>): Prisma.JsonObject | undefined {
+  const metadata: Prisma.JsonObject = {}
+  const textFields = [
+    'source',
+    'utmSource',
+    'utmMedium',
+    'utmCampaign',
+    'ref',
+    'firstName',
+    'lastName',
+    'phone',
+    'email',
+  ] as const
+  for (const field of textFields) {
+    const value = cleanText(body[field], field === 'email' || field === 'phone' ? 180 : 120)
+    if (value) metadata[field] = value
+  }
+  const consentAccepted = cleanBoolean(body.consentAccepted)
+  if (consentAccepted != null) metadata.consentAccepted = consentAccepted
+  return Object.keys(metadata).length > 0 ? metadata : undefined
 }
 
 export async function POST(
@@ -75,6 +101,7 @@ export async function POST(
       startsAt: safeStartsAt,
       referrer: cleanText(request.headers.get('referer'), 1000),
       userAgent: cleanText(request.headers.get('user-agent'), 1000),
+      metadata: cleanMetadata(body),
     },
   })
 

@@ -58,6 +58,36 @@ function bookingFunnelSession(slug: string) {
   return created
 }
 
+function bookingFunnelAttribution(slug: string) {
+  if (typeof window === 'undefined') return {}
+  const key = `visiondrive:booking-attribution:${slug}`
+  const existing = window.sessionStorage.getItem(key)
+  if (existing) {
+    try {
+      return JSON.parse(existing) as Record<string, string>
+    } catch {
+      window.sessionStorage.removeItem(key)
+    }
+  }
+  const params = new URLSearchParams(window.location.search)
+  const attribution: Record<string, string> = {}
+  const fields = {
+    source: 'source',
+    utm_source: 'utmSource',
+    utm_medium: 'utmMedium',
+    utm_campaign: 'utmCampaign',
+    ref: 'ref',
+  } as const
+  for (const [queryKey, payloadKey] of Object.entries(fields)) {
+    const value = params.get(queryKey)?.trim()
+    if (value) attribution[payloadKey] = value.slice(0, 120)
+  }
+  if (Object.keys(attribution).length > 0) {
+    window.sessionStorage.setItem(key, JSON.stringify(attribution))
+  }
+  return attribution
+}
+
 const copy = {
   en: {
     bookingUnavailable: 'Booking link is not available.',
@@ -203,6 +233,7 @@ export default function PublicBookingPage() {
         body: JSON.stringify({
           sessionId,
           eventType,
+          ...bookingFunnelAttribution(slug),
           ...extra,
         }),
         keepalive: true,
@@ -289,7 +320,15 @@ export default function PublicBookingPage() {
     setSubmitting(true)
     setError('')
     try {
-      track('FORM_SUBMITTED', { procedureId, startsAt: selectedSlot })
+      track('FORM_SUBMITTED', {
+        procedureId,
+        startsAt: selectedSlot,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        phone: form.phone,
+        email: form.email,
+        consentAccepted: form.consentAccepted,
+      })
       const res = await fetch(`/api/clinic/public-booking/${slug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

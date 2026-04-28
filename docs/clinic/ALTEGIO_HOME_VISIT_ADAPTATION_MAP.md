@@ -156,11 +156,12 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 ## Strong Medium-Term Candidates
 
 21. Booking funnel analytics
-   - Status: shipped first pass.
+   - Status: shipped second pass.
    - Source: online booking analytics and widget events.
-   - Solo version: track public link views, service selected, slot selected, form submitted, booking completed.
-   - Shipped: public booking records anonymous link view, service selected, slot selected, form started/submitted, and booking completed events; staff can review conversion/drop-off by stage, recent day, and procedure in `/clinic/booking-funnel`.
-   - Next improvements: source/UTM attribution, booking abandoned WhatsApp callback, and funnel comparison by shared channel.
+   - Solo version: track public link views, service selected, slot selected, form submitted, booking completed, source/UTM performance, and abandoned booking follow-up.
+   - Shipped: public booking records link view, service selected, slot selected, form started/submitted, and booking completed events; shared links preserve source/UTM metadata; staff can review conversion/drop-off by stage, day, procedure, and source in `/clinic/booking-funnel`.
+   - Shipped follow-up: submitted or nearly completed abandoned sessions now show localized EN/RU message previews, copy action, WhatsApp open action, and missing-phone state.
+   - Next improvements: compare date ranges by source, save abandoned-booking outreach as CRM activity, and track recovered appointment outcomes.
 
 22. Private patient portal lite
    - Status: shipped first pass.
@@ -351,5 +352,5 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommendation
 
-Dormant patient reactivation now turns retention analytics into a practical WhatsApp workflow. The next point should be booking source/UTM attribution and abandoned-booking follow-up, because public booking analytics can already see funnel drop-off but does not yet preserve source context or trigger recovery outreach.
+Booking source attribution now turns the public booking funnel into a practical lead-recovery workflow. The next point should be birthday and personal occasion messages, kept deliberately simple: optional low-pressure EN/RU WhatsApp templates for solo practitioners, not a heavy loyalty engine.
 

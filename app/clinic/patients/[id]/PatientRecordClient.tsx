@@ -2563,7 +2563,7 @@ function ConsentsTab({
             value={templateContraindications}
             onChange={(e) => setTemplateContraindications(e.target.value)}
             rows={3}
-            placeholder="Pregnancy or breastfeeding"
+            placeholder={t.contraindicationsPlaceholder}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
           />
           <p className="mt-1 text-xs text-gray-500">{t.contraindicationsHint}</p>

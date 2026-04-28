@@ -19,7 +19,6 @@ import {
   Send,
   Star,
   LogOut,
-  Stethoscope,
   UserCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -72,8 +71,8 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
             className="flex items-center gap-2 lg:px-2 min-h-11 min-w-11 lg:min-w-0"
             aria-label={t.dashboard}
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/20">
-              <Stethoscope className="w-5 h-5 text-white" aria-hidden />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-sm font-black tracking-tight text-white shadow-lg shadow-orange-500/20">
+              VD
             </div>
             <div className="hidden lg:block min-w-0">
               <p className="text-sm font-semibold text-gray-900 leading-tight">{t.practiceOsTitle}</p>

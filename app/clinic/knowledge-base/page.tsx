@@ -368,12 +368,13 @@ const articlesEn: Article[] = [
     category: 'Finance',
     title: 'Measure the public booking funnel',
     summary:
-      'Track link views, service choices, slot choices, form submissions, completed bookings, and procedure conversion.',
+      'Track link views, source/UTM performance, abandoned sessions, completed bookings, and procedure conversion.',
     steps: [
       'Share the public booking link from the dashboard after booking is enabled.',
+      'Add source or UTM parameters when you share links from Instagram, Google, or a partner.',
       'Open Booking funnel from the clinic navigation.',
       'Use 7 days, 30 days, or 90 days to compare how many sessions reach each step.',
-      'Check conversion by procedure to see which services attract attention but lose clients before booking.',
+      'Check conversion by source and procedure, then copy or open the abandoned-booking WhatsApp follow-up for warm leads.',
     ],
     link: '/clinic/booking-funnel',
   },
@@ -780,12 +781,13 @@ const articlesRu: Article[] = [
     category: 'Финансы',
     title: 'Измеряйте воронку публичной записи',
     summary:
-      'Просмотры ссылки, выбор услуги, выбор слота, отправка формы, завершенные записи и конверсия по процедурам.',
+      'Просмотры ссылки, источники/UTM, незавершенные сессии, завершенные записи и конверсия по процедурам.',
     steps: [
       'Поделитесь публичной ссылкой из дашборда после включения онлайн-записи.',
+      'Добавляйте source или UTM-параметры, когда делитесь ссылкой в Instagram, Google или у партнера.',
       'Откройте Воронку записи в навигации клиники.',
       'Выберите 7 дней, 30 дней или 90 дней, чтобы сравнить, сколько сессий доходит до каждого этапа.',
-      'Проверьте конверсию по процедурам: какие услуги интересуют клиентов, но теряют их до записи.',
+      'Смотрите конверсию по источникам и услугам, затем копируйте или открывайте WhatsApp follow-up для теплых лидов.',
     ],
     link: '/clinic/booking-funnel',
   },

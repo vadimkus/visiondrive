@@ -16,7 +16,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_blocked_times` | Manual private time / lunch / leave blocks that remove availability slots. |
 | `clinic_reminder_templates` | Tenant WhatsApp/email/SMS templates for appointment reminders, no-show follow-up, rebooking follow-up, and review requests. |
 | `clinic_reminder_deliveries` | Reminder schedule and preparation log: status, scheduled time, body, WhatsApp URL, errors. |
-| `clinic_booking_funnel_events` | Anonymous public booking funnel events: link views, service selection, slot selection, form start/submission, and booking completion. |
+| `clinic_booking_funnel_events` | Public booking funnel events: link views, service selection, slot selection, form start/submission, booking completion, source/UTM metadata, and minimal submitted-contact metadata for abandoned booking recovery. |
 | `clinic_patient_portal_links` | Hashed private patient portal links with expiry, revocation, last-access metadata, and no stored plaintext token. |
 | `clinic_patient_portal_requests` | Patient-submitted portal requests for reschedule, cancellation, or message; mirrored into CRM notes for staff follow-up. |
 | `clinic_intake_questions` | Service-specific public booking questions configured per procedure: prompt, help text, type, required flag, active flag, and sort order. |
@@ -83,8 +83,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET/POST .../patients/[id]/treatment-plans`; `PATCH .../treatment-plans/[planId]` — create/update planned care courses and show progress from linked visits.
 - `GET /api/clinic/inbox` — derived notification center for reminders due, online bookings, recent reschedules, review requests, unpaid visits, and low-stock items.
 - `GET /api/clinic/retention/overview` — derived retention analytics for rebook rate, returning clients, no-shows, follow-up conversion, repeat intervals, and 60/90/120-day dormant patient reactivation rows with localized WhatsApp links.
-- `POST /api/clinic/public-booking/[slug]/funnel` — anonymous public booking step tracking for enabled tenant booking links.
-- `GET /api/clinic/booking-funnel/overview` — staff analytics for public booking conversion by stage, day, and procedure.
+- `POST /api/clinic/public-booking/[slug]/funnel` — public booking step tracking for enabled tenant booking links, including source/UTM metadata from shared links.
+- `GET /api/clinic/booking-funnel/overview` — staff analytics for public booking conversion by stage, day, procedure, source, and abandoned sessions with localized WhatsApp follow-up messages.
 - `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` — staff creates, lists, and revokes private patient portal links.
 - `GET/POST /api/patient-portal/[token]` — public patient-safe portal data and reschedule/cancel/message request creation by private token.
 - `GET /api/patient-portal/[token]/payments/[paymentId]/receipt` — patient-safe receipt PDF download through an active portal token.
