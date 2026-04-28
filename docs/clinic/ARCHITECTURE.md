@@ -11,7 +11,7 @@
 | Model | Purpose |
 |-------|---------|
 | `ClinicPatient` | Demographics + home-visit address/area/access notes + client `category`/`tags`, simple referral tracking (`referredByName`, `referralNote`), **`internalNotes`** (staff-only; never on patient PDF) + optional **`anamnesisJson`** (v1 structured intake: allergies, medications, conditions, social). |
-| `ClinicProcedure` | Catalog: name, duration, hidden **`bufferAfterMinutes`** (cleanup/prep/travel), base price, currency (default AED), and procedure materials/BOM. |
+| `ClinicProcedure` | Catalog: name, duration, hidden **`bufferAfterMinutes`** (cleanup/prep/travel), base price, currency (default AED), procedure materials/BOM, intake questions, and aftercare templates. |
 | `ClinicAppointment` | Scheduled visit intent: patient, optional procedure, start/end, status, source, hidden buffer, home-visit location/travel buffers, lifecycle timestamps, **`internalNotes`**, and optional `overrideReason` for intentional scheduling exceptions. |
 | `ClinicAppointmentEvent` | Appointment change history: create/update/reschedule/status/reminder/visit/payment/follow-up events. |
 | `ClinicAvailabilityRule` | Working-hours and booking cadence per weekday: open/closed, start/end, fixed/dynamic slot mode, slot interval, minimum lead time, and optional procedure-specific overrides. |
@@ -24,8 +24,8 @@
 | `ClinicIntakeQuestion` | Procedure-scoped public booking question with type, help text, required/active flags, and sort order. |
 | `ClinicIntakeResponse` | Appointment-linked intake answer snapshot from public booking, preserving prompt/type even if the question changes later. |
 | `ClinicPatientReview` | Internal reputation workflow: review request status, rating, private note, candidate public text, and request/reply/publish timestamps. |
-| `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional links to an appointment and treatment plan, **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
-| `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); served/deleted via **`GET/DELETE /api/clinic/media/[id]`** (tenant-scoped). |
+| `ClinicVisit` | Completed (or in-progress) encounter: **`nextSteps`** (follow-up / what to do next), clinical text fields, optional links to an appointment and treatment plan, aftercare template snapshots, and **`inventoryConsumedAt`** idempotency marker for auto-consumption. |
+| `ClinicPatientMedia` | Before/after/other photos; **`data`** (`Bytes`, optional) and/or **`blobPathname`** (private Vercel Blob); optional protocol checklist JSON and marketing-consent marker; served/deleted via **`GET/DELETE /api/clinic/media/[id]`** (tenant-scoped). |
 | `ClinicPatientPayment` | Patient-level payments (amount, patient-facing discount/fee, optional discount rule/name/reason snapshot, internal **`processorFeeCents`**, method, status, optional **`visitId`** / **`appointmentId`**). Refund corrections create separate `REFUNDED` adjustment rows instead of overwriting the original paid row. |
 | `ClinicPaymentCorrection` | Audit trail for payment corrections: original payment, optional refund adjustment payment, type (`REFUND`/`VOID`), amount, method, reason, note, actor, and timestamp. |
 | `ClinicPaymentFeeRule` | Tenant payment acquiring rules by method: percent bps, fixed fee, active flag. New paid payments snapshot the calculated processor fee. |
@@ -35,8 +35,9 @@
 | `ClinicProductSale` / `ClinicProductSaleLine` | Retail / aftercare products sold from a visit: line items, stock deduction movements, optional appointment/visit link, and a payment row for finance revenue. |
 | `ClinicPatientPackage` / `ClinicPackageRedemption` | Prepaid treatment packages sold to a patient, with list price, discount snapshot/reason, final sale price, remaining session balance, optional service restriction, expiry, and automatic redemption rows when a completed visit consumes a session. |
 | `ClinicConsentTemplate` / `ClinicConsentRecord` | Reusable procedure-specific consent templates and immutable signed patient consent snapshots with contraindication checklist, aftercare acknowledgement, and optional visit/appointment links. |
+| `ClinicAftercareTemplate` | Procedure-specific aftercare library: reusable message body plus optional PDF/document reference. Visit completion snapshots title/message/document fields and can prepare WhatsApp handoff. |
 | `ClinicTreatmentPlan` | Planned patient course of care with expected sessions, cadence, target dates, service, goals, next steps, photo milestones, status, and linked visits. |
-| `ClinicCrmActivity` | CRM timeline: type (call, WhatsApp, note, …), **`body`**, **`occurredAt`**. |
+| `ClinicCrmActivity` | CRM timeline: type (call, WhatsApp, note, …), **`body`**, **`occurredAt`**. Patient-card voice dictation saves reviewed transcript text here; no separate voice table. |
 | `ClinicStockItem` | Inventory line: **`quantityOnHand`**, **`reorderPoint`** (low-stock when on-hand <= point and point &gt; 0), optional **`procedureId`**, `barcode`, `consumePerVisit`, and low-stock notification cooldown. |
 | `ClinicProcedureMaterial` | Bill of materials row linking a procedure to a stock item with quantity per visit, unit material cost, active flag, note, and sort order. |
 | `ClinicStockMovement` | **`RECEIPT` / `ADJUSTMENT` / `CONSUMPTION` / `RETURN`** with signed **`quantityDelta`**; updates item atomically in a transaction. |
@@ -57,12 +58,12 @@ Reminder system: WhatsApp is first-class but browser apps cannot truly auto-send
 
 Public booking: `/book/[tenant.slug]` is a private branded link, not a marketplace. It is disabled by default and controlled from the clinic dashboard using `tenant_settings.thresholds.publicBooking.enabled`. When enabled, the public API exposes active services, generated slots, and active service-specific intake questions. Booking creation stores DOB/contact/consent as a real patient + `ONLINE` appointment, validates required intake answers, snapshots answers into `ClinicIntakeResponse`, and still uses the scheduling guard. No public override is allowed.
 
-Patient portal lite: `/patient-portal/[token]` is a private, token-based patient view. Tokens are stored as SHA-256 hashes, expire, and can be revoked from the patient chart. The portal exposes patient-safe operational data only: upcoming appointments, aftercare/next steps, package balances, receipts, accepted consent titles, and treatment-plan progress. Requests from the portal do not mutate appointments directly; they create a `ClinicPatientPortalRequest`, CRM note, and appointment event for staff review.
+Patient portal lite: `/patient-portal/[token]` is a private, token-based patient view. Tokens are stored as SHA-256 hashes, expire, and can be revoked from the patient chart. The portal exposes patient-safe operational data only: upcoming appointments, aftercare/next steps, aftercare document links, package balances, receipts, accepted consent titles, and treatment-plan progress. Requests from the portal do not mutate appointments directly; they create a `ClinicPatientPortalRequest`, CRM note, and appointment event for staff review.
 
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.
-- **Patient media:** `POST .../patients/[id]/media` uploads before/after/other images from camera or file picker and optional visit links; `GET/DELETE /api/clinic/media/[id]` serves/removes private tenant-scoped media.
+- **Patient media:** `POST .../patients/[id]/media` uploads before/after/other images from camera or file picker with optional visit links, capture-protocol checklist, procedure snapshot, and marketing-consent marker; `GET/DELETE /api/clinic/media/[id]` serves/removes private tenant-scoped media.
 - **Patient-safe PDF:** `GET .../patients/[id]/summary-pdf` returns a minimal English summary for handout; staff-only fields are excluded by construction (not redacted — never loaded).
 - **Patient data portability/deletion:** `GET .../patients/[id]/export` returns a full tenant-scoped JSON archive for internal portability; `DELETE .../patients/[id]` requires an exact typed confirmation and deletes the patient plus linked rows, with best-effort private blob cleanup.
 - **Patient import:** `POST /api/clinic/patients/import` accepts `.xlsx`/`.csv` uploads for preview, detects invalid rows and phone/email duplicates, and commits only clean patient rows when called with `action=commit`.
@@ -70,6 +71,7 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 - **Product import:** `POST /api/clinic/inventory/import` accepts `.xlsx`/`.csv` uploads for preview, detects invalid rows and barcode/SKU/name duplicates, and commits only clean stock items when called with `action=commit`.
 - **Procedure materials:** `GET/POST /api/clinic/procedures/[id]/materials`, `PATCH/DELETE .../materials/[materialId]`; visit completion deducts active material rows before falling back to legacy stock-item procedure links.
 - **Procedure intake questions:** `GET/POST /api/clinic/procedures/[id]/intake-questions`, `PATCH/DELETE .../intake-questions/[questionId]`; active questions are shown on public booking for that service and required answers block submission until completed.
+- **Aftercare library:** `GET/POST /api/clinic/aftercare-templates`, `PATCH .../[id]`; procedure pages manage reusable post-visit messages and document links. Appointment/visit completion snapshots the selected aftercare fields onto `ClinicVisit`, copies/opens WhatsApp when prepared, and exposes the patient-safe snapshot in the portal.
 - **Stock-taking:** `GET/POST /api/clinic/stock-takes`, `GET/PATCH .../stock-takes/[id]`, `PATCH .../lines/[lineId]`, `POST .../finalize`; finalization posts audited `ADJUSTMENT` stock movements and updates on-hand quantities to the physical count.
 - **Suppliers:** `GET/POST /api/clinic/suppliers`, `GET/PATCH /api/clinic/suppliers/[id]`, `POST .../[id]/settlements`; supplier profiles aggregate linked purchase history, received value, settlements, and unpaid amount.
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`; new POs may pass `supplierId`, with `supplierName` kept as a snapshot.

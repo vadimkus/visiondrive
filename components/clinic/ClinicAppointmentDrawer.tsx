@@ -106,8 +106,24 @@ type Visit = {
   chiefComplaint: string | null
   procedureSummary: string | null
   nextSteps: string | null
+  aftercareTemplateId: string | null
+  aftercareTitleSnapshot: string | null
+  aftercareTextSnapshot: string | null
+  aftercareDocumentNameSnapshot: string | null
+  aftercareDocumentUrlSnapshot: string | null
+  aftercareSentAt: string | null
   productSales: ProductSale[]
   payments: Payment[]
+}
+
+type AftercareTemplate = {
+  id: string
+  title: string
+  messageBody: string
+  documentName: string | null
+  documentUrl: string | null
+  active: boolean
+  procedure: { id: string; name: string } | null
 }
 
 type Appointment = {
@@ -210,6 +226,21 @@ function calculateDiscountFromRule(baseCents: number, rule: DiscountRule | undef
   return Math.min(base, Math.round((base * rule.percentBps) / 10_000))
 }
 
+function drawerWhatsappUrl(phone: string | null | undefined, body: string) {
+  const digits = String(phone || '').replace(/\D/g, '')
+  return digits ? `https://wa.me/${digits}?text=${encodeURIComponent(body)}` : null
+}
+
+function aftercareVisitText(visit: Visit) {
+  return [
+    visit.aftercareTitleSnapshot,
+    visit.aftercareTextSnapshot,
+    visit.aftercareDocumentUrlSnapshot
+      ? `${visit.aftercareDocumentNameSnapshot || 'Aftercare document'}: ${visit.aftercareDocumentUrlSnapshot}`
+      : '',
+  ].filter((part): part is string => Boolean(part?.trim())).join('\n\n')
+}
+
 function balanceLabel(t: ClinicStrings, balance: ClientBalance) {
   if (balance.status === 'DEBT') return `${t.balanceDebt}: ${money(balance.dueCents, balance.currency)}`
   if (balance.status === 'CREDIT') return `${t.balanceCredit}: ${money(balance.creditCents, balance.currency)}`
@@ -299,16 +330,19 @@ export function ClinicAppointmentDrawer({
   const [saleStatus, setSaleStatus] = useState('PAID')
   const [saleNote, setSaleNote] = useState('')
   const [discountRules, setDiscountRules] = useState<DiscountRule[]>([])
+  const [aftercareTemplates, setAftercareTemplates] = useState<AftercareTemplate[]>([])
+  const [aftercareTemplateId, setAftercareTemplateId] = useState('')
 
   const load = useCallback(async () => {
     if (!appointmentId) return
     setLoading(true)
     setError('')
     try {
-      const [res, inventoryRes, discountRes] = await Promise.all([
+      const [res, inventoryRes, discountRes, aftercareRes] = await Promise.all([
         fetch(`/api/clinic/appointments/${appointmentId}`, { credentials: 'include' }),
         fetch('/api/clinic/inventory', { credentials: 'include' }),
         fetch('/api/clinic/discount-rules', { credentials: 'include' }),
+        fetch('/api/clinic/aftercare-templates', { credentials: 'include' }),
       ])
       const data = await res.json()
       if (!res.ok) {
@@ -323,6 +357,10 @@ export function ClinicAppointmentDrawer({
         const discountData = await discountRes.json()
         setDiscountRules((discountData.rules || []).filter((rule: DiscountRule) => rule.active))
       }
+      if (aftercareRes.ok) {
+        const aftercareData = await aftercareRes.json()
+        setAftercareTemplates((aftercareData.templates || []).filter((template: AftercareTemplate) => template.active))
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t.failedToLoad)
     } finally {
@@ -334,9 +372,11 @@ export function ClinicAppointmentDrawer({
     if (!appointmentId) {
       setAppointment(null)
       setNotice('')
+      setAftercareTemplateId('')
       return
     }
     setNotice('')
+    setAftercareTemplateId('')
     void load()
   }, [appointmentId, load])
 
@@ -580,13 +620,16 @@ export function ClinicAppointmentDrawer({
       if (
         action === 'send_reminder' ||
         action === 'no_show_follow_up' ||
-        action === 'send_review_request'
+        action === 'send_review_request' ||
+        (action === 'complete_visit' && data.aftercare)
       ) {
-        if (data.reminderText && typeof navigator !== 'undefined') {
-          await navigator.clipboard?.writeText(data.reminderText).catch(() => undefined)
+        const messageText = data.reminderText || data.aftercare?.text
+        if (messageText && typeof navigator !== 'undefined') {
+          await navigator.clipboard?.writeText(messageText).catch(() => undefined)
         }
-        if (data.whatsappUrl && typeof window !== 'undefined') {
-          window.open(data.whatsappUrl, '_blank', 'noopener,noreferrer')
+        const url = data.whatsappUrl || data.aftercare?.whatsappUrl
+        if (url && typeof window !== 'undefined') {
+          window.open(url, '_blank', 'noopener,noreferrer')
         }
       }
       if (action === 'schedule_rebooking_follow_up') {
@@ -623,6 +666,14 @@ export function ClinicAppointmentDrawer({
             (appointment.bufferAfterMinutes + appointment.travelBufferAfterMinutes) * 60 * 1000
         )
       : null
+  const eligibleAftercareTemplates = aftercareTemplates.filter(
+    (template) => !template.procedure || template.procedure.id === appointment?.procedure?.id
+  )
+  const selectedAftercareTemplate = eligibleAftercareTemplates.find((template) => template.id === aftercareTemplateId)
+  const latestVisit = appointment?.visits[0] ?? null
+  const latestAftercareText = latestVisit ? aftercareVisitText(latestVisit) : ''
+  const latestAftercareUrl =
+    latestVisit && latestAftercareText ? drawerWhatsappUrl(appointment?.patient.phone, latestAftercareText) : null
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/20" role="dialog" aria-modal="true">
@@ -757,15 +808,72 @@ export function ClinicAppointmentDrawer({
                   <ActionButton busy={busy === 'start_visit'} onClick={() => runAction('start_visit')}>
                     {t.startVisit}
                   </ActionButton>
-                  <ActionButton busy={busy === 'complete_visit'} onClick={() => runAction('complete_visit')}>
+                  <ActionButton
+                    busy={busy === 'complete_visit'}
+                    onClick={() =>
+                      runAction('complete_visit', {
+                        aftercareTemplateId: aftercareTemplateId || null,
+                      })
+                    }
+                  >
                     {t.completeVisit}
                   </ActionButton>
                 </div>
+                {eligibleAftercareTemplates.length > 0 && (
+                  <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-3">
+                    <label className="block text-xs font-semibold text-emerald-900">{t.aftercareTemplate}</label>
+                    <select
+                      value={aftercareTemplateId}
+                      onChange={(e) => setAftercareTemplateId(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm"
+                    >
+                      <option value="">{t.noAftercareTemplateSelected}</option>
+                      {eligibleAftercareTemplates.map((template) => (
+                        <option key={template.id} value={template.id}>
+                          {template.title}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedAftercareTemplate && (
+                      <p className="mt-2 whitespace-pre-wrap rounded-xl bg-white p-3 text-xs text-emerald-900">
+                        {selectedAftercareTemplate.messageBody || selectedAftercareTemplate.documentUrl}
+                      </p>
+                    )}
+                  </div>
+                )}
                 <p className="mt-3 text-xs text-gray-500">
-                  {appointment.visits[0]
-                    ? `${appointment.visits[0].status} · ${new Date(appointment.visits[0].visitAt).toLocaleString(dateLocale)}`
+                  {latestVisit
+                    ? `${latestVisit.status} · ${new Date(latestVisit.visitAt).toLocaleString(dateLocale)}`
                     : t.noHistory}
                 </p>
+                {latestVisit?.aftercareTitleSnapshot && (
+                  <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-950">
+                    <p className="font-semibold">{latestVisit.aftercareTitleSnapshot}</p>
+                    {latestVisit.aftercareTextSnapshot && (
+                      <p className="mt-1 whitespace-pre-wrap text-xs">{latestVisit.aftercareTextSnapshot}</p>
+                    )}
+                    {latestVisit.aftercareDocumentUrlSnapshot && (
+                      <a
+                        href={latestVisit.aftercareDocumentUrlSnapshot}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex min-h-9 items-center rounded-xl bg-white px-3 text-xs font-semibold text-emerald-700"
+                      >
+                        {latestVisit.aftercareDocumentNameSnapshot || t.aftercareDocumentReference}
+                      </a>
+                    )}
+                    {latestAftercareUrl && (
+                      <a
+                        href={latestAftercareUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 ml-2 inline-flex min-h-9 items-center rounded-xl bg-emerald-600 px-3 text-xs font-semibold text-white"
+                      >
+                        {t.openWhatsApp}
+                      </a>
+                    )}
+                  </div>
+                )}
               </section>
 
               <section className="rounded-2xl border border-gray-200 p-4">

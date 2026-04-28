@@ -845,6 +845,58 @@
 
 ---
 
+## Chunk 48 — 2026-04-28 (before/after photo protocol)
+
+**Shipped**
+
+- **Schema:** `ClinicPatientMedia` now stores capture-protocol JSON plus a marketing-consent flag/timestamp per image.
+- **Helper:** `lib/clinic/photo-protocol.ts` normalizes checklist ids, marketing consent flags, compact protocol JSON, and completion counts.
+- **API:** `POST /api/clinic/patients/[id]/media` accepts protocol checklist, procedure snapshot, consent note, and marketing-consent marker alongside image upload.
+- **UI:** Patient Photos tab adds same-lighting/angle/distance/background/area-label checklist, procedure-aware prompt from the linked visit, consent marker, and photo-card badges for protocol completion and marketing consent.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog/canvas, and architecture/data-model docs updated.
+
+**Validation**
+
+- Added Vitest coverage for photo-protocol helper normalization, consent parsing, JSON construction, and completion counts.
+- Run `npx prisma generate`, `npm run type-check`, and focused photo-protocol tests.
+- Run `npx prisma db push` against the target database before production use because this chunk changes schema.
+
+---
+
+## Chunk 49 — 2026-04-28 (voice comments)
+
+**Shipped**
+
+- **UI:** patient CRM tab now has a microphone control for dictating treatment comments directly into the note textarea.
+- **Speech-to-text:** uses browser speech recognition with locale-aware language (`en-US` / `ru-RU`) and live interim transcript preview.
+- **CRM storage:** dictated text is reviewed and saved as a normal `ClinicCrmActivity` note, so it appears in CRM history and the patient timeline without a new table.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, and session note added.
+
+**Validation**
+
+- Run `npm run type-check`.
+- No schema change for voice comments.
+
+---
+
+## Chunk 50 — 2026-04-28 (aftercare document library)
+
+**Shipped**
+
+- **Schema:** `ClinicAftercareTemplate` stores procedure-specific aftercare messages plus optional document/PDF references; `ClinicVisit` snapshots selected aftercare title/text/document fields and sent timestamp.
+- **Helpers:** `lib/clinic/aftercare.ts` normalizes titles/body/document URLs, renders placeholders, and builds concise WhatsApp text.
+- **API:** `GET/POST /api/clinic/aftercare-templates` and `PATCH /api/clinic/aftercare-templates/[id]` manage the library; visit create/update and appointment completion can snapshot a selected template.
+- **UI:** Procedures page manages aftercare templates per service; appointment drawer can choose a template while completing the visit and opens/copies WhatsApp aftercare; patient visit logging can attach a template.
+- **Portal/Knowledge Base/docs:** Patient portal shows saved aftercare text and document links; EN/RU strings and Knowledge Base article added.
+
+**Validation**
+
+- Added Vitest coverage for aftercare rendering, URL normalization, and WhatsApp text generation.
+- Run `npx prisma generate` and `npm run type-check`.
+- Run `npx prisma db push` against the target database before production use because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

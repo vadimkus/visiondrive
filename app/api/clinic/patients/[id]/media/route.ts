@@ -2,6 +2,12 @@ import { put } from '@vercel/blob'
 import { NextRequest, NextResponse } from 'next/server'
 import { ClinicMediaKind } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import {
+  buildPhotoProtocolJson,
+  normalizeMarketingConsent,
+  normalizePhotoProtocolChecked,
+  normalizePhotoProtocolText,
+} from '@/lib/clinic/photo-protocol'
 import { getClinicSession } from '@/lib/clinic/session'
 
 const MAX_BYTES = 8 * 1024 * 1024
@@ -76,6 +82,15 @@ export async function POST(
   const captionRaw = form.get('caption')
   const caption =
     captionRaw != null && String(captionRaw).trim() ? String(captionRaw).trim() : null
+  const protocolChecked = normalizePhotoProtocolChecked(form.get('protocolChecked'))
+  const protocolProcedureName = normalizePhotoProtocolText(form.get('protocolProcedureName'))
+  const protocolNote = normalizePhotoProtocolText(form.get('protocolNote'), 240)
+  const marketingConsent = normalizeMarketingConsent(form.get('marketingConsent'))
+  const protocolJson = buildPhotoProtocolJson({
+    checkedItems: protocolChecked,
+    procedureName: protocolProcedureName,
+    note: protocolNote,
+  })
 
   let blobPathname: string | null = null
   let data: Buffer | null = null
@@ -100,6 +115,9 @@ export async function POST(
       kind,
       mimeType: file.type || 'image/jpeg',
       caption,
+      protocolJson,
+      marketingConsent,
+      marketingConsentAt: marketingConsent ? new Date() : null,
       ...(data != null ? { data: new Uint8Array(data) } : {}),
       ...(blobPathname != null ? { blobPathname } : {}),
       createdByUserId: session.userId,
@@ -109,6 +127,9 @@ export async function POST(
       kind: true,
       mimeType: true,
       caption: true,
+      protocolJson: true,
+      marketingConsent: true,
+      marketingConsentAt: true,
       visitId: true,
       createdAt: true,
     },

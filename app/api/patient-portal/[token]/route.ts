@@ -84,6 +84,11 @@ export async function GET(
           visitAt: true,
           procedureSummary: true,
           nextSteps: true,
+          aftercareTitleSnapshot: true,
+          aftercareTextSnapshot: true,
+          aftercareDocumentNameSnapshot: true,
+          aftercareDocumentUrlSnapshot: true,
+          aftercareSentAt: true,
           treatmentPlan: { select: { title: true } },
           appointment: {
             select: {
@@ -195,13 +200,24 @@ export async function GET(
       label: appointmentLabel(appointment),
     })),
     aftercare: patient.visits
-      .filter((visit) => visit.nextSteps?.trim() || visit.procedureSummary?.trim())
+      .filter(
+        (visit) =>
+          visit.aftercareTextSnapshot?.trim() ||
+          visit.aftercareDocumentUrlSnapshot?.trim() ||
+          visit.nextSteps?.trim() ||
+          visit.procedureSummary?.trim()
+      )
       .map((visit) => ({
         id: visit.id,
         visitAt: visit.visitAt,
         label: appointmentLabel(visit.appointment ?? { procedure: null, titleOverride: visit.treatmentPlan?.title ?? null }),
         procedureSummary: visit.procedureSummary,
         nextSteps: visit.nextSteps,
+        aftercareTitle: visit.aftercareTitleSnapshot,
+        aftercareText: visit.aftercareTextSnapshot,
+        aftercareDocumentName: visit.aftercareDocumentNameSnapshot,
+        aftercareDocumentUrl: visit.aftercareDocumentUrlSnapshot,
+        aftercareSentAt: visit.aftercareSentAt,
         treatmentPlanTitle: visit.treatmentPlan?.title ?? null,
       })),
     packages: patient.packages,

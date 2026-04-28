@@ -15,6 +15,7 @@ import { getClinicSession } from '@/lib/clinic/session'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { applyProcedureLinkedInventoryDeduction } from '@/lib/clinic/inventory-visit-consume'
 import { applyPatientPackageDeduction } from '@/lib/clinic/patient-packages'
+import { buildAftercareWhatsappText, renderAftercareTemplate } from '@/lib/clinic/aftercare'
 import {
   appointmentEnd,
   normalizeBufferMinutes,
@@ -67,7 +68,18 @@ export async function POST(
         },
       },
       visits: {
-        select: { id: true, status: true, inventoryConsumedAt: true, visitAt: true },
+        select: {
+          id: true,
+          status: true,
+          inventoryConsumedAt: true,
+          visitAt: true,
+          aftercareTemplateId: true,
+          aftercareTitleSnapshot: true,
+          aftercareTextSnapshot: true,
+          aftercareDocumentNameSnapshot: true,
+          aftercareDocumentUrlSnapshot: true,
+          aftercareSentAt: true,
+        },
         orderBy: { visitAt: 'desc' },
         take: 1,
       },
@@ -360,13 +372,80 @@ export async function POST(
 
   if (action === 'complete_visit') {
     const deductedItemIds: string[] = []
+    const aftercareTemplateId =
+      body.aftercareTemplateId != null && String(body.aftercareTemplateId).trim()
+        ? String(body.aftercareTemplateId).trim()
+        : null
+    let aftercareText: string | null = null
+    let aftercareUrl: string | null = null
+    const aftercarePatch: {
+      aftercareTemplateId?: string
+      aftercareTitleSnapshot?: string
+      aftercareTextSnapshot?: string | null
+      aftercareDocumentNameSnapshot?: string | null
+      aftercareDocumentUrlSnapshot?: string | null
+      aftercareSentAt?: Date | null
+      nextSteps?: string | null
+    } = {}
+    if (aftercareTemplateId) {
+      const template = await prisma.clinicAftercareTemplate.findFirst({
+        where: {
+          id: aftercareTemplateId,
+          tenantId: session.tenantId,
+          active: true,
+          ...(existing.procedureId
+            ? { OR: [{ procedureId: existing.procedureId }, { procedureId: null }] }
+            : {}),
+        },
+      })
+      if (!template) {
+        return NextResponse.json({ error: 'Aftercare template not found' }, { status: 400 })
+      }
+      const rendered = renderAftercareTemplate(
+        template.messageBody || '',
+        {
+          patient: existing.patient,
+          procedure: existing.procedure,
+          titleOverride: existing.titleOverride,
+          visitAt: new Date(),
+        },
+        'en-GB'
+      )
+      Object.assign(aftercarePatch, {
+        aftercareTemplateId: template.id,
+        aftercareTitleSnapshot: template.title,
+        aftercareTextSnapshot: rendered || null,
+        aftercareDocumentNameSnapshot: template.documentName,
+        aftercareDocumentUrlSnapshot: template.documentUrl,
+        aftercareSentAt: new Date(),
+        nextSteps: rendered || null,
+      })
+      aftercareText = buildAftercareWhatsappText({
+        title: template.title,
+        messageBody: rendered,
+        documentName: template.documentName,
+        documentUrl: template.documentUrl,
+      })
+      aftercareUrl = whatsappUrl(existing.patient.phone, aftercareText)
+    }
     const { visit, inventoryDeduction, packageDeduction } = await prisma.$transaction(async (tx) => {
       let visit = existing.visits[0]
       if (visit) {
         visit = await tx.clinicVisit.update({
           where: { id: visit.id },
-          data: { status: ClinicVisitStatus.COMPLETED },
-          select: { id: true, status: true, visitAt: true, inventoryConsumedAt: true },
+          data: { status: ClinicVisitStatus.COMPLETED, ...aftercarePatch },
+          select: {
+            id: true,
+            status: true,
+            visitAt: true,
+            inventoryConsumedAt: true,
+            aftercareTemplateId: true,
+            aftercareTitleSnapshot: true,
+            aftercareTextSnapshot: true,
+            aftercareDocumentNameSnapshot: true,
+            aftercareDocumentUrlSnapshot: true,
+            aftercareSentAt: true,
+          },
         })
       } else {
         visit = await tx.clinicVisit.create({
@@ -376,8 +455,20 @@ export async function POST(
             appointmentId: id,
             visitAt: new Date(),
             status: ClinicVisitStatus.COMPLETED,
+            ...aftercarePatch,
           },
-          select: { id: true, status: true, visitAt: true, inventoryConsumedAt: true },
+          select: {
+            id: true,
+            status: true,
+            visitAt: true,
+            inventoryConsumedAt: true,
+            aftercareTemplateId: true,
+            aftercareTitleSnapshot: true,
+            aftercareTextSnapshot: true,
+            aftercareDocumentNameSnapshot: true,
+            aftercareDocumentUrlSnapshot: true,
+            aftercareSentAt: true,
+          },
         })
       }
 
@@ -421,9 +512,22 @@ export async function POST(
           visitId: visit.id,
           deducted: inventoryDeduction.deducted.length,
           packageDeducted: packageDeduction.deducted,
+          aftercareTemplateId,
         },
         createdByUserId: session.userId,
       })
+      if (aftercareText) {
+        await tx.clinicCrmActivity.create({
+          data: {
+            tenantId: session.tenantId,
+            patientId: existing.patientId,
+            type: ClinicCrmActivityType.WHATSAPP,
+            body: `Aftercare prepared: ${aftercareText}`,
+            occurredAt: new Date(),
+            createdByUserId: session.userId,
+          },
+        })
+      }
       if (packageDeduction.deducted) {
         await writeAppointmentEvent(tx, {
           tenantId: session.tenantId,
@@ -442,7 +546,12 @@ export async function POST(
       void handleLowStockNotificationsForItem(itemId).catch((e) => console.error(e))
     }
 
-    return NextResponse.json({ visit, inventoryDeduction, packageDeduction })
+    return NextResponse.json({
+      visit,
+      inventoryDeduction,
+      packageDeduction,
+      aftercare: aftercareText ? { text: aftercareText, whatsappUrl: aftercareUrl } : null,
+    })
   }
 
   if (action === 'schedule_rebooking_follow_up') {

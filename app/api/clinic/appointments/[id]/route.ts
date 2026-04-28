@@ -91,6 +91,12 @@ export async function GET(
           chiefComplaint: true,
           procedureSummary: true,
           nextSteps: true,
+          aftercareTemplateId: true,
+          aftercareTitleSnapshot: true,
+          aftercareTextSnapshot: true,
+          aftercareDocumentNameSnapshot: true,
+          aftercareDocumentUrlSnapshot: true,
+          aftercareSentAt: true,
           productSales: {
             include: {
               payment: {

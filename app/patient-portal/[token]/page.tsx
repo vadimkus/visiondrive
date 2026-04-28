@@ -32,6 +32,11 @@ type PortalData = {
     label: string
     procedureSummary: string | null
     nextSteps: string | null
+    aftercareTitle: string | null
+    aftercareText: string | null
+    aftercareDocumentName: string | null
+    aftercareDocumentUrl: string | null
+    aftercareSentAt: string | null
     treatmentPlanTitle: string | null
   }>
   packages: Array<{
@@ -99,6 +104,7 @@ const copy = {
     requestSent: 'Request sent. The practice will review it.',
     aftercare: 'Aftercare and next steps',
     noAftercare: 'No aftercare notes have been shared yet.',
+    aftercareDocument: 'Open aftercare document',
     packages: 'Package balance',
     noPackages: 'No active or recent packages.',
     sessionsLeft: 'sessions left',
@@ -131,6 +137,7 @@ const copy = {
     requestSent: 'Запрос отправлен. Клиника его проверит.',
     aftercare: 'Рекомендации и следующие шаги',
     noAftercare: 'Рекомендаций пока нет.',
+    aftercareDocument: 'Открыть документ с рекомендациями',
     packages: 'Баланс пакетов',
     noPackages: 'Активных или недавних пакетов нет.',
     sessionsLeft: 'сеансов осталось',
@@ -370,8 +377,23 @@ export default function PatientPortalPage() {
                   <p className="text-xs text-gray-400">
                     {new Date(item.visitAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short', year: 'numeric' })}
                   </p>
+                  {item.aftercareTitle && <p className="mt-2 text-sm font-semibold text-orange-900">{item.aftercareTitle}</p>}
                   {item.procedureSummary && <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{item.procedureSummary}</p>}
-                  {item.nextSteps && <p className="mt-2 text-sm font-medium text-orange-800 whitespace-pre-wrap">{item.nextSteps}</p>}
+                  {(item.aftercareText || item.nextSteps) && (
+                    <p className="mt-2 text-sm font-medium text-orange-800 whitespace-pre-wrap">
+                      {item.aftercareText || item.nextSteps}
+                    </p>
+                  )}
+                  {item.aftercareDocumentUrl && (
+                    <a
+                      href={item.aftercareDocumentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex min-h-10 items-center rounded-xl border border-orange-100 bg-white px-3 text-sm font-semibold text-orange-700"
+                    >
+                      {item.aftercareDocumentName || c.aftercareDocument}
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

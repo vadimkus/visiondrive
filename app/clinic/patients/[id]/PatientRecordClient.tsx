@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -19,6 +19,8 @@ import {
   Trash2,
   Link2,
   Copy,
+  Mic,
+  MicOff,
   XCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -48,6 +50,9 @@ type MediaMeta = {
   kind: string
   mimeType: string
   caption: string | null
+  protocolJson: unknown | null
+  marketingConsent: boolean
+  marketingConsentAt: string | null
   visitId: string | null
   createdAt: string
 }
@@ -60,7 +65,14 @@ type VisitRow = {
   procedureSummary: string | null
   staffNotes: string | null
   nextSteps: string | null
+  aftercareTemplateId: string | null
+  aftercareTitleSnapshot: string | null
+  aftercareTextSnapshot: string | null
+  aftercareDocumentNameSnapshot: string | null
+  aftercareDocumentUrlSnapshot: string | null
+  aftercareSentAt: string | null
   media: MediaMeta[]
+  appointment?: { id: string; startsAt: string; procedure: ProcedureRef } | null
   treatmentPlan?: { id: string; title: string; status: string } | null
   packageRedemptions?: PackageRedemptionRow[]
   giftCardRedemptions?: GiftCardRedemptionRow[]
@@ -180,6 +192,16 @@ type DiscountRule = {
   active: boolean
 }
 
+type AftercareTemplateRow = {
+  id: string
+  title: string
+  messageBody: string
+  documentName: string | null
+  documentUrl: string | null
+  active: boolean
+  procedure: ProcedureRef
+}
+
 type ConsentTemplateRow = {
   id: string
   title: string
@@ -283,6 +305,31 @@ type CrmRow = {
   createdAt: string
 }
 
+type BrowserSpeechRecognition = {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null
+  onerror: (() => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+  abort: () => void
+}
+
+type BrowserSpeechRecognitionEvent = {
+  resultIndex: number
+  results: {
+    length: number
+    [index: number]: {
+      isFinal: boolean
+      0: { transcript: string }
+    }
+  }
+}
+
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition
+
 export type PatientRecord = {
   id: string
   firstName: string
@@ -347,6 +394,33 @@ function ageFromDob(iso: string) {
 
 function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+const PHOTO_PROTOCOL_ITEMS = [
+  'same_lighting',
+  'same_angle',
+  'same_distance',
+  'clean_background',
+  'area_label',
+] as const
+
+type PhotoProtocolItemId = (typeof PHOTO_PROTOCOL_ITEMS)[number]
+
+function photoProtocolItemLabel(t: ReturnType<typeof useClinicLocale>['t'], item: PhotoProtocolItemId) {
+  if (item === 'same_lighting') return t.photoProtocolSameLighting
+  if (item === 'same_angle') return t.photoProtocolSameAngle
+  if (item === 'same_distance') return t.photoProtocolSameDistance
+  if (item === 'clean_background') return t.photoProtocolCleanBackground
+  return t.photoProtocolAreaLabel
+}
+
+function photoProtocolCheckedFromJson(value: unknown): PhotoProtocolItemId[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return []
+  const checkedItems = (value as { checkedItems?: unknown }).checkedItems
+  if (!Array.isArray(checkedItems)) return []
+  return checkedItems.filter((item): item is PhotoProtocolItemId =>
+    PHOTO_PROTOCOL_ITEMS.includes(item as PhotoProtocolItemId)
+  )
 }
 
 function calculateDiscountFromRule(baseCents: number, rule: DiscountRule | undefined) {
@@ -498,7 +572,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const lastVisitWithPlan = useMemo(() => {
     if (!patient) return null
     for (const v of patient.visits) {
-      if (v.nextSteps?.trim()) return v
+      if (v.aftercareTextSnapshot?.trim() || v.nextSteps?.trim()) return v
     }
     return null
   }, [patient])
@@ -716,12 +790,12 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
               </span>
             </li>
           )}
-          {lastVisitWithPlan?.nextSteps && (
+          {(lastVisitWithPlan?.aftercareTextSnapshot || lastVisitWithPlan?.nextSteps) && (
             <li className="flex gap-2">
               <Clock className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" aria-hidden />
               <span>
                 <span className="font-medium">{t.fromLastVisit} </span>
-                {lastVisitWithPlan.nextSteps}
+                {lastVisitWithPlan.aftercareTextSnapshot || lastVisitWithPlan.nextSteps}
               </span>
             </li>
           )}
@@ -734,7 +808,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
               </span>
             </li>
           )}
-          {!nextAppointment && !lastVisitWithPlan?.nextSteps && !patient.internalNotes && (
+          {!nextAppointment && !(lastVisitWithPlan?.aftercareTextSnapshot || lastVisitWithPlan?.nextSteps) && !patient.internalNotes && (
             <li className="text-orange-800/90">{t.noUpcoming}</li>
           )}
         </ul>
@@ -1188,10 +1262,29 @@ function OverviewTab({
   const [nextSteps, setNextSteps] = useState('')
   const [staffNotes, setStaffNotes] = useState('')
   const [treatmentPlanId, setTreatmentPlanId] = useState('')
+  const [aftercareTemplates, setAftercareTemplates] = useState<AftercareTemplateRow[]>([])
+  const [aftercareTemplateId, setAftercareTemplateId] = useState('')
   const [logging, setLogging] = useState(false)
   const activeTreatmentPlans = patient.treatmentPlans.filter((plan) =>
     ['ACTIVE', 'PAUSED'].includes(plan.status)
   )
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/clinic/aftercare-templates', { credentials: 'include' })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!cancelled) {
+        setAftercareTemplates((data.templates || []).filter((template: AftercareTemplateRow) => template.active))
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const selectedAftercareTemplate = aftercareTemplates.find((template) => template.id === aftercareTemplateId)
 
   function toggleTag(tag: PatientTag) {
     setEditTags(
@@ -1218,6 +1311,7 @@ function OverviewTab({
           nextSteps: nextSteps || null,
           staffNotes: staffNotes || null,
           treatmentPlanId: treatmentPlanId || null,
+          aftercareTemplateId: aftercareTemplateId || null,
           status: 'COMPLETED',
         }),
       })
@@ -1231,6 +1325,7 @@ function OverviewTab({
       setNextSteps('')
       setStaffNotes('')
       setTreatmentPlanId('')
+      setAftercareTemplateId('')
       await onVisitLogged()
     } finally {
       setLogging(false)
@@ -1597,6 +1692,38 @@ function OverviewTab({
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
           />
         </div>
+        {aftercareTemplates.length > 0 && (
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+            <label className="block text-sm font-medium text-emerald-950 mb-1">{t.aftercareTemplate}</label>
+            <select
+              value={aftercareTemplateId}
+              onChange={(e) => setAftercareTemplateId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-emerald-100 bg-white text-base"
+            >
+              <option value="">{t.noAftercareTemplateSelected}</option>
+              {aftercareTemplates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.title}
+                  {template.procedure ? ` · ${template.procedure.name}` : ''}
+                </option>
+              ))}
+            </select>
+            {selectedAftercareTemplate && (
+              <div className="mt-3 rounded-xl bg-white p-3 text-sm text-emerald-950">
+                {selectedAftercareTemplate.messageBody && (
+                  <p className="whitespace-pre-wrap">{selectedAftercareTemplate.messageBody}</p>
+                )}
+                {selectedAftercareTemplate.documentUrl && (
+                  <p className="mt-2 text-xs text-emerald-700">
+                    {selectedAftercareTemplate.documentName || t.aftercareDocumentReference}:{' '}
+                    {selectedAftercareTemplate.documentUrl}
+                  </p>
+                )}
+              </div>
+            )}
+            <p className="mt-2 text-xs text-emerald-700">{t.aftercareVisitHint}</p>
+          </div>
+        )}
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.staffNotesVisit}</label>
           <textarea
@@ -1657,9 +1784,28 @@ function PhotosTab({
   const [visitId, setVisitId] = useState<string>('')
   const [kind, setKind] = useState<string>('BEFORE')
   const [caption, setCaption] = useState('')
+  const [protocolChecked, setProtocolChecked] = useState<PhotoProtocolItemId[]>([
+    'same_lighting',
+    'same_angle',
+  ])
+  const [marketingConsent, setMarketingConsent] = useState(false)
+  const [protocolNote, setProtocolNote] = useState('')
   const [uploading, setUploading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const selectedVisit = useMemo(
+    () => (visitId ? patient.visits.find((visit) => visit.id === visitId) ?? null : null),
+    [patient.visits, visitId]
+  )
+  const selectedProcedureName =
+    selectedVisit?.appointment?.procedure?.name ?? selectedVisit?.treatmentPlan?.title ?? null
+
+  const toggleProtocolItem = (item: PhotoProtocolItemId) => {
+    setProtocolChecked((current) =>
+      current.includes(item) ? current.filter((value) => value !== item) : [...current, item]
+    )
+  }
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -1673,6 +1819,10 @@ function PhotosTab({
       fd.append('kind', kind)
       if (visitId) fd.append('visitId', visitId)
       if (caption.trim()) fd.append('caption', caption.trim())
+      fd.append('protocolChecked', JSON.stringify(protocolChecked))
+      if (selectedProcedureName) fd.append('protocolProcedureName', selectedProcedureName)
+      if (protocolNote.trim()) fd.append('protocolNote', protocolNote.trim())
+      if (marketingConsent) fd.append('marketingConsent', 'true')
       const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
         method: 'POST',
         body: fd,
@@ -1684,6 +1834,8 @@ function PhotosTab({
         return
       }
       setCaption('')
+      setProtocolNote('')
+      setMarketingConsent(false)
       await onRefresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : t.uploadFailed)
@@ -1779,6 +1931,44 @@ function PhotosTab({
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
           />
         </label>
+        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-blue-950">{t.photoProtocolChecklist}</p>
+            <p className="mt-1 text-xs text-blue-800">
+              {selectedProcedureName
+                ? t.photoProtocolProcedureHint.replace('{procedure}', selectedProcedureName)
+                : t.photoProtocolGenericHint}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {PHOTO_PROTOCOL_ITEMS.map((item) => (
+              <label key={item} className="flex items-start gap-2 rounded-xl bg-white/70 p-2 text-sm text-blue-950">
+                <input
+                  type="checkbox"
+                  checked={protocolChecked.includes(item)}
+                  onChange={() => toggleProtocolItem(item)}
+                  className="mt-1 h-4 w-4 rounded border-blue-200 text-blue-600"
+                />
+                <span>{photoProtocolItemLabel(t, item)}</span>
+              </label>
+            ))}
+          </div>
+          <label className="flex items-start gap-2 text-sm text-blue-950">
+            <input
+              type="checkbox"
+              checked={marketingConsent}
+              onChange={(e) => setMarketingConsent(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-blue-200 text-blue-600"
+            />
+            <span>{t.photoMarketingConsent}</span>
+          </label>
+          <input
+            value={protocolNote}
+            onChange={(e) => setProtocolNote(e.target.value)}
+            placeholder={t.photoProtocolNotePlaceholder}
+            className="w-full px-3 py-2.5 rounded-xl border border-blue-100 text-sm bg-white"
+          />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="flex flex-col items-center justify-center gap-2 w-full py-8 border-2 border-dashed border-orange-200 rounded-2xl bg-orange-50/50 cursor-pointer hover:bg-orange-50 transition-colors">
             <Camera className="w-8 h-8 text-orange-500" />
@@ -1813,33 +2003,46 @@ function PhotosTab({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {allMedia.map((m) => (
-          <div key={m.id} className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/api/clinic/media/${m.id}`}
-              alt={m.caption || m.kind}
-              className="w-full aspect-square object-cover"
-            />
-            <div className="p-2 text-[11px] text-gray-600 space-y-2">
-              <div>
-                <span className="font-semibold text-gray-800">{m.kind}</span>
-                <span className="text-gray-400"> · </span>
-                {m.visitLabel}
-                {m.caption && <p className="mt-1 text-gray-700 line-clamp-2">{m.caption}</p>}
+        {allMedia.map((m) => {
+          const checked = photoProtocolCheckedFromJson(m.protocolJson)
+          return (
+            <div key={m.id} className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/clinic/media/${m.id}`}
+                alt={m.caption || m.kind}
+                className="w-full aspect-square object-cover"
+              />
+              <div className="p-2 text-[11px] text-gray-600 space-y-2">
+                <div>
+                  <span className="font-semibold text-gray-800">{m.kind}</span>
+                  <span className="text-gray-400"> · </span>
+                  {m.visitLabel}
+                  {m.caption && <p className="mt-1 text-gray-700 line-clamp-2">{m.caption}</p>}
+                </div>
+                {checked.length > 0 && (
+                  <p className="rounded-lg bg-blue-50 px-2 py-1 text-blue-800">
+                    {t.photoProtocol}: {checked.length}/{PHOTO_PROTOCOL_ITEMS.length}
+                  </p>
+                )}
+                {m.marketingConsent && (
+                  <p className="rounded-lg bg-emerald-50 px-2 py-1 text-emerald-800">
+                    {t.photoMarketingConsentShort}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => deleteMedia(m.id)}
+                  disabled={deletingId === m.id}
+                  className="inline-flex items-center gap-1 rounded-lg border border-red-100 px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                >
+                  <Trash2 className="w-3 h-3" aria-hidden />
+                  {deletingId === m.id ? t.deletingEllipsis : t.deletePhoto}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => deleteMedia(m.id)}
-                disabled={deletingId === m.id}
-                className="inline-flex items-center gap-1 rounded-lg border border-red-100 px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
-              >
-                <Trash2 className="w-3 h-3" aria-hidden />
-                {deletingId === m.id ? t.deletingEllipsis : t.deletePhoto}
-              </button>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
       {allMedia.length === 0 && (
         <p className="text-center text-sm text-gray-500 py-8">{t.noPhotosYet}</p>
@@ -3426,6 +3629,84 @@ function CrmTab({
   const [type, setType] = useState('NOTE')
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
+  const [voiceSupported, setVoiceSupported] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [interimTranscript, setInterimTranscript] = useState('')
+  const [voiceError, setVoiceError] = useState<string | null>(null)
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const speechWindow = window as Window & {
+      SpeechRecognition?: BrowserSpeechRecognitionConstructor
+      webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor
+    }
+    setVoiceSupported(Boolean(speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition))
+    return () => {
+      recognitionRef.current?.abort()
+      recognitionRef.current = null
+    }
+  }, [])
+
+  const appendTranscript = useCallback((text: string) => {
+    const clean = text.trim()
+    if (!clean) return
+    setBody((current) => {
+      const separator = current.trim() ? ' ' : ''
+      return `${current.trim()}${separator}${clean}`
+    })
+  }, [])
+
+  const toggleVoiceInput = () => {
+    setVoiceError(null)
+    if (isListening) {
+      recognitionRef.current?.stop()
+      setIsListening(false)
+      return
+    }
+
+    if (typeof window === 'undefined') return
+    const speechWindow = window as Window & {
+      SpeechRecognition?: BrowserSpeechRecognitionConstructor
+      webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor
+    }
+    const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition
+    if (!Recognition) {
+      setVoiceSupported(false)
+      setVoiceError(t.voiceCommentUnsupported)
+      return
+    }
+
+    const recognition = new Recognition()
+    recognition.lang = locale === 'ru' ? 'ru-RU' : 'en-US'
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.onresult = (event) => {
+      let finalText = ''
+      let interimText = ''
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const transcript = event.results[i]?.[0]?.transcript ?? ''
+        if (event.results[i]?.isFinal) finalText += transcript
+        else interimText += transcript
+      }
+      if (finalText) appendTranscript(finalText)
+      setInterimTranscript(interimText.trim())
+    }
+    recognition.onerror = () => {
+      setVoiceError(t.voiceCommentError)
+      setIsListening(false)
+      setInterimTranscript('')
+    }
+    recognition.onend = () => {
+      setIsListening(false)
+      setInterimTranscript('')
+      recognitionRef.current = null
+    }
+    recognitionRef.current = recognition
+    setType('NOTE')
+    setIsListening(true)
+    recognition.start()
+  }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -3457,7 +3738,10 @@ function CrmTab({
   return (
     <div className="space-y-6">
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">{t.logInteraction}</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">{t.logInteraction}</h2>
+          <p className="mt-1 text-sm text-gray-500">{t.voiceCommentHint}</p>
+        </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.crmTypeLabel}</label>
           <select
@@ -3474,7 +3758,23 @@ function CrmTab({
           </select>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">{t.crmDetails}</label>
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <label className="block text-sm text-gray-600">{t.crmDetails}</label>
+            <button
+              type="button"
+              onClick={toggleVoiceInput}
+              disabled={!voiceSupported}
+              className={clsx(
+                'inline-flex min-h-9 items-center gap-2 rounded-xl px-3 text-xs font-semibold disabled:opacity-50',
+                isListening
+                  ? 'bg-red-50 text-red-700 ring-1 ring-red-100'
+                  : 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'
+              )}
+            >
+              {isListening ? <MicOff className="h-4 w-4" aria-hidden /> : <Mic className="h-4 w-4" aria-hidden />}
+              {isListening ? t.voiceCommentStop : t.voiceCommentStart}
+            </button>
+          </div>
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -3482,6 +3782,15 @@ function CrmTab({
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
             placeholder={t.crmDetailsPlaceholder}
           />
+          {interimTranscript && (
+            <p className="mt-2 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-800">
+              {t.voiceCommentListening}: {interimTranscript}
+            </p>
+          )}
+          {!voiceSupported && (
+            <p className="mt-2 text-xs text-gray-500">{t.voiceCommentUnsupported}</p>
+          )}
+          {voiceError && <p className="mt-2 text-xs text-red-600">{voiceError}</p>}
         </div>
         <button
           type="submit"

@@ -40,6 +40,9 @@ export async function GET(
     kind: true,
     mimeType: true,
     caption: true,
+    protocolJson: true,
+    marketingConsent: true,
+    marketingConsentAt: true,
     visitId: true,
     createdAt: true,
   } as const
@@ -128,6 +131,13 @@ export async function GET(
         orderBy: { visitAt: 'desc' },
         take: 40,
         include: {
+          appointment: {
+            select: {
+              id: true,
+              startsAt: true,
+              procedure: { select: { id: true, name: true } },
+            },
+          },
           treatmentPlan: { select: { id: true, title: true, status: true } },
           media: { orderBy: { createdAt: 'asc' }, select: { ...mediaSelect } },
           packageRedemptions: {
@@ -160,6 +170,11 @@ export async function GET(
               status: true,
               procedureSummary: true,
               nextSteps: true,
+              aftercareTitleSnapshot: true,
+              aftercareTextSnapshot: true,
+              aftercareDocumentNameSnapshot: true,
+              aftercareDocumentUrlSnapshot: true,
+              aftercareSentAt: true,
               media: { select: { id: true, kind: true, caption: true, createdAt: true } },
             },
           },

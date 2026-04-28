@@ -123,6 +123,7 @@ model Tenant {
   clinicPackageRedemptions    ClinicPackageRedemption[]
   clinicConsentTemplates      ClinicConsentTemplate[]
   clinicConsentRecords        ClinicConsentRecord[]
+  clinicAftercareTemplates    ClinicAftercareTemplate[]
   clinicTreatmentPlans        ClinicTreatmentPlan[]
   clinicProcedureMaterials    ClinicProcedureMaterial[]
   clinicBookingFunnelEvents   ClinicBookingFunnelEvent[]
@@ -874,23 +875,23 @@ model ClinicPatient {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  tenant             Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments       ClinicAppointment[]
-  visits             ClinicVisit[]
-  media              ClinicPatientMedia[]
-  payments           ClinicPatientPayment[]
-  paymentCorrections ClinicPaymentCorrection[]
-  productSales       ClinicProductSale[]
-  crmActivities      ClinicCrmActivity[]
-  reviews            ClinicPatientReview[]
-  packages           ClinicPatientPackage[]
-  giftCardsPurchased ClinicGiftCard[]           @relation("GiftCardBuyer")
+  tenant              Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments        ClinicAppointment[]
+  visits              ClinicVisit[]
+  media               ClinicPatientMedia[]
+  payments            ClinicPatientPayment[]
+  paymentCorrections  ClinicPaymentCorrection[]
+  productSales        ClinicProductSale[]
+  crmActivities       ClinicCrmActivity[]
+  reviews             ClinicPatientReview[]
+  packages            ClinicPatientPackage[]
+  giftCardsPurchased  ClinicGiftCard[]             @relation("GiftCardBuyer")
   giftCardRedemptions ClinicGiftCardRedemption[]
-  consentRecords     ClinicConsentRecord[]
-  treatmentPlans     ClinicTreatmentPlan[]
-  portalLinks        ClinicPatientPortalLink[]
-  portalRequests     ClinicPatientPortalRequest[]
-  intakeResponses    ClinicIntakeResponse[]
+  consentRecords      ClinicConsentRecord[]
+  treatmentPlans      ClinicTreatmentPlan[]
+  portalLinks         ClinicPatientPortalLink[]
+  portalRequests      ClinicPatientPortalRequest[]
+  intakeResponses     ClinicIntakeResponse[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -920,6 +921,7 @@ model ClinicProcedure {
   patientPackages     ClinicPatientPackage[]
   consentTemplates    ClinicConsentTemplate[]
   consentRecords      ClinicConsentRecord[]
+  aftercareTemplates  ClinicAftercareTemplate[]
   treatmentPlans      ClinicTreatmentPlan[]
   materials           ClinicProcedureMaterial[]
   bookingFunnelEvents ClinicBookingFunnelEvent[]
@@ -1279,56 +1281,71 @@ enum ClinicCrmActivityType {
 
 /// In-person or telehealth encounter; attach before/after photos and payments.
 model ClinicVisit {
-  id                  String            @id @default(cuid())
-  tenantId            String
-  patientId           String
-  appointmentId       String?
-  treatmentPlanId     String?
-  visitAt             DateTime          @db.Timestamptz(6)
-  status              ClinicVisitStatus @default(COMPLETED)
-  chiefComplaint      String?           @db.Text
-  procedureSummary    String?           @db.Text
-  staffNotes          String?           @db.Text
+  id                            String            @id @default(cuid())
+  tenantId                      String
+  patientId                     String
+  appointmentId                 String?
+  treatmentPlanId               String?
+  visitAt                       DateTime          @db.Timestamptz(6)
+  status                        ClinicVisitStatus @default(COMPLETED)
+  chiefComplaint                String?           @db.Text
+  procedureSummary              String?           @db.Text
+  staffNotes                    String?           @db.Text
   /// Planned follow-up / what to do next (shown prominently on patient chart)
-  nextSteps           String?           @db.Text
+  nextSteps                     String?           @db.Text
+  aftercareTemplateId           String?
+  /// Patient-facing aftercare title captured at visit completion, so later template edits do not rewrite history.
+  aftercareTitleSnapshot        String?
+  aftercareTextSnapshot         String?           @db.Text
+  aftercareDocumentNameSnapshot String?
+  aftercareDocumentUrlSnapshot  String?           @db.Text
+  aftercareSentAt               DateTime?         @db.Timestamptz(6)
   /// Set when procedure-linked inventory auto-consumption has been applied (idempotent).
-  inventoryConsumedAt DateTime?         @db.Timestamptz(6)
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  inventoryConsumedAt           DateTime?         @db.Timestamptz(6)
+  createdAt                     DateTime          @default(now())
+  updatedAt                     DateTime          @updatedAt
 
-  tenant             Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient            ClinicPatient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  appointment        ClinicAppointment?        @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  treatmentPlan      ClinicTreatmentPlan?      @relation(fields: [treatmentPlanId], references: [id], onDelete: SetNull)
-  media              ClinicPatientMedia[]
-  payments           ClinicPatientPayment[]
-  productSales       ClinicProductSale[]
-  reviews            ClinicPatientReview[]
-  packageRedemptions ClinicPackageRedemption[]
+  tenant              Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient             ClinicPatient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment         ClinicAppointment?         @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  treatmentPlan       ClinicTreatmentPlan?       @relation(fields: [treatmentPlanId], references: [id], onDelete: SetNull)
+  aftercareTemplate   ClinicAftercareTemplate?   @relation(fields: [aftercareTemplateId], references: [id], onDelete: SetNull)
+  media               ClinicPatientMedia[]
+  payments            ClinicPatientPayment[]
+  productSales        ClinicProductSale[]
+  reviews             ClinicPatientReview[]
+  packageRedemptions  ClinicPackageRedemption[]
   giftCardRedemptions ClinicGiftCardRedemption[]
-  consentRecords     ClinicConsentRecord[]
+  consentRecords      ClinicConsentRecord[]
 
   @@index([tenantId, visitAt])
   @@index([patientId, visitAt])
   @@index([treatmentPlanId, visitAt])
+  @@index([aftercareTemplateId])
+  @@index([tenantId, aftercareSentAt])
   @@map("clinic_visits")
 }
 
 /// Clinical photo (e.g. before/after). Stored as Postgres BYTEA and/or Vercel Blob (private pathname).
 model ClinicPatientMedia {
-  id              String          @id @default(cuid())
-  tenantId        String
-  patientId       String
-  visitId         String?
-  kind            ClinicMediaKind
-  mimeType        String
-  caption         String?
+  id                 String          @id @default(cuid())
+  tenantId           String
+  patientId          String
+  visitId            String?
+  kind               ClinicMediaKind
+  mimeType           String
+  caption            String?
+  /// Capture protocol metadata (checked lighting/angle/background prompts, procedure snapshot, consent note).
+  protocolJson       Json?
+  /// Explicit staff marker that marketing/public-use consent was documented for this image.
+  marketingConsent   Boolean         @default(false)
+  marketingConsentAt DateTime?       @db.Timestamptz(6)
   /// Legacy / local-dev: raw bytes. Null when `blobPathname` is set.
-  data            Bytes?
+  data               Bytes?
   /// Vercel Blob private pathname (use SDK `get` with token). Null when `data` is set.
-  blobPathname    String?
-  createdAt       DateTime        @default(now())
-  createdByUserId String?
+  blobPathname       String?
+  createdAt          DateTime        @default(now())
+  createdByUserId    String?
 
   tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -1336,6 +1353,7 @@ model ClinicPatientMedia {
 
   @@index([tenantId, patientId])
   @@index([visitId])
+  @@index([tenantId, marketingConsent])
   @@map("clinic_patient_media")
 }
 
@@ -1467,7 +1485,7 @@ model ClinicGiftCard {
   createdByUserId       String?
 
   tenant       Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  buyerPatient ClinicPatient?              @relation("GiftCardBuyer", fields: [buyerPatientId], references: [id], onDelete: SetNull)
+  buyerPatient ClinicPatient?             @relation("GiftCardBuyer", fields: [buyerPatientId], references: [id], onDelete: SetNull)
   redemptions  ClinicGiftCardRedemption[]
 
   @@unique([tenantId, code])
@@ -1692,6 +1710,29 @@ model ClinicConsentRecord {
   @@index([tenantId, acceptedAt])
   @@index([visitId, createdAt])
   @@map("clinic_consent_records")
+}
+
+model ClinicAftercareTemplate {
+  id              String   @id @default(cuid())
+  tenantId        String
+  procedureId     String?
+  title           String
+  messageBody     String   @default("") @db.Text
+  documentName    String?
+  documentUrl     String?  @db.Text
+  active          Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdByUserId String?
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure ClinicProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  visits    ClinicVisit[]
+
+  @@index([tenantId, active, sortOrder])
+  @@index([tenantId, procedureId, active])
+  @@map("clinic_aftercare_templates")
 }
 
 model ClinicTreatmentPlan {

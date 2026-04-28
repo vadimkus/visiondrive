@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { applyProcedureLinkedInventoryDeduction } from '@/lib/clinic/inventory-visit-consume'
 import { applyPatientPackageDeduction } from '@/lib/clinic/patient-packages'
+import { renderAftercareTemplate } from '@/lib/clinic/aftercare'
 import { getClinicSession } from '@/lib/clinic/session'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
 
@@ -50,24 +51,29 @@ export async function POST(request: NextRequest) {
 
   const patient = await prisma.clinicPatient.findFirst({
     where: { id: patientId, tenantId: session.tenantId },
-    select: { id: true },
+    select: { id: true, firstName: true, lastName: true },
   })
   if (!patient) {
     return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
   }
 
-  if (appointmentId) {
-    const appt = await prisma.clinicAppointment.findFirst({
+  const appointment = appointmentId
+    ? await prisma.clinicAppointment.findFirst({
       where: {
         id: appointmentId,
         patientId,
         tenantId: session.tenantId,
       },
-      select: { id: true },
+        select: {
+          id: true,
+          titleOverride: true,
+          procedureId: true,
+          procedure: { select: { id: true, name: true } },
+        },
     })
-    if (!appt) {
+    : null
+  if (appointmentId && !appointment) {
       return NextResponse.json({ error: 'Appointment not found for this patient' }, { status: 400 })
-    }
   }
 
   if (treatmentPlanId) {
@@ -91,7 +97,56 @@ export async function POST(request: NextRequest) {
   const procedureSummary =
     body.procedureSummary != null ? String(body.procedureSummary).trim() || null : null
   const staffNotes = body.staffNotes != null ? String(body.staffNotes).trim() || null : null
-  const nextSteps = body.nextSteps != null ? String(body.nextSteps).trim() || null : null
+  let nextSteps = body.nextSteps != null ? String(body.nextSteps).trim() || null : null
+
+  const aftercareTemplateId =
+    body.aftercareTemplateId != null && String(body.aftercareTemplateId).trim()
+      ? String(body.aftercareTemplateId).trim()
+      : null
+  const aftercareSent = body.aftercareSent === true
+  const aftercareSnapshot: {
+    aftercareTemplateId?: string
+    aftercareTitleSnapshot?: string
+    aftercareTextSnapshot?: string | null
+    aftercareDocumentNameSnapshot?: string | null
+    aftercareDocumentUrlSnapshot?: string | null
+    aftercareSentAt?: Date | null
+  } = {}
+  if (aftercareTemplateId) {
+    const template = await prisma.clinicAftercareTemplate.findFirst({
+      where: {
+        id: aftercareTemplateId,
+        tenantId: session.tenantId,
+        active: true,
+        ...(appointment?.procedureId
+          ? { OR: [{ procedureId: appointment.procedureId }, { procedureId: null }] }
+          : {}),
+      },
+      include: { procedure: { select: { id: true, name: true } } },
+    })
+    if (!template) {
+      return NextResponse.json({ error: 'Aftercare template not found' }, { status: 400 })
+    }
+    const rendered = renderAftercareTemplate(
+      template.messageBody || '',
+      {
+        patient,
+        procedure: appointment?.procedure ?? template.procedure,
+        titleOverride: appointment?.titleOverride ?? null,
+        visitAt,
+      },
+      'en-GB'
+    )
+    Object.assign(aftercareSnapshot, {
+      aftercareTemplateId: template.id,
+      aftercareTitleSnapshot: template.title,
+      aftercareTextSnapshot: rendered || null,
+      aftercareDocumentNameSnapshot: template.documentName,
+      aftercareDocumentUrlSnapshot: template.documentUrl,
+      aftercareSentAt: aftercareSent ? new Date() : null,
+    })
+    if (!nextSteps && rendered) nextSteps = rendered
+  }
 
   const { visit, inventoryDeduction, packageDeduction } = await prisma.$transaction(async (tx) => {
     let visit = await tx.clinicVisit.create({
@@ -106,6 +161,7 @@ export async function POST(request: NextRequest) {
         procedureSummary,
         staffNotes,
         nextSteps,
+        ...aftercareSnapshot,
       },
       select: {
         id: true,
@@ -118,6 +174,12 @@ export async function POST(request: NextRequest) {
         procedureSummary: true,
         staffNotes: true,
         nextSteps: true,
+        aftercareTemplateId: true,
+        aftercareTitleSnapshot: true,
+        aftercareTextSnapshot: true,
+        aftercareDocumentNameSnapshot: true,
+        aftercareDocumentUrlSnapshot: true,
+        aftercareSentAt: true,
         inventoryConsumedAt: true,
         createdAt: true,
       },
@@ -148,6 +210,12 @@ export async function POST(request: NextRequest) {
           procedureSummary: true,
           staffNotes: true,
           nextSteps: true,
+          aftercareTemplateId: true,
+          aftercareTitleSnapshot: true,
+          aftercareTextSnapshot: true,
+          aftercareDocumentNameSnapshot: true,
+          aftercareDocumentUrlSnapshot: true,
+          aftercareSentAt: true,
           inventoryConsumedAt: true,
           createdAt: true,
         },

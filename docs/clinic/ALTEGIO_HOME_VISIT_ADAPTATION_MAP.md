@@ -258,10 +258,16 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 35. Before/after photo protocol
    - Source: client card files and visit history.
    - Solo version: photo checklist by procedure, same lighting/angle prompts, consent to use in marketing.
+   - Status: shipped first pass.
+   - Shipped: Photos tab now stores capture checklist metadata, procedure snapshot, and marketing-use consent marker per image; upload flow prompts same lighting/angle/distance/background/area-label consistency; patient card displays protocol completion and marketing-consent badges.
+   - Next improvements: side-by-side compare view, procedure-specific custom checklist templates, and printable/photo-release consent only after the basic capture discipline is used.
 
 36. Aftercare document library
    - Source: files/documents and notifications.
    - Solo version: attach/send aftercare PDF or message template after visit based on procedure.
+   - Status: shipped first pass.
+   - Shipped: procedure pages now manage reusable aftercare messages and optional document/PDF links; completed visits snapshot the selected aftercare so patient-facing history is immutable; appointment completion can copy/open WhatsApp and the patient portal shows saved aftercare text and document references.
+   - Next improvements: file upload/storage for branded PDFs, aftercare send audit as a first-class delivery row, and procedure-specific suggested retail products attached to each template.
 
 37. Patient-safe exports
    - Source: data export and documents.
@@ -358,11 +364,11 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 1. Booking source/UTM attribution and abandoned-booking follow-up.
 2. Patient-uploaded photos through the portal.
-3. Aftercare document library.
+3. Patient-safe exports.
 4. Account and notification preferences.
 5. Birthday and personal occasion messages.
 
 ## Recommendation
 
-Gift cards now cover the simple prepaid-voucher workflow without mixing it into treatment packages. The next point should be before/after photo protocol: procedure-specific capture prompts, consistent lighting/angle checklist, and marketing-consent tracking.
+Aftercare document library now turns ad hoc next-step notes into reusable procedure-based patient instructions. The next point should be patient-safe exports: bundle treatment summary, receipts, consent, and aftercare without exposing internal notes.
 

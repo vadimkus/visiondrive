@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { applyProcedureLinkedInventoryDeduction } from '@/lib/clinic/inventory-visit-consume'
 import { applyPatientPackageDeduction } from '@/lib/clinic/patient-packages'
+import { renderAftercareTemplate } from '@/lib/clinic/aftercare'
 import { getClinicSession } from '@/lib/clinic/session'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
 
@@ -38,10 +39,19 @@ export async function PATCH(
     select: {
       id: true,
       status: true,
+      visitAt: true,
       appointmentId: true,
       patientId: true,
       treatmentPlanId: true,
       inventoryConsumedAt: true,
+      patient: { select: { firstName: true, lastName: true } },
+      appointment: {
+        select: {
+          titleOverride: true,
+          procedureId: true,
+          procedure: { select: { id: true, name: true } },
+        },
+      },
     },
   })
   if (!existing) {
@@ -55,6 +65,12 @@ export async function PATCH(
     procedureSummary?: string | null
     staffNotes?: string | null
     nextSteps?: string | null
+    aftercareTemplateId?: string | null
+    aftercareTitleSnapshot?: string | null
+    aftercareTextSnapshot?: string | null
+    aftercareDocumentNameSnapshot?: string | null
+    aftercareDocumentUrlSnapshot?: string | null
+    aftercareSentAt?: Date | null
     treatmentPlanId?: string | null
   } = {}
 
@@ -82,6 +98,53 @@ export async function PATCH(
   }
   if (body.nextSteps !== undefined) {
     data.nextSteps = body.nextSteps == null ? null : String(body.nextSteps).trim() || null
+  }
+  if (body.aftercareTemplateId !== undefined) {
+    const aftercareTemplateId =
+      body.aftercareTemplateId != null && String(body.aftercareTemplateId).trim()
+        ? String(body.aftercareTemplateId).trim()
+        : null
+    if (!aftercareTemplateId) {
+      data.aftercareTemplateId = null
+      data.aftercareTitleSnapshot = null
+      data.aftercareTextSnapshot = null
+      data.aftercareDocumentNameSnapshot = null
+      data.aftercareDocumentUrlSnapshot = null
+      data.aftercareSentAt = null
+    } else {
+      const template = await prisma.clinicAftercareTemplate.findFirst({
+        where: {
+          id: aftercareTemplateId,
+          tenantId: session.tenantId,
+          active: true,
+          ...(existing.appointment?.procedureId
+            ? { OR: [{ procedureId: existing.appointment.procedureId }, { procedureId: null }] }
+            : {}),
+        },
+        include: { procedure: { select: { id: true, name: true } } },
+      })
+      if (!template) {
+        return NextResponse.json({ error: 'Aftercare template not found' }, { status: 400 })
+      }
+      const visitAtForRender = data.visitAt ?? existing.visitAt
+      const rendered = renderAftercareTemplate(
+        template.messageBody || '',
+        {
+          patient: existing.patient,
+          procedure: existing.appointment?.procedure ?? template.procedure,
+          titleOverride: existing.appointment?.titleOverride ?? null,
+          visitAt: visitAtForRender,
+        },
+        'en-GB'
+      )
+      data.aftercareTemplateId = template.id
+      data.aftercareTitleSnapshot = template.title
+      data.aftercareTextSnapshot = rendered || null
+      data.aftercareDocumentNameSnapshot = template.documentName
+      data.aftercareDocumentUrlSnapshot = template.documentUrl
+      data.aftercareSentAt = body.aftercareSent === true ? new Date() : null
+      if (body.nextSteps === undefined && rendered) data.nextSteps = rendered
+    }
   }
   if (body.treatmentPlanId !== undefined) {
     const treatmentPlanId =
@@ -123,6 +186,12 @@ export async function PATCH(
         procedureSummary: true,
         staffNotes: true,
         nextSteps: true,
+        aftercareTemplateId: true,
+        aftercareTitleSnapshot: true,
+        aftercareTextSnapshot: true,
+        aftercareDocumentNameSnapshot: true,
+        aftercareDocumentUrlSnapshot: true,
+        aftercareSentAt: true,
         treatmentPlanId: true,
         inventoryConsumedAt: true,
         updatedAt: true,

@@ -9,7 +9,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `tenants` | Practice / organization boundary. |
 | `users` + `tenant_memberships` | Staff accounts; clinic login uses `users.defaultTenantId` in JWT. |
 | `clinic_patients` | Demographics, contacts, home address / area / access notes, client `category` and `tags`, simple referral fields (`referred_by_name`, `referral_note`), **internal_notes** (staff only), optional **`anamnesis_json`** (v1 JSON: allergies, medications, conditions, social). |
-| `clinic_procedures` | Service catalog (duration, hidden buffer, price, currency). |
+| `clinic_procedures` | Service catalog (duration, hidden buffer, price, currency), with procedure BOM, public intake questions, and aftercare templates. |
 | `clinic_appointments` | Scheduled slots; richer status; source; optional procedure; hidden buffer; home-visit location and travel buffers; lifecycle timestamps; **internal_notes**; optional override reason for intentional conflict/out-of-hours bookings. |
 | `clinic_appointment_events` | Appointment audit/change history for reschedules, reminders, visit actions, payments, and follow-ups. |
 | `clinic_availability_rules` | Tenant working-hours rules by weekday: start/end, `slot_mode` (`FIXED`/`DYNAMIC`), slot interval, minimum lead time, active/closed day, optional `procedure_id` for service-specific overrides. |
@@ -22,8 +22,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_intake_questions` | Service-specific public booking questions configured per procedure: prompt, help text, type, required flag, active flag, and sort order. |
 | `clinic_intake_responses` | Appointment-linked intake answer snapshots from public booking, preserving the original prompt/type for clinical context. |
 | `clinic_patient_reviews` | Internal review/reputation workflow: request status, rating, private note, candidate public text, requested/replied/published timestamps. |
-| `clinic_visits` | Completed encounters; optional `treatment_plan_id`; **next_steps** drives “what to do next” on the chart; **inventory_consumed_at** prevents repeated auto-deduct. |
-| `clinic_patient_media` | Before/after/other images captured from camera or uploaded from file picker: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime + caption. |
+| `clinic_visits` | Completed encounters; optional `treatment_plan_id`; **next_steps** drives “what to do next” on the chart; aftercare template snapshots store patient-facing message/document references; **inventory_consumed_at** prevents repeated auto-deduct. |
+| `clinic_patient_media` | Before/after/other images captured from camera or uploaded from file picker: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime/caption plus capture-protocol JSON and marketing-consent marker. |
 | `clinic_patient_payments` | Payments; optional `visit_id` / `appointment_id`, discount amount plus `discount_rule_id` / snapshot name / required reason, patient-facing fee, internal `processor_fee_cents`, method, status, reference, note. Refunds are separate `REFUNDED` adjustment payment rows that point back to the original via correction records. |
 | `clinic_payment_corrections` | Audit trail for refunds and voids: original payment, optional adjustment payment, type, amount, method, reason, note, actor, and timestamp. |
 | `clinic_payment_fee_rules` | Tenant method-level acquiring rules: payment method, percent bps, fixed fee, active flag. New paid payments snapshot processing fees automatically. |
@@ -33,8 +33,9 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_product_sales` + `clinic_product_sale_lines` | Retail / aftercare product sales linked to patient, optional visit/appointment, stock item lines, sale totals, and payment reference. |
 | `clinic_patient_packages` + `clinic_package_redemptions` | Prepaid patient packages/courses: total/remaining sessions, optional service restriction, expiry, list price, discount snapshot/reason, final sale price, payment reference, and visit-linked session usage rows. |
 | `clinic_consent_templates` + `clinic_consent_records` | Consent template library plus signed patient snapshots with contraindications, signature name, aftercare acknowledgement, and optional visit/appointment links. |
+| `clinic_aftercare_templates` | Procedure-specific reusable aftercare messages and optional PDF/document references. Completed visits snapshot the selected template so later edits do not rewrite patient-facing history. |
 | `clinic_treatment_plans` | Planned courses of care for a patient: expected sessions, cadence, target dates, procedure, goals, next steps, photo milestones, status, and linked visits. |
-| `clinic_crm_activities` | CRM timeline (type + body + occurred_at). |
+| `clinic_crm_activities` | CRM timeline (type + body + occurred_at), including reviewed voice-dictated patient comments from the card. |
 | `clinic_stock_items` | Inventory SKU: name, unit, `quantity_on_hand`, `reorder_point`, optional legacy `procedure_id`, optional `barcode`, `consume_per_visit`, low-stock cooldown. |
 | `clinic_procedure_materials` | Bill of materials rows: procedure + stock item + quantity per visit + unit material cost + active flag. |
 | `clinic_stock_movements` | Receipt / adjustment / consumption / return; signed `quantity_delta`; never allows negative on-hand. |
@@ -56,6 +57,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `POST /api/clinic/inventory/import` — preview and commit product spreadsheet imports from `.xlsx` / `.csv`; duplicate rows are detected by barcode, SKU, or name before creation.
 - `GET/POST /api/clinic/procedures/[id]/materials`; `PATCH/DELETE .../materials/[materialId]` — manage procedure bill-of-material rows.
 - `GET/POST /api/clinic/procedures/[id]/intake-questions`; `PATCH/DELETE .../intake-questions/[questionId]` — manage service-specific public intake questions.
+- `GET/POST /api/clinic/aftercare-templates`; `PATCH /api/clinic/aftercare-templates/[id]` — manage reusable procedure aftercare messages/document references.
 - `GET/POST /api/clinic/stock-takes`; `GET/PATCH /api/clinic/stock-takes/[id]`; `PATCH .../lines/[lineId]`; `POST .../finalize` — create/count/finalize stock-taking sessions and post variance adjustments.
 - `GET/POST /api/clinic/suppliers`; `GET/PATCH /api/clinic/suppliers/[id]`; `POST /api/clinic/suppliers/[id]/settlements` — supplier contacts, purchase history, received value, payments, and unpaid balance.
 - `GET/POST /api/clinic/purchase-orders`; `GET/PATCH /api/clinic/purchase-orders/[id]`; `POST /api/clinic/purchase-orders/[id]/receive`.
@@ -72,8 +74,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 - `GET /api/clinic/reviews`; `PATCH /api/clinic/reviews/[id]` — reputation inbox and internal rating/reply updates.
 - `GET/POST /api/clinic/public-booking/[slug]` — public service/slot lookup, service-specific intake questions, and online appointment creation by enabled tenant slug.
 - `GET/PATCH /api/clinic/public-booking/settings` — staff on/off control stored in `tenant_settings.thresholds.publicBooking.enabled`.
-- `POST /api/clinic/visits`, `PATCH /api/clinic/visits/[id]` — visits may link to a treatment plan.
-- `POST /api/clinic/patients/[id]/media`, `GET/DELETE /api/clinic/media/[id]` — attach, serve, and delete private patient photos.
+- `POST /api/clinic/visits`, `PATCH /api/clinic/visits/[id]` — visits may link to a treatment plan and snapshot a selected aftercare template.
+- `POST /api/clinic/patients/[id]/media`, `GET/DELETE /api/clinic/media/[id]` — attach, serve, and delete private patient photos with optional visit link, capture checklist, and marketing-consent marker.
 - `POST .../payments`, `POST .../crm`.
 - `GET/POST/PATCH /api/clinic/discount-rules` — manage active named percent/fixed discount rules for visit payments and package sales.
 - `GET/POST /api/clinic/gift-cards`; `POST /api/clinic/gift-cards/redeem` — sell prepaid gift cards and redeem active balances against patient payments.

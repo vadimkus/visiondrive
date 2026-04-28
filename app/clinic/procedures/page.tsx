@@ -17,6 +17,17 @@ type Procedure = {
   active: boolean
   materials: ProcedureMaterial[]
   intakeQuestions: IntakeQuestion[]
+  aftercareTemplates: AftercareTemplate[]
+}
+
+type AftercareTemplate = {
+  id: string
+  title: string
+  messageBody: string
+  documentName: string | null
+  documentUrl: string | null
+  active: boolean
+  sortOrder: number
 }
 
 type IntakeQuestion = {
@@ -66,6 +77,13 @@ type IntakeForm = {
   required: boolean
 }
 
+type AftercareForm = {
+  title: string
+  messageBody: string
+  documentName: string
+  documentUrl: string
+}
+
 function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
 }
@@ -88,6 +106,7 @@ export default function ClinicProceduresPage() {
   const [stockItems, setStockItems] = useState<StockItem[]>([])
   const [forms, setForms] = useState<Record<string, MaterialForm>>({})
   const [intakeForms, setIntakeForms] = useState<Record<string, IntakeForm>>({})
+  const [aftercareForms, setAftercareForms] = useState<Record<string, AftercareForm>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -144,6 +163,18 @@ export default function ClinicProceduresPage() {
   function updateIntakeForm(procedureId: string, patch: Partial<IntakeForm>) {
     const defaultForm: IntakeForm = { prompt: '', helpText: '', type: 'TEXT', required: false }
     setIntakeForms((current) => ({
+      ...current,
+      [procedureId]: {
+        ...defaultForm,
+        ...current[procedureId],
+        ...patch,
+      },
+    }))
+  }
+
+  function updateAftercareForm(procedureId: string, patch: Partial<AftercareForm>) {
+    const defaultForm: AftercareForm = { title: '', messageBody: '', documentName: '', documentUrl: '' }
+    setAftercareForms((current) => ({
       ...current,
       [procedureId]: {
         ...defaultForm,
@@ -257,6 +288,61 @@ export default function ClinicProceduresPage() {
     }
   }
 
+  async function saveAftercareTemplate(procedureId: string) {
+    const form = aftercareForms[procedureId]
+    if (!form?.title.trim() || (!form.messageBody.trim() && !form.documentUrl.trim())) {
+      alert(t.aftercareTemplateRequired)
+      return
+    }
+    setBusy(`aftercare-${procedureId}`)
+    try {
+      const res = await fetch('/api/clinic/aftercare-templates', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          procedureId,
+          title: form.title,
+          messageBody: form.messageBody,
+          documentName: form.documentName || null,
+          documentUrl: form.documentUrl || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.operationFailed)
+        return
+      }
+      setAftercareForms((current) => ({
+        ...current,
+        [procedureId]: { title: '', messageBody: '', documentName: '', documentUrl: '' },
+      }))
+      await load()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function removeAftercareTemplate(templateId: string) {
+    setBusy(templateId)
+    try {
+      const res = await fetch(`/api/clinic/aftercare-templates/${templateId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: false }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.operationFailed)
+        return
+      }
+      await load()
+    } finally {
+      setBusy(null)
+    }
+  }
+
   if (loading) {
     return <ClinicSpinner label={t.loading} className="min-h-[40vh]" />
   }
@@ -285,6 +371,7 @@ export default function ClinicProceduresPage() {
           .map((p) => {
             const form = forms[p.id] ?? { stockItemId: '', quantityPerVisit: '1', unitCost: '0', note: '' }
             const intakeForm = intakeForms[p.id] ?? { prompt: '', helpText: '', type: 'TEXT' as const, required: false }
+            const aftercareForm = aftercareForms[p.id] ?? { title: '', messageBody: '', documentName: '', documentUrl: '' }
             const cost = materialCost(p.materials || [])
             return (
               <article key={p.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -399,6 +486,90 @@ export default function ClinicProceduresPage() {
                       {busy === `intake-${p.id}` ? t.savingEllipsis : t.saveQuestion}
                     </button>
                   </div>
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{t.aftercareLibrary}</h3>
+                      <p className="text-xs text-gray-500">{t.aftercareLibraryHint}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {p.aftercareTemplates?.length ? (
+                      p.aftercareTemplates.map((template) => (
+                        <div
+                          key={template.id}
+                          className="flex flex-col gap-2 rounded-xl border border-emerald-100 bg-white p-3 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{template.title}</p>
+                            {template.messageBody && (
+                              <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-xs text-gray-500">
+                                {template.messageBody}
+                              </p>
+                            )}
+                            {template.documentUrl && (
+                              <p className="mt-1 text-xs text-emerald-700">
+                                {template.documentName || t.aftercareDocumentReference}: {template.documentUrl}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            disabled={busy === template.id}
+                            onClick={() => void removeAftercareTemplate(template.id)}
+                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-red-100 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden />
+                            {t.archiveTemplate}
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="rounded-xl border border-dashed border-emerald-100 bg-white p-4 text-sm text-gray-500">
+                        {t.noAftercareTemplatesYet}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                    <input
+                      value={aftercareForm.title}
+                      onChange={(e) => updateAftercareForm(p.id, { title: e.target.value })}
+                      placeholder={t.aftercareTemplateTitle}
+                      className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
+                    />
+                    <input
+                      value={aftercareForm.documentName}
+                      onChange={(e) => updateAftercareForm(p.id, { documentName: e.target.value })}
+                      placeholder={t.aftercareDocumentName}
+                      className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
+                    />
+                    <textarea
+                      value={aftercareForm.messageBody}
+                      onChange={(e) => updateAftercareForm(p.id, { messageBody: e.target.value })}
+                      placeholder={t.aftercareMessageBody}
+                      rows={3}
+                      className="rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm text-gray-900 lg:col-span-2"
+                    />
+                    <input
+                      value={aftercareForm.documentUrl}
+                      onChange={(e) => updateAftercareForm(p.id, { documentUrl: e.target.value })}
+                      placeholder={t.aftercareDocumentUrl}
+                      className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
+                    />
+                    <button
+                      type="button"
+                      disabled={busy === `aftercare-${p.id}`}
+                      onClick={() => void saveAftercareTemplate(p.id)}
+                      className="min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                    >
+                      {busy === `aftercare-${p.id}` ? t.savingEllipsis : t.saveAftercareTemplate}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-emerald-700">{t.aftercarePlaceholdersHint}</p>
                 </div>
 
                 <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">

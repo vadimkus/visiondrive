@@ -20,6 +20,10 @@ export async function GET(request: NextRequest) {
       intakeQuestions: {
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
       },
+      aftercareTemplates: {
+        where: { active: true },
+        orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+      },
     },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
   })
