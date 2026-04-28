@@ -23,6 +23,7 @@ import {
   Star,
   Bot,
   LogOut,
+  Target,
   UserCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -40,6 +41,7 @@ const nav = [
   { href: '/clinic/suppliers', labelKey: 'suppliers' as const, icon: Truck },
   { href: '/clinic/finance', labelKey: 'finance' as const, icon: CircleDollarSign },
   { href: '/clinic/service-analytics', labelKey: 'serviceAnalytics' as const, icon: BarChart3 },
+  { href: '/clinic/revenue-plan', labelKey: 'revenuePlan' as const, icon: Target },
   { href: '/clinic/appointments', labelKey: 'appointments' as const, icon: Calendar },
   { href: '/clinic/inbox', labelKey: 'inbox' as const, icon: Inbox },
   { href: '/clinic/retention', labelKey: 'retentionAnalytics' as const, icon: Repeat2 },
@@ -90,47 +92,59 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       dir="ltr"
       lang={locale}
     >
-      <aside className="sticky top-0 z-40 shrink-0 border-b border-white/70 bg-white/85 shadow-sm shadow-orange-100/40 backdrop-blur-xl lg:w-64 lg:border-b-0 lg:border-r lg:min-h-screen lg:shadow-[inset_-1px_0_0_rgba(255,255,255,0.55)]">
-        <div className="p-3 sm:p-4 flex lg:flex-col gap-3 lg:gap-6 items-center lg:items-stretch justify-between lg:justify-start">
-          <Link
-            href="/clinic"
-            className="flex items-center gap-2 lg:px-2 min-h-11 min-w-11 lg:min-w-0"
-            aria-label={t.dashboard}
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-orange-100">
-              <Logo className="h-9 w-9" priority />
-            </div>
-            <div className="hidden lg:block min-w-0">
-              <p className="text-sm font-semibold text-gray-900 leading-tight">{t.practiceOsTitle}</p>
-              <p className="text-[11px] text-gray-500 leading-snug">{t.practiceOsBrand}</p>
-            </div>
-          </Link>
+      <aside className="sticky top-0 z-40 shrink-0 border-b border-white/70 bg-white/90 shadow-sm shadow-orange-100/40 backdrop-blur-xl lg:w-64 lg:border-b-0 lg:border-r lg:min-h-screen lg:shadow-[inset_-1px_0_0_rgba(255,255,255,0.55)]">
+        <div className="flex flex-col gap-2 p-3 sm:p-4 lg:min-h-screen lg:gap-6">
+          <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-stretch lg:justify-start lg:gap-5">
+            <Link
+              href="/clinic"
+              className="flex min-h-11 min-w-0 items-center gap-2 lg:px-2"
+              aria-label={t.dashboard}
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-orange-100">
+                <Logo className="h-9 w-9" priority />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold leading-tight text-gray-900">{t.practiceOsTitle}</p>
+                <p className="hidden text-[11px] leading-snug text-gray-500 sm:block">{t.practiceOsBrand}</p>
+              </div>
+            </Link>
 
-          <div
-            className="flex items-center gap-1 lg:px-2"
-            role="group"
-            aria-label={t.language}
-          >
-            {(['en', 'ru'] as const satisfies ClinicLocale[]).map((code) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => setLocale(code)}
-                className={clsx(
-                  'min-h-11 min-w-11 px-2 rounded-xl text-xs font-semibold transition-colors',
-                  locale === code
-                    ? 'bg-orange-100 text-orange-900 shadow-sm'
-                    : 'text-gray-500 hover:bg-white'
-                )}
-                aria-pressed={locale === code}
+            <div className="flex shrink-0 items-center gap-2 lg:flex-col lg:items-stretch">
+              <div
+                className="flex items-center gap-1 lg:px-2"
+                role="group"
+                aria-label={t.language}
               >
-                {code === 'en' ? t.localeEn : t.localeRu}
+                {(['en', 'ru'] as const satisfies ClinicLocale[]).map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setLocale(code)}
+                    className={clsx(
+                      'min-h-11 min-w-11 rounded-xl px-2 text-xs font-semibold transition-colors',
+                      locale === code
+                        ? 'bg-orange-100 text-orange-900 shadow-sm'
+                        : 'text-gray-500 hover:bg-white'
+                    )}
+                    aria-pressed={locale === code}
+                  >
+                    {code === 'en' ? t.localeEn : t.localeRu}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={logout}
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-2xl text-gray-600 hover:bg-white hover:text-gray-900 lg:hidden"
+                aria-label={t.signOut}
+              >
+                <LogOut className="h-4 w-4 shrink-0" aria-hidden />
               </button>
-            ))}
+            </div>
           </div>
 
           <nav
-            className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 scroll-smooth"
+            className="-mx-3 flex gap-1 overflow-x-auto overscroll-x-contain px-3 pb-1 scroll-smooth [scrollbar-width:none] sm:-mx-4 sm:px-4 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden"
             aria-label={t.practiceConsole}
           >
             {nav.map(({ href, labelKey, icon: Icon }) => {
@@ -142,7 +156,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
                   key={href}
                   href={href}
                   className={clsx(
-                    'flex items-center gap-2 px-3 py-3 lg:py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition-all min-h-11',
+                    'flex min-h-11 shrink-0 items-center gap-2 rounded-2xl px-3 py-3 text-sm font-medium whitespace-nowrap transition-all lg:py-2.5',
                     active
                       ? 'bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-lg shadow-orange-500/20'
                       : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'
@@ -154,10 +168,10 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
               )
             })}
           </nav>
-          <div className="flex items-center gap-2 lg:flex-col lg:mt-auto lg:pt-6">
+          <div className="hidden items-center gap-2 lg:mt-auto lg:flex lg:flex-col lg:pt-6">
             <Link
               href="/"
-              className="hidden lg:block text-xs text-gray-500 hover:text-orange-600 px-2 py-2 min-h-11"
+              className="min-h-11 px-2 py-2 text-xs text-gray-500 hover:text-orange-600"
             >
               visiondrive.ae
             </Link>
@@ -172,7 +186,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
           </div>
         </div>
       </aside>
-      <main className="flex-1 min-w-0 p-3 sm:p-5 lg:p-8">{children}</main>
+      <main className="min-w-0 flex-1 px-3 pb-24 pt-3 sm:p-5 lg:p-8">{children}</main>
     </div>
   )
 }

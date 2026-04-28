@@ -46,6 +46,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_suppliers` + `clinic_supplier_settlements` | Supplier profiles, contact/payment terms/reorder notes, settlement history, and derived unpaid balance. |
 | `clinic_purchase_orders` + `clinic_purchase_order_lines` | Supplier ordering and receiving; receipts create `RECEIPT` stock movements; orders can link to supplier profiles while preserving the supplier name snapshot. |
 | `clinic_web_push_subscriptions` | Browser push subscriptions for opted-in clinic alerts. |
+| `tenant_settings.thresholds.revenuePlan` | Clinic revenue-plan settings: current monthly target and optional expected average visit value. |
 
 Offline-safe visit drafts are intentionally device-local in this first pass. Text visit drafts live in browser `localStorage` under patient-scoped keys, then sync through the normal `POST /api/clinic/visits` path after practitioner review. Failed/offline photo uploads live in browser IndexedDB and sync through the normal `POST /api/clinic/patients/[id]/media` path. There is no server-side draft table yet.
 
@@ -94,6 +95,7 @@ Offline-safe visit drafts are intentionally device-local in this first pass. Tex
 - `GET/POST .../product-sales` — record aftercare retail products from a visit, deduct inventory, and create finance revenue payment rows.
 - `GET /api/clinic/finance/overview` — finance dashboard data including P&L v2, discounts, gift-card sales/redemptions/outstanding balance, direct material/product/payment-processing costs, product sales, operating expenses, and procedure profitability.
 - `/clinic/service-analytics` reuses `GET /api/clinic/finance/overview` for a focused service report; no separate analytics table is stored.
+- `GET/PATCH /api/clinic/revenue-plan` — current-month target planning. Settings are stored in `tenant_settings.thresholds.revenuePlan`; achieved revenue is calculated from paid/refunded patient payments and completed visits.
 - `GET/POST .../packages` — list/sell prepaid treatment packages with optional discount rule/reason; completed visits auto-debit one matching session.
 - `GET/POST /api/clinic/consents/templates`; `GET/POST .../patients/[id]/consents` — manage consent templates and signed patient consent records.
 - `GET/POST .../patients/[id]/treatment-plans`; `PATCH .../treatment-plans/[planId]` — create/update planned care courses and show progress from linked visits.

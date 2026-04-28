@@ -344,6 +344,20 @@ const articlesEn: Article[] = [
     link: '/clinic/service-analytics',
   },
   {
+    id: 'revenue-plan',
+    category: 'Finance',
+    title: 'Track the monthly revenue target',
+    summary: 'Set a monthly revenue plan and see achieved revenue, gap, required visits, and daily pace.',
+    steps: [
+      'Open Revenue plan from the sidebar or dashboard quick actions.',
+      'Enter the monthly revenue target and, optionally, the expected average visit value.',
+      'Review achieved revenue from paid payments minus refunds for the current month.',
+      'Use required visits and required daily pace to decide whether to add follow-ups, promotions, or available slots.',
+      'Refresh during the day after recording payments to see the latest gap.',
+    ],
+    link: '/clinic/revenue-plan',
+  },
+  {
     id: 'payment-fee-rules',
     category: 'Finance',
     title: 'Subtract payment fees automatically',
@@ -993,6 +1007,20 @@ const articlesRu: Article[] = [
       'Используйте Финансы, когда нужен полный P&L, расходы, скидки, подарочные карты и комиссии оплат.',
     ],
     link: '/clinic/service-analytics',
+  },
+  {
+    id: 'revenue-plan',
+    category: 'Финансы',
+    title: 'Следите за месячной целью выручки',
+    summary: 'План выручки показывает достигнутую сумму, разрыв, нужные визиты и дневной темп.',
+    steps: [
+      'Откройте План выручки в боковом меню или быстрых действиях дашборда.',
+      'Введите цель на месяц и, при необходимости, ожидаемый средний чек визита.',
+      'Смотрите достигнутую выручку из оплаченных платежей минус возвраты за текущий месяц.',
+      'Используйте нужные визиты и нужный дневной темп, чтобы решить, нужны ли follow-up сообщения, акции или свободные слоты.',
+      'Обновляйте отчёт в течение дня после записи оплат, чтобы видеть актуальный разрыв.',
+    ],
+    link: '/clinic/revenue-plan',
   },
   {
     id: 'payment-fee-rules',

@@ -349,6 +349,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 48. Revenue plan
    - Source: revenue plans.
    - Solo version: monthly target, required visits, achieved revenue, daily pace, gap.
+   - Status: shipped first pass.
+   - Shipped: added `/clinic/revenue-plan` with a monthly target form, optional average visit value, current-month achieved revenue, completed visits, gap, daily pace, required daily pace, projected month, and required visits. Settings live in `tenant_settings.thresholds.revenuePlan`.
+   - Next improvements: target history by month, custom plan periods, per-service target mix, pacing alerts, and planned working-day calendars.
 
 49. Occupancy and free-slot report
    - Source: occupancy analytics.

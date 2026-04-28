@@ -1072,6 +1072,23 @@
 
 ---
 
+## Chunk 61 — 2026-04-28 (mobile portal pass + revenue plan)
+
+**Shipped**
+
+- **Mobile shell:** reworked the clinic shell into a compact mobile top row plus a full-width swipeable navigation row; desktop keeps the persistent sidebar.
+- **Mobile spacing:** added safe bottom padding to the clinic console and tightened dashboard quick actions for iPhone/iPad use.
+- **Revenue plan:** added `/clinic/revenue-plan` with monthly target, achieved revenue, gap, daily pace, required daily pace, projected month, completed visits, and required visits.
+- **Storage:** revenue-plan settings live in `tenant_settings.thresholds.revenuePlan`; no new schema/table.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, data-model, and session notes updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

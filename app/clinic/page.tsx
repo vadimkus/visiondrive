@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Users, ListOrdered, Calendar, CalendarClock, ArrowRight, Package, Send, Sparkles, Link as LinkIcon, BarChart3 } from 'lucide-react'
+import { Users, ListOrdered, Calendar, CalendarClock, ArrowRight, Package, Send, Sparkles, Link as LinkIcon, BarChart3, Target } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicPwaPractitionerCard } from '@/components/clinic/ClinicPwaPractitionerCard'
@@ -244,7 +244,7 @@ export default function ClinicDashboardPage() {
 
       <div className="bg-white/90 rounded-3xl border border-white/80 p-5 shadow-sm shadow-orange-100/40 backdrop-blur space-y-3">
         <p className="text-sm font-medium text-gray-900">{t.quickActions}</p>
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="grid grid-cols-1 gap-2 min-[430px]:grid-cols-2 lg:flex lg:flex-wrap">
           <Link
             href="/clinic/patients/new"
             className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 shadow-sm hover:shadow transition-shadow"
@@ -276,6 +276,13 @@ export default function ClinicDashboardPage() {
           >
             <BarChart3 className="h-4 w-4" aria-hidden />
             {t.serviceAnalytics}
+          </Link>
+          <Link
+            href="/clinic/revenue-plan"
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+          >
+            <Target className="h-4 w-4" aria-hidden />
+            {t.revenuePlan}
           </Link>
           {stats?.bookingUrl && (
             <Link
