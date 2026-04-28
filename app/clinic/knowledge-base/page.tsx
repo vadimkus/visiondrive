@@ -193,6 +193,20 @@ const articlesEn: Article[] = [
     link: '/clinic/patients',
   },
   {
+    id: 'whatsapp-assistant',
+    category: 'Messages',
+    title: 'Use the WhatsApp assistant for fast replies',
+    summary: 'Prepare booking, price, intake, status, and follow-up replies without typing from scratch.',
+    steps: [
+      'Open WhatsApp Assistant from the sidebar.',
+      'Choose the reply type: booking link, prices, intake, appointment status, or reminder.',
+      'Select a patient when you want the text personalized and routed to their phone.',
+      'For price replies, choose services from the procedure catalog.',
+      'Review the preview, then copy the text or open WhatsApp. The final send stays manual.',
+    ],
+    link: '/clinic/whatsapp-assistant',
+  },
+  {
     id: 'practitioner-push-notifications',
     category: 'Account',
     title: 'Send practitioner push alerts',
@@ -786,6 +800,20 @@ const articlesRu: Article[] = [
       'В истории расчётов видно, что было в черновике, отправлено, принято, истекло или отклонено.',
     ],
     link: '/clinic/patients',
+  },
+  {
+    id: 'whatsapp-assistant',
+    category: 'Сообщения',
+    title: 'Используйте WhatsApp-ассистент для быстрых ответов',
+    summary: 'Готовьте ответы по записи, ценам, intake, статусу записи и follow-up без ручного набора с нуля.',
+    steps: [
+      'Откройте WhatsApp-ассистент в боковом меню.',
+      'Выберите тип ответа: ссылка для записи, цены, intake, статус записи или follow-up.',
+      'Выберите пациента, если нужен персональный текст и отправка на его номер.',
+      'Для ответа по ценам выберите услуги из каталога процедур.',
+      'Проверьте предпросмотр, затем скопируйте текст или откройте WhatsApp. Финальная отправка остаётся ручной.',
+    ],
+    link: '/clinic/whatsapp-assistant',
   },
   {
     id: 'practitioner-push-notifications',

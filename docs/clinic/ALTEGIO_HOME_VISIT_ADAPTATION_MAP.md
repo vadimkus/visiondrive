@@ -321,6 +321,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 44. WhatsApp bot intake
    - Source: chatbot integrations.
    - Solo version: later-stage bot for FAQs, booking link, appointment status, intake link, and reminder replies.
+   - Status: shipped first pass.
+   - Shipped: added `/clinic/whatsapp-assistant` as a manual bot-style reply builder for booking links, price replies, intake prompts, appointment status, and follow-up/reminder replies. It selects patients/services, previews the generated message, copies text, and opens WhatsApp while keeping final send under practitioner control.
+   - Next improvements: save sent messages to patient history, reusable message templates, inbound reply capture, and WhatsApp Business API automation when justified.
 
 45. Message history
    - Source: chat features and sent messages history.

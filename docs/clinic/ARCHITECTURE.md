@@ -65,6 +65,8 @@ Patient portal lite: `/patient-portal/[token]` is a private, token-based patient
 
 PWA practitioner mode: `/site.webmanifest` starts installed app sessions at `/clinic`, exposes shortcuts for Today/New appointment/Patients, and uses the clinic app icon. The clinic dashboard registers `/clinic-push-sw.js` and shows an installable mobile-first practitioner card with online/offline status, today's agenda, quick actions, and a device-local offline note draft. Patient visit forms autosave patient-scoped local drafts and can import the dashboard scratchpad; the local draft is cleared only after the standard `/api/clinic/visits` save succeeds. Patient photo uploads that happen offline or fail due to connectivity are queued in browser IndexedDB and synced manually from the Photos tab. The first pass does not cache authenticated clinic routes or run background sync; those remain later features.
 
+WhatsApp assistant: `/clinic/whatsapp-assistant` is a manual, practitioner-controlled first pass for bot-like intake replies. It fetches patients, procedures, and booking-link status to generate booking, price, intake, appointment-status, and reminder/follow-up messages, then copies text or opens `wa.me`. It does not receive inbound WhatsApp messages or auto-send; full WhatsApp Business API automation remains a later integration.
+
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.

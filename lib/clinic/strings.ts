@@ -275,6 +275,50 @@ const table = {
     quoteTextCopied: 'Quote text copied.',
     shareWhatsApp: 'WhatsApp',
     shareEmail: 'Email',
+    whatsappAssistant: 'WhatsApp Assistant',
+    whatsappAssistantBadge: 'Manual bot first pass',
+    whatsappAssistantHint:
+      'Generate fast replies for price questions, booking links, intake prompts, appointment status, and reminder replies. Copy or open WhatsApp; sending stays under practitioner control.',
+    whatsappAssistantBookingDisabled:
+      'Public booking is currently off. Turn it on from the dashboard before sharing booking links.',
+    whatsappAssistantBuildReply: 'Build reply',
+    whatsappAssistantPreview: 'Preview',
+    whatsappAssistantPreviewHint: 'Review the text before sending. Personalize it in WhatsApp if needed.',
+    whatsappAssistantMode_booking: 'Booking link',
+    whatsappAssistantMode_prices: 'Price reply',
+    whatsappAssistantMode_intake: 'Intake prompt',
+    whatsappAssistantMode_status: 'Appointment status',
+    whatsappAssistantMode_reminder: 'Reminder reply',
+    whatsappAssistantNoPatient: 'No patient / generic reply',
+    whatsappAssistantClientFallback: 'there',
+    whatsappAssistantGreeting: 'Hi {name},',
+    whatsappAssistantBookingLinkLabel: 'Booking link',
+    whatsappAssistantBookingUnavailable: 'Booking link is not enabled yet.',
+    whatsappAssistantBookingIntro:
+      'You can choose a service and available time using the private booking link below.',
+    whatsappAssistantBookingClose:
+      'Once you submit the request, I will confirm the appointment personally.',
+    whatsappAssistantPricesIntro: 'Here are the current guide prices:',
+    whatsappAssistantPricesDisclaimer:
+      'Final pricing can change after consultation, product selection, or treatment-plan changes.',
+    whatsappAssistantSelectServices: 'Select one or more services to include prices.',
+    whatsappAssistantIntakeIntro:
+      'Before we confirm the appointment, please use the booking/intake link and answer the questions there. This helps me prepare safely.',
+    whatsappAssistantExtraQuestion: 'Extra question',
+    whatsappAssistantOptionalQuestion: 'Optional extra question',
+    whatsappAssistantOptionalQuestionPlaceholder:
+      'Example: Please tell me if you are pregnant, using retinoids, or had recent injections.',
+    whatsappAssistantStatusIntro: 'Current appointment status:',
+    whatsappAssistantNoUpcomingAppointment:
+      'I do not see a future appointment in your card yet. Please use the booking link or send me your preferred time.',
+    whatsappAssistantStatusHelp:
+      'If this time no longer works, reply here and I will help reschedule.',
+    whatsappAssistantReminderIntro:
+      'Quick reminder: it may be time to book your next visit or follow-up.',
+    whatsappAssistantReminderClose:
+      'Reply here if you want me to suggest the best next slot.',
+    whatsappAssistantChooseServices: 'Choose services to mention',
+    copied: 'Copied',
     appointmentDefault: 'Appointment',
     dobLabel: 'DOB',
     ageYears: 'years',
@@ -1663,6 +1707,50 @@ const ruOverrides: Partial<ClinicStrings> = {
   quoteTextCopied: 'Текст расчёта скопирован.',
   shareWhatsApp: 'WhatsApp',
   shareEmail: 'Email',
+  whatsappAssistant: 'WhatsApp-ассистент',
+  whatsappAssistantBadge: 'Первый ручной bot-pass',
+  whatsappAssistantHint:
+    'Быстро генерируйте ответы на вопросы о ценах, ссылки для записи, intake-вопросы, статус записи и follow-up. Копируйте или открывайте WhatsApp; отправка остаётся под контролем специалиста.',
+  whatsappAssistantBookingDisabled:
+    'Публичная запись сейчас выключена. Включите её на дашборде перед отправкой ссылки.',
+  whatsappAssistantBuildReply: 'Собрать ответ',
+  whatsappAssistantPreview: 'Предпросмотр',
+  whatsappAssistantPreviewHint: 'Проверьте текст перед отправкой. При необходимости поправьте его в WhatsApp.',
+  whatsappAssistantMode_booking: 'Ссылка для записи',
+  whatsappAssistantMode_prices: 'Ответ по ценам',
+  whatsappAssistantMode_intake: 'Intake-вопросы',
+  whatsappAssistantMode_status: 'Статус записи',
+  whatsappAssistantMode_reminder: 'Follow-up / напоминание',
+  whatsappAssistantNoPatient: 'Без пациента / общий ответ',
+  whatsappAssistantClientFallback: 'добрый день',
+  whatsappAssistantGreeting: 'Здравствуйте, {name},',
+  whatsappAssistantBookingLinkLabel: 'Ссылка для записи',
+  whatsappAssistantBookingUnavailable: 'Ссылка для записи пока не включена.',
+  whatsappAssistantBookingIntro:
+    'Вы можете выбрать услугу и удобное время по приватной ссылке ниже.',
+  whatsappAssistantBookingClose:
+    'После отправки заявки я лично подтвержу запись.',
+  whatsappAssistantPricesIntro: 'Актуальные ориентировочные цены:',
+  whatsappAssistantPricesDisclaimer:
+    'Итоговая цена может измениться после консультации, выбора продуктов или изменения плана лечения.',
+  whatsappAssistantSelectServices: 'Выберите одну или несколько услуг, чтобы добавить цены.',
+  whatsappAssistantIntakeIntro:
+    'Перед подтверждением записи, пожалуйста, откройте ссылку и ответьте на вопросы. Это поможет безопасно подготовиться.',
+  whatsappAssistantExtraQuestion: 'Дополнительный вопрос',
+  whatsappAssistantOptionalQuestion: 'Дополнительный вопрос',
+  whatsappAssistantOptionalQuestionPlaceholder:
+    'Например: сообщите, если вы беременны, используете ретиноиды или недавно делали инъекции.',
+  whatsappAssistantStatusIntro: 'Текущий статус записи:',
+  whatsappAssistantNoUpcomingAppointment:
+    'Пока не вижу будущей записи в вашей карте. Отправьте удобное время или используйте ссылку для записи.',
+  whatsappAssistantStatusHelp:
+    'Если это время не подходит, ответьте здесь, и я помогу перенести запись.',
+  whatsappAssistantReminderIntro:
+    'Напоминание: возможно, пора запланировать следующий визит или follow-up.',
+  whatsappAssistantReminderClose:
+    'Ответьте здесь, если хотите, чтобы я предложил ближайшее удобное время.',
+  whatsappAssistantChooseServices: 'Выберите услуги для сообщения',
+  copied: 'Скопировано',
   appointmentDefault: 'Запись',
   dobLabel: 'Дата рождения',
   ageYears: 'лет',

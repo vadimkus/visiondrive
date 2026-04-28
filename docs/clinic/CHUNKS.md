@@ -1004,6 +1004,23 @@
 
 ---
 
+## Chunk 57 — 2026-04-28 (WhatsApp bot intake first pass)
+
+**Shipped**
+
+- **Assistant page:** added `/clinic/whatsapp-assistant` and sidebar navigation.
+- **Reply builder:** generates practitioner-reviewed WhatsApp text for booking links, price replies, intake prompts, appointment status, and reminder/follow-up messages.
+- **Context:** pulls patient list/details, upcoming appointment status, procedure prices, and public booking link state.
+- **Handoff:** supports copy-to-clipboard and opening WhatsApp via `wa.me`; no automatic sending or inbound capture yet.
+- **i18n/docs:** EN/RU strings, architecture, backlog, Knowledge Base, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

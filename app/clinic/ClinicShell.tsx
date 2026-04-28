@@ -21,6 +21,7 @@ import {
   Share2,
   Send,
   Star,
+  Bot,
   LogOut,
   UserCircle,
 } from 'lucide-react'
@@ -44,6 +45,7 @@ const nav = [
   { href: '/clinic/booking-funnel', labelKey: 'bookingFunnelAnalytics' as const, icon: BarChart3 },
   { href: '/clinic/occasions', labelKey: 'occasions' as const, icon: Gift },
   { href: '/clinic/referrals', labelKey: 'referrals' as const, icon: Share2 },
+  { href: '/clinic/whatsapp-assistant', labelKey: 'whatsappAssistant' as const, icon: Bot },
   { href: '/clinic/reminders', labelKey: 'reminders' as const, icon: Send },
   { href: '/clinic/reputation', labelKey: 'reputation' as const, icon: Star },
   { href: '/clinic/knowledge-base', labelKey: 'knowledgeBase' as const, icon: BookOpen },
