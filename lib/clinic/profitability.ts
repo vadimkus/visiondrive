@@ -1,6 +1,7 @@
 export type ProfitabilityPayment = {
   id?: string | null
   amountCents: number
+  discountCents?: number | null
   processorFeeCents?: number | null
   status: string
 }
@@ -26,6 +27,7 @@ export type ProcedureProfitabilityRow = {
   visits: number
   totalMinutes: number
   expectedRevenueCents: number
+  discountCents: number
   paidRevenueCents: number
   refundsCents: number
   netRevenueCents: number
@@ -57,6 +59,7 @@ export function materialCostPerVisit(materials: ProfitabilityMaterial[]) {
 export function paymentNetTotals(payments: ProfitabilityPayment[]) {
   const seen = new Set<string>()
   let paidRevenueCents = 0
+  let discountCents = 0
   let refundsCents = 0
   let processorFeeCents = 0
 
@@ -66,6 +69,7 @@ export function paymentNetTotals(payments: ProfitabilityPayment[]) {
       seen.add(payment.id)
     }
     const amountCents = positiveCents(payment.amountCents)
+    discountCents += positiveCents(payment.discountCents ?? 0)
     const paymentProcessorFeeCents = positiveCents(payment.processorFeeCents ?? 0)
     const status = payment.status.toUpperCase()
     if (status === 'PAID') paidRevenueCents += amountCents
@@ -75,6 +79,7 @@ export function paymentNetTotals(payments: ProfitabilityPayment[]) {
 
   return {
     paidRevenueCents,
+    discountCents,
     refundsCents,
     processorFeeCents,
     netRevenueCents: paidRevenueCents - refundsCents,
@@ -96,6 +101,7 @@ export function buildProcedureProfitability(
         visits: 0,
         totalMinutes: 0,
         expectedRevenueCents: 0,
+        discountCents: 0,
         paidRevenueCents: 0,
         refundsCents: 0,
         netRevenueCents: 0,
@@ -110,6 +116,7 @@ export function buildProcedureProfitability(
     existing.visits += 1
     existing.totalMinutes += positiveMinutes(visit.durationMinutes)
     existing.expectedRevenueCents += positiveCents(visit.expectedRevenueCents)
+    existing.discountCents += paymentTotals.discountCents
     existing.paidRevenueCents += paymentTotals.paidRevenueCents
     existing.refundsCents += paymentTotals.refundsCents
     existing.netRevenueCents += paymentTotals.netRevenueCents

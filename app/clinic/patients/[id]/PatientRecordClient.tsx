@@ -68,6 +68,11 @@ type VisitRow = {
 type PaymentRow = {
   id: string
   amountCents: number
+  discountCents: number
+  discountRuleId: string | null
+  discountName: string | null
+  discountReason: string | null
+  feeCents: number
   processorFeeCents: number
   currency: string
   method: string
@@ -134,6 +139,11 @@ type PackageRow = {
   name: string
   totalSessions: number
   remainingSessions: number
+  listPriceCents: number
+  discountCents: number
+  discountRuleId: string | null
+  discountName: string | null
+  discountReason: string | null
   priceCents: number
   currency: string
   status: 'ACTIVE' | 'USED_UP' | 'EXPIRED' | 'CANCELLED'
@@ -142,6 +152,15 @@ type PackageRow = {
   note: string | null
   procedure: ProcedureRef
   redemptions: PackageRedemptionRow[]
+}
+
+type DiscountRule = {
+  id: string
+  name: string
+  type: 'PERCENT' | 'FIXED'
+  percentBps: number
+  fixedCents: number
+  active: boolean
 }
 
 type ConsentTemplateRow = {
@@ -310,6 +329,13 @@ function ageFromDob(iso: string) {
 
 function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+function calculateDiscountFromRule(baseCents: number, rule: DiscountRule | undefined) {
+  if (!rule?.active) return 0
+  const base = Math.max(0, baseCents)
+  if (rule.type === 'FIXED') return Math.min(base, rule.fixedCents)
+  return Math.min(base, Math.round((base * rule.percentBps) / 10_000))
 }
 
 function paymentRefundedCents(payment: PaymentRow) {
@@ -2157,10 +2183,14 @@ function PackagesTab({
   const { locale, t } = useClinicLocale()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [procedures, setProcedures] = useState<Array<{ id: string; name: string; basePriceCents: number; currency: string }>>([])
+  const [discountRules, setDiscountRules] = useState<DiscountRule[]>([])
   const [name, setName] = useState('')
   const [procedureId, setProcedureId] = useState('')
   const [totalSessions, setTotalSessions] = useState('5')
   const [price, setPrice] = useState('')
+  const [discount, setDiscount] = useState('')
+  const [discountRuleId, setDiscountRuleId] = useState('')
+  const [discountReason, setDiscountReason] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('CARD')
   const [paymentStatus, setPaymentStatus] = useState('PAID')
@@ -2170,11 +2200,18 @@ function PackagesTab({
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const res = await fetch('/api/clinic/procedures', { credentials: 'include' })
+      const [res, discountRes] = await Promise.all([
+        fetch('/api/clinic/procedures', { credentials: 'include' }),
+        fetch('/api/clinic/discount-rules', { credentials: 'include' }),
+      ])
       if (!res.ok) return
       const data = await res.json()
       if (!cancelled) {
         setProcedures((data.procedures || []).filter((procedure: { active: boolean }) => procedure.active))
+        if (discountRes.ok) {
+          const discountData = await discountRes.json()
+          setDiscountRules((discountData.rules || []).filter((rule: DiscountRule) => rule.active))
+        }
       }
     })()
     return () => {
@@ -2186,6 +2223,7 @@ function PackagesTab({
     e.preventDefault()
     const sessions = Number.parseInt(totalSessions, 10)
     const major = Number.parseFloat(price || '0')
+    const discountMajor = Number.parseFloat(discount || '0')
     if (!name.trim()) {
       alert(t.packageNameRequired)
       return
@@ -2196,6 +2234,14 @@ function PackagesTab({
     }
     if (!Number.isFinite(major) || major < 0) {
       alert(t.enterValidAmount)
+      return
+    }
+    if (!Number.isFinite(discountMajor) || discountMajor < 0) {
+      alert(t.enterValidAmount)
+      return
+    }
+    if (discountMajor > 0 && !discountReason.trim()) {
+      alert(t.discountReasonRequired)
       return
     }
     setSaving(true)
@@ -2209,6 +2255,9 @@ function PackagesTab({
           procedureId: procedureId || null,
           totalSessions: sessions,
           priceCents: Math.round(major * 100),
+          discountCents: Math.round(discountMajor * 100),
+          discountRuleId: discountRuleId || null,
+          discountReason: discountReason.trim() || null,
           currency: 'AED',
           expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
           paymentMethod,
@@ -2225,6 +2274,9 @@ function PackagesTab({
       setProcedureId('')
       setTotalSessions('5')
       setPrice('')
+      setDiscount('')
+      setDiscountRuleId('')
+      setDiscountReason('')
       setExpiresAt('')
       setNote('')
       await onRefresh()
@@ -2289,6 +2341,47 @@ function PackagesTab({
               onChange={(e) => setPrice(e.target.value)}
               inputMode="decimal"
               placeholder="1500"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.discountRuleOptional}</label>
+            <select
+              value={discountRuleId}
+              onChange={(e) => {
+                const ruleId = e.target.value
+                setDiscountRuleId(ruleId)
+                const rule = discountRules.find((item) => item.id === ruleId)
+                const baseCents = Math.round(Number.parseFloat(price || '0') * 100)
+                const calculated = calculateDiscountFromRule(baseCents, rule)
+                if (calculated > 0) setDiscount((calculated / 100).toFixed(2))
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="">{t.noDiscountRule}</option>
+              {discountRules.map((rule) => (
+                <option key={rule.id} value={rule.id}>
+                  {rule.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.paymentDiscount}</label>
+            <input
+              value={discount}
+              onChange={(e) => setDiscount(e.target.value)}
+              inputMode="decimal"
+              placeholder="0"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.discountReason}</label>
+            <input
+              value={discountReason}
+              onChange={(e) => setDiscountReason(e.target.value)}
+              placeholder={t.discountReasonPlaceholder}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
             />
           </div>
@@ -2378,6 +2471,13 @@ function PackagesTab({
                     <p className="mt-1 text-sm text-gray-600">
                       {item.procedure?.name ?? t.allServicesPackage} · {formatMoney(item.priceCents, item.currency)}
                     </p>
+                    {item.discountCents > 0 && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        {t.discountTotal}: {formatMoney(item.discountCents, item.currency)} ·{' '}
+                        {item.discountName ?? t.manualDiscount}
+                        {item.discountReason ? ` · ${item.discountReason}` : ''}
+                      </p>
+                    )}
                     <p className="mt-1 text-xs text-gray-500">
                       {t.packagePurchased}:{' '}
                       {new Date(item.purchasedAt).toLocaleDateString(dateLocale, {
@@ -2805,12 +2905,29 @@ function PaymentsTab({
   const { locale, t } = useClinicLocale()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [amount, setAmount] = useState('')
+  const [discount, setDiscount] = useState('')
+  const [discountRuleId, setDiscountRuleId] = useState('')
+  const [discountReason, setDiscountReason] = useState('')
+  const [discountRules, setDiscountRules] = useState<DiscountRule[]>([])
   const [method, setMethod] = useState('CARD')
   const [status, setStatus] = useState('PAID')
   const [note, setNote] = useState('')
   const [visitId, setVisitId] = useState('')
   const [saving, setSaving] = useState(false)
   const [correctingId, setCorrectingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/clinic/discount-rules', { credentials: 'include' })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!cancelled) setDiscountRules((data.rules || []).filter((rule: DiscountRule) => rule.active))
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -2820,6 +2937,16 @@ function PaymentsTab({
       return
     }
     const amountCents = Math.round(major * 100)
+    const discountMajor = Number.parseFloat(discount || '0')
+    if (!Number.isFinite(discountMajor) || discountMajor < 0) {
+      alert(t.enterValidAmount)
+      return
+    }
+    const discountCents = Math.round(discountMajor * 100)
+    if (discountCents > 0 && !discountReason.trim()) {
+      alert(t.discountReasonRequired)
+      return
+    }
     setSaving(true)
     try {
       const res = await fetch(`/api/clinic/patients/${patient.id}/payments`, {
@@ -2828,6 +2955,9 @@ function PaymentsTab({
         credentials: 'include',
         body: JSON.stringify({
           amountCents,
+          discountCents,
+          discountRuleId: discountRuleId || null,
+          discountReason: discountReason.trim() || null,
           currency: 'AED',
           method,
           status,
@@ -2842,6 +2972,9 @@ function PaymentsTab({
         return
       }
       setAmount('')
+      setDiscount('')
+      setDiscountRuleId('')
+      setDiscountReason('')
       setNote('')
       await onRefresh()
     } finally {
@@ -2913,6 +3046,28 @@ function PaymentsTab({
             />
           </div>
           <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.discountRuleOptional}</label>
+            <select
+              value={discountRuleId}
+              onChange={(e) => {
+                const ruleId = e.target.value
+                setDiscountRuleId(ruleId)
+                const rule = discountRules.find((item) => item.id === ruleId)
+                const baseCents = Math.round(Number.parseFloat(amount || '0') * 100)
+                const calculated = calculateDiscountFromRule(baseCents, rule)
+                if (calculated > 0) setDiscount((calculated / 100).toFixed(2))
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="">{t.noDiscountRule}</option>
+              {discountRules.map((rule) => (
+                <option key={rule.id} value={rule.id}>
+                  {rule.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
             <label className="block text-sm text-gray-600 mb-1">{t.paymentMethod}</label>
             <select
               value={method}
@@ -2927,6 +3082,25 @@ function PaymentsTab({
               <option value="OTHER">{t.payMethodOther}</option>
             </select>
           </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.paymentDiscount}</label>
+            <input
+              value={discount}
+              onChange={(e) => setDiscount(e.target.value)}
+              inputMode="decimal"
+              placeholder="0"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.discountReason}</label>
+          <input
+            value={discountReason}
+            onChange={(e) => setDiscountReason(e.target.value)}
+            placeholder={t.discountReasonPlaceholder}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.paymentStatusLabel}</label>
@@ -3026,6 +3200,13 @@ function PaymentsTab({
                 {pmt.processorFeeCents > 0 && (
                   <p className="text-gray-500 text-xs mt-1">
                     {t.paymentProcessorFee}: {formatMoney(pmt.processorFeeCents, pmt.currency)}
+                  </p>
+                )}
+                {pmt.discountCents > 0 && (
+                  <p className="text-gray-500 text-xs mt-1">
+                    {t.discountTotal}: {formatMoney(pmt.discountCents, pmt.currency)} ·{' '}
+                    {pmt.discountName ?? t.manualDiscount}
+                    {pmt.discountReason ? ` · ${pmt.discountReason}` : ''}
                   </p>
                 )}
                 {(pmt.correctionsAsOriginal?.length ?? 0) > 0 && (

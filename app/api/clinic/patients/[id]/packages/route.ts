@@ -3,6 +3,7 @@ import { ClinicPaymentMethod, ClinicPaymentStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
 import { calculateProcessorFeeForPayment, PAYMENT_FEE_METHODS } from '@/lib/clinic/payment-fees'
+import { normalizeDiscountReason, validateDiscountApplication } from '@/lib/clinic/discount-rules'
 import {
   normalizePackagePriceCents,
   normalizePackageSessions,
@@ -102,11 +103,31 @@ export async function POST(
   }
 
   const totalSessions = normalizePackageSessions(body.totalSessions, 5)
-  const priceCents = normalizePackagePriceCents(body.priceCents)
+  const listPriceCents = normalizePackagePriceCents(body.priceCents)
+  const discountCents = normalizePackagePriceCents(body.discountCents)
+  const discountReason = normalizeDiscountReason(body.discountReason)
+  const discountError = validateDiscountApplication({ discountCents, discountReason })
+  if (discountError) {
+    return NextResponse.json({ error: discountError }, { status: 400 })
+  }
+  const priceCents = Math.max(0, listPriceCents - discountCents)
   const currency = body.currency != null ? String(body.currency).trim().toUpperCase() || 'AED' : 'AED'
   const note = body.note != null ? String(body.note).trim() || null : null
   const method = parseMethod(String(body.paymentMethod ?? 'CARD'))
   const paymentStatus = parsePayStatus(String(body.paymentStatus ?? 'PAID'))
+  const discountRuleId =
+    body.discountRuleId != null && String(body.discountRuleId).trim()
+      ? String(body.discountRuleId).trim()
+      : null
+  const discountRule = discountRuleId
+    ? await prisma.clinicDiscountRule.findFirst({
+        where: { id: discountRuleId, tenantId: session.tenantId, active: true },
+        select: { id: true, name: true },
+      })
+    : null
+  if (discountRuleId && !discountRule) {
+    return NextResponse.json({ error: 'Discount rule not found' }, { status: 400 })
+  }
   const purchasedAtRaw = body.purchasedAt != null ? String(body.purchasedAt) : ''
   const purchasedAt = purchasedAtRaw ? new Date(purchasedAtRaw) : new Date()
   if (Number.isNaN(purchasedAt.getTime())) {
@@ -128,6 +149,11 @@ export async function POST(
         name,
         totalSessions,
         remainingSessions: totalSessions,
+        listPriceCents,
+        discountCents,
+        discountRuleId: discountRule?.id ?? null,
+        discountName: discountCents > 0 ? discountRule?.name ?? null : null,
+        discountReason: discountCents > 0 ? discountReason : null,
         priceCents,
         currency: currency.slice(0, 8),
         purchasedAt,
@@ -152,6 +178,10 @@ export async function POST(
               tenantId: session.tenantId,
               patientId,
               amountCents: priceCents,
+              discountCents,
+              discountRuleId: discountRule?.id ?? null,
+              discountName: discountCents > 0 ? discountRule?.name ?? null : null,
+              discountReason: discountCents > 0 ? discountReason : null,
               processorFeeCents: calculateProcessorFeeForPayment({
                 amountCents: priceCents,
                 status: paymentStatus,
@@ -161,7 +191,11 @@ export async function POST(
               method,
               status: paymentStatus,
               reference: packagePaymentReference(patientPackage.id),
-              note: note ? `Package: ${name}. ${note}` : `Package: ${name}`,
+              note: [
+                `Package: ${name}`,
+                discountCents > 0 ? `Discount: ${(discountCents / 100).toFixed(2)} ${currency}` : null,
+                note,
+              ].filter(Boolean).join('. '),
               paidAt: purchasedAt,
               createdByUserId: session.userId,
             },

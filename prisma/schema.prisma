@@ -98,6 +98,7 @@ model Tenant {
   clinicPatientPayments       ClinicPatientPayment[]
   clinicPaymentCorrections    ClinicPaymentCorrection[]
   clinicPaymentFeeRules       ClinicPaymentFeeRule[]
+  clinicDiscountRules         ClinicDiscountRule[]
   clinicDailyCloses           ClinicDailyClose[]
   clinicProductSales          ClinicProductSale[]
   clinicProductSaleLines      ClinicProductSaleLine[]
@@ -1242,6 +1243,11 @@ enum ClinicPaymentCorrectionType {
   VOID
 }
 
+enum ClinicDiscountRuleType {
+  PERCENT
+  FIXED
+}
+
 enum ClinicPatientPackageStatus {
   ACTIVE
   USED_UP
@@ -1327,6 +1333,9 @@ model ClinicPatientPayment {
   appointmentId     String?
   amountCents       Int
   discountCents     Int                 @default(0)
+  discountRuleId    String?
+  discountName      String?
+  discountReason    String?             @db.Text
   feeCents          Int                 @default(0)
   processorFeeCents Int                 @default(0)
   currency          String              @default("AED")
@@ -1342,12 +1351,14 @@ model ClinicPatientPayment {
   patient                ClinicPatient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
   visit                  ClinicVisit?              @relation(fields: [visitId], references: [id], onDelete: SetNull)
   appointment            ClinicAppointment?        @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  discountRule           ClinicDiscountRule?       @relation(fields: [discountRuleId], references: [id], onDelete: SetNull)
   productSale            ClinicProductSale?
   correctionsAsOriginal  ClinicPaymentCorrection[] @relation("OriginalPaymentCorrections")
   correctionAsAdjustment ClinicPaymentCorrection?  @relation("AdjustmentPaymentCorrection")
 
   @@index([tenantId, patientId, paidAt])
   @@index([appointmentId, paidAt])
+  @@index([discountRuleId, paidAt])
   @@map("clinic_patient_payments")
 }
 
@@ -1393,6 +1404,28 @@ model ClinicPaymentFeeRule {
   @@unique([tenantId, method])
   @@index([tenantId, active])
   @@map("clinic_payment_fee_rules")
+}
+
+model ClinicDiscountRule {
+  id              String                 @id @default(cuid())
+  tenantId        String
+  name            String
+  type            ClinicDiscountRuleType @default(PERCENT)
+  percentBps      Int                    @default(0)
+  fixedCents      Int                    @default(0)
+  active          Boolean                @default(true)
+  note            String?                @db.Text
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  createdByUserId String?
+
+  tenant   Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payments ClinicPatientPayment[]
+  packages ClinicPatientPackage[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, active, name])
+  @@map("clinic_discount_rules")
 }
 
 model ClinicDailyClose {
@@ -1477,6 +1510,11 @@ model ClinicPatientPackage {
   name              String
   totalSessions     Int
   remainingSessions Int
+  listPriceCents    Int                        @default(0)
+  discountCents     Int                        @default(0)
+  discountRuleId    String?
+  discountName      String?
+  discountReason    String?                    @db.Text
   priceCents        Int                        @default(0)
   currency          String                     @default("AED")
   status            ClinicPatientPackageStatus @default(ACTIVE)
@@ -1487,13 +1525,15 @@ model ClinicPatientPackage {
   updatedAt         DateTime                   @updatedAt
   createdByUserId   String?
 
-  tenant      Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient     ClinicPatient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  procedure   ClinicProcedure?          @relation(fields: [procedureId], references: [id], onDelete: SetNull)
-  redemptions ClinicPackageRedemption[]
+  tenant       Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient      ClinicPatient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure    ClinicProcedure?          @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  discountRule ClinicDiscountRule?       @relation(fields: [discountRuleId], references: [id], onDelete: SetNull)
+  redemptions  ClinicPackageRedemption[]
 
   @@index([tenantId, patientId, status])
   @@index([tenantId, procedureId, status])
+  @@index([discountRuleId, purchasedAt])
   @@map("clinic_patient_packages")
 }
 

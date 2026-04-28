@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ClinicAppointmentEventType, ClinicPaymentMethod, ClinicPaymentStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { calculateProcessorFeeForPayment, PAYMENT_FEE_METHODS } from '@/lib/clinic/payment-fees'
+import { normalizeDiscountReason, validateDiscountApplication } from '@/lib/clinic/discount-rules'
 import { getClinicSession } from '@/lib/clinic/session'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
 
@@ -48,8 +49,10 @@ export async function POST(
     return NextResponse.json({ error: 'amountCents must be a positive integer' }, { status: 400 })
   }
   const discountCents = Number(body.discountCents ?? 0)
-  if (!Number.isInteger(discountCents) || discountCents < 0) {
-    return NextResponse.json({ error: 'discountCents must be a non-negative integer' }, { status: 400 })
+  const discountReason = normalizeDiscountReason(body.discountReason)
+  const discountError = validateDiscountApplication({ discountCents, discountReason })
+  if (discountError) {
+    return NextResponse.json({ error: discountError }, { status: 400 })
   }
   const feeCents = Number(body.feeCents ?? 0)
   if (!Number.isInteger(feeCents) || feeCents < 0) {
@@ -59,6 +62,19 @@ export async function POST(
   const currency = body.currency != null ? String(body.currency).trim().toUpperCase() || 'AED' : 'AED'
   const method = parseMethod(String(body.method ?? 'OTHER')) ?? ClinicPaymentMethod.OTHER
   const status = parsePayStatus(String(body.status ?? 'PAID')) ?? ClinicPaymentStatus.PAID
+  const discountRuleId =
+    body.discountRuleId != null && String(body.discountRuleId).trim()
+      ? String(body.discountRuleId).trim()
+      : null
+  const discountRule = discountRuleId
+    ? await prisma.clinicDiscountRule.findFirst({
+        where: { id: discountRuleId, tenantId: session.tenantId, active: true },
+        select: { id: true, name: true },
+      })
+    : null
+  if (discountRuleId && !discountRule) {
+    return NextResponse.json({ error: 'Discount rule not found' }, { status: 400 })
+  }
   const feeRule = await prisma.clinicPaymentFeeRule.findUnique({
     where: { tenantId_method: { tenantId: session.tenantId, method } },
     select: { percentBps: true, fixedFeeCents: true, active: true },
@@ -111,6 +127,9 @@ export async function POST(
         appointmentId,
         amountCents,
         discountCents,
+        discountRuleId: discountRule?.id ?? null,
+        discountName: discountCents > 0 ? discountRule?.name ?? null : null,
+        discountReason: discountCents > 0 ? discountReason : null,
         feeCents,
         processorFeeCents,
         currency,
@@ -125,6 +144,9 @@ export async function POST(
         id: true,
         amountCents: true,
         discountCents: true,
+        discountRuleId: true,
+        discountName: true,
+        discountReason: true,
         feeCents: true,
         processorFeeCents: true,
         currency: true,
@@ -144,7 +166,18 @@ export async function POST(
         appointmentId,
         type: ClinicAppointmentEventType.PAYMENT_RECORDED,
         message: `Payment recorded: ${(amountCents / 100).toFixed(2)} ${currency}`,
-        after: { paymentId: payment.id, amountCents, discountCents, feeCents, processorFeeCents, currency, status },
+        after: {
+          paymentId: payment.id,
+          amountCents,
+          discountCents,
+          discountRuleId: discountRule?.id ?? null,
+          discountName: discountRule?.name ?? null,
+          discountReason,
+          feeCents,
+          processorFeeCents,
+          currency,
+          status,
+        },
         createdByUserId: session.userId,
       })
     }

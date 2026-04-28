@@ -808,6 +808,24 @@
 
 ---
 
+## Chunk 46 — 2026-04-28 (promotions and discount rules)
+
+**Shipped**
+
+- **Schema:** `ClinicDiscountRule` stores tenant named percent/fixed discounts; visit payments and patient packages now snapshot discount rule, name, amount, and required reason.
+- **Helper:** `lib/clinic/discount-rules.ts` normalizes rule inputs, calculates capped percent/fixed discounts, summarizes rules, and validates that non-zero discounts keep a reason.
+- **API:** `GET/POST/PATCH /api/clinic/discount-rules`; visit payment and package-sale APIs validate discount reasons and reject unknown inactive rules.
+- **UI:** Finance manages discount rules; appointment drawer and patient payment/package forms can apply a named or manual discount with required reason.
+- **Finance:** P&L v2 surfaces total discounts, recent discount reasons, package discounts, and procedure-level discount impact alongside expected/net revenue.
+- **i18n/Knowledge Base:** EN/RU strings and article explain using promotions sparingly while keeping margin erosion visible.
+
+**Validation**
+
+- Added Vitest coverage for discount normalization, capped calculations, summaries, and required-reason validation.
+- Run `npx prisma generate` and `npx prisma db push` because this chunk changes schema.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
-import { ArrowDownRight, ArrowUpRight, CircleDollarSign, Plus, ReceiptText } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, BadgePercent, CircleDollarSign, Plus, ReceiptText } from 'lucide-react'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import type { ClinicStrings } from '@/lib/clinic/strings'
@@ -28,6 +28,10 @@ type Overview = {
     paidRevenueCents: number
     refundsCents: number
     netRevenueCents: number
+    paymentDiscountCents: number
+    packageDiscountCents: number
+    productSaleDiscountCents: number
+    totalDiscountCents: number
     productSalesRevenueCents: number
     procedureMaterialCostCents: number
     productSalesCostCents: number
@@ -41,6 +45,8 @@ type Overview = {
     paidPayments: number
     refundedPayments: number
     pendingPayments: number
+    discountedPayments: number
+    discountedPackages: number
     expenseCount: number
     completedVisits: number
     productSales: number
@@ -54,6 +60,7 @@ type Overview = {
       visits: number
       totalMinutes: number
       expectedRevenueCents: number
+      discountCents: number
       paidRevenueCents: number
       refundsCents: number
       netRevenueCents: number
@@ -64,7 +71,28 @@ type Overview = {
       profitPerHourCents: number
     }[]
   }
+  recentDiscounts: {
+    id: string
+    patientName: string
+    amountCents: number
+    discountCents: number
+    discountName: string | null
+    discountReason: string | null
+    currency: string
+    status: string
+    paidAt: string
+  }[]
   recentExpenses: Expense[]
+}
+
+type DiscountRule = {
+  id: string
+  name: string
+  type: 'PERCENT' | 'FIXED'
+  percentBps: number
+  fixedCents: number
+  active: boolean
+  note: string | null
 }
 
 type FeeRule = {
@@ -198,6 +226,7 @@ export default function ClinicFinancePage() {
   const { locale, t } = useClinicLocale()
   const [range, setRange] = useState<'month' | '30d'>('month')
   const [overview, setOverview] = useState<Overview | null>(null)
+  const [discountRules, setDiscountRules] = useState<DiscountRule[]>([])
   const [feeRules, setFeeRules] = useState<FeeRule[]>([])
   const [dailyClose, setDailyClose] = useState<DailyCloseData | null>(null)
   const [dailyCloseDate, setDailyCloseDate] = useState(new Date().toISOString().slice(0, 10))
@@ -205,6 +234,7 @@ export default function ClinicFinancePage() {
   const [dailyCloseNote, setDailyCloseNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingDiscountRule, setSavingDiscountRule] = useState<string | null>(null)
   const [savingFeeRule, setSavingFeeRule] = useState<PaymentMethod | null>(null)
   const [savingDailyClose, setSavingDailyClose] = useState<'draft' | 'finalized' | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -215,6 +245,13 @@ export default function ClinicFinancePage() {
     amount: '',
     occurredAt: new Date().toISOString().slice(0, 10),
   })
+  const [discountForm, setDiscountForm] = useState({
+    name: '',
+    type: 'PERCENT' as 'PERCENT' | 'FIXED',
+    percent: '10',
+    fixed: '',
+    note: '',
+  })
 
   const numberLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
 
@@ -222,10 +259,11 @@ export default function ClinicFinancePage() {
     setLoading(true)
     setError(null)
     try {
-      const [res, feeRes, dailyCloseRes] = await Promise.all([
+      const [res, discountRes, feeRes, dailyCloseRes] = await Promise.all([
         fetch(`/api/clinic/finance/overview?range=${range}`, {
           credentials: 'include',
         }),
+        fetch('/api/clinic/discount-rules', { credentials: 'include' }),
         fetch('/api/clinic/payment-fee-rules', { credentials: 'include' }),
         fetch(`/api/clinic/daily-close?date=${dailyCloseDate}`, { credentials: 'include' }),
       ])
@@ -238,6 +276,10 @@ export default function ClinicFinancePage() {
         throw new Error(data.error || t.failedToLoad)
       }
       setOverview(data)
+      if (discountRes.ok) {
+        const discountData = await discountRes.json()
+        setDiscountRules(discountData.rules || [])
+      }
       if (feeRes.ok) {
         const feeData = await feeRes.json()
         setFeeRules(feeData.rules || [])
@@ -304,6 +346,62 @@ export default function ClinicFinancePage() {
       setError(e instanceof Error ? e.message : t.saveFailed)
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function createDiscountRule(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const percentBps = Math.round(Number(discountForm.percent.replace(',', '.')) * 100)
+    const fixedCents = parseAedToCents(discountForm.fixed || '0')
+    setSavingDiscountRule('new')
+    setError(null)
+    try {
+      const res = await fetch('/api/clinic/discount-rules', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: discountForm.name,
+          type: discountForm.type,
+          percentBps: Number.isFinite(percentBps) ? percentBps : 0,
+          fixedCents: Number.isFinite(fixedCents) ? fixedCents : 0,
+          active: true,
+          note: discountForm.note || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.saveFailed)
+      }
+      setDiscountRules(data.rules || [])
+      setDiscountForm({ name: '', type: 'PERCENT', percent: '10', fixed: '', note: '' })
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.saveFailed)
+    } finally {
+      setSavingDiscountRule(null)
+    }
+  }
+
+  async function saveDiscountRule(rule: DiscountRule) {
+    setSavingDiscountRule(rule.id)
+    setError(null)
+    try {
+      const res = await fetch('/api/clinic/discount-rules', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rule),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.saveFailed)
+      }
+      setDiscountRules(data.rules || [])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.saveFailed)
+    } finally {
+      setSavingDiscountRule(null)
     }
   }
 
@@ -606,6 +704,9 @@ export default function ClinicFinancePage() {
           <p className="text-xs text-gray-500 mt-1">
             {t.financePaidRevenue}: {money(kpis?.paidRevenueCents ?? 0, 'AED', numberLocale)}
           </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {t.discountTotal}: {money(kpis?.totalDiscountCents ?? 0, 'AED', numberLocale)}
+          </p>
         </div>
         <div className="rounded-2xl bg-white border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
@@ -710,6 +811,7 @@ export default function ClinicFinancePage() {
                   <th className="py-2 pr-3 font-medium">{t.procedureColName}</th>
                   <th className="py-2 px-3 font-medium">{t.financeCompletedVisits}</th>
                   <th className="py-2 px-3 font-medium">{t.financeExpectedRevenue}</th>
+                  <th className="py-2 px-3 font-medium">{t.discountTotal}</th>
                   <th className="py-2 px-3 font-medium">{t.financeNetRevenue}</th>
                   <th className="py-2 px-3 font-medium">{t.financeMaterialCost}</th>
                   <th className="py-2 px-3 font-medium">{t.financeProcessorFees}</th>
@@ -724,6 +826,9 @@ export default function ClinicFinancePage() {
                     <td className="py-3 px-3 tabular-nums text-gray-700">{row.visits}</td>
                     <td className="py-3 px-3 tabular-nums text-gray-700">
                       {money(row.expectedRevenueCents, 'AED', numberLocale)}
+                    </td>
+                    <td className="py-3 px-3 tabular-nums text-gray-700">
+                      {money(row.discountCents, 'AED', numberLocale)}
                     </td>
                     <td className="py-3 px-3 tabular-nums text-gray-700">
                       {money(row.netRevenueCents, 'AED', numberLocale)}
@@ -751,6 +856,195 @@ export default function ClinicFinancePage() {
             </p>
           )}
         </div>
+      </section>
+
+      <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">{t.discountRules}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t.discountRulesHint}</p>
+          </div>
+          <p className="text-xs text-gray-500">
+            {kpis?.discountedPayments ?? 0} {t.discountedPayments.toLowerCase()} ·{' '}
+            {money(kpis?.paymentDiscountCents ?? 0, 'AED', numberLocale)}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+          <div className="space-y-3">
+            {discountRules.length === 0 ? (
+              <p className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">{t.noDiscountRules}</p>
+            ) : (
+              discountRules.map((rule) => (
+                <div key={rule.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_130px_120px_auto] md:items-end">
+                    <label className="block text-xs font-medium text-gray-600">
+                      {t.discountRuleName}
+                      <input
+                        value={rule.name}
+                        onChange={(e) =>
+                          setDiscountRules((current) =>
+                            current.map((item) => (item.id === rule.id ? { ...item, name: e.target.value } : item))
+                          )
+                        }
+                        className="mt-1 w-full min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm"
+                      />
+                    </label>
+                    <label className="block text-xs font-medium text-gray-600">
+                      {t.discountType}
+                      <select
+                        value={rule.type}
+                        onChange={(e) =>
+                          setDiscountRules((current) =>
+                            current.map((item) =>
+                              item.id === rule.id ? { ...item, type: e.target.value as DiscountRule['type'] } : item
+                            )
+                          )
+                        }
+                        className="mt-1 w-full min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm"
+                      >
+                        <option value="PERCENT">{t.discountPercent}</option>
+                        <option value="FIXED">{t.discountFixed}</option>
+                      </select>
+                    </label>
+                    <label className="block text-xs font-medium text-gray-600">
+                      {rule.type === 'PERCENT' ? t.discountPercent : t.discountFixed}
+                      <input
+                        inputMode="decimal"
+                        value={rule.type === 'PERCENT' ? (rule.percentBps / 100).toString() : (rule.fixedCents / 100).toString()}
+                        onChange={(e) => {
+                          const value = Number(e.target.value.replace(',', '.'))
+                          setDiscountRules((current) =>
+                            current.map((item) =>
+                              item.id === rule.id
+                                ? rule.type === 'PERCENT'
+                                  ? { ...item, percentBps: Number.isFinite(value) ? Math.round(value * 100) : 0 }
+                                  : { ...item, fixedCents: Number.isFinite(value) ? Math.round(value * 100) : 0 }
+                                : item
+                            )
+                          )
+                        }}
+                        className="mt-1 w-full min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm"
+                      />
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={rule.active}
+                          onChange={(e) =>
+                            setDiscountRules((current) =>
+                              current.map((item) =>
+                                item.id === rule.id ? { ...item, active: e.target.checked } : item
+                              )
+                            )
+                          }
+                        />
+                        {t.enabled}
+                      </label>
+                      <button
+                        type="button"
+                        disabled={savingDiscountRule === rule.id}
+                        onClick={() => saveDiscountRule(rule)}
+                        className="min-h-10 rounded-xl bg-gray-950 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                      >
+                        {savingDiscountRule === rule.id ? t.savingEllipsis : t.save}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <form onSubmit={createDiscountRule} className="rounded-2xl border border-orange-100 bg-orange-50 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-orange-900">
+              <BadgePercent className="h-5 w-5" aria-hidden />
+              <h3 className="text-sm font-semibold">{t.addDiscountRule}</h3>
+            </div>
+            <label className="block text-xs font-medium text-orange-900">
+              {t.discountRuleName}
+              <input
+                value={discountForm.name}
+                onChange={(e) => setDiscountForm((current) => ({ ...current, name: e.target.value }))}
+                placeholder={t.discountRuleNamePlaceholder}
+                className="mt-1 w-full min-h-11 rounded-xl border border-orange-100 bg-white px-3 text-sm"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block text-xs font-medium text-orange-900">
+                {t.discountType}
+                <select
+                  value={discountForm.type}
+                  onChange={(e) =>
+                    setDiscountForm((current) => ({ ...current, type: e.target.value as DiscountRule['type'] }))
+                  }
+                  className="mt-1 w-full min-h-11 rounded-xl border border-orange-100 bg-white px-3 text-sm"
+                >
+                  <option value="PERCENT">{t.discountPercent}</option>
+                  <option value="FIXED">{t.discountFixed}</option>
+                </select>
+              </label>
+              <label className="block text-xs font-medium text-orange-900">
+                {discountForm.type === 'PERCENT' ? t.discountPercent : t.discountFixed}
+                <input
+                  inputMode="decimal"
+                  value={discountForm.type === 'PERCENT' ? discountForm.percent : discountForm.fixed}
+                  onChange={(e) =>
+                    setDiscountForm((current) =>
+                      current.type === 'PERCENT'
+                        ? { ...current, percent: e.target.value }
+                        : { ...current, fixed: e.target.value }
+                    )
+                  }
+                  placeholder={discountForm.type === 'PERCENT' ? '10' : '100'}
+                  className="mt-1 w-full min-h-11 rounded-xl border border-orange-100 bg-white px-3 text-sm"
+                />
+              </label>
+            </div>
+            <label className="block text-xs font-medium text-orange-900">
+              {t.note}
+              <input
+                value={discountForm.note}
+                onChange={(e) => setDiscountForm((current) => ({ ...current, note: e.target.value }))}
+                className="mt-1 w-full min-h-11 rounded-xl border border-orange-100 bg-white px-3 text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={savingDiscountRule === 'new'}
+              className="min-h-11 w-full rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+            >
+              {savingDiscountRule === 'new' ? t.savingEllipsis : t.addDiscountRule}
+            </button>
+          </form>
+        </div>
+
+        {overview?.recentDiscounts.length ? (
+          <div className="border-t border-gray-100 pt-4">
+            <h3 className="text-sm font-semibold text-gray-900">{t.recentDiscounts}</h3>
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
+              {overview.recentDiscounts.map((discount) => (
+                <div key={discount.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-3 text-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-gray-900">{discount.patientName}</p>
+                      <p className="text-xs text-gray-500">
+                        {discount.discountName ?? t.manualDiscount} · {new Date(discount.paidAt).toLocaleDateString(numberLocale)}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-orange-700">
+                      {money(discount.discountCents, discount.currency, numberLocale)}
+                    </p>
+                  </div>
+                  {discount.discountReason && (
+                    <p className="mt-2 rounded-xl bg-white p-2 text-xs text-gray-600">{discount.discountReason}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">

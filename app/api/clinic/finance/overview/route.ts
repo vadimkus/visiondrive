@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ClinicPaymentStatus, ClinicVisitStatus, ExpenseCategory } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isProductSalePaymentReference } from '@/lib/clinic/product-sales'
+import { PACKAGE_PAYMENT_REFERENCE_PREFIX } from '@/lib/clinic/patient-packages'
 import { buildProcedureProfitability } from '@/lib/clinic/profitability'
 import { getClinicSession } from '@/lib/clinic/session'
 
@@ -34,11 +35,14 @@ export async function GET(request: NextRequest) {
     paid,
     refunded,
     pending,
+    discounts,
     processorFees,
     expenses,
     expenseBreakdown,
     recentExpenses,
     productSales,
+    packageDiscounts,
+    recentDiscounts,
     completedVisits,
   ] = await Promise.all([
     prisma.clinicPatientPayment.aggregate({
@@ -66,6 +70,16 @@ export async function GET(request: NextRequest) {
         paidAt: { gte: start, lte: end },
       },
       _sum: { amountCents: true },
+      _count: { _all: true },
+    }),
+    prisma.clinicPatientPayment.aggregate({
+      where: {
+        tenantId: session.tenantId,
+        discountCents: { gt: 0 },
+        paidAt: { gte: start, lte: end },
+        NOT: { reference: { startsWith: PACKAGE_PAYMENT_REFERENCE_PREFIX } },
+      },
+      _sum: { discountCents: true },
       _count: { _all: true },
     }),
     prisma.clinicPatientPayment.aggregate({
@@ -119,6 +133,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         totalCents: true,
+        discountCents: true,
         paymentStatus: true,
         lines: {
           select: {
@@ -127,6 +142,36 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+    }),
+    prisma.clinicPatientPackage.aggregate({
+      where: {
+        tenantId: session.tenantId,
+        discountCents: { gt: 0 },
+        purchasedAt: { gte: start, lte: end },
+      },
+      _sum: { discountCents: true },
+      _count: { _all: true },
+    }),
+    prisma.clinicPatientPayment.findMany({
+      where: {
+        tenantId: session.tenantId,
+        discountCents: { gt: 0 },
+        paidAt: { gte: start, lte: end },
+        NOT: { reference: { startsWith: PACKAGE_PAYMENT_REFERENCE_PREFIX } },
+      },
+      select: {
+        id: true,
+        amountCents: true,
+        discountCents: true,
+        discountName: true,
+        discountReason: true,
+        currency: true,
+        status: true,
+        paidAt: true,
+        patient: { select: { firstName: true, lastName: true } },
+      },
+      orderBy: { paidAt: 'desc' },
+      take: 8,
     }),
     prisma.clinicVisit.findMany({
       where: {
@@ -142,6 +187,7 @@ export async function GET(request: NextRequest) {
               select: {
                 id: true,
                 amountCents: true,
+                discountCents: true,
                 processorFeeCents: true,
                 status: true,
                 reference: true,
@@ -168,6 +214,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             amountCents: true,
+            discountCents: true,
             processorFeeCents: true,
             status: true,
             reference: true,
@@ -179,6 +226,9 @@ export async function GET(request: NextRequest) {
 
   const paidRevenueCents = paid._sum.amountCents ?? 0
   const refundsCents = refunded._sum.amountCents ?? 0
+  const paymentDiscountCents = discounts._sum.discountCents ?? 0
+  const packageDiscountCents = packageDiscounts._sum.discountCents ?? 0
+  const productSaleDiscountCents = productSales.reduce((sum, sale) => sum + sale.discountCents, 0)
   const netRevenueCents = paidRevenueCents - refundsCents
   const productSalesRevenueCents = productSales
     .filter((sale) => sale.paymentStatus === ClinicPaymentStatus.PAID)
@@ -222,6 +272,10 @@ export async function GET(request: NextRequest) {
       paidRevenueCents,
       refundsCents,
       netRevenueCents,
+      paymentDiscountCents,
+      packageDiscountCents,
+      productSaleDiscountCents,
+      totalDiscountCents: paymentDiscountCents + packageDiscountCents + productSaleDiscountCents,
       productSalesRevenueCents,
       procedureMaterialCostCents,
       productSalesCostCents,
@@ -235,6 +289,8 @@ export async function GET(request: NextRequest) {
       paidPayments: paid._count._all,
       refundedPayments: refunded._count._all,
       pendingPayments: pending._count._all,
+      discountedPayments: discounts._count._all,
+      discountedPackages: packageDiscounts._count._all,
       expenseCount: expenses._count._all,
       completedVisits: completedVisits.length,
       productSales: productSales.length,
@@ -247,6 +303,17 @@ export async function GET(request: NextRequest) {
       allExpenseCategories: Object.values(ExpenseCategory),
       procedureProfitability,
     },
+    recentDiscounts: recentDiscounts.map((payment) => ({
+      id: payment.id,
+      amountCents: payment.amountCents,
+      discountCents: payment.discountCents,
+      discountName: payment.discountName,
+      discountReason: payment.discountReason,
+      currency: payment.currency,
+      status: payment.status,
+      paidAt: payment.paidAt.toISOString(),
+      patientName: `${payment.patient.lastName}, ${payment.patient.firstName}`.trim(),
+    })),
     recentExpenses: recentExpenses.map((expense) => ({
       ...expense,
       occurredAt: expense.occurredAt.toISOString(),

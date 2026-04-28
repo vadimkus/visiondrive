@@ -244,6 +244,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 33. Promotions and discount rules
    - Source: promotions and discounts.
    - Solo version: simple named discount on visit/package, reason required, visible in margin report.
+   - Status: shipped first pass.
+   - Shipped: `ClinicDiscountRule` supports named percent/fixed promotions; Finance manages rules; visit payments and package sales can apply a rule or manual discount with a required reason; P&L v2 shows total/recent discounts and procedure-level discount impact.
+   - Next improvements: expiry dates, usage limits, campaign/source attribution, and patient/category eligibility only after the basic reasoned-discount workflow is used consistently.
 
 34. Gift cards
    - Source: gift cards.
@@ -358,5 +361,5 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 ## Recommendation
 
-Referral tracking now covers the light word-of-mouth workflow. The next point should be promotions and discount rules: add simple named discounts on visits/packages, require a reason, and make discounts visible in margin/profit reports.
+Promotions and discount rules now cover the light solo-practitioner workflow without a complex loyalty engine. The next point should be gift cards: prepaid voucher sold to a buyer, redeemed by a patient, and kept separate from treatment packages.
 

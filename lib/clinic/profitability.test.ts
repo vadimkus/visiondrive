@@ -19,13 +19,14 @@ describe('clinic profitability helpers', () => {
   it('dedupes payment rows and calculates net revenue', () => {
     expect(
       paymentNetTotals([
-        { id: 'p1', amountCents: 10000, status: 'PAID' },
-        { id: 'p1', amountCents: 10000, status: 'PAID' },
+        { id: 'p1', amountCents: 10000, discountCents: 1000, status: 'PAID' },
+        { id: 'p1', amountCents: 10000, discountCents: 1000, status: 'PAID' },
         { id: 'p2', amountCents: 2500, processorFeeCents: 200, status: 'REFUNDED' },
         { id: 'p3', amountCents: 9999, status: 'PENDING' },
       ])
     ).toEqual({
       paidRevenueCents: 10000,
+      discountCents: 1000,
       refundsCents: 2500,
       processorFeeCents: 200,
       netRevenueCents: 7500,
@@ -40,7 +41,7 @@ describe('clinic profitability helpers', () => {
         durationMinutes: 60,
         expectedRevenueCents: 50000,
         materials: [{ quantityPerVisit: 2, unitCostCents: 5000 }],
-        payments: [{ amountCents: 50000, processorFeeCents: 1500, status: 'PAID' }],
+        payments: [{ amountCents: 50000, discountCents: 5000, processorFeeCents: 1500, status: 'PAID' }],
       },
       {
         procedureId: 'proc_1',
@@ -60,6 +61,7 @@ describe('clinic profitability helpers', () => {
       visits: 2,
       totalMinutes: 90,
       expectedRevenueCents: 100000,
+      discountCents: 5000,
       netRevenueCents: 70000,
       materialCostCents: 15000,
       processorFeeCents: 2400,

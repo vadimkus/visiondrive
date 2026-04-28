@@ -22,6 +22,9 @@ type Payment = {
   id: string
   amountCents: number
   discountCents: number
+  discountRuleId: string | null
+  discountName: string | null
+  discountReason: string | null
   feeCents: number
   processorFeeCents: number
   currency: string
@@ -73,6 +76,15 @@ type ProductStockItem = {
   sku: string | null
   unit: string
   quantityOnHand: number
+  active: boolean
+}
+
+type DiscountRule = {
+  id: string
+  name: string
+  type: 'PERCENT' | 'FIXED'
+  percentBps: number
+  fixedCents: number
   active: boolean
 }
 
@@ -191,6 +203,13 @@ function parseMajorToCents(value: string) {
   return Number.isFinite(major) ? Math.round(major * 100) : NaN
 }
 
+function calculateDiscountFromRule(baseCents: number, rule: DiscountRule | undefined) {
+  if (!rule?.active) return 0
+  const base = Math.max(0, baseCents)
+  if (rule.type === 'FIXED') return Math.min(base, rule.fixedCents)
+  return Math.min(base, Math.round((base * rule.percentBps) / 10_000))
+}
+
 function balanceLabel(t: ClinicStrings, balance: ClientBalance) {
   if (balance.status === 'DEBT') return `${t.balanceDebt}: ${money(balance.dueCents, balance.currency)}`
   if (balance.status === 'CREDIT') return `${t.balanceCredit}: ${money(balance.creditCents, balance.currency)}`
@@ -264,6 +283,8 @@ export function ClinicAppointmentDrawer({
   const [notice, setNotice] = useState('')
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentDiscount, setPaymentDiscount] = useState('')
+  const [paymentDiscountRuleId, setPaymentDiscountRuleId] = useState('')
+  const [paymentDiscountReason, setPaymentDiscountReason] = useState('')
   const [paymentFee, setPaymentFee] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('CARD')
   const [paymentStatus, setPaymentStatus] = useState('PAID')
@@ -277,15 +298,17 @@ export function ClinicAppointmentDrawer({
   const [saleMethod, setSaleMethod] = useState('CARD')
   const [saleStatus, setSaleStatus] = useState('PAID')
   const [saleNote, setSaleNote] = useState('')
+  const [discountRules, setDiscountRules] = useState<DiscountRule[]>([])
 
   const load = useCallback(async () => {
     if (!appointmentId) return
     setLoading(true)
     setError('')
     try {
-      const [res, inventoryRes] = await Promise.all([
+      const [res, inventoryRes, discountRes] = await Promise.all([
         fetch(`/api/clinic/appointments/${appointmentId}`, { credentials: 'include' }),
         fetch('/api/clinic/inventory', { credentials: 'include' }),
+        fetch('/api/clinic/discount-rules', { credentials: 'include' }),
       ])
       const data = await res.json()
       if (!res.ok) {
@@ -295,6 +318,10 @@ export function ClinicAppointmentDrawer({
       if (inventoryRes.ok) {
         const inventoryData = await inventoryRes.json()
         setProductItems((inventoryData.items || []).filter((item: ProductStockItem) => item.active))
+      }
+      if (discountRes.ok) {
+        const discountData = await discountRes.json()
+        setDiscountRules((discountData.rules || []).filter((rule: DiscountRule) => rule.active))
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : t.failedToLoad)
@@ -359,6 +386,10 @@ export function ClinicAppointmentDrawer({
       setError(t.enterValidAmount)
       return
     }
+    if (discountCents > 0 && !paymentDiscountReason.trim()) {
+      setError(t.discountReasonRequired)
+      return
+    }
 
     setBusy('record_payment')
     setError('')
@@ -373,6 +404,8 @@ export function ClinicAppointmentDrawer({
           visitId: appointment.visits[0]?.id ?? null,
           amountCents,
           discountCents,
+          discountRuleId: paymentDiscountRuleId || null,
+          discountReason: paymentDiscountReason.trim() || null,
           feeCents,
           currency: appointment.procedure?.currency ?? 'AED',
           method: paymentMethod,
@@ -386,6 +419,8 @@ export function ClinicAppointmentDrawer({
       if (!res.ok) throw new Error(data.error || t.saveFailed)
       setPaymentAmount('')
       setPaymentDiscount('')
+      setPaymentDiscountRuleId('')
+      setPaymentDiscountReason('')
       setPaymentFee('')
       setPaymentReference('')
       setPaymentNote('')
@@ -910,12 +945,45 @@ export function ClinicAppointmentDrawer({
                       </select>
                     </label>
                     <label className="text-xs text-gray-600">
+                      {t.discountRuleOptional}
+                      <select
+                        value={paymentDiscountRuleId}
+                        onChange={(e) => {
+                          const ruleId = e.target.value
+                          setPaymentDiscountRuleId(ruleId)
+                          const rule = discountRules.find((item) => item.id === ruleId)
+                          const calculated = calculateDiscountFromRule(
+                            appointment.procedure?.basePriceCents ?? payment.due,
+                            rule
+                          )
+                          if (calculated > 0) setPaymentDiscount((calculated / 100).toFixed(2))
+                        }}
+                        className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-base"
+                      >
+                        <option value="">{t.noDiscountRule}</option>
+                        {discountRules.map((rule) => (
+                          <option key={rule.id} value={rule.id}>
+                            {rule.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs text-gray-600">
                       {t.paymentDiscount}
                       <input
                         value={paymentDiscount}
                         onChange={(e) => setPaymentDiscount(e.target.value)}
                         inputMode="decimal"
                         placeholder="0"
+                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
+                      />
+                    </label>
+                    <label className="text-xs text-gray-600">
+                      {t.discountReason}
+                      <input
+                        value={paymentDiscountReason}
+                        onChange={(e) => setPaymentDiscountReason(e.target.value)}
+                        placeholder={t.discountReasonPlaceholder}
                         className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-base"
                       />
                     </label>
@@ -984,6 +1052,12 @@ export function ClinicAppointmentDrawer({
                               <p>
                                 {t.paymentDiscount}: {money(item.discountCents, item.currency)} · {t.paymentFee}:{' '}
                                 {money(item.feeCents, item.currency)}
+                              </p>
+                            )}
+                            {item.discountCents > 0 && (
+                              <p>
+                                {item.discountName ?? t.manualDiscount}
+                                {item.discountReason ? ` · ${item.discountReason}` : ''}
                               </p>
                             )}
                             {item.processorFeeCents > 0 && (
