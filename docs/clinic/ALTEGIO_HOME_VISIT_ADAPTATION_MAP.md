@@ -335,6 +335,9 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 46. Call log
    - Source: call logs and telephony.
    - Solo version: manual call note with outcome and next action. Skip deep telephony integration for now.
+   - Status: shipped first pass.
+   - Shipped: patient CRM tab has a structured manual Call log form with direction, outcome, summary, next action, and `tel:` handoff when a phone number exists. Calls save through existing `ClinicCrmActivity` as `CALL` records and appear in a dedicated Recent calls section above message history and the full CRM log.
+   - Next improvements: call templates, missed-call tasks, device call-log import, and telephony integration when justified.
 
 47. Service analytics
    - Source: service reports and main dashboard.

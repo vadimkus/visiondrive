@@ -69,6 +69,8 @@ WhatsApp assistant: `/clinic/whatsapp-assistant` is a manual, practitioner-contr
 
 Message history: patient profiles reuse `ClinicCrmActivity` instead of introducing a separate chat table in the first pass. The patient CRM tab shows WhatsApp/email activity as a dedicated Message history section above the full interaction log, while manual history capture still uses the existing CRM form with `WHATSAPP` or `EMAIL` type. This keeps the current source of truth simple and tenant-scoped while leaving room for later inbound/delivery sync fields.
 
+Call log: patient profiles also reuse `ClinicCrmActivity` for a manual call-log first pass. The CRM tab provides a structured call form for direction, outcome, summary, and next action, formats those fields into a `CALL` activity body, and shows recent calls separately above message history. A `tel:` link is offered when the patient has a phone number, but there is no call recording, device call-log import, or telephony integration yet.
+
 ## API conventions
 
 - Base path: **`/api/clinic/*`**.

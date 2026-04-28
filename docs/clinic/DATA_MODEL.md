@@ -38,7 +38,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_consent_templates` + `clinic_consent_records` | Consent template library plus signed patient snapshots with contraindications, signature name, aftercare acknowledgement, and optional visit/appointment links. |
 | `clinic_aftercare_templates` | Procedure-specific reusable aftercare messages and optional PDF/document references. Completed visits snapshot the selected template so later edits do not rewrite patient-facing history. |
 | `clinic_treatment_plans` | Planned courses of care for a patient: expected sessions, cadence, target dates, procedure, goals, next steps, photo milestones, status, and linked visits. |
-| `clinic_crm_activities` | CRM timeline (type + body + occurred_at), including reviewed voice-dictated patient comments and first-pass message history (`WHATSAPP` / `EMAIL`) from the card or WhatsApp Assistant. |
+| `clinic_crm_activities` | CRM timeline (type + body + occurred_at), including reviewed voice-dictated patient comments, first-pass message history (`WHATSAPP` / `EMAIL`), and structured manual call logs (`CALL`) from the patient card. |
 | `clinic_stock_items` | Inventory SKU: name, unit, `quantity_on_hand`, `reorder_point`, optional legacy `procedure_id`, optional `barcode`, `consume_per_visit`, low-stock cooldown. |
 | `clinic_procedure_materials` | Bill of materials rows: procedure + stock item + quantity per visit + unit material cost + active flag. |
 | `clinic_stock_movements` | Receipt / adjustment / consumption / return; signed `quantity_delta`; never allows negative on-hand. |
@@ -85,7 +85,7 @@ Offline-safe visit drafts are intentionally device-local in this first pass. Tex
 - `GET/PATCH /api/clinic/public-booking/settings` — staff on/off control stored in `tenant_settings.thresholds.publicBooking.enabled`.
 - `POST /api/clinic/visits`, `PATCH /api/clinic/visits/[id]` — visits may link to a treatment plan and snapshot a selected aftercare template.
 - `POST /api/clinic/patients/[id]/media`, `GET/DELETE /api/clinic/media/[id]` — attach, serve, and delete private patient photos with optional visit link, capture checklist, and marketing-consent marker.
-- `POST .../payments`, `POST .../crm` — CRM stores manual interaction notes plus message history records from WhatsApp Assistant.
+- `POST .../payments`, `POST .../crm` — CRM stores manual interaction notes, message history records from WhatsApp Assistant, and manual call logs.
 - `GET/POST/PATCH /api/clinic/discount-rules` — manage active named percent/fixed discount rules for visit payments and package sales.
 - `GET/POST /api/clinic/gift-cards`; `POST /api/clinic/gift-cards/redeem` — sell prepaid gift cards and redeem active balances against patient payments.
 - `GET/PATCH /api/clinic/payment-fee-rules` — configure method-level acquiring costs used to snapshot `processor_fee_cents` on new paid payments.

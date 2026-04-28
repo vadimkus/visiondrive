@@ -11,6 +11,7 @@ import {
   Camera,
   Clock,
   Send,
+  PhoneCall,
   Pencil,
   ChevronUp,
   ClipboardList,
@@ -4617,6 +4618,11 @@ function CrmTab({
   const [type, setType] = useState('NOTE')
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
+  const [callDirection, setCallDirection] = useState('OUTGOING')
+  const [callOutcome, setCallOutcome] = useState('REACHED')
+  const [callSummary, setCallSummary] = useState('')
+  const [callNextAction, setCallNextAction] = useState('')
+  const [savingCall, setSavingCall] = useState(false)
   const [voiceSupported, setVoiceSupported] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [interimTranscript, setInterimTranscript] = useState('')
@@ -4723,9 +4729,67 @@ function CrmTab({
     }
   }
 
+  const callDirectionLabel = (value: string) =>
+    value === 'INCOMING' ? t.callDirectionIncoming : t.callDirectionOutgoing
+
+  const callOutcomeLabel = (value: string) => {
+    switch (value) {
+      case 'MISSED':
+        return t.callOutcomeMissed
+      case 'VOICEMAIL':
+        return t.callOutcomeVoicemail
+      case 'CALLBACK':
+        return t.callOutcomeCallback
+      case 'NO_ANSWER':
+        return t.callOutcomeNoAnswer
+      case 'REACHED':
+      default:
+        return t.callOutcomeReached
+    }
+  }
+
+  const submitCall = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!callSummary.trim()) {
+      alert(t.callSummaryRequired)
+      return
+    }
+    const callBody = [
+      `${t.callDirection}: ${callDirectionLabel(callDirection)}`,
+      `${t.callOutcome}: ${callOutcomeLabel(callOutcome)}`,
+      `${t.callSummary}: ${callSummary.trim()}`,
+      callNextAction.trim() ? `${t.callNextAction}: ${callNextAction.trim()}` : '',
+    ].filter(Boolean).join('\n')
+
+    setSavingCall(true)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/crm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          type: 'CALL',
+          body: callBody,
+          occurredAt: new Date().toISOString(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      setCallSummary('')
+      setCallNextAction('')
+      await onRefresh()
+    } finally {
+      setSavingCall(false)
+    }
+  }
+
   const messageActivities = patient.crmActivities.filter((activity) =>
     ['WHATSAPP', 'EMAIL'].includes(activity.type)
   )
+  const callActivities = patient.crmActivities.filter((activity) => activity.type === 'CALL')
 
   const crmTypeLabel = (activityType: string) => {
     switch (activityType) {
@@ -4755,6 +4819,110 @@ function CrmTab({
 
   return (
     <div className="space-y-6">
+      <form onSubmit={submitCall} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+              <PhoneCall className="h-5 w-5" aria-hidden />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">{t.callLogTitle}</h2>
+              <p className="mt-1 text-sm text-gray-500">{t.callLogHint}</p>
+            </div>
+          </div>
+          {patient.phone && (
+            <a
+              href={`tel:${patient.phone}`}
+              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+            >
+              {t.callPatientNow}
+            </a>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.callDirection}</label>
+            <select
+              value={callDirection}
+              onChange={(e) => setCallDirection(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="OUTGOING">{t.callDirectionOutgoing}</option>
+              <option value="INCOMING">{t.callDirectionIncoming}</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">{t.callOutcome}</label>
+            <select
+              value={callOutcome}
+              onChange={(e) => setCallOutcome(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base bg-white"
+            >
+              <option value="REACHED">{t.callOutcomeReached}</option>
+              <option value="MISSED">{t.callOutcomeMissed}</option>
+              <option value="VOICEMAIL">{t.callOutcomeVoicemail}</option>
+              <option value="CALLBACK">{t.callOutcomeCallback}</option>
+              <option value="NO_ANSWER">{t.callOutcomeNoAnswer}</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.callSummary}</label>
+          <textarea
+            value={callSummary}
+            onChange={(e) => setCallSummary(e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            placeholder={t.callSummaryPlaceholder}
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">{t.callNextAction}</label>
+          <input
+            value={callNextAction}
+            onChange={(e) => setCallNextAction(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+            placeholder={t.callNextActionPlaceholder}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={savingCall || !callSummary.trim()}
+          className="w-full py-3 rounded-xl bg-emerald-700 text-white font-semibold disabled:opacity-50"
+        >
+          {savingCall ? t.savingEllipsis : t.logCall}
+        </button>
+      </form>
+
+      <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <PhoneCall className="h-5 w-5" aria-hidden />
+          </span>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{t.recentCalls}</h2>
+            <p className="mt-1 text-sm text-gray-500">{t.recentCallsHint}</p>
+          </div>
+        </div>
+        <div className="mt-4 divide-y divide-gray-100 rounded-2xl border border-gray-100">
+          {callActivities.length === 0 ? (
+            <p className="p-4 text-sm text-gray-500">{t.noCallHistory}</p>
+          ) : (
+            callActivities.map((activity) => (
+              <div key={activity.id} className="p-4 text-sm">
+                <p className="font-medium text-gray-900">
+                  {crmTypeLabel(activity.type)}{' '}
+                  <span className="text-gray-400 font-normal text-xs">
+                    {activityTimestamp(activity)}
+                  </span>
+                </p>
+                <p className="text-gray-700 mt-1 whitespace-pre-wrap">{activity.body}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">{t.logInteraction}</h2>

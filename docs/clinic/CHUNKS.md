@@ -1038,6 +1038,23 @@
 
 ---
 
+## Chunk 59 — 2026-04-28 (call log)
+
+**Shipped**
+
+- **Patient card:** CRM tab now has a structured Call log form with direction, outcome, summary, and next action.
+- **Handoff:** when the patient has a phone number, the form offers a `tel:` Call patient action for phone-capable devices.
+- **Storage:** calls save through the existing patient CRM route as `ClinicCrmActivity` rows with type `CALL`; no new schema/table.
+- **History:** recent calls are shown in a dedicated section above Message history and the full CRM log.
+- **i18n/Knowledge Base/docs:** EN/RU strings, Knowledge Base article, backlog, architecture, data-model, and session note updated.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**
