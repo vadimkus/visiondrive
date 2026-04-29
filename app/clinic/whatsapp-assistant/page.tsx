@@ -2,12 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Bot, Copy, ExternalLink, MessageSquare, Send } from 'lucide-react'
+import { Bot, CalendarClock, CalendarPlus, Copy, ExternalLink, FileText, MessageSquare, Send, ShieldCheck, XCircle } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
+import {
+  buildWhatsAppReceptionistMessage,
+  type WhatsAppReceptionistMode,
+} from '@/lib/clinic/whatsapp-receptionist'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 
-type AssistantMode = 'booking' | 'prices' | 'intake' | 'status' | 'reminder'
+type AssistantMode = WhatsAppReceptionistMode
 
 type PatientOption = {
   id: string
@@ -32,6 +36,20 @@ type PatientDetail = PatientOption & {
     titleOverride: string | null
     procedure: { id: string; name: string } | null
   }>
+  priceQuotes?: Array<{
+    id: string
+    quoteNumber: string
+    title: string
+    status: string
+    currency: string
+    totalCents: number
+    validUntil: string | null
+    lines: Array<{
+      description: string
+      quantity: number
+      totalCents: number
+    }>
+  }>
 }
 
 type Stats = {
@@ -42,10 +60,54 @@ type Stats = {
 const modes: Array<{ id: AssistantMode; icon: typeof Send }> = [
   { id: 'booking', icon: Send },
   { id: 'prices', icon: MessageSquare },
+  { id: 'quote', icon: FileText },
+  { id: 'reschedule', icon: CalendarClock },
+  { id: 'cancel', icon: XCircle },
+  { id: 'waitlist', icon: CalendarPlus },
+  { id: 'approval', icon: ShieldCheck },
   { id: 'intake', icon: Bot },
   { id: 'status', icon: ExternalLink },
   { id: 'reminder', icon: Copy },
 ]
+
+const receptionistCopy = {
+  en: {
+    mode_booking: 'Booking link',
+    mode_prices: 'Price reply',
+    mode_quote: 'Send quote',
+    mode_reschedule: 'Reschedule request',
+    mode_cancel: 'Cancel request',
+    mode_waitlist: 'Waitlist slot',
+    mode_approval: 'Approval brief',
+    mode_intake: 'Intake prompt',
+    mode_status: 'Appointment status',
+    mode_reminder: 'Reminder reply',
+    appointmentToUse: 'Appointment to reference',
+    quoteToSend: 'Quote to send',
+    noQuotes: 'No quotes yet. Select services to generate an estimate-style reply.',
+    waitlistSlot: 'Waitlist slot to offer',
+    contextLabel: 'Receptionist context / client question',
+    contextPlaceholder: 'Example: client asks for Friday after 15:00, wants Russian copy, or needs practitioner approval before confirming.',
+  },
+  ru: {
+    mode_booking: 'Ссылка для записи',
+    mode_prices: 'Ответ по ценам',
+    mode_quote: 'Отправить расчёт',
+    mode_reschedule: 'Запрос переноса',
+    mode_cancel: 'Запрос отмены',
+    mode_waitlist: 'Окно из листа ожидания',
+    mode_approval: 'На одобрение специалиста',
+    mode_intake: 'Intake-вопросы',
+    mode_status: 'Статус записи',
+    mode_reminder: 'Follow-up / напоминание',
+    appointmentToUse: 'Запись для сообщения',
+    quoteToSend: 'Расчёт для отправки',
+    noQuotes: 'Расчётов пока нет. Выберите услуги, чтобы собрать предварительный ответ.',
+    waitlistSlot: 'Окно из листа ожидания',
+    contextLabel: 'Контекст receptionist / вопрос клиента',
+    contextPlaceholder: 'Например: клиент просит пятницу после 15:00, нужен текст на русском или требуется одобрение специалиста.',
+  },
+} as const
 
 function money(cents: number, currency: string) {
   return `${(Math.max(0, cents) / 100).toFixed(2)} ${currency}`
@@ -63,6 +125,7 @@ function whatsappUrl(phone: string | null | undefined, body: string) {
 
 export default function WhatsAppAssistantPage() {
   const { locale, t } = useClinicLocale()
+  const c = receptionistCopy[locale]
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [mode, setMode] = useState<AssistantMode>('booking')
   const [patients, setPatients] = useState<PatientOption[]>([])
@@ -70,8 +133,11 @@ export default function WhatsAppAssistantPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [selectedPatientId, setSelectedPatientId] = useState('')
   const [selectedPatient, setSelectedPatient] = useState<PatientDetail | null>(null)
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState('')
+  const [selectedQuoteId, setSelectedQuoteId] = useState('')
   const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>([])
   const [customQuestion, setCustomQuestion] = useState('')
+  const [waitlistSlotStart, setWaitlistSlotStart] = useState('')
   const [copied, setCopied] = useState(false)
   const [savingHistory, setSavingHistory] = useState(false)
   const [historySaved, setHistorySaved] = useState(false)
@@ -139,80 +205,56 @@ export default function WhatsAppAssistantPage() {
       .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())[0]
   }, [selectedPatient])
 
+  const appointmentOptions = useMemo(
+    () =>
+      [...(selectedPatient?.appointments ?? [])].sort(
+        (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+      ),
+    [selectedPatient?.appointments]
+  )
+
+  const selectedAppointment = useMemo(
+    () =>
+      appointmentOptions.find((appointment) => appointment.id === selectedAppointmentId) ??
+      upcomingAppointment ??
+      null,
+    [appointmentOptions, selectedAppointmentId, upcomingAppointment]
+  )
+
+  const selectedQuote = useMemo(
+    () => selectedPatient?.priceQuotes?.find((quote) => quote.id === selectedQuoteId) ?? selectedPatient?.priceQuotes?.[0] ?? null,
+    [selectedPatient?.priceQuotes, selectedQuoteId]
+  )
+
   const message = useMemo(() => {
-    const name = selectedPatientOption?.firstName || t.whatsappAssistantClientFallback
-    const bookingLine = stats?.bookingUrl
-      ? `${t.whatsappAssistantBookingLinkLabel}: ${stats.bookingUrl}`
-      : t.whatsappAssistantBookingUnavailable
-    if (mode === 'prices') {
-      const priceLines = selectedProcedures.length
-        ? selectedProcedures.map((procedure) => `• ${procedure.name}: ${money(procedure.basePriceCents, procedure.currency)}`).join('\n')
-        : t.whatsappAssistantSelectServices
-      return [
-        t.whatsappAssistantGreeting.replace('{name}', name),
-        '',
-        t.whatsappAssistantPricesIntro,
-        priceLines,
-        '',
-        t.whatsappAssistantPricesDisclaimer,
-        bookingLine,
-      ].join('\n')
-    }
-    if (mode === 'intake') {
-      return [
-        t.whatsappAssistantGreeting.replace('{name}', name),
-        '',
-        t.whatsappAssistantIntakeIntro,
-        bookingLine,
-        customQuestion.trim() ? `${t.whatsappAssistantExtraQuestion}: ${customQuestion.trim()}` : '',
-      ].filter(Boolean).join('\n')
-    }
-    if (mode === 'status') {
-      const appointmentText = upcomingAppointment
-        ? `${new Date(upcomingAppointment.startsAt).toLocaleString(dateLocale, {
-          weekday: 'short',
-          day: 'numeric',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit',
-        })} · ${upcomingAppointment.procedure?.name || upcomingAppointment.titleOverride || t.appointmentDefault} · ${upcomingAppointment.status}`
-        : t.whatsappAssistantNoUpcomingAppointment
-      return [
-        t.whatsappAssistantGreeting.replace('{name}', name),
-        '',
-        t.whatsappAssistantStatusIntro,
-        appointmentText,
-        '',
-        t.whatsappAssistantStatusHelp,
-      ].join('\n')
-    }
-    if (mode === 'reminder') {
-      return [
-        t.whatsappAssistantGreeting.replace('{name}', name),
-        '',
-        t.whatsappAssistantReminderIntro,
-        bookingLine,
-        '',
-        t.whatsappAssistantReminderClose,
-      ].join('\n')
-    }
-    return [
-      t.whatsappAssistantGreeting.replace('{name}', name),
-      '',
-      t.whatsappAssistantBookingIntro,
-      bookingLine,
-      '',
-      t.whatsappAssistantBookingClose,
-    ].join('\n')
+    return buildWhatsAppReceptionistMessage({
+      mode,
+      locale,
+      patientFirstName: selectedPatientOption?.firstName,
+      bookingUrl: stats?.bookingUrl,
+      procedures: selectedProcedures,
+      appointment: selectedAppointment
+        ? {
+            startsAt: selectedAppointment.startsAt,
+            status: selectedAppointment.status,
+            label: selectedAppointment.procedure?.name || selectedAppointment.titleOverride || t.appointmentDefault,
+          }
+        : null,
+      quote: selectedQuote,
+      customText: customQuestion,
+      waitlistSlotStart: waitlistSlotStart || null,
+    })
   }, [
     customQuestion,
-    dateLocale,
+    locale,
     mode,
+    selectedAppointment,
     selectedPatientOption,
     selectedProcedures,
+    selectedQuote,
     stats?.bookingUrl,
     t,
-    upcomingAppointment,
+    waitlistSlotStart,
   ])
 
   const copyMessage = async () => {
@@ -240,7 +282,7 @@ export default function WhatsAppAssistantPage() {
         credentials: 'include',
         body: JSON.stringify({
           type: 'WHATSAPP',
-          body: `${t.whatsappAssistantSavedPrefix}: ${t[`whatsappAssistantMode_${mode}`]}\n\n${message}`,
+          body: `${t.whatsappAssistantSavedPrefix}: ${c[`mode_${mode}`]}\n\n${message}`,
           occurredAt: new Date().toISOString(),
         }),
       })
@@ -316,7 +358,7 @@ export default function WhatsAppAssistantPage() {
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
-                {t[`whatsappAssistantMode_${id}`]}
+                {c[`mode_${id}`]}
               </button>
             ))}
           </div>
@@ -338,7 +380,49 @@ export default function WhatsAppAssistantPage() {
             </select>
           </label>
 
-          {mode === 'prices' && (
+          {['status', 'reschedule', 'cancel', 'approval'].includes(mode) && (
+            <label className="mt-5 block">
+              <span className="mb-1 block text-sm text-gray-600">{c.appointmentToUse}</span>
+              <select
+                value={selectedAppointmentId}
+                onChange={(e) => setSelectedAppointmentId(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base"
+              >
+                <option value="">{upcomingAppointment ? t.appointmentDefault : t.whatsappAssistantNoUpcomingAppointment}</option>
+                {appointmentOptions.map((appointment) => (
+                  <option key={appointment.id} value={appointment.id}>
+                    {new Date(appointment.startsAt).toLocaleString(dateLocale, {
+                      day: '2-digit',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}{' '}
+                    · {appointment.procedure?.name || appointment.titleOverride || t.appointmentDefault} · {appointment.status}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {mode === 'quote' && (
+            <label className="mt-5 block">
+              <span className="mb-1 block text-sm text-gray-600">{c.quoteToSend}</span>
+              <select
+                value={selectedQuoteId}
+                onChange={(e) => setSelectedQuoteId(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base"
+              >
+                <option value="">{c.noQuotes}</option>
+                {(selectedPatient?.priceQuotes || []).map((quote) => (
+                  <option key={quote.id} value={quote.id}>
+                    {quote.quoteNumber} · {quote.title} · {money(quote.totalCents, quote.currency)} · {quote.status}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {['prices', 'quote', 'waitlist', 'approval'].includes(mode) && (
             <div className="mt-5">
               <p className="mb-2 text-sm font-medium text-gray-700">{t.whatsappAssistantChooseServices}</p>
               <div className="max-h-64 space-y-2 overflow-auto rounded-2xl border border-gray-100 bg-gray-50 p-3">
@@ -366,15 +450,27 @@ export default function WhatsAppAssistantPage() {
             </div>
           )}
 
-          {mode === 'intake' && (
+          {mode === 'waitlist' && (
             <label className="mt-5 block">
-              <span className="mb-1 block text-sm text-gray-600">{t.whatsappAssistantOptionalQuestion}</span>
+              <span className="mb-1 block text-sm text-gray-600">{c.waitlistSlot}</span>
+              <input
+                type="datetime-local"
+                value={waitlistSlotStart}
+                onChange={(e) => setWaitlistSlotStart(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
+              />
+            </label>
+          )}
+
+          {['intake', 'reschedule', 'cancel', 'waitlist', 'approval', 'quote'].includes(mode) && (
+            <label className="mt-5 block">
+              <span className="mb-1 block text-sm text-gray-600">{c.contextLabel}</span>
               <textarea
                 value={customQuestion}
                 onChange={(e) => setCustomQuestion(e.target.value)}
                 rows={3}
                 className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
-                placeholder={t.whatsappAssistantOptionalQuestionPlaceholder}
+                placeholder={c.contextPlaceholder}
               />
             </label>
           )}
