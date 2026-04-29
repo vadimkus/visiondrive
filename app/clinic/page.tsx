@@ -293,7 +293,7 @@ export default function ClinicDashboardPage() {
         <p className="px-1 text-xs text-slate-500">{t.docsFooter}</p>
       </section>
 
-      <section className="hidden max-w-[92rem] space-y-8 lg:block">
+      <section className="mx-auto hidden w-full max-w-6xl space-y-8 lg:block">
         <div className="flex items-center justify-between gap-6">
           <div>
             <div className="mb-3 flex items-center gap-2 text-sm text-slate-500">
