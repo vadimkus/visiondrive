@@ -747,14 +747,27 @@ async function main() {
   }
 
   // ---------------------------------------------------------------------------
-  // Practice OS demo patients (RU-first). Idempotent demo data for UI testing.
+  // Practice OS demo dataset. Idempotent realistic data for product demos.
   // ---------------------------------------------------------------------------
   try {
-    const demoPatientEmails = ['anna.demo.clinic@visiondrive.ae', 'maria.demo.clinic@visiondrive.ae']
+    const demoMarker = 'DEMO: realistic clinic demo dataset'
+
     await sql/*sql*/`
       DELETE FROM clinic_patients
       WHERE "tenantId" = ${ensuredTenantId}
-        AND email IN (${demoPatientEmails[0]}, ${demoPatientEmails[1]})
+        AND (
+          email ILIKE '%.demo.clinic@visiondrive.ae'
+          OR email ILIKE 'e2e-%@example.test'
+          OR "internalNotes" ILIKE 'DEMO:%'
+          OR "internalNotes" = 'E2E seed patient'
+          OR ("firstName" = 'Flow' AND email ILIKE '%@example.test')
+        )
+    `
+
+    await sql/*sql*/`
+      DELETE FROM clinic_procedures
+      WHERE "tenantId" = ${ensuredTenantId}
+        AND name IN ('Первичная консультация', 'Биоревитализация лица')
     `
 
     const ensureProcedure = async (name: string, duration: number, buffer: number, priceCents: number, sortOrder: number) => {
@@ -791,8 +804,10 @@ async function main() {
       return id
     }
 
-    const consultProcedureId = await ensureProcedure('Первичная консультация', 60, 15, 45000, 1)
-    const bioProcedureId = await ensureProcedure('Биоревитализация лица', 90, 20, 120000, 2)
+    const initialConsultationId = await ensureProcedure('Initial skin consultation', 60, 15, 45000, 1)
+    const hydrafacialId = await ensureProcedure('Signature HydraFacial', 75, 15, 95000, 2)
+    const biorevitalizationId = await ensureProcedure('Face biorevitalization', 90, 20, 120000, 3)
+    const prpHairId = await ensureProcedure('PRP hair restoration', 90, 20, 150000, 4)
 
     const now = new Date()
     const atDubaiHour = (daysFromNow: number, hour: number, minute = 0) => {
@@ -802,48 +817,308 @@ async function main() {
       return date
     }
 
+    type DemoCrmType = 'NOTE' | 'CALL' | 'WHATSAPP'
+    type DemoPaymentMethod = 'CARD' | 'CASH' | 'TRANSFER' | 'POS'
+    type DemoAppointmentStatus = 'SCHEDULED' | 'CONFIRMED' | 'COMPLETED'
+    type DemoAppointment = {
+      procedureId: string
+      startsAt: Date
+      endsAt: Date
+      status: DemoAppointmentStatus
+      internalNotes: string
+      visit?: {
+        chiefComplaint: string
+        procedureSummary: string
+        nextSteps: string
+        staffNotes: string
+        aftercareTitle: string
+        aftercareText: string
+        paymentAmountCents: number
+        paymentMethod: DemoPaymentMethod
+        paymentReference: string
+      }
+    }
+
+    const insertAppointment = async (
+      patient: {
+        id: string
+        homeAddress: string
+        area: string
+        accessNotes: string
+      },
+      appointment: DemoAppointment
+    ) => {
+      const appointmentId = randomUUID()
+      const completedAt = appointment.status === 'COMPLETED' ? appointment.endsAt : null
+      await sql/*sql*/`
+        INSERT INTO clinic_appointments (
+          id,
+          "tenantId",
+          "patientId",
+          "procedureId",
+          "startsAt",
+          "endsAt",
+          status,
+          source,
+          "bufferAfterMinutes",
+          "travelBufferBeforeMinutes",
+          "travelBufferAfterMinutes",
+          "locationAddress",
+          "locationArea",
+          "locationNotes",
+          "confirmedAt",
+          "arrivedAt",
+          "completedAt",
+          "internalNotes",
+          "createdAt",
+          "updatedAt"
+        )
+        VALUES (
+          ${appointmentId},
+          ${ensuredTenantId},
+          ${patient.id},
+          ${appointment.procedureId},
+          ${appointment.startsAt},
+          ${appointment.endsAt},
+          ${appointment.status},
+          'MANUAL',
+          15,
+          20,
+          20,
+          ${patient.homeAddress},
+          ${patient.area},
+          ${patient.accessNotes},
+          ${appointment.status === 'SCHEDULED' ? null : appointment.startsAt},
+          ${appointment.status === 'COMPLETED' ? appointment.startsAt : null},
+          ${completedAt},
+          ${appointment.internalNotes},
+          now(),
+          now()
+        )
+      `
+
+      if (appointment.visit) {
+        const visitId = randomUUID()
+        await sql/*sql*/`
+          INSERT INTO clinic_visits (
+            id,
+            "tenantId",
+            "patientId",
+            "appointmentId",
+            "visitAt",
+            status,
+            "chiefComplaint",
+            "procedureSummary",
+            "staffNotes",
+            "nextSteps",
+            "aftercareTitleSnapshot",
+            "aftercareTextSnapshot",
+            "aftercareSentAt",
+            "createdAt",
+            "updatedAt"
+          )
+          VALUES (
+            ${visitId},
+            ${ensuredTenantId},
+            ${patient.id},
+            ${appointmentId},
+            ${appointment.startsAt},
+            'COMPLETED',
+            ${appointment.visit.chiefComplaint},
+            ${appointment.visit.procedureSummary},
+            ${appointment.visit.staffNotes},
+            ${appointment.visit.nextSteps},
+            ${appointment.visit.aftercareTitle},
+            ${appointment.visit.aftercareText},
+            ${appointment.endsAt},
+            now(),
+            now()
+          )
+        `
+
+        await sql/*sql*/`
+          INSERT INTO clinic_patient_payments (
+            id,
+            "tenantId",
+            "patientId",
+            "visitId",
+            "appointmentId",
+            "amountCents",
+            currency,
+            method,
+            status,
+            reference,
+            note,
+            "paidAt",
+            "createdAt"
+          )
+          VALUES (
+            ${randomUUID()},
+            ${ensuredTenantId},
+            ${patient.id},
+            ${visitId},
+            ${appointmentId},
+            ${appointment.visit.paymentAmountCents},
+            'AED',
+            ${appointment.visit.paymentMethod},
+            'PAID',
+            ${appointment.visit.paymentReference},
+            'Demo payment for completed treatment',
+            ${appointment.endsAt},
+            now()
+          )
+        `
+      }
+
+      return appointmentId
+    }
+
     const demoPatients = [
       {
         id: randomUUID(),
-        firstName: 'Анна',
-        lastName: 'Петрова',
-        dateOfBirth: '1992-05-14',
-        phone: '+971501112233',
-        email: demoPatientEmails[0],
-        homeAddress: 'Dubai Marina, Marina Gate 2, Apt 1204',
+        firstName: 'Leila',
+        lastName: 'Haddad',
+        dateOfBirth: '1989-03-18',
+        phone: '+971558240913',
+        email: 'leila.haddad.demo.clinic@visiondrive.ae',
+        homeAddress: 'Emaar Beachfront, Beach Vista Tower 1, Apt 1702',
         area: 'Dubai Marina',
-        accessNotes: 'Парковка для гостей через консьержа, подъезд с Marina Walk.',
+        accessNotes: 'Visitor parking through concierge. Please WhatsApp 20 minutes before arrival.',
         category: 'VIP',
+        tags: ['VIP', 'hydration-plan'] as const,
         anamnesis: {
-          allergies: 'Нет известных аллергий',
-          medications: 'Витамин D',
-          conditions: 'Чувствительная кожа',
-          social: 'Предпочитает утренние выезды',
+          allergies: 'No known drug allergies',
+          medications: 'Vitamin D and omega-3',
+          conditions: 'Mild skin sensitivity after peels',
+          social: 'Prefers late morning home visits and WhatsApp follow-up',
         },
-        procedureId: consultProcedureId,
-        startsAt: atDubaiHour(1, 10),
-        endsAt: atDubaiHour(1, 11),
+        appointments: [
+          {
+            procedureId: hydrafacialId,
+            startsAt: atDubaiHour(-8, 11),
+            endsAt: atDubaiHour(-8, 12, 15),
+            status: 'COMPLETED' as const,
+            internalNotes: 'Demo: completed glow maintenance visit.',
+            visit: {
+              chiefComplaint: 'Dull skin before travel, mild dehydration.',
+              procedureSummary: 'Signature HydraFacial completed with gentle extraction and hydrating booster.',
+              staffNotes: 'Avoid aggressive peel next visit; skin responded well to low-suction extraction.',
+              nextSteps: 'Book biorevitalization in 2-3 weeks if hydration remains low.',
+              aftercareTitle: 'HydraFacial aftercare',
+              aftercareText: 'Use SPF daily, avoid retinoids for 48 hours, keep hydration high.',
+              paymentAmountCents: 95000,
+              paymentMethod: 'CARD' as const,
+              paymentReference: 'DEMO-HYDRA-001',
+            },
+          },
+          {
+            procedureId: biorevitalizationId,
+            startsAt: atDubaiHour(7, 12),
+            endsAt: atDubaiHour(7, 13, 30),
+            status: 'CONFIRMED' as const,
+            internalNotes: 'Demo: follow-up hydration treatment before travel.',
+          },
+        ],
+        crm: [
+          { type: 'WHATSAPP' as DemoCrmType, daysAgo: 7, body: 'Sent aftercare and confirmed skin looked calm the next morning.' },
+          { type: 'NOTE' as DemoCrmType, daysAgo: 2, body: 'Client asked for travel-safe glow plan before Paris trip.' },
+        ],
       },
       {
         id: randomUUID(),
-        firstName: 'Мария',
-        lastName: 'Иванова',
-        dateOfBirth: '1986-11-02',
-        phone: '+971502223344',
-        email: demoPatientEmails[1],
-        homeAddress: 'Business Bay, Executive Towers, Tower B',
-        area: 'Business Bay',
-        accessNotes: 'Охрана просит Emirates ID, лучше заложить 10 минут на вход.',
-        category: 'Regular',
+        firstName: 'Natalia',
+        lastName: 'Sokolova',
+        dateOfBirth: '1991-09-27',
+        phone: '+971565431208',
+        email: 'natalia.sokolova.demo.clinic@visiondrive.ae',
+        homeAddress: 'Jumeirah Lakes Towers, Cluster C, Goldcrest Executive, Apt 2604',
+        area: 'JLT',
+        accessNotes: 'Park in visitor bay near Cluster C. Security calls the apartment before entry.',
+        category: 'Sensitive',
+        tags: ['sensitive-skin', 'evening-only'] as const,
         anamnesis: {
-          allergies: 'Аллергия на лидокаин не подтверждена, уточнить перед процедурой',
-          medications: 'Нет постоянных препаратов',
-          conditions: 'Склонность к отёкам',
-          social: 'Удобнее после 18:00',
+          allergies: 'Possible lidocaine sensitivity; confirm before injectable treatment',
+          medications: 'No regular medication',
+          conditions: 'Post-inflammatory redness and mild edema tendency',
+          social: 'Can usually do appointments after 18:00 only',
         },
-        procedureId: bioProcedureId,
-        startsAt: atDubaiHour(2, 18),
-        endsAt: atDubaiHour(2, 19, 30),
+        appointments: [
+          {
+            procedureId: initialConsultationId,
+            startsAt: atDubaiHour(-14, 18),
+            endsAt: atDubaiHour(-14, 19),
+            status: 'COMPLETED' as const,
+            internalNotes: 'Demo: first consultation with conservative injectable planning.',
+            visit: {
+              chiefComplaint: 'Redness and texture concerns after previous clinic treatment.',
+              procedureSummary: 'Skin assessment, contraindication review, and conservative biorevitalization plan.',
+              staffNotes: 'Patch-test mindset. Avoid strong actives before first injectable session.',
+              nextSteps: 'Send quote and book first biorevitalization when evening slot opens.',
+              aftercareTitle: 'Consultation plan',
+              aftercareText: 'Pause retinoids 3 days before injectable appointment. Send photos if redness flares.',
+              paymentAmountCents: 45000,
+              paymentMethod: 'CASH' as const,
+              paymentReference: 'DEMO-CONSULT-002',
+            },
+          },
+          {
+            procedureId: biorevitalizationId,
+            startsAt: atDubaiHour(4, 18, 30),
+            endsAt: atDubaiHour(4, 20),
+            status: 'SCHEDULED' as const,
+            internalNotes: 'Demo: evening slot, confirm lidocaine sensitivity question before treatment.',
+          },
+        ],
+        quote: {
+          quoteNumber: 'DEMO-Q-1002',
+          title: 'Biorevitalization starter plan',
+          procedureId: biorevitalizationId,
+          description: 'Face biorevitalization session',
+          totalCents: 120000,
+        },
+        waitlist: {
+          procedureId: biorevitalizationId,
+          earliestAt: atDubaiHour(1, 17),
+          latestAt: atDubaiHour(12, 20),
+          preferredTimeOfDay: 'After 18:00',
+          note: 'Can take an earlier evening slot if another client cancels.',
+        },
+        crm: [
+          { type: 'CALL' as DemoCrmType, daysAgo: 13, body: 'Discussed evening availability and sensitivity concerns. Patient wants written plan before booking.' },
+          { type: 'WHATSAPP' as DemoCrmType, daysAgo: 6, body: 'Shared quote and pre-treatment instructions. Patient confirmed preference for after 18:00.' },
+        ],
+      },
+      {
+        id: randomUUID(),
+        firstName: 'Aisha',
+        lastName: 'Al Mansoori',
+        dateOfBirth: '1978-01-11',
+        phone: '+971504778812',
+        email: 'aisha.almansoori.demo.clinic@visiondrive.ae',
+        homeAddress: 'Jumeirah 3, Villa 18, Al Wasl Road',
+        area: 'Jumeirah',
+        accessNotes: 'Villa entrance from service road. Free parking inside gate.',
+        category: 'New',
+        tags: ['new-client', 'hair-restoration'] as const,
+        anamnesis: {
+          allergies: 'No known allergies',
+          medications: 'Iron supplement',
+          conditions: 'Postpartum hair shedding history',
+          social: 'Prefers family-friendly afternoon appointments',
+        },
+        appointments: [
+          {
+            procedureId: prpHairId,
+            startsAt: atDubaiHour(2, 15),
+            endsAt: atDubaiHour(2, 16, 30),
+            status: 'CONFIRMED' as const,
+            internalNotes: 'Demo: first PRP hair session. Bring consent form and baseline photo checklist.',
+          },
+        ],
+        crm: [
+          { type: 'CALL' as DemoCrmType, daysAgo: 5, body: 'Explained PRP hair protocol, expected course length, and need for baseline photos.' },
+          { type: 'NOTE' as DemoCrmType, daysAgo: 1, body: 'Patient confirmed no anticoagulants and asked for afternoon arrival window.' },
+        ],
       },
     ]
 
@@ -861,6 +1136,7 @@ async function main() {
           area,
           "accessNotes",
           category,
+          tags,
           "internalNotes",
           "anamnesisJson",
           "createdAt",
@@ -878,111 +1154,147 @@ async function main() {
           ${patient.area},
           ${patient.accessNotes},
           ${patient.category},
-          'DEMO: RU-first patient for clinic UI testing',
+          ARRAY[${patient.tags[0]}, ${patient.tags[1]}],
+          ${demoMarker},
           ${sql.json(patient.anamnesis) as any},
           now(),
           now()
         )
       `
 
-      const appointmentId = randomUUID()
-      await sql/*sql*/`
-        INSERT INTO clinic_appointments (
-          id,
-          "tenantId",
-          "patientId",
-          "procedureId",
-          "startsAt",
-          "endsAt",
-          status,
-          source,
-          "bufferAfterMinutes",
-          "travelBufferBeforeMinutes",
-          "travelBufferAfterMinutes",
-          "locationAddress",
-          "locationArea",
-          "locationNotes",
-          "internalNotes",
-          "createdAt",
-          "updatedAt"
-        )
-        VALUES (
-          ${appointmentId},
-          ${ensuredTenantId},
-          ${patient.id},
-          ${patient.procedureId},
-          ${patient.startsAt},
-          ${patient.endsAt},
-          'SCHEDULED',
-          'MANUAL',
-          15,
-          20,
-          20,
-          ${patient.homeAddress},
-          ${patient.area},
-          ${patient.accessNotes},
-          'DEMO: тестовая запись для проверки русского интерфейса',
-          now(),
-          now()
-        )
-      `
+      for (const appointment of patient.appointments) {
+        await insertAppointment(patient, appointment)
+      }
 
-      await sql/*sql*/`
-        INSERT INTO clinic_crm_activities (
-          id,
-          "tenantId",
-          "patientId",
-          type,
-          body,
-          "occurredAt",
-          "createdAt"
-        )
-        VALUES (
-          ${randomUUID()},
-          ${ensuredTenantId},
-          ${patient.id},
-          'NOTE',
-          'DEMO: Пациент добавлен для проверки русской локализации, карточки, записи и CRM.',
-          now(),
-          now()
-        )
-      `
+      for (const activity of patient.crm) {
+        await sql/*sql*/`
+          INSERT INTO clinic_crm_activities (
+            id,
+            "tenantId",
+            "patientId",
+            type,
+            body,
+            "occurredAt",
+            "createdAt"
+          )
+          VALUES (
+            ${randomUUID()},
+            ${ensuredTenantId},
+            ${patient.id},
+            ${activity.type},
+            ${activity.body},
+            ${atDubaiHour(-activity.daysAgo, 10)},
+            now()
+          )
+        `
+      }
+
+      if ('quote' in patient && patient.quote) {
+        const quoteId = randomUUID()
+        await sql/*sql*/`
+          INSERT INTO clinic_price_quotes (
+            id,
+            "tenantId",
+            "patientId",
+            "quoteNumber",
+            title,
+            status,
+            currency,
+            "subtotalCents",
+            "discountCents",
+            "totalCents",
+            "validUntil",
+            note,
+            terms,
+            "sentAt",
+            "createdAt",
+            "updatedAt"
+          )
+          VALUES (
+            ${quoteId},
+            ${ensuredTenantId},
+            ${patient.id},
+            ${patient.quote.quoteNumber},
+            ${patient.quote.title},
+            'SENT',
+            'AED',
+            ${patient.quote.totalCents},
+            0,
+            ${patient.quote.totalCents},
+            ${(new Date(now.getTime() + 14 * 24 * 3600 * 1000)).toISOString().slice(0, 10)},
+            'Demo quote prepared after consultation.',
+            'Valid for 14 days. Final treatment depends on skin assessment on the day.',
+            ${atDubaiHour(-6, 12)},
+            now(),
+            now()
+          )
+        `
+
+        await sql/*sql*/`
+          INSERT INTO clinic_price_quote_lines (
+            id,
+            "tenantId",
+            "quoteId",
+            "procedureId",
+            description,
+            quantity,
+            "unitPriceCents",
+            "totalCents",
+            "sortOrder",
+            "createdAt"
+          )
+          VALUES (
+            ${randomUUID()},
+            ${ensuredTenantId},
+            ${quoteId},
+            ${patient.quote.procedureId},
+            ${patient.quote.description},
+            1,
+            ${patient.quote.totalCents},
+            ${patient.quote.totalCents},
+            1,
+            now()
+          )
+        `
+      }
+
+      if ('waitlist' in patient && patient.waitlist) {
+        await sql/*sql*/`
+          INSERT INTO clinic_waitlist_entries (
+            id,
+            "tenantId",
+            "patientId",
+            "procedureId",
+            status,
+            priority,
+            "earliestAt",
+            "latestAt",
+            "preferredTimeOfDay",
+            note,
+            "createdAt",
+            "updatedAt"
+          )
+          VALUES (
+            ${randomUUID()},
+            ${ensuredTenantId},
+            ${patient.id},
+            ${patient.waitlist.procedureId},
+            'OPEN',
+            1,
+            ${patient.waitlist.earliestAt},
+            ${patient.waitlist.latestAt},
+            ${patient.waitlist.preferredTimeOfDay},
+            ${patient.waitlist.note},
+            now(),
+            now()
+          )
+        `
+      }
     }
 
-    await sql/*sql*/`
-      INSERT INTO clinic_waitlist_entries (
-        id,
-        "tenantId",
-        "patientId",
-        "procedureId",
-        status,
-        priority,
-        "earliestAt",
-        "latestAt",
-        "preferredTimeOfDay",
-        note,
-        "createdAt",
-        "updatedAt"
-      )
-      VALUES (
-        ${randomUUID()},
-        ${ensuredTenantId},
-        ${demoPatients[1].id},
-        ${bioProcedureId},
-        'OPEN',
-        1,
-        ${atDubaiHour(1, 16)},
-        ${atDubaiHour(10, 20)},
-        'После 18:00',
-        'DEMO: готова прийти раньше при отмене вечернего слота.',
-        now(),
-        now()
-      )
-    `
-
-    console.log('✅ Ensured Practice OS RU demo patients and waitlist data')
+    console.log('✅ Ensured Practice OS realistic demo patients, treatments, and history')
   } catch (e) {
-    console.warn('⚠️  Skipped Practice OS RU demo data:', e)
+    console.warn('⚠️  Skipped Practice OS demo dataset:', e)
   }
 
   // Convert sensor_events into a Timescale hypertable (if Timescale functions are available).

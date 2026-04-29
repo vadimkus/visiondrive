@@ -348,7 +348,7 @@ export default function ClinicProceduresPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">{t.procedures}</h1>
@@ -446,29 +446,29 @@ export default function ClinicProceduresPage() {
                     )}
                   </div>
 
-                  <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_0.9fr_0.65fr_auto_auto]">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.2fr_0.9fr_0.65fr_auto_auto]">
                     <input
                       value={intakeForm.prompt}
                       onChange={(e) => updateIntakeForm(p.id, { prompt: e.target.value })}
                       placeholder={t.intakeQuestionPrompt}
-                      className="min-h-11 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
                     />
                     <input
                       value={intakeForm.helpText}
                       onChange={(e) => updateIntakeForm(p.id, { helpText: e.target.value })}
                       placeholder={t.intakeQuestionHelp}
-                      className="min-h-11 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
                     />
                     <select
                       value={intakeForm.type}
                       onChange={(e) => updateIntakeForm(p.id, { type: e.target.value as IntakeForm['type'] })}
-                      className="min-h-11 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
                     >
                       <option value="TEXT">{t.intakeTypeText}</option>
                       <option value="TEXTAREA">{t.intakeTypeTextarea}</option>
                       <option value="YES_NO">{t.intakeTypeYesNo}</option>
                     </select>
-                    <label className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 text-sm font-medium text-gray-700">
+                    <label className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 text-sm font-medium text-gray-700">
                       <input
                         type="checkbox"
                         checked={intakeForm.required}
@@ -481,7 +481,7 @@ export default function ClinicProceduresPage() {
                       type="button"
                       disabled={busy === `intake-${p.id}`}
                       onClick={() => void saveIntakeQuestion(p.id)}
-                      className="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                      className="min-h-11 min-w-0 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:col-span-2 xl:col-span-1"
                     >
                       {busy === `intake-${p.id}` ? t.savingEllipsis : t.saveQuestion}
                     </button>
@@ -614,11 +614,11 @@ export default function ClinicProceduresPage() {
                     )}
                   </div>
 
-                  <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_0.6fr_0.7fr_1fr_auto]">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.4fr_0.6fr_0.7fr_1fr_auto]">
                     <select
                       value={form.stockItemId}
                       onChange={(e) => updateForm(p.id, { stockItemId: e.target.value })}
-                      className="min-h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
+                      className="min-h-11 min-w-0 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
                     >
                       <option value="">{t.materialItem}</option>
                       {stockItems.map((item) => (
@@ -632,26 +632,26 @@ export default function ClinicProceduresPage() {
                       onChange={(e) => updateForm(p.id, { quantityPerVisit: e.target.value })}
                       inputMode="numeric"
                       placeholder={t.quantityPerVisit}
-                      className="min-h-11 rounded-xl border border-gray-200 px-3 text-sm text-gray-900"
+                      className="min-h-11 min-w-0 rounded-xl border border-gray-200 px-3 text-sm text-gray-900"
                     />
                     <input
                       value={form.unitCost}
                       onChange={(e) => updateForm(p.id, { unitCost: e.target.value })}
                       inputMode="decimal"
                       placeholder={t.unitCost}
-                      className="min-h-11 rounded-xl border border-gray-200 px-3 text-sm text-gray-900"
+                      className="min-h-11 min-w-0 rounded-xl border border-gray-200 px-3 text-sm text-gray-900"
                     />
                     <input
                       value={form.note}
                       onChange={(e) => updateForm(p.id, { note: e.target.value })}
                       placeholder={t.note}
-                      className="min-h-11 rounded-xl border border-gray-200 px-3 text-sm text-gray-900"
+                      className="min-h-11 min-w-0 rounded-xl border border-gray-200 px-3 text-sm text-gray-900"
                     />
                     <button
                       type="button"
                       disabled={busy === p.id || stockItems.length === 0}
                       onClick={() => void saveMaterial(p.id)}
-                      className="min-h-11 rounded-xl bg-purple-600 px-4 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60"
+                      className="min-h-11 min-w-0 rounded-xl bg-purple-600 px-4 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60 sm:col-span-2 xl:col-span-1"
                     >
                       {busy === p.id ? t.savingEllipsis : t.saveMaterial}
                     </button>
