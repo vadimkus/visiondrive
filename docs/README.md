@@ -104,6 +104,7 @@
 | [2026-04-29_clinic-patient-card-desktop-ui.md](2026-04-29_clinic-patient-card-desktop-ui.md) | Clinic desktop patient card UI refresh |
 | [2026-04-29_solo-practitioner-feature-research.md](2026-04-29_solo-practitioner-feature-research.md) | Solo-practitioner software research and recommended feature backlog |
 | [2026-04-29_clinic-booking-policy-foundation.md](2026-04-29_clinic-booking-policy-foundation.md) | Clinic booking policy foundation for deposits/no-show protection |
+| [2026-04-29_clinic-deposit-payment-links.md](2026-04-29_clinic-deposit-payment-links.md) | Clinic deposit payment links and manual paid workflow |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

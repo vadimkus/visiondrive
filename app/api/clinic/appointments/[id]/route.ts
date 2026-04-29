@@ -28,6 +28,7 @@ import {
   bookingPolicyRequiresAcceptance,
   type BookingPolicyProcedure,
 } from '@/lib/clinic/booking-policy'
+import { shouldBlockConfirmation } from '@/lib/clinic/deposit-requests'
 
 function parseStatus(v: string): ClinicAppointmentStatus | null {
   const u = v.toUpperCase().trim()
@@ -140,6 +141,8 @@ export async function GET(
               paidAt: true,
               visitId: true,
               appointmentId: true,
+              paymentRequestExpiresAt: true,
+              paymentRequestSentAt: true,
               correctionsAsOriginal: {
                 select: {
                   id: true,
@@ -178,6 +181,8 @@ export async function GET(
           paidAt: true,
           visitId: true,
           appointmentId: true,
+          paymentRequestExpiresAt: true,
+          paymentRequestSentAt: true,
           correctionsAsOriginal: {
             select: {
               id: true,
@@ -568,8 +573,22 @@ export async function PATCH(
   const nextTravelBufferAfterMinutes =
     data.travelBufferAfterMinutes ?? existing.travelBufferAfterMinutes
   const nextProcedureId = data.procedureId !== undefined ? data.procedureId : existing.procedureId
+  const nextPaymentRequirementStatus =
+    data.paymentRequirementStatus ?? existing.paymentRequirementStatus
+  const nextDepositRequiredCents = data.depositRequiredCents ?? existing.depositRequiredCents
   if (nextEndsAt && nextEndsAt <= nextStartsAt) {
     return NextResponse.json({ error: 'endsAt must be after startsAt' }, { status: 400 })
+  }
+
+  if (
+    data.status &&
+    shouldBlockConfirmation({
+      nextStatus: data.status,
+      paymentRequirementStatus: nextPaymentRequirementStatus,
+      depositRequiredCents: nextDepositRequiredCents,
+    })
+  ) {
+    return NextResponse.json({ error: 'Deposit must be paid before confirming this appointment' }, { status: 409 })
   }
 
   if (Object.keys(data).length === 0) {

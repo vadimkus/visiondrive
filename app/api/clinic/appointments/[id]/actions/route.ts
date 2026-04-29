@@ -4,6 +4,8 @@ import {
   ClinicAppointmentSource,
   ClinicAppointmentStatus,
   ClinicCrmActivityType,
+  ClinicPaymentRequirementStatus,
+  ClinicPaymentStatus,
   ClinicReminderChannel,
   ClinicReminderKind,
   ClinicReminderStatus,
@@ -11,6 +13,7 @@ import {
   ClinicVisitStatus,
 } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { calculateProcessorFeeForPayment } from '@/lib/clinic/payment-fees'
 import { getClinicSession } from '@/lib/clinic/session'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { applyProcedureLinkedInventoryDeduction } from '@/lib/clinic/inventory-visit-consume'
@@ -22,6 +25,16 @@ import {
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
 import { bookingPolicyAppointmentData } from '@/lib/clinic/booking-policy'
+import {
+  buildDepositRequestText,
+  buildDepositWhatsappUrl,
+  depositPaidAppointmentPatch,
+  depositPaymentReference,
+  generatePaymentRequestToken,
+  normalizeDepositPaymentMethod,
+  paymentRequestExpiresAt,
+  paymentRequestTokenHash,
+} from '@/lib/clinic/deposit-requests'
 import {
   followUpStartsAt,
   normalizeFollowUpWeeks,
@@ -97,6 +110,203 @@ export async function POST(
   })
   if (!existing) {
     return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
+  }
+
+  if (action === 'prepare_deposit_request') {
+    if (existing.depositRequiredCents <= 0) {
+      return NextResponse.json({ error: 'This appointment does not require a deposit' }, { status: 409 })
+    }
+    if (existing.paymentRequirementStatus === ClinicPaymentRequirementStatus.PAID) {
+      return NextResponse.json({ error: 'Deposit is already marked paid' }, { status: 409 })
+    }
+
+    const token = generatePaymentRequestToken()
+    const now = new Date()
+    const expiresAt = paymentRequestExpiresAt(now)
+    const paymentRequestUrl = new URL(`/pay/deposit/${token}`, request.url).toString()
+    const messageText = buildDepositRequestText({
+      appointment: existing,
+      paymentRequestUrl,
+      locale: String(body.locale || 'en-GB'),
+    })
+    const url = buildDepositWhatsappUrl(existing, messageText)
+    const reference = depositPaymentReference(existing.id)
+
+    const payment = await prisma.$transaction(async (tx) => {
+      const existingRequest = await tx.clinicPatientPayment.findFirst({
+        where: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          appointmentId: existing.id,
+          reference,
+          status: ClinicPaymentStatus.PENDING,
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      const data = {
+        amountCents: existing.depositRequiredCents,
+        currency: existing.procedure?.currency ?? 'AED',
+        method: normalizeDepositPaymentMethod(body.method),
+        status: ClinicPaymentStatus.PENDING,
+        reference,
+        note: 'Deposit payment request',
+        paidAt: now,
+        paymentRequestTokenHash: paymentRequestTokenHash(token),
+        paymentRequestExpiresAt: expiresAt,
+        paymentRequestSentAt: now,
+        createdByUserId: session.userId,
+      }
+
+      const payment = existingRequest
+        ? await tx.clinicPatientPayment.update({
+            where: { id: existingRequest.id },
+            data,
+          })
+        : await tx.clinicPatientPayment.create({
+            data: {
+              tenantId: session.tenantId,
+              patientId: existing.patientId,
+              appointmentId: existing.id,
+              ...data,
+            },
+          })
+
+      await tx.clinicAppointment.update({
+        where: { id: existing.id },
+        data: { paymentRequirementStatus: ClinicPaymentRequirementStatus.PENDING },
+      })
+      await tx.clinicCrmActivity.create({
+        data: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          type: ClinicCrmActivityType.WHATSAPP,
+          body: `Deposit request prepared: ${messageText}`,
+          occurredAt: now,
+          createdByUserId: session.userId,
+        },
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: existing.id,
+        type: ClinicAppointmentEventType.PAYMENT_RECORDED,
+        message: `Deposit request prepared: ${(existing.depositRequiredCents / 100).toFixed(2)} ${payment.currency}`,
+        after: {
+          paymentId: payment.id,
+          amountCents: payment.amountCents,
+          currency: payment.currency,
+          status: payment.status,
+          expiresAt: expiresAt.toISOString(),
+        },
+        createdByUserId: session.userId,
+      })
+      return payment
+    })
+
+    return NextResponse.json({
+      payment,
+      paymentRequestUrl,
+      reminderText: messageText,
+      whatsappUrl: url,
+    })
+  }
+
+  if (action === 'mark_deposit_paid') {
+    if (existing.depositRequiredCents <= 0) {
+      return NextResponse.json({ error: 'This appointment does not require a deposit' }, { status: 409 })
+    }
+    const now = new Date()
+    const reference = depositPaymentReference(existing.id)
+    const method = normalizeDepositPaymentMethod(body.method)
+    const externalReference =
+      body.reference != null && String(body.reference).trim() ? String(body.reference).trim() : null
+    const note =
+      body.note != null && String(body.note).trim()
+        ? String(body.note).trim()
+        : externalReference
+          ? `Deposit paid manually. Reference: ${externalReference}`
+          : 'Deposit paid manually'
+
+    const result = await prisma.$transaction(async (tx) => {
+      const existingRequest = await tx.clinicPatientPayment.findFirst({
+        where: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          appointmentId: existing.id,
+          reference,
+          status: { in: [ClinicPaymentStatus.PENDING, ClinicPaymentStatus.PAID] },
+        },
+        orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+      })
+      if (existingRequest?.status === ClinicPaymentStatus.PAID) {
+        return { payment: existingRequest, alreadyPaid: true as const }
+      }
+
+      const feeRule = await tx.clinicPaymentFeeRule.findUnique({
+        where: { tenantId_method: { tenantId: session.tenantId, method } },
+        select: { percentBps: true, fixedFeeCents: true, active: true },
+      })
+      const processorFeeCents = calculateProcessorFeeForPayment({
+        amountCents: existing.depositRequiredCents,
+        status: ClinicPaymentStatus.PAID,
+        rule: feeRule,
+      })
+
+      const payment = existingRequest
+        ? await tx.clinicPatientPayment.update({
+            where: { id: existingRequest.id },
+            data: {
+              amountCents: existing.depositRequiredCents,
+              currency: existing.procedure?.currency ?? existingRequest.currency,
+              method,
+              status: ClinicPaymentStatus.PAID,
+              note,
+              processorFeeCents,
+              paidAt: now,
+              paymentRequestExpiresAt: null,
+            },
+          })
+        : await tx.clinicPatientPayment.create({
+            data: {
+              tenantId: session.tenantId,
+              patientId: existing.patientId,
+              appointmentId: existing.id,
+              amountCents: existing.depositRequiredCents,
+              currency: existing.procedure?.currency ?? 'AED',
+              method,
+              status: ClinicPaymentStatus.PAID,
+              reference,
+              note,
+              processorFeeCents,
+              paidAt: now,
+              createdByUserId: session.userId,
+            },
+          })
+
+      await tx.clinicAppointment.update({
+        where: { id: existing.id },
+        data: depositPaidAppointmentPatch(now),
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: existing.id,
+        type: ClinicAppointmentEventType.PAYMENT_RECORDED,
+        message: `Deposit marked paid: ${(existing.depositRequiredCents / 100).toFixed(2)} ${payment.currency}`,
+        after: {
+          paymentId: payment.id,
+          amountCents: payment.amountCents,
+          currency: payment.currency,
+          method,
+          status: payment.status,
+          externalReference,
+        },
+        createdByUserId: session.userId,
+      })
+
+      return { payment, alreadyPaid: false as const }
+    })
+
+    return NextResponse.json(result)
   }
 
   if (action === 'send_reminder') {

@@ -40,8 +40,20 @@ type Appointment = {
   locationAddress: string | null
   locationArea: string | null
   locationNotes: string | null
+  paymentRequirementStatus: 'NOT_REQUIRED' | 'PENDING' | 'PAID' | 'WAIVED'
+  depositRequiredCents: number
   patient: { id: string; firstName: string; lastName: string }
   procedure: { id: string; name: string; defaultDurationMin: number; basePriceCents?: number; currency?: string } | null
+  payments?: Array<{
+    id: string
+    amountCents: number
+    currency: string
+    status: string
+    reference: string | null
+    paidAt: string
+    paymentRequestExpiresAt: string | null
+    paymentRequestSentAt: string | null
+  }>
   visits?: { id: string; status: string; visitAt: string }[]
 }
 
@@ -56,6 +68,17 @@ function appointmentsOnDay(list: Appointment[], day: Date): Appointment[] {
 
 function mapUrl(address: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+}
+
+function hasPendingDeposit(appointment: Appointment) {
+  return appointment.depositRequiredCents > 0 && appointment.paymentRequirementStatus === 'PENDING'
+}
+
+function depositPaymentLabel(t: ClinicStrings, appointment: Appointment) {
+  if (appointment.paymentRequirementStatus === 'PAID') return t.depositPaidShort
+  if (appointment.paymentRequirementStatus === 'WAIVED') return t.paymentRequirementWaived
+  if (appointment.depositRequiredCents > 0) return t.depositPendingShort
+  return ''
 }
 
 export default function ClinicAppointmentsPage() {
@@ -779,6 +802,18 @@ function AppointmentChip({
             <p className="text-[10px] text-gray-500 truncate">
               {a.procedure?.name || a.titleOverride || '—'}
             </p>
+            {a.depositRequiredCents > 0 && (
+              <p
+                className={clsx(
+                  'mt-1 inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                  hasPendingDeposit(a)
+                    ? 'bg-orange-100 text-orange-800'
+                    : 'bg-emerald-100 text-emerald-800'
+                )}
+              >
+                {depositPaymentLabel(t, a)}
+              </p>
+            )}
             {a.bufferAfterMinutes > 0 && (
               <p className="text-[10px] text-orange-700 truncate">
                 +{a.bufferAfterMinutes} {t.minutesAbbr} {t.appointmentBuffer.toLowerCase()}
@@ -846,6 +881,18 @@ function AppointmentAgendaRow({
             {a.patient.lastName}, {a.patient.firstName}
           </p>
           <p className="text-sm text-gray-600">{a.procedure?.name || a.titleOverride || t.appointmentDefault}</p>
+          {a.depositRequiredCents > 0 && (
+            <p
+              className={clsx(
+                'mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
+                hasPendingDeposit(a)
+                  ? 'bg-orange-100 text-orange-800'
+                  : 'bg-emerald-100 text-emerald-800'
+              )}
+            >
+              {depositPaymentLabel(t, a)}
+            </p>
+          )}
           {occupiedUntil && a.bufferAfterMinutes > 0 && (
             <p className="mt-1 text-xs text-orange-700">
               {t.technicalBreak}: +{a.bufferAfterMinutes} {t.minutesAbbr} · {t.occupiedUntil}{' '}

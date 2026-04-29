@@ -120,6 +120,24 @@
 
 ---
 
+## Chunk 72 — 2026-04-29 (deposits + payment links)
+
+**Shipped**
+
+- **Schema:** extended `ClinicPatientPayment` with secure payment-request token hash, expiry, and sent timestamp.
+- **Deposit request workflow:** appointment action creates/reissues an appointment-linked `PENDING` deposit payment and returns a secure `/pay/deposit/[token]` link plus WhatsApp-ready copy.
+- **Manual paid workflow:** appointment action marks the deposit payment `PAID`, calculates processor fee when a fee rule exists, flips `paymentRequirementStatus` to `PAID`, and confirms the appointment.
+- **No-show protection enforcement:** direct confirmation is blocked while a required deposit remains pending.
+- **UI:** appointment drawer shows deposit status, request/mark-paid buttons, and calendar cards flag pending/paid deposits.
+- **Patient card:** payments tab now labels deposit requests and shows request-sent metadata in the payment timeline.
+- **i18n/tests:** added EN/RU copy, `lib/clinic/deposit-requests.test.ts`, and clinic business flow coverage for link generation and manual paid confirmation.
+
+**Operational**
+
+- Schema change requires `npx prisma db push` before use.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

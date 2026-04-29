@@ -238,11 +238,60 @@ async function main() {
   assert(appointmentId, 'No appointment id')
   console.log('✓ POST appointment')
 
+  const blockedConfirmRes = await req(`/api/clinic/appointments/${appointmentId}`, {
+    method: 'PATCH',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'CONFIRMED' }),
+  })
+  const blockedConfirmJson = await blockedConfirmRes.json()
+  assert(
+    blockedConfirmRes.status === 409,
+    `deposit should block confirmation ${blockedConfirmRes.status}: ${JSON.stringify(blockedConfirmJson)}`
+  )
+  console.log('✓ Deposit blocks confirmation before payment')
+
+  const depositReqRes = await req(`/api/clinic/appointments/${appointmentId}/actions`, {
+    method: 'POST',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'prepare_deposit_request', locale: 'en-GB' }),
+  })
+  const depositReqJson = await depositReqRes.json()
+  assert(depositReqRes.ok, `deposit request ${depositReqRes.status}: ${JSON.stringify(depositReqJson)}`)
+  assert(depositReqJson.payment?.status === 'PENDING', 'Deposit request should create pending payment')
+  assert(String(depositReqJson.paymentRequestUrl || '').includes('/pay/deposit/'), 'Missing deposit request URL')
+  const publicDepositRes = await fetch(depositReqJson.paymentRequestUrl)
+  assert(publicDepositRes.ok, `public deposit page ${publicDepositRes.status}`)
+  console.log('✓ POST deposit request + public payment link')
+
+  const markDepositRes = await req(`/api/clinic/appointments/${appointmentId}/actions`, {
+    method: 'POST',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'mark_deposit_paid',
+      method: 'TRANSFER',
+      reference: `E2E-${suffix}`,
+    }),
+  })
+  const markDepositJson = await markDepositRes.json()
+  assert(markDepositRes.ok, `mark deposit paid ${markDepositRes.status}: ${JSON.stringify(markDepositJson)}`)
+  assert(markDepositJson.payment?.status === 'PAID', 'Deposit payment should be paid')
+  console.log('✓ Mark deposit paid confirms appointment')
+
   // 7) Full chart
   const chartRes = await req(`/api/clinic/patients/${patientId}`, { cookie })
   const chartJson = await chartRes.json()
   assert(chartRes.ok, `chart ${chartRes.status}`)
   assert(chartJson.patient?.appointments?.length >= 1, 'Chart missing appointment')
+  assert(
+    chartJson.patient?.payments?.some(
+      (payment: { reference?: string | null; status?: string }) =>
+        payment.reference === `DEPOSIT:${appointmentId}` && payment.status === 'PAID'
+    ),
+    'Patient payment timeline missing paid deposit'
+  )
   console.log('✓ GET patient chart')
 
   // 7b) Anamnesis (structured history)

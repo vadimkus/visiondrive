@@ -27,7 +27,10 @@ import {
   Wifi,
   WifiOff,
   XCircle,
+  Mail,
+  MapPin,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import clsx from 'clsx'
 import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
 import { patientDeleteConfirmation } from '@/lib/clinic/data-export'
@@ -210,6 +213,9 @@ type PaymentRow = {
   note: string | null
   paidAt: string
   visitId: string | null
+  appointmentId: string | null
+  paymentRequestExpiresAt?: string | null
+  paymentRequestSentAt?: string | null
   createdAt: string
   correctionsAsOriginal?: PaymentCorrectionRow[]
 }
@@ -875,230 +881,319 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   ]
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-24">
+    <div className="mx-auto max-w-[92rem] space-y-6 pb-24">
       <Link
         href="/clinic/patients"
-        className="text-sm text-orange-600 hover:text-orange-700 inline-block min-h-11 py-2"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-orange-600 hover:text-orange-700"
       >
         {t.backPatients}
       </Link>
 
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          {patient.lastName}, {patient.firstName}
-          {patient.middleName ? ` ${patient.middleName}` : ''}
-        </h1>
-        <p className="text-gray-600 text-sm">
-          {t.dobLabel}{' '}
-          {new Date(patient.dateOfBirth).toLocaleDateString(dateLocale, {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })}
-          {age != null ? ` · ${age} ${t.ageYears}` : ''}
-        </p>
-        <div className="mt-3 flex flex-col sm:flex-row gap-2">
-          <a
-            href={`/api/clinic/patients/${patient.id}/summary-pdf`}
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FileDown className="w-4 h-4 text-orange-600 shrink-0" aria-hidden />
-            {t.downloadPatientSummaryPdf}
-          </a>
-          <a
-            href={`/api/clinic/patients/${patient.id}/patient-safe-export`}
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FileDown className="w-4 h-4 text-blue-600 shrink-0" aria-hidden />
-            {t.downloadPatientSafeExportPdf}
-          </a>
-          <a
-            href={`/api/clinic/patients/${patient.id}/export`}
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 shadow-sm"
-          >
-            <FileDown className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden />
-            {t.downloadPatientFullExport}
-          </a>
-          <button
-            type="button"
-            onClick={() => void deletePatientRecord()}
-            disabled={deletingPatient}
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-red-200 bg-white text-sm font-medium text-red-700 hover:bg-red-50 shadow-sm disabled:opacity-60"
-          >
-            <Trash2 className="w-4 h-4 shrink-0" aria-hidden />
-            {deletingPatient ? t.deletingEllipsis : t.deletePatientRecord}
-          </button>
-        </div>
-        <p className="text-xs text-gray-500 mt-2 max-w-xl">{t.patientSummaryPdfHint}</p>
-        <p className="text-xs text-gray-500 mt-1 max-w-xl">{t.patientSafeExportPdfHint}</p>
-        <p className="text-xs text-gray-500 mt-1 max-w-xl">{t.patientFullExportHint}</p>
-        <p className="text-xs text-red-600 mt-1 max-w-xl">{t.deletePatientRecordHint}</p>
-      </div>
-
-      {/* Next actions — tuned for returning patient on iPad */}
-      <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-5 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-wide text-orange-800 mb-2">{t.whatNext}</p>
-        <ul className="space-y-2 text-sm text-orange-950">
-          {nextAppointment && (
-            <li className="flex gap-2">
-              <Calendar className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" aria-hidden />
-              <span>
-                <span className="font-medium">{t.scheduled} </span>
-                {new Date(nextAppointment.startsAt).toLocaleString(dateLocale, {
-                  weekday: 'short',
-                  day: 'numeric',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-                {' — '}
-                {nextAppointment.procedure?.name || nextAppointment.titleOverride || t.appointmentDefault}
-              </span>
-            </li>
-          )}
-          {(lastVisitWithPlan?.aftercareTextSnapshot || lastVisitWithPlan?.nextSteps) && (
-            <li className="flex gap-2">
-              <Clock className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" aria-hidden />
-              <span>
-                <span className="font-medium">{t.fromLastVisit} </span>
-                {lastVisitWithPlan.aftercareTextSnapshot || lastVisitWithPlan.nextSteps}
-              </span>
-            </li>
-          )}
-          {patient.internalNotes && (
-            <li className="flex gap-2">
-              <MessageSquare className="w-4 h-4 shrink-0 mt-0.5 text-orange-600" aria-hidden />
-              <span>
-                <span className="font-medium">{t.staffNotesLabel} </span>
-                {patient.internalNotes}
-              </span>
-            </li>
-          )}
-          {!nextAppointment && !(lastVisitWithPlan?.aftercareTextSnapshot || lastVisitWithPlan?.nextSteps) && !patient.internalNotes && (
-            <li className="text-orange-800/90">{t.noUpcoming}</li>
-          )}
-        </ul>
-      </div>
-
-      <BalanceSummaryCard balance={patient.clientBalance} />
-
-      <PatientPortalCard patient={patient} onRefresh={load} />
-
-      <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={clsx(
-              'flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium whitespace-nowrap transition-colors shrink-0 min-h-11',
-              tab === id
-                ? 'bg-white text-orange-800 shadow-sm border border-orange-100'
-                : 'text-gray-600 hover:bg-white/70'
-            )}
-          >
-            <Icon className="w-4 h-4 shrink-0" aria-hidden />
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'overview' && (
-        <OverviewTab
-          patient={patient}
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
-          editFirst={editFirst}
-          setEditFirst={setEditFirst}
-          editLast={editLast}
-          setEditLast={setEditLast}
-          editPhone={editPhone}
-          setEditPhone={setEditPhone}
-          editEmail={editEmail}
-          setEditEmail={setEditEmail}
-          editHomeAddress={editHomeAddress}
-          setEditHomeAddress={setEditHomeAddress}
-          editArea={editArea}
-          setEditArea={setEditArea}
-          editAccessNotes={editAccessNotes}
-          setEditAccessNotes={setEditAccessNotes}
-          editCategory={editCategory}
-          setEditCategory={setEditCategory}
-          editTags={editTags}
-          setEditTags={setEditTags}
-          editReferredByName={editReferredByName}
-          setEditReferredByName={setEditReferredByName}
-          editReferralNote={editReferralNote}
-          setEditReferralNote={setEditReferralNote}
-          editInternal={editInternal}
-          setEditInternal={setEditInternal}
-          editAllergies={editAllergies}
-          setEditAllergies={setEditAllergies}
-          editMedications={editMedications}
-          setEditMedications={setEditMedications}
-          editConditions={editConditions}
-          setEditConditions={setEditConditions}
-          editSocial={editSocial}
-          setEditSocial={setEditSocial}
-          savePatient={savePatient}
-          savingPatient={savingPatient}
-          onVisitLogged={load}
-        />
-      )}
-      {tab === 'timeline' && (
-        <div className="space-y-3">
-          <div
-            className="flex flex-wrap gap-2"
-            role="tablist"
-            aria-label={t.timeline}
-          >
-            {filterChips.map(({ id: fid, label: fl }) => (
-              <button
-                key={fid}
-                type="button"
-                role="tab"
-                aria-selected={timelineFilter === fid}
-                onClick={() => setTimelineFilter(fid)}
-                className={clsx(
-                  'min-h-11 px-3 rounded-xl text-sm font-medium border transition-colors',
-                  timelineFilter === fid
-                    ? 'bg-orange-500 text-white border-orange-500'
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                )}
-              >
-                {fl}
-              </button>
-            ))}
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
-            {timelineItems.length === 0 ? (
-              <ClinicEmptyState title={t.noHistory} className="border-0 shadow-none" />
-            ) : filteredTimeline.length === 0 ? (
-              <p className="p-6 text-sm text-gray-500 text-center">{t.noTimeline}</p>
-            ) : (
-              filteredTimeline.map((item, i) => (
-                <div key={`${item.sort}-${item.kind}-${i}`} className="p-4 text-sm">
-                  <p className="font-medium text-gray-900">{item.label}</p>
-                  <p className="text-gray-700 mt-0.5 whitespace-pre-wrap">{item.detail}</p>
-                  <p className="text-gray-400 text-xs mt-1">{item.meta}</p>
+      <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-xl shadow-slate-200/60 backdrop-blur">
+        <div className="grid xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="p-5 sm:p-6 lg:p-8">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex min-w-0 gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-orange-100 to-amber-50 text-xl font-semibold text-orange-700 ring-1 ring-orange-100">
+                  {patient.firstName.slice(0, 1)}
+                  {patient.lastName.slice(0, 1)}
                 </div>
-              ))
-            )}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {patient.category && (
+                      <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
+                        {categoryLabel(t, patient.category)}
+                      </span>
+                    )}
+                    {patient.tags.slice(0, 3).map((tag) => (
+                      <span key={tag} className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                        {tagLabel(t, tag)}
+                      </span>
+                    ))}
+                  </div>
+                  <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 lg:text-5xl">
+                    {patient.lastName}, {patient.firstName}
+                    {patient.middleName ? ` ${patient.middleName}` : ''}
+                  </h1>
+                  <p className="mt-2 text-sm text-slate-500">
+                    {t.dobLabel}{' '}
+                    {new Date(patient.dateOfBirth).toLocaleDateString(dateLocale, {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                    {age != null ? ` · ${age} ${t.ageYears}` : ''}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <InfoTile icon={PhoneCall} label={t.phoneLabel} value={patient.phone || t.emptyValue} href={patient.phone ? `tel:${patient.phone}` : undefined} />
+              <InfoTile icon={Mail} label={t.emailLabel} value={patient.email || t.emptyValue} href={patient.email ? `mailto:${patient.email}` : undefined} />
+              <InfoTile icon={MapPin} label={t.area} value={patient.area || t.emptyValue} />
+              <InfoTile icon={Clock} label={t.upcomingScheduled} value={nextAppointment ? new Date(nextAppointment.startsAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' }) : t.emptyValue} />
+            </div>
           </div>
+
+          <aside className="border-t border-white/10 bg-slate-950 p-5 text-white xl:border-l xl:border-t-0 xl:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">{t.quickActions}</p>
+            <div className="mt-4 grid gap-2">
+              <ActionTile href={`/api/clinic/patients/${patient.id}/summary-pdf`} icon={FileDown} label={t.downloadPatientSummaryPdf} external />
+              <ActionTile href={`/api/clinic/patients/${patient.id}/patient-safe-export`} icon={ShieldCheck} label={t.downloadPatientSafeExportPdf} external />
+              <ActionTile href={`/api/clinic/patients/${patient.id}/export`} icon={FileDown} label={t.downloadPatientFullExport} />
+              <button
+                type="button"
+                onClick={() => void deletePatientRecord()}
+                disabled={deletingPatient}
+                className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 text-left text-sm font-semibold text-red-100 transition hover:bg-red-500/20 disabled:opacity-60"
+              >
+                <span className="inline-flex items-center gap-3">
+                  <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+                  {deletingPatient ? t.deletingEllipsis : t.deletePatientRecord}
+                </span>
+              </button>
+            </div>
+          </aside>
         </div>
-      )}
-      {tab === 'photos' && <PhotosTab patient={patient} onRefresh={load} />}
-      {tab === 'quotes' && <PriceQuotesTab patient={patient} onRefresh={load} />}
-      {tab === 'payments' && <PaymentsTab patient={patient} onRefresh={load} />}
-      {tab === 'packages' && <PackagesTab patient={patient} onRefresh={load} />}
-      {tab === 'treatment-plans' && <TreatmentPlansTab patient={patient} onRefresh={load} />}
-      {tab === 'consents' && <ConsentsTab patient={patient} onRefresh={load} />}
-      {tab === 'crm' && <CrmTab patient={patient} onRefresh={load} />}
+      </section>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_25rem]">
+        <main className="min-w-0 space-y-5">
+          <div className="rounded-[1.75rem] border border-orange-100 bg-orange-50/80 p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-800">{t.whatNext}</p>
+              <Calendar className="h-5 w-5 text-orange-500" aria-hidden />
+            </div>
+            <ul className="mt-4 grid gap-3 text-sm text-orange-950 lg:grid-cols-3">
+              {nextAppointment && (
+                <li className="rounded-2xl bg-white/70 p-4">
+                  <Calendar className="mb-3 h-4 w-4 text-orange-600" aria-hidden />
+                  <span className="block font-semibold">{t.scheduled}</span>
+                  <span className="mt-1 block text-orange-950/80">
+                    {new Date(nextAppointment.startsAt).toLocaleString(dateLocale, {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                    {' · '}
+                    {nextAppointment.procedure?.name || nextAppointment.titleOverride || t.appointmentDefault}
+                  </span>
+                </li>
+              )}
+              {(lastVisitWithPlan?.aftercareTextSnapshot || lastVisitWithPlan?.nextSteps) && (
+                <li className="rounded-2xl bg-white/70 p-4 lg:col-span-2">
+                  <Clock className="mb-3 h-4 w-4 text-orange-600" aria-hidden />
+                  <span className="block font-semibold">{t.fromLastVisit}</span>
+                  <span className="mt-1 block text-orange-950/80">
+                    {lastVisitWithPlan.aftercareTextSnapshot || lastVisitWithPlan.nextSteps}
+                  </span>
+                </li>
+              )}
+              {patient.internalNotes && (
+                <li className="rounded-2xl bg-white/70 p-4 lg:col-span-3">
+                  <MessageSquare className="mb-3 h-4 w-4 text-orange-600" aria-hidden />
+                  <span className="block font-semibold">{t.staffNotesLabel}</span>
+                  <span className="mt-1 block text-orange-950/80">{patient.internalNotes}</span>
+                </li>
+              )}
+              {!nextAppointment && !(lastVisitWithPlan?.aftercareTextSnapshot || lastVisitWithPlan?.nextSteps) && !patient.internalNotes && (
+                <li className="rounded-2xl bg-white/70 p-4 text-orange-800/90">{t.noUpcoming}</li>
+              )}
+            </ul>
+          </div>
+
+          <div className="space-y-5 xl:hidden">
+            <BalanceSummaryCard balance={patient.clientBalance} />
+            <PatientPortalCard patient={patient} onRefresh={load} />
+          </div>
+
+          <div className="rounded-[1.75rem] border border-white/80 bg-white/75 p-2 shadow-sm">
+            <div className="flex gap-1 overflow-x-auto scrollbar-thin">
+              {tabs.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTab(id)}
+                  className={clsx(
+                    'flex min-h-11 shrink-0 items-center gap-2 rounded-2xl px-4 text-sm font-semibold whitespace-nowrap transition-colors',
+                    tab === id
+                      ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/10'
+                      : 'text-slate-500 hover:bg-white hover:text-slate-950'
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {tab === 'overview' && (
+            <OverviewTab
+              patient={patient}
+              editOpen={editOpen}
+              setEditOpen={setEditOpen}
+              editFirst={editFirst}
+              setEditFirst={setEditFirst}
+              editLast={editLast}
+              setEditLast={setEditLast}
+              editPhone={editPhone}
+              setEditPhone={setEditPhone}
+              editEmail={editEmail}
+              setEditEmail={setEditEmail}
+              editHomeAddress={editHomeAddress}
+              setEditHomeAddress={setEditHomeAddress}
+              editArea={editArea}
+              setEditArea={setEditArea}
+              editAccessNotes={editAccessNotes}
+              setEditAccessNotes={setEditAccessNotes}
+              editCategory={editCategory}
+              setEditCategory={setEditCategory}
+              editTags={editTags}
+              setEditTags={setEditTags}
+              editReferredByName={editReferredByName}
+              setEditReferredByName={setEditReferredByName}
+              editReferralNote={editReferralNote}
+              setEditReferralNote={setEditReferralNote}
+              editInternal={editInternal}
+              setEditInternal={setEditInternal}
+              editAllergies={editAllergies}
+              setEditAllergies={setEditAllergies}
+              editMedications={editMedications}
+              setEditMedications={setEditMedications}
+              editConditions={editConditions}
+              setEditConditions={setEditConditions}
+              editSocial={editSocial}
+              setEditSocial={setEditSocial}
+              savePatient={savePatient}
+              savingPatient={savingPatient}
+              onVisitLogged={load}
+            />
+          )}
+          {tab === 'timeline' && (
+            <div className="space-y-3">
+              <div
+                className="flex flex-wrap gap-2"
+                role="tablist"
+                aria-label={t.timeline}
+              >
+                {filterChips.map(({ id: fid, label: fl }) => (
+                  <button
+                    key={fid}
+                    type="button"
+                    role="tab"
+                    aria-selected={timelineFilter === fid}
+                    onClick={() => setTimelineFilter(fid)}
+                    className={clsx(
+                      'min-h-11 px-3 rounded-xl text-sm font-medium border transition-colors',
+                      timelineFilter === fid
+                        ? 'bg-orange-500 text-white border-orange-500'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    )}
+                  >
+                    {fl}
+                  </button>
+                ))}
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+                {timelineItems.length === 0 ? (
+                  <ClinicEmptyState title={t.noHistory} className="border-0 shadow-none" />
+                ) : filteredTimeline.length === 0 ? (
+                  <p className="p-6 text-sm text-gray-500 text-center">{t.noTimeline}</p>
+                ) : (
+                  filteredTimeline.map((item, i) => (
+                    <div key={`${item.sort}-${item.kind}-${i}`} className="p-4 text-sm">
+                      <p className="font-medium text-gray-900">{item.label}</p>
+                      <p className="text-gray-700 mt-0.5 whitespace-pre-wrap">{item.detail}</p>
+                      <p className="text-gray-400 text-xs mt-1">{item.meta}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+          {tab === 'photos' && <PhotosTab patient={patient} onRefresh={load} />}
+          {tab === 'quotes' && <PriceQuotesTab patient={patient} onRefresh={load} />}
+          {tab === 'payments' && <PaymentsTab patient={patient} onRefresh={load} />}
+          {tab === 'packages' && <PackagesTab patient={patient} onRefresh={load} />}
+          {tab === 'treatment-plans' && <TreatmentPlansTab patient={patient} onRefresh={load} />}
+          {tab === 'consents' && <ConsentsTab patient={patient} onRefresh={load} />}
+          {tab === 'crm' && <CrmTab patient={patient} onRefresh={load} />}
+        </main>
+
+        <aside className="hidden space-y-5 xl:block">
+          <div className="sticky top-6 space-y-5">
+            <BalanceSummaryCard balance={patient.clientBalance} />
+            <PatientPortalCard patient={patient} onRefresh={load} />
+          </div>
+        </aside>
+      </div>
     </div>
+  )
+}
+
+function InfoTile({
+  icon: Icon,
+  label,
+  value,
+  href,
+}: {
+  icon: LucideIcon
+  label: string
+  value: string
+  href?: string
+}) {
+  const content = (
+    <>
+      <Icon className="h-4 w-4 text-slate-400" aria-hidden />
+      <span className="min-w-0">
+        <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{label}</span>
+        <span className="mt-1 block truncate text-sm font-semibold text-slate-900">{value}</span>
+      </span>
+    </>
+  )
+
+  const className =
+    'flex min-h-20 min-w-0 items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 transition hover:border-orange-100 hover:bg-white'
+
+  if (href) {
+    return (
+      <a href={href} className={className}>
+        {content}
+      </a>
+    )
+  }
+
+  return <div className={className}>{content}</div>
+}
+
+function ActionTile({
+  href,
+  icon: Icon,
+  label,
+  external = false,
+}: {
+  href: string
+  icon: LucideIcon
+  label: string
+  external?: boolean
+}) {
+  return (
+    <a
+      href={href}
+      className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15"
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+    >
+      <span className="inline-flex min-w-0 items-center gap-3">
+        <Icon className="h-4 w-4 shrink-0 text-orange-300" aria-hidden />
+        <span className="truncate">{label}</span>
+      </span>
+      <FileDown className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
+    </a>
   )
 }
 
@@ -4534,6 +4629,10 @@ function PaymentsTab({
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+        <div className="p-4">
+          <h2 className="text-lg font-semibold text-gray-900">{t.paymentTimeline}</h2>
+          <p className="mt-1 text-sm text-gray-500">{t.paymentTimelineHint}</p>
+        </div>
         {patient.payments.length === 0 ? (
           <p className="p-4 text-sm text-gray-500">{t.noPaymentsRecorded}</p>
         ) : (
@@ -4546,6 +4645,16 @@ function PaymentsTab({
                 <p className="text-gray-600">
                   {pmt.method} · {pmt.status}
                 </p>
+                {pmt.reference?.startsWith('DEPOSIT:') && (
+                  <p className="mt-1 inline-flex rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-800">
+                    {t.depositRequest}
+                  </p>
+                )}
+                {pmt.paymentRequestSentAt && (
+                  <p className="text-gray-500 text-xs mt-1">
+                    {t.paymentRequestSent}: {new Date(pmt.paymentRequestSentAt).toLocaleString(dateLocale)}
+                  </p>
+                )}
                 {pmt.processorFeeCents > 0 && (
                   <p className="text-gray-500 text-xs mt-1">
                     {t.paymentProcessorFee}: {formatMoney(pmt.processorFeeCents, pmt.currency)}

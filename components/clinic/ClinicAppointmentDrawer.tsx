@@ -35,6 +35,8 @@ type Payment = {
   paidAt: string
   visitId: string | null
   appointmentId: string | null
+  paymentRequestExpiresAt?: string | null
+  paymentRequestSentAt?: string | null
   correctionsAsOriginal?: PaymentCorrection[]
 }
 
@@ -162,6 +164,8 @@ type Appointment = {
     basePriceCents: number
     currency: string
   } | null
+  paymentRequirementStatus: 'NOT_REQUIRED' | 'PENDING' | 'PAID' | 'WAIVED'
+  depositRequiredCents: number
   visits: Visit[]
   payments: Payment[]
   events: {
@@ -276,6 +280,20 @@ function statusClasses(status: AppointmentStatus) {
   if (status === 'COMPLETED') return 'bg-gray-100 text-gray-700 border-gray-200'
   if (status === 'CANCELLED' || status === 'NO_SHOW') return 'bg-red-50 text-red-800 border-red-100'
   return 'bg-orange-50 text-orange-800 border-orange-100'
+}
+
+function paymentRequirementLabel(t: ClinicStrings, status: Appointment['paymentRequirementStatus']) {
+  if (status === 'PAID') return t.paymentRequirementPaid
+  if (status === 'WAIVED') return t.paymentRequirementWaived
+  if (status === 'PENDING') return t.paymentRequirementPending
+  return t.paymentRequirementNotRequired
+}
+
+function paymentRequirementClasses(status: Appointment['paymentRequirementStatus']) {
+  if (status === 'PAID') return 'border-emerald-100 bg-emerald-50 text-emerald-800'
+  if (status === 'WAIVED') return 'border-gray-200 bg-gray-50 text-gray-700'
+  if (status === 'PENDING') return 'border-orange-100 bg-orange-50 text-orange-800'
+  return 'border-gray-200 bg-white text-gray-600'
 }
 
 function categoryLabel(t: ClinicStrings, category: PatientCategory) {
@@ -619,6 +637,7 @@ export function ClinicAppointmentDrawer({
       if (!res.ok) throw new Error(data.error || t.saveFailed)
       if (
         action === 'send_reminder' ||
+        action === 'prepare_deposit_request' ||
         action === 'no_show_follow_up' ||
         action === 'send_review_request' ||
         (action === 'complete_visit' && data.aftercare)
@@ -642,6 +661,12 @@ export function ClinicAppointmentDrawer({
         } else {
           setNotice(t.rebookingReminderScheduled)
         }
+      }
+      if (action === 'prepare_deposit_request') {
+        setNotice(t.depositRequestPrepared)
+      }
+      if (action === 'mark_deposit_paid') {
+        setNotice(data.alreadyPaid ? t.depositAlreadyPaid : t.depositMarkedPaid)
       }
       if (action === 'send_review_request') {
         setNotice(data.alreadyRequested ? t.reviewRequestAlreadySent : t.reviewRequestPrepared)
@@ -674,6 +699,17 @@ export function ClinicAppointmentDrawer({
   const latestAftercareText = latestVisit ? aftercareVisitText(latestVisit) : ''
   const latestAftercareUrl =
     latestVisit && latestAftercareText ? drawerWhatsappUrl(appointment?.patient.phone, latestAftercareText) : null
+  const depositPayment = payment.payments.find((item) => item.reference?.startsWith('DEPOSIT:')) ?? null
+  const depositRequired = appointment ? appointment.depositRequiredCents > 0 : false
+  const confirmBlockedByDeposit =
+    Boolean(appointment) &&
+    appointment!.depositRequiredCents > 0 &&
+    appointment!.paymentRequirementStatus === 'PENDING'
+  const markDepositPaid = () => {
+    const reference = window.prompt(t.depositPaymentReferencePrompt)
+    if (reference === null) return
+    void runAction('mark_deposit_paid', { reference: reference.trim() || null, method: 'TRANSFER' })
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/20" role="dialog" aria-modal="true">
@@ -784,10 +820,77 @@ export function ClinicAppointmentDrawer({
                 </div>
               </section>
 
+              {depositRequired && (
+                <section className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">
+                        {t.depositProtection}
+                      </p>
+                      <h3 className="mt-1 text-base font-semibold text-orange-950">
+                        {money(appointment.depositRequiredCents, appointment.procedure?.currency || 'AED')}
+                      </h3>
+                      <p className="mt-1 text-sm text-orange-900">{t.depositProtectionHint}</p>
+                    </div>
+                    <span
+                      className={clsx(
+                        'inline-flex self-start rounded-full border px-2.5 py-1 text-xs font-semibold',
+                        paymentRequirementClasses(appointment.paymentRequirementStatus)
+                      )}
+                    >
+                      {paymentRequirementLabel(t, appointment.paymentRequirementStatus)}
+                    </span>
+                  </div>
+                  {depositPayment && (
+                    <div className="mt-3 rounded-xl bg-white/80 p-3 text-xs text-orange-950">
+                      <p className="font-semibold">
+                        {money(depositPayment.amountCents, depositPayment.currency)} · {depositPayment.status}
+                      </p>
+                      <p>
+                        {t.paymentRequestSent}:{' '}
+                        {depositPayment.paymentRequestSentAt
+                          ? new Date(depositPayment.paymentRequestSentAt).toLocaleString(dateLocale)
+                          : t.emptyValue}
+                      </p>
+                      {depositPayment.paymentRequestExpiresAt && depositPayment.status === 'PENDING' && (
+                        <p>
+                          {t.paymentRequestExpires}:{' '}
+                          {new Date(depositPayment.paymentRequestExpiresAt).toLocaleDateString(dateLocale)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {confirmBlockedByDeposit && (
+                    <p className="mt-3 rounded-xl bg-white/80 p-3 text-xs font-medium text-orange-950">
+                      {t.depositBlocksConfirmation}
+                    </p>
+                  )}
+                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <ActionButton
+                      busy={busy === 'prepare_deposit_request'}
+                      onClick={() => runAction('prepare_deposit_request', { locale: dateLocale })}
+                    >
+                      {t.generateDepositRequest}
+                    </ActionButton>
+                    <ActionButton
+                      busy={busy === 'mark_deposit_paid'}
+                      disabled={appointment.paymentRequirementStatus === 'PAID'}
+                      onClick={markDepositPaid}
+                    >
+                      {t.markDepositPaid}
+                    </ActionButton>
+                  </div>
+                </section>
+              )}
+
               <section className="rounded-2xl border border-gray-200 p-4">
                 <h3 className="text-sm font-semibold text-gray-900">{t.quickStatus}</h3>
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <ActionButton busy={busy === 'CONFIRMED'} onClick={() => patchStatus('CONFIRMED')}>
+                  <ActionButton
+                    busy={busy === 'CONFIRMED'}
+                    disabled={confirmBlockedByDeposit}
+                    onClick={() => patchStatus('CONFIRMED')}
+                  >
                     {t.confirmAppointment}
                   </ActionButton>
                   <ActionButton busy={busy === 'ARRIVED'} onClick={() => patchStatus('ARRIVED')}>
@@ -1418,17 +1521,19 @@ export function ClinicAppointmentDrawer({
 
 function ActionButton({
   busy,
+  disabled,
   onClick,
   children,
 }: {
   busy: boolean
+  disabled?: boolean
   onClick: () => void
   children: ReactNode
 }) {
   return (
     <button
       type="button"
-      disabled={busy}
+      disabled={busy || disabled}
       onClick={onClick}
       className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-60"
     >

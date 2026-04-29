@@ -933,26 +933,26 @@ model ClinicPatient {
 }
 
 model ClinicProcedure {
-  id                 String   @id @default(cuid())
-  tenantId           String
-  name               String
-  defaultDurationMin Int      @default(60)
+  id                      String                  @id @default(cuid())
+  tenantId                String
+  name                    String
+  defaultDurationMin      Int                     @default(60)
   /// Hidden operational buffer after a procedure (cleanup, prep, travel, rest).
-  bufferAfterMinutes Int      @default(0)
-  basePriceCents     Int      @default(0)
-  currency           String   @default("AED")
+  bufferAfterMinutes      Int                     @default(0)
+  basePriceCents          Int                     @default(0)
+  currency                String                  @default("AED")
   /// Booking policy shown before booking; payment capture happens in a later chunk.
-  bookingPolicyType  ClinicBookingPolicyType @default(NONE)
-  depositAmountCents Int      @default(0)
-  depositPercent     Int      @default(0)
-  cancellationWindowHours Int @default(24)
-  lateCancelFeeCents Int      @default(0)
-  noShowFeeCents     Int      @default(0)
-  bookingPolicyText  String?  @db.Text
-  active             Boolean  @default(true)
-  sortOrder          Int      @default(0)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  bookingPolicyType       ClinicBookingPolicyType @default(NONE)
+  depositAmountCents      Int                     @default(0)
+  depositPercent          Int                     @default(0)
+  cancellationWindowHours Int                     @default(24)
+  lateCancelFeeCents      Int                     @default(0)
+  noShowFeeCents          Int                     @default(0)
+  bookingPolicyText       String?                 @db.Text
+  active                  Boolean                 @default(true)
+  sortOrder               Int                     @default(0)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
 
   tenant              Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   appointments        ClinicAppointment[]
@@ -975,43 +975,43 @@ model ClinicProcedure {
 }
 
 model ClinicAppointment {
-  id                        String                  @id @default(cuid())
+  id                        String                         @id @default(cuid())
   tenantId                  String
   patientId                 String
   procedureId               String?
-  startsAt                  DateTime                @db.Timestamptz(6)
-  endsAt                    DateTime?               @db.Timestamptz(6)
-  status                    ClinicAppointmentStatus @default(SCHEDULED)
-  source                    ClinicAppointmentSource @default(MANUAL)
+  startsAt                  DateTime                       @db.Timestamptz(6)
+  endsAt                    DateTime?                      @db.Timestamptz(6)
+  status                    ClinicAppointmentStatus        @default(SCHEDULED)
+  source                    ClinicAppointmentSource        @default(MANUAL)
   /// Hidden occupied time after the appointment. Used for conflict checks, not shown as service duration.
-  bufferAfterMinutes        Int                     @default(0)
+  bufferAfterMinutes        Int                            @default(0)
   /// Travel/prep time before a home visit. Used for conflict checks and route planning.
-  travelBufferBeforeMinutes Int                     @default(0)
+  travelBufferBeforeMinutes Int                            @default(0)
   /// Travel time after a home visit. Used for conflict checks and route planning.
-  travelBufferAfterMinutes  Int                     @default(0)
-  locationAddress           String?                 @db.Text
+  travelBufferAfterMinutes  Int                            @default(0)
+  locationAddress           String?                        @db.Text
   locationArea              String?
-  locationNotes             String?                 @db.Text
+  locationNotes             String?                        @db.Text
   titleOverride             String?
   /// Required when staff intentionally books through a conflict, blocked time, or outside working hours.
-  overrideReason            String?                 @db.Text
-  cancelReason              String?                 @db.Text
+  overrideReason            String?                        @db.Text
+  cancelReason              String?                        @db.Text
   /// Snapshot of the selected service booking policy at booking time.
-  bookingPolicyType         ClinicBookingPolicyType @default(NONE)
+  bookingPolicyType         ClinicBookingPolicyType        @default(NONE)
   bookingPolicySnapshot     Json?
-  bookingPolicyAcceptedAt   DateTime?               @db.Timestamptz(6)
+  bookingPolicyAcceptedAt   DateTime?                      @db.Timestamptz(6)
   paymentRequirementStatus  ClinicPaymentRequirementStatus @default(NOT_REQUIRED)
-  depositRequiredCents      Int                     @default(0)
-  cancellationWindowHours   Int                     @default(24)
-  lateCancelFeeCents        Int                     @default(0)
-  noShowFeeCents            Int                     @default(0)
-  confirmedAt               DateTime?               @db.Timestamptz(6)
-  arrivedAt                 DateTime?               @db.Timestamptz(6)
-  completedAt               DateTime?               @db.Timestamptz(6)
+  depositRequiredCents      Int                            @default(0)
+  cancellationWindowHours   Int                            @default(24)
+  lateCancelFeeCents        Int                            @default(0)
+  noShowFeeCents            Int                            @default(0)
+  confirmedAt               DateTime?                      @db.Timestamptz(6)
+  arrivedAt                 DateTime?                      @db.Timestamptz(6)
+  completedAt               DateTime?                      @db.Timestamptz(6)
   /// Doctor-only appointment / scheduling notes
-  internalNotes             String?                 @db.Text
-  createdAt                 DateTime                @default(now())
-  updatedAt                 DateTime                @updatedAt
+  internalNotes             String?                        @db.Text
+  createdAt                 DateTime                       @default(now())
+  updatedAt                 DateTime                       @updatedAt
 
   tenant                Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient               ClinicPatient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -1448,26 +1448,29 @@ model ClinicPatientMedia {
 }
 
 model ClinicPatientPayment {
-  id                String              @id @default(cuid())
-  tenantId          String
-  patientId         String
-  visitId           String?
-  appointmentId     String?
-  amountCents       Int
-  discountCents     Int                 @default(0)
-  discountRuleId    String?
-  discountName      String?
-  discountReason    String?             @db.Text
-  feeCents          Int                 @default(0)
-  processorFeeCents Int                 @default(0)
-  currency          String              @default("AED")
-  method            ClinicPaymentMethod @default(OTHER)
-  status            ClinicPaymentStatus @default(PAID)
-  reference         String?
-  note              String?             @db.Text
-  paidAt            DateTime            @db.Timestamptz(6)
-  createdAt         DateTime            @default(now())
-  createdByUserId   String?
+  id                      String              @id @default(cuid())
+  tenantId                String
+  patientId               String
+  visitId                 String?
+  appointmentId           String?
+  amountCents             Int
+  discountCents           Int                 @default(0)
+  discountRuleId          String?
+  discountName            String?
+  discountReason          String?             @db.Text
+  feeCents                Int                 @default(0)
+  processorFeeCents       Int                 @default(0)
+  currency                String              @default("AED")
+  method                  ClinicPaymentMethod @default(OTHER)
+  status                  ClinicPaymentStatus @default(PAID)
+  reference               String?
+  note                    String?             @db.Text
+  paymentRequestTokenHash String?
+  paymentRequestExpiresAt DateTime?           @db.Timestamptz(6)
+  paymentRequestSentAt    DateTime?           @db.Timestamptz(6)
+  paidAt                  DateTime            @db.Timestamptz(6)
+  createdAt               DateTime            @default(now())
+  createdByUserId         String?
 
   tenant                 Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient                ClinicPatient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -1481,6 +1484,8 @@ model ClinicPatientPayment {
 
   @@index([tenantId, patientId, paidAt])
   @@index([appointmentId, paidAt])
+  @@index([paymentRequestTokenHash])
+  @@index([paymentRequestExpiresAt])
   @@index([discountRuleId, paidAt])
   @@map("clinic_patient_payments")
 }

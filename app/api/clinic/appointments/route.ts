@@ -67,6 +67,20 @@ export async function GET(request: NextRequest) {
             bookingPolicyText: true,
           },
         },
+        payments: {
+          where: { reference: { startsWith: 'DEPOSIT:' } },
+          select: {
+            id: true,
+            amountCents: true,
+            currency: true,
+            status: true,
+            reference: true,
+            paidAt: true,
+            paymentRequestExpiresAt: true,
+            paymentRequestSentAt: true,
+          },
+          orderBy: { paidAt: 'desc' },
+        },
         visits: {
           select: { id: true, status: true, visitAt: true },
           orderBy: { visitAt: 'desc' },

@@ -228,6 +228,8 @@ export async function GET(
           paidAt: true,
           visitId: true,
           appointmentId: true,
+          paymentRequestExpiresAt: true,
+          paymentRequestSentAt: true,
           createdAt: true,
           correctionsAsOriginal: {
             select: {
