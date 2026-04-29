@@ -21,6 +21,15 @@ Added voice-to-text comments on the patient card for the solo-practitioner workf
 - The system does not auto-save voice output; the practitioner must review and press Save.
 - Microphone permission remains browser-controlled.
 
+## Follow-up: AI Note Assistant
+
+Added 2026-04-29.
+
+- Patient visit logging now includes an AI note assistant panel for rough text or dictated notes.
+- `POST /api/clinic/notes/assist` returns structured draft fields: chief complaint, procedure summary, next steps, and staff notes.
+- The first pass is local deterministic drafting behind the API, not external LLM storage or autonomous charting.
+- The practitioner must review the draft before saving the visit.
+
 ## Validation
 
 - `npm run type-check`

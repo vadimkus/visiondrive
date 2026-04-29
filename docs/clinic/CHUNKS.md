@@ -253,6 +253,24 @@
 
 ---
 
+## Chunk 80 — 2026-04-29 (retail add-ons + AI note assistant)
+
+**Shipped**
+
+- **Retail recommendations:** added derived add-on ranking from service-linked inventory, patient repeat purchases, and recent product-sale popularity.
+- **API:** `GET /api/clinic/product-recommendations` returns tenant-scoped checkout suggestions.
+- **Checkout UI:** appointment drawer product-sales section now shows recommendation chips that prefill product and last known unit price when available.
+- **AI note assistant:** added local structured drafting helper plus `POST /api/clinic/notes/assist`.
+- **Visit UI:** patient visit form now accepts rough notes/dictation and drafts chief complaint, procedure summary, next steps, and staff notes for review before saving.
+- **RU coverage:** all new recommendation and AI assistant UI copy has Russian overrides.
+- **Tests/docs:** added helper tests, architecture note, docs index, and session note.
+
+**Operational**
+
+- No schema change.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

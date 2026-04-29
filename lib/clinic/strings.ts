@@ -563,6 +563,12 @@ const table = {
     productSaleRecorded: 'Product sale recorded.',
     completeVisitBeforeProductSale: 'Complete or start a visit before selling products from this appointment.',
     noProductSalesYet: 'No product sales yet.',
+    productRecommendations: 'Add-on recommendations',
+    productRecommendationsHint:
+      'Suggested retail add-ons based on the booked service, this patient’s repeat purchases, and recent sales.',
+    productRecommendationServiceMatch: 'Matches this service',
+    productRecommendationPatientRepeat: 'Patient bought before',
+    productRecommendationPopular: 'Popular add-on',
     treatmentPackages: 'Treatment packages',
     packageHint:
       'Sell prepaid courses, then completed visits automatically use one eligible session.',
@@ -657,6 +663,17 @@ const table = {
     voiceCommentUnsupported:
       'Voice dictation is not supported in this browser. Use Chrome, Edge, or Safari speech input.',
     voiceCommentError: 'Could not capture voice. Check microphone permission and try again.',
+    aiNoteAssistant: 'AI note assistant',
+    aiNoteAssistantHint:
+      'Paste rough notes or dictation. The assistant drafts structured fields for review before saving.',
+    aiNoteAssistantPlaceholder:
+      'Example: dry skin after travel, gentle cleanse, hydration mask, recommend SPF and follow-up in 2 weeks...',
+    aiNoteAssistantDraft: 'Draft note',
+    aiNoteAssistantDrafting: 'Drafting...',
+    aiNoteAssistantReview: 'Review the AI draft before saving.',
+    aiNoteAssistantGuardrail:
+      'The draft is not saved automatically. Check clinical facts, contraindications, and aftercare instructions.',
+    aiNoteAssistantNeedsInput: 'Add rough notes or existing visit details before drafting.',
     saveToCrm: 'Save to CRM',
     noCrmHistory: 'No CRM history yet.',
     callLogTitle: 'Call log',
@@ -2314,6 +2331,12 @@ const ruOverrides: Partial<ClinicStrings> = {
   productSaleRecorded: 'Продажа товара записана.',
   completeVisitBeforeProductSale: 'Начните или завершите визит перед продажей товаров из этой записи.',
   noProductSalesYet: 'Продаж товаров пока нет.',
+  productRecommendations: 'Рекомендации допродажи',
+  productRecommendationsHint:
+    'Подсказки по домашнему уходу на основе услуги, повторных покупок пациента и недавних продаж.',
+  productRecommendationServiceMatch: 'Подходит к этой услуге',
+  productRecommendationPatientRepeat: 'Пациент уже покупал',
+  productRecommendationPopular: 'Популярная допродажа',
   treatmentPackages: 'Пакеты процедур',
   packageHint:
     'Продавайте предоплаченные курсы, а завершённый визит автоматически спишет один подходящий сеанс.',
@@ -2408,6 +2431,17 @@ const ruOverrides: Partial<ClinicStrings> = {
   voiceCommentUnsupported:
     'Диктовка голосом не поддерживается в этом браузере. Используйте Chrome, Edge или Safari.',
   voiceCommentError: 'Не удалось записать голос. Проверьте доступ к микрофону и попробуйте снова.',
+  aiNoteAssistant: 'AI-ассистент заметки',
+  aiNoteAssistantHint:
+    'Вставьте черновые заметки или диктовку. Ассистент подготовит структурированные поля для проверки перед сохранением.',
+  aiNoteAssistantPlaceholder:
+    'Например: сухость кожи после перелёта, мягкое очищение, увлажняющая маска, рекомендовать SPF и контроль через 2 недели...',
+  aiNoteAssistantDraft: 'Составить заметку',
+  aiNoteAssistantDrafting: 'Готовим...',
+  aiNoteAssistantReview: 'Проверьте AI-черновик перед сохранением.',
+  aiNoteAssistantGuardrail:
+    'Черновик не сохраняется автоматически. Проверьте факты, противопоказания и рекомендации по уходу.',
+  aiNoteAssistantNeedsInput: 'Добавьте черновые заметки или данные визита перед генерацией.',
   saveToCrm: 'Сохранить в CRM',
   noCrmHistory: 'Истории CRM пока нет.',
   callLogTitle: 'Журнал звонков',

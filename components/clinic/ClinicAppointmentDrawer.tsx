@@ -79,6 +79,17 @@ type ProductStockItem = {
   unit: string
   quantityOnHand: number
   active: boolean
+  procedure?: { id: string; name: string } | null
+}
+
+type ProductRecommendation = {
+  id: string
+  name: string
+  sku: string | null
+  unit: string
+  quantityOnHand: number
+  reason: 'SERVICE_MATCH' | 'PATIENT_REPEAT' | 'POPULAR'
+  lastUnitPriceCents: number | null
 }
 
 type DiscountRule = {
@@ -259,6 +270,12 @@ function balanceClasses(balance: ClientBalance) {
   return 'border-gray-200 bg-gray-50 text-gray-900'
 }
 
+function productRecommendationReasonLabel(t: ClinicStrings, reason: ProductRecommendation['reason']) {
+  if (reason === 'SERVICE_MATCH') return t.productRecommendationServiceMatch
+  if (reason === 'PATIENT_REPEAT') return t.productRecommendationPatientRepeat
+  return t.productRecommendationPopular
+}
+
 function statusLabel(t: ClinicStrings, status: AppointmentStatus) {
   switch (status) {
     case 'CONFIRMED':
@@ -347,6 +364,7 @@ export function ClinicAppointmentDrawer({
   const [paymentReference, setPaymentReference] = useState('')
   const [paymentNote, setPaymentNote] = useState('')
   const [productItems, setProductItems] = useState<ProductStockItem[]>([])
+  const [productRecommendations, setProductRecommendations] = useState<ProductRecommendation[]>([])
   const [saleProductId, setSaleProductId] = useState('')
   const [saleQuantity, setSaleQuantity] = useState('1')
   const [saleUnitPrice, setSaleUnitPrice] = useState('')
@@ -373,10 +391,23 @@ export function ClinicAppointmentDrawer({
       if (!res.ok) {
         throw new Error(data.error || t.failedToLoad)
       }
-      setAppointment(data.appointment)
+      const nextAppointment = data.appointment as Appointment
+      setAppointment(nextAppointment)
       if (inventoryRes.ok) {
         const inventoryData = await inventoryRes.json()
         setProductItems((inventoryData.items || []).filter((item: ProductStockItem) => item.active))
+      }
+      const recommendationParams = new URLSearchParams()
+      if (nextAppointment.procedure?.id) recommendationParams.set('procedureId', nextAppointment.procedure.id)
+      recommendationParams.set('patientId', nextAppointment.patient.id)
+      const recommendationsRes = await fetch(`/api/clinic/product-recommendations?${recommendationParams.toString()}`, {
+        credentials: 'include',
+      })
+      if (recommendationsRes.ok) {
+        const recommendationsData = await recommendationsRes.json()
+        setProductRecommendations(recommendationsData.recommendations || [])
+      } else {
+        setProductRecommendations([])
       }
       if (discountRes.ok) {
         const discountData = await discountRes.json()
@@ -396,6 +427,7 @@ export function ClinicAppointmentDrawer({
   useEffect(() => {
     if (!appointmentId) {
       setAppointment(null)
+      setProductRecommendations([])
       setNotice('')
       setAftercareTemplateId('')
       return
@@ -603,6 +635,19 @@ export function ClinicAppointmentDrawer({
     } finally {
       setBusy(null)
     }
+  }
+
+  function applyProductRecommendation(recommendation: ProductRecommendation) {
+    setSaleProductId(recommendation.id)
+    setSaleQuantity('1')
+    if (recommendation.lastUnitPriceCents && recommendation.lastUnitPriceCents > 0) {
+      setSaleUnitPrice((recommendation.lastUnitPriceCents / 100).toFixed(2))
+    }
+    setSaleNote((current) =>
+      current.trim()
+        ? current
+        : `${productRecommendationReasonLabel(t, recommendation.reason)}: ${recommendation.name}`
+    )
   }
 
   async function patchStatus(status: AppointmentStatus) {
@@ -1087,6 +1132,38 @@ export function ClinicAppointmentDrawer({
                   </p>
                 ) : (
                   <form onSubmit={recordProductSale} className="mt-4 space-y-3 rounded-2xl bg-gray-50 p-3">
+                    {productRecommendations.length > 0 && (
+                      <div className="rounded-2xl border border-amber-100 bg-amber-50/80 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                          {t.productRecommendations}
+                        </p>
+                        <p className="mt-1 text-xs text-amber-800/80">{t.productRecommendationsHint}</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {productRecommendations.map((recommendation) => (
+                            <button
+                              key={recommendation.id}
+                              type="button"
+                              onClick={() => applyProductRecommendation(recommendation)}
+                              className={clsx(
+                                'rounded-xl border px-3 py-2 text-left text-xs shadow-sm',
+                                saleProductId === recommendation.id
+                                  ? 'border-amber-300 bg-white text-amber-950'
+                                  : 'border-amber-100 bg-white/80 text-gray-700 hover:bg-white'
+                              )}
+                            >
+                              <span className="block font-semibold">{recommendation.name}</span>
+                              <span className="mt-0.5 block text-gray-500">
+                                {productRecommendationReasonLabel(t, recommendation.reason)} ·{' '}
+                                {recommendation.quantityOnHand} {recommendation.unit}
+                                {recommendation.lastUnitPriceCents
+                                  ? ` · ${money(recommendation.lastUnitPriceCents)}`
+                                  : ''}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-2">
                       <label className="col-span-2 text-xs text-gray-600">
                         {t.productSaleItem}

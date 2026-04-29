@@ -24,6 +24,14 @@ Point 18 from the Altegio adaptation backlog adds visit-linked aftercare product
 - Product sale payments are intentionally not linked to `visitId` or `appointmentId` on the payment row, because treatment balance logic treats linked payments as appointment charge payments.
 - The sale record itself keeps the visit and appointment context.
 
+## Follow-up: Add-On Recommendations
+
+Added 2026-04-29.
+
+- `GET /api/clinic/product-recommendations` ranks in-stock add-ons by service match, patient repeat purchases, and recent popularity.
+- The appointment drawer checkout shows recommendation chips above the product selector.
+- Selecting a recommendation pre-fills the product and last known unit price when available; the practitioner still reviews price/quantity before recording the sale.
+
 ## Validation
 
 - `npm run db:generate`

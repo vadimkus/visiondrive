@@ -238,6 +238,24 @@ async function main() {
   assert(appointmentId, 'No appointment id')
   console.log('✓ POST appointment')
 
+  const recommendationsRes = await req(
+    `/api/clinic/product-recommendations?procedureId=${encodeURIComponent(procedureId)}&patientId=${encodeURIComponent(patientId)}`,
+    { cookie }
+  )
+  const recommendationsJson = await recommendationsRes.json()
+  assert(
+    recommendationsRes.ok,
+    `product recommendations ${recommendationsRes.status}: ${JSON.stringify(recommendationsJson)}`
+  )
+  assert(
+    recommendationsJson.recommendations?.some(
+      (recommendation: { id?: string; reason?: string }) =>
+        recommendation.id === preStockId && recommendation.reason === 'SERVICE_MATCH'
+    ),
+    'Product recommendations missing service-matched stock item'
+  )
+  console.log('✓ Product add-on recommendations')
+
   const blockedConfirmRes = await req(`/api/clinic/appointments/${appointmentId}`, {
     method: 'PATCH',
     cookie,
@@ -416,6 +434,24 @@ async function main() {
     'Anamnesis not persisted'
   )
   console.log('✓ PATCH patient anamnesis')
+
+  const noteAssistRes = await req('/api/clinic/notes/assist', {
+    method: 'POST',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      patientId,
+      locale: 'ru',
+      rawNote: 'сухость кожи после перелета. выполнено очищение. домашний уход и контроль через 10 дней',
+    }),
+  })
+  const noteAssistJson = await noteAssistRes.json()
+  assert(noteAssistRes.ok, `note assist ${noteAssistRes.status}: ${JSON.stringify(noteAssistJson)}`)
+  assert(
+    String(noteAssistJson.draft?.nextSteps || '').includes('Домашний уход'),
+    'AI note assistant did not return RU next steps draft'
+  )
+  console.log('✓ AI note assistant draft')
 
   // 7c) Patient-safe summary PDF
   const pdfRes = await req(`/api/clinic/patients/${patientId}/summary-pdf`, { cookie })

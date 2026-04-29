@@ -1643,6 +1643,8 @@ function OverviewTab({
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null)
   const [scratchpadDraft, setScratchpadDraft] = useState('')
   const [visitSaveMessage, setVisitSaveMessage] = useState('')
+  const [aiNoteInput, setAiNoteInput] = useState('')
+  const [aiNoteBusy, setAiNoteBusy] = useState(false)
   const activeTreatmentPlans = patient.treatmentPlans.filter((plan) =>
     ['ACTIVE', 'PAUSED'].includes(plan.status)
   )
@@ -1800,6 +1802,43 @@ function OverviewTab({
       /* ignore */
     }
     setDraftSavedAt(null)
+  }
+
+  const draftVisitNote = async () => {
+    if (!aiNoteInput.trim() && !chief.trim() && !summary.trim() && !nextSteps.trim()) {
+      setVisitSaveMessage(t.aiNoteAssistantNeedsInput)
+      return
+    }
+    setAiNoteBusy(true)
+    setVisitSaveMessage('')
+    try {
+      const res = await fetch('/api/clinic/notes/assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          patientId: patient.id,
+          locale,
+          rawNote: aiNoteInput,
+          chiefComplaint: chief,
+          procedureSummary: summary,
+          nextSteps,
+          staffNotes,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setVisitSaveMessage(data.error || t.operationFailed)
+        return
+      }
+      setChief(data.draft?.chiefComplaint || '')
+      setSummary(data.draft?.procedureSummary || '')
+      setNextSteps(data.draft?.nextSteps || '')
+      setStaffNotes(data.draft?.staffNotes || '')
+      setVisitSaveMessage(data.draft?.reviewNote || t.aiNoteAssistantReview)
+    } finally {
+      setAiNoteBusy(false)
+    }
   }
 
   const logVisit = async (e: React.FormEvent) => {
@@ -2240,6 +2279,30 @@ function OverviewTab({
             </select>
           </div>
         )}
+        <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="font-semibold text-blue-950">{t.aiNoteAssistant}</p>
+              <p className="mt-1 text-sm text-blue-800/80">{t.aiNoteAssistantHint}</p>
+            </div>
+            <button
+              type="button"
+              onClick={draftVisitNote}
+              disabled={aiNoteBusy}
+              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {aiNoteBusy ? t.aiNoteAssistantDrafting : t.aiNoteAssistantDraft}
+            </button>
+          </div>
+          <textarea
+            value={aiNoteInput}
+            onChange={(e) => setAiNoteInput(e.target.value)}
+            rows={3}
+            placeholder={t.aiNoteAssistantPlaceholder}
+            className="mt-3 w-full rounded-xl border border-blue-100 bg-white px-3 py-2.5 text-base"
+          />
+          <p className="mt-2 text-xs text-blue-700">{t.aiNoteAssistantGuardrail}</p>
+        </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.chiefComplaint}</label>
           <textarea
