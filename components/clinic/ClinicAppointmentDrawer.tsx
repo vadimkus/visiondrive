@@ -166,6 +166,8 @@ type Appointment = {
   } | null
   paymentRequirementStatus: 'NOT_REQUIRED' | 'PENDING' | 'PAID' | 'WAIVED'
   depositRequiredCents: number
+  lateCancelFeeCents: number
+  noShowFeeCents: number
   visits: Visit[]
   payments: Payment[]
   events: {
@@ -294,6 +296,11 @@ function paymentRequirementClasses(status: Appointment['paymentRequirementStatus
   if (status === 'WAIVED') return 'border-gray-200 bg-gray-50 text-gray-700'
   if (status === 'PENDING') return 'border-orange-100 bg-orange-50 text-orange-800'
   return 'border-gray-200 bg-white text-gray-600'
+}
+
+function isPolicyFeeReference(reference: string | null | undefined) {
+  const value = String(reference || '')
+  return value.startsWith('LATE_CANCEL:') || value.startsWith('NO_SHOW:')
 }
 
 function categoryLabel(t: ClinicStrings, category: PatientCategory) {
@@ -668,6 +675,12 @@ export function ClinicAppointmentDrawer({
       if (action === 'mark_deposit_paid') {
         setNotice(data.alreadyPaid ? t.depositAlreadyPaid : t.depositMarkedPaid)
       }
+      if (action === 'enforce_policy_fee') {
+        setNotice(data.alreadyCreated ? t.policyFeeAlreadyCreated : t.policyFeeEnforced)
+      }
+      if (action === 'waive_policy_fee') {
+        setNotice(t.policyFeeWaived)
+      }
       if (action === 'send_review_request') {
         setNotice(data.alreadyRequested ? t.reviewRequestAlreadySent : t.reviewRequestPrepared)
       }
@@ -700,7 +713,11 @@ export function ClinicAppointmentDrawer({
   const latestAftercareUrl =
     latestVisit && latestAftercareText ? drawerWhatsappUrl(appointment?.patient.phone, latestAftercareText) : null
   const depositPayment = payment.payments.find((item) => item.reference?.startsWith('DEPOSIT:')) ?? null
+  const policyFeePayments = payment.payments.filter((item) => isPolicyFeeReference(item.reference))
   const depositRequired = appointment ? appointment.depositRequiredCents > 0 : false
+  const hasPolicyFees =
+    Boolean(appointment) &&
+    (appointment!.lateCancelFeeCents > 0 || appointment!.noShowFeeCents > 0)
   const confirmBlockedByDeposit =
     Boolean(appointment) &&
     appointment!.depositRequiredCents > 0 &&
@@ -709,6 +726,13 @@ export function ClinicAppointmentDrawer({
     const reference = window.prompt(t.depositPaymentReferencePrompt)
     if (reference === null) return
     void runAction('mark_deposit_paid', { reference: reference.trim() || null, method: 'TRANSFER' })
+  }
+  const policyFeeAction = (kind: 'LATE_CANCEL' | 'NO_SHOW', actionName: 'enforce_policy_fee' | 'waive_policy_fee') => {
+    const reason = window.prompt(
+      actionName === 'waive_policy_fee' ? t.policyFeeWaiveReasonPrompt : t.policyFeeReasonPrompt
+    )
+    if (reason === null) return
+    void runAction(actionName, { kind, reason: reason.trim() || null })
   }
 
   return (
@@ -880,6 +904,81 @@ export function ClinicAppointmentDrawer({
                       {t.markDepositPaid}
                     </ActionButton>
                   </div>
+                </section>
+              )}
+
+              {hasPolicyFees && (
+                <section className="rounded-2xl border border-red-100 bg-red-50/60 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
+                        {t.policyFeeProtection}
+                      </p>
+                      <h3 className="mt-1 text-base font-semibold text-red-950">
+                        {t.lateCancelNoShowFees}
+                      </h3>
+                      <p className="mt-1 text-sm text-red-900">{t.policyFeeProtectionHint}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {appointment.lateCancelFeeCents > 0 && (
+                      <div className="rounded-2xl bg-white/80 p-3">
+                        <p className="text-xs font-semibold text-red-800">{t.lateCancelProtection}</p>
+                        <p className="mt-1 text-sm font-semibold text-gray-950">
+                          {money(appointment.lateCancelFeeCents, appointment.procedure?.currency || 'AED')}
+                        </p>
+                        <div className="mt-3 flex flex-col gap-2">
+                          <ActionButton
+                            busy={busy === 'enforce_policy_fee'}
+                            onClick={() => policyFeeAction('LATE_CANCEL', 'enforce_policy_fee')}
+                          >
+                            {t.enforceLateCancelFee}
+                          </ActionButton>
+                          <ActionButton
+                            busy={busy === 'waive_policy_fee'}
+                            onClick={() => policyFeeAction('LATE_CANCEL', 'waive_policy_fee')}
+                          >
+                            {t.waiveFee}
+                          </ActionButton>
+                        </div>
+                      </div>
+                    )}
+                    {appointment.noShowFeeCents > 0 && (
+                      <div className="rounded-2xl bg-white/80 p-3">
+                        <p className="text-xs font-semibold text-red-800">{t.noShowProtection}</p>
+                        <p className="mt-1 text-sm font-semibold text-gray-950">
+                          {money(appointment.noShowFeeCents, appointment.procedure?.currency || 'AED')}
+                        </p>
+                        <div className="mt-3 flex flex-col gap-2">
+                          <ActionButton
+                            busy={busy === 'enforce_policy_fee'}
+                            onClick={() => policyFeeAction('NO_SHOW', 'enforce_policy_fee')}
+                          >
+                            {t.enforceNoShowFee}
+                          </ActionButton>
+                          <ActionButton
+                            busy={busy === 'waive_policy_fee'}
+                            onClick={() => policyFeeAction('NO_SHOW', 'waive_policy_fee')}
+                          >
+                            {t.waiveFee}
+                          </ActionButton>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {policyFeePayments.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {policyFeePayments.map((item) => (
+                        <div key={item.id} className="rounded-xl bg-white/80 p-3 text-xs text-red-950">
+                          <p className="font-semibold">
+                            {item.reference?.startsWith('NO_SHOW:') ? t.noShowProtection : t.lateCancelProtection}:{' '}
+                            {money(item.amountCents, item.currency)} · {item.status}
+                          </p>
+                          {item.note && <p className="mt-1 text-red-800">{item.note}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </section>
               )}
 

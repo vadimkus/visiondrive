@@ -4,6 +4,7 @@ import {
   ClinicAppointmentSource,
   ClinicAppointmentStatus,
   ClinicCrmActivityType,
+  ClinicPaymentMethod,
   ClinicPaymentRequirementStatus,
   ClinicPaymentStatus,
   ClinicReminderChannel,
@@ -35,6 +36,12 @@ import {
   paymentRequestExpiresAt,
   paymentRequestTokenHash,
 } from '@/lib/clinic/deposit-requests'
+import {
+  normalizePolicyFeeKind,
+  policyFeeAmountCents,
+  policyFeeReference,
+  policyFeeStatusPatch,
+} from '@/lib/clinic/policy-fees'
 import {
   followUpStartsAt,
   normalizeFollowUpWeeks,
@@ -110,6 +117,132 @@ export async function POST(
   })
   if (!existing) {
     return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
+  }
+
+  if (action === 'enforce_policy_fee') {
+    const kind = normalizePolicyFeeKind(body.kind)
+    if (!kind) {
+      return NextResponse.json({ error: 'Unsupported policy fee type' }, { status: 400 })
+    }
+    const amountCents = policyFeeAmountCents(existing, kind)
+    if (amountCents <= 0) {
+      return NextResponse.json({ error: 'This appointment has no fee configured for this policy action' }, { status: 409 })
+    }
+
+    const now = new Date()
+    const reference = policyFeeReference(kind, existing.id)
+    const reason = body.reason != null && String(body.reason).trim() ? String(body.reason).trim() : null
+    const result = await prisma.$transaction(async (tx) => {
+      const existingFee = await tx.clinicPatientPayment.findFirst({
+        where: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          appointmentId: existing.id,
+          reference,
+          status: { not: ClinicPaymentStatus.VOID },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+      if (existingFee) return { payment: existingFee, alreadyCreated: true as const }
+
+      const payment = await tx.clinicPatientPayment.create({
+        data: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          appointmentId: existing.id,
+          amountCents,
+          currency: existing.procedure?.currency ?? 'AED',
+          method: ClinicPaymentMethod.OTHER,
+          status: ClinicPaymentStatus.PENDING,
+          reference,
+          note:
+            kind === 'NO_SHOW'
+              ? reason || 'No-show fee pending'
+              : reason || 'Late-cancellation fee pending',
+          paidAt: now,
+          createdByUserId: session.userId,
+        },
+      })
+      await tx.clinicAppointment.update({
+        where: { id: existing.id },
+        data: policyFeeStatusPatch(kind, reason),
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: existing.id,
+        type: ClinicAppointmentEventType.PAYMENT_RECORDED,
+        message: `${kind === 'NO_SHOW' ? 'No-show' : 'Late-cancel'} fee enforced: ${(amountCents / 100).toFixed(2)} ${payment.currency}`,
+        after: {
+          paymentId: payment.id,
+          kind,
+          amountCents,
+          currency: payment.currency,
+          status: payment.status,
+          reason,
+        },
+        createdByUserId: session.userId,
+      })
+      return { payment, alreadyCreated: false as const }
+    })
+
+    return NextResponse.json(result, { status: result.alreadyCreated ? 200 : 201 })
+  }
+
+  if (action === 'waive_policy_fee') {
+    const kind = normalizePolicyFeeKind(body.kind)
+    if (!kind) {
+      return NextResponse.json({ error: 'Unsupported policy fee type' }, { status: 400 })
+    }
+    const amountCents = policyFeeAmountCents(existing, kind)
+    if (amountCents <= 0) {
+      return NextResponse.json({ error: 'This appointment has no fee configured for this policy action' }, { status: 409 })
+    }
+
+    const reference = policyFeeReference(kind, existing.id)
+    const reason = body.reason != null && String(body.reason).trim() ? String(body.reason).trim() : null
+    const result = await prisma.$transaction(async (tx) => {
+      const pendingFee = await tx.clinicPatientPayment.findFirst({
+        where: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          appointmentId: existing.id,
+          reference,
+          status: ClinicPaymentStatus.PENDING,
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+      const payment = pendingFee
+        ? await tx.clinicPatientPayment.update({
+            where: { id: pendingFee.id },
+            data: {
+              status: ClinicPaymentStatus.VOID,
+              note: reason ? `Policy fee waived: ${reason}` : 'Policy fee waived',
+            },
+          })
+        : null
+
+      await tx.clinicAppointment.update({
+        where: { id: existing.id },
+        data: policyFeeStatusPatch(kind, reason),
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: existing.id,
+        type: ClinicAppointmentEventType.UPDATED,
+        message: `${kind === 'NO_SHOW' ? 'No-show' : 'Late-cancel'} fee waived`,
+        after: {
+          paymentId: payment?.id ?? null,
+          kind,
+          amountCents,
+          waived: true,
+          reason,
+        },
+        createdByUserId: session.userId,
+      })
+      return { payment, waived: true as const }
+    })
+
+    return NextResponse.json(result)
   }
 
   if (action === 'prepare_deposit_request') {

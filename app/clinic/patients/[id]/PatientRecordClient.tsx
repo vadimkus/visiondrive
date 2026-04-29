@@ -4650,6 +4650,11 @@ function PaymentsTab({
                     {t.depositRequest}
                   </p>
                 )}
+                {(pmt.reference?.startsWith('LATE_CANCEL:') || pmt.reference?.startsWith('NO_SHOW:')) && (
+                  <p className="mt-1 inline-flex rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800">
+                    {pmt.reference.startsWith('NO_SHOW:') ? t.noShowProtection : t.lateCancelProtection}
+                  </p>
+                )}
                 {pmt.paymentRequestSentAt && (
                   <p className="text-gray-500 text-xs mt-1">
                     {t.paymentRequestSent}: {new Date(pmt.paymentRequestSentAt).toLocaleString(dateLocale)}

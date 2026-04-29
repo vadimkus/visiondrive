@@ -1,4 +1,5 @@
 import { isPackagePaymentReference } from './patient-packages'
+import { isPolicyFeePaymentReference } from './policy-fees'
 import { isProductSalePaymentReference } from './product-sales'
 
 export const CLIENT_BALANCE_BILLABLE_APPOINTMENT_STATUSES = ['ARRIVED', 'COMPLETED'] as const
@@ -162,7 +163,7 @@ export function buildClientBalanceSummary({
 export function buildClientBalanceChargesFromAppointments(
   appointments: AppointmentForBalance[]
 ): ClientBalanceCharge[] {
-  return appointments
+  const visitCharges = appointments
     .filter((appointment) =>
       CLIENT_BALANCE_BILLABLE_APPOINTMENT_STATUSES.includes(
         appointment.status as (typeof CLIENT_BALANCE_BILLABLE_APPOINTMENT_STATUSES)[number]
@@ -176,6 +177,21 @@ export function buildClientBalanceChargesFromAppointments(
         ...(appointment.payments ?? []),
       ]),
     }))
+
+  const policyFeeCharges = appointments.flatMap((appointment) => {
+    const payments = dedupePayments([
+      ...(appointment.visits?.flatMap((visit) => visit.payments ?? []) ?? []),
+      ...(appointment.payments ?? []),
+    ]).filter((payment) => isPolicyFeePaymentReference(payment.reference))
+
+    return payments.map((payment) => ({
+      expectedCents: payment.amountCents,
+      currency: payment.currency ?? null,
+      payments: [payment],
+    }))
+  })
+
+  return [...visitCharges, ...policyFeeCharges]
 }
 
 function dedupePayments(payments: ClientBalancePayment[]) {

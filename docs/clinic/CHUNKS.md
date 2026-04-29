@@ -138,6 +138,24 @@
 
 ---
 
+## Chunk 73 — 2026-04-29 (late-cancel/no-show fee enforcement)
+
+**Shipped**
+
+- **Policy fee helper:** added `lib/clinic/policy-fees.ts` for late-cancel/no-show references, amount selection, and status patches.
+- **API:** appointment actions now support `enforce_policy_fee` and `waive_policy_fee` for `LATE_CANCEL` / `NO_SHOW`.
+- **Ledger:** enforced fees create appointment-linked pending payments (`LATE_CANCEL:*`, `NO_SHOW:*`); waivers log appointment history and void any pending policy-fee payment.
+- **Client balance:** pending/paid policy fees count as expected charges even when the appointment is cancelled/no-show.
+- **UI:** appointment drawer shows fee amounts with Charge/Waive actions and recent policy-fee rows.
+- **Patient timeline:** payment history labels late-cancel/no-show fee rows.
+- **i18n/tests:** added EN/RU copy, `lib/clinic/policy-fees.test.ts`, and clinic business flow coverage for no-show fee enforcement.
+
+**Operational**
+
+- No schema change.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

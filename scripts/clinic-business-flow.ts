@@ -280,6 +280,39 @@ async function main() {
   assert(markDepositJson.payment?.status === 'PAID', 'Deposit payment should be paid')
   console.log('✓ Mark deposit paid confirms appointment')
 
+  const noShowStart = weekdayAfter(start, 5)
+  const noShowApptRes = await req('/api/clinic/appointments', {
+    method: 'POST',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      patientId,
+      procedureId,
+      startsAt: noShowStart.toISOString(),
+      internalNotes: 'E2E no-show policy fee appointment',
+      bookingPolicyAccepted: true,
+    }),
+  })
+  const noShowApptJson = await noShowApptRes.json()
+  assert(noShowApptRes.status === 201, `no-show appointment ${noShowApptRes.status}: ${JSON.stringify(noShowApptJson)}`)
+  const noShowAppointmentId = noShowApptJson.appointment?.id as string
+  assert(noShowAppointmentId, 'No no-show appointment id')
+
+  const noShowFeeRes = await req(`/api/clinic/appointments/${noShowAppointmentId}/actions`, {
+    method: 'POST',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'enforce_policy_fee',
+      kind: 'NO_SHOW',
+      reason: 'E2E no-show fee',
+    }),
+  })
+  const noShowFeeJson = await noShowFeeRes.json()
+  assert(noShowFeeRes.status === 201, `no-show fee ${noShowFeeRes.status}: ${JSON.stringify(noShowFeeJson)}`)
+  assert(noShowFeeJson.payment?.status === 'PENDING', 'No-show fee should create pending payment')
+  console.log('✓ Enforce no-show policy fee')
+
   // 7) Full chart
   const chartRes = await req(`/api/clinic/patients/${patientId}`, { cookie })
   const chartJson = await chartRes.json()
@@ -291,6 +324,13 @@ async function main() {
         payment.reference === `DEPOSIT:${appointmentId}` && payment.status === 'PAID'
     ),
     'Patient payment timeline missing paid deposit'
+  )
+  assert(
+    chartJson.patient?.payments?.some(
+      (payment: { reference?: string | null; status?: string }) =>
+        payment.reference === `NO_SHOW:${noShowAppointmentId}` && payment.status === 'PENDING'
+    ),
+    'Patient payment timeline missing pending no-show fee'
   )
   console.log('✓ GET patient chart')
 
