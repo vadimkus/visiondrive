@@ -1,7 +1,8 @@
 import { put } from '@vercel/blob'
 import { NextRequest, NextResponse } from 'next/server'
-import { ClinicMediaKind } from '@prisma/client'
+import { ClinicMediaKind, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { normalizeFaceMapMetadata } from '@/lib/clinic/face-map'
 import {
   buildPhotoProtocolJson,
   normalizeMarketingConsent,
@@ -91,6 +92,30 @@ export async function POST(
     procedureName: protocolProcedureName,
     note: protocolNote,
   })
+  const faceMapRaw = form.get('faceMap')
+  const faceMap = faceMapRaw == null ? null : normalizeFaceMapMetadata(faceMapRaw)
+  if (faceMapRaw != null && !faceMap) {
+    return NextResponse.json({ error: 'Invalid face map metadata' }, { status: 400 })
+  }
+  if (faceMap?.source === 'media' && faceMap.sourceMediaId) {
+    const sourceMedia = await prisma.clinicPatientMedia.findFirst({
+      where: { id: faceMap.sourceMediaId, patientId, tenantId: session.tenantId },
+      select: { id: true },
+    })
+    if (!sourceMedia) {
+      return NextResponse.json({ error: 'Face map source image not found' }, { status: 400 })
+    }
+  }
+  const baseProtocolJson: Prisma.InputJsonObject =
+    protocolJson && typeof protocolJson === 'object' && !Array.isArray(protocolJson)
+      ? (protocolJson as Prisma.InputJsonObject)
+      : { version: 1, checkedItems: [], procedureName: null, note: null }
+  const mediaProtocolJson = faceMap
+    ? ({
+        ...baseProtocolJson,
+        faceMap: faceMap as unknown as Prisma.InputJsonObject,
+      } satisfies Prisma.InputJsonObject)
+    : protocolJson
 
   let blobPathname: string | null = null
   let data: Buffer | null = null
@@ -115,7 +140,7 @@ export async function POST(
       kind,
       mimeType: file.type || 'image/jpeg',
       caption,
-      protocolJson,
+      protocolJson: mediaProtocolJson,
       marketingConsent,
       marketingConsentAt: marketingConsent ? new Date() : null,
       ...(data != null ? { data: new Uint8Array(data) } : {}),

@@ -104,6 +104,7 @@
 | [2026-04-29_clinic-patient-card-desktop-ui.md](2026-04-29_clinic-patient-card-desktop-ui.md) | Clinic desktop patient card UI refresh |
 | [2026-04-29_clinic-patient-tabs-desktop-ui.md](2026-04-29_clinic-patient-tabs-desktop-ui.md) | Clinic desktop patient-card tab UI pass |
 | [2026-04-29_clinic-mobile-dashboard-overflow-fix.md](2026-04-29_clinic-mobile-dashboard-overflow-fix.md) | Clinic mobile dashboard overflow fix |
+| [2026-04-29_clinic-face-map-annotations.md](2026-04-29_clinic-face-map-annotations.md) | Clinic aesthetic face-map annotations |
 | [2026-04-29_solo-practitioner-feature-research.md](2026-04-29_solo-practitioner-feature-research.md) | Solo-practitioner software research and recommended feature backlog |
 | [2026-04-29_clinic-booking-policy-foundation.md](2026-04-29_clinic-booking-policy-foundation.md) | Clinic booking policy foundation for deposits/no-show protection |
 | [2026-04-29_clinic-deposit-payment-links.md](2026-04-29_clinic-deposit-payment-links.md) | Clinic deposit payment links and manual paid workflow |

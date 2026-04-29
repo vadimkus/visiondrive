@@ -41,6 +41,8 @@ import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
+import { ClinicFaceMapEditor, type FaceMapMediaOption } from '@/components/clinic/ClinicFaceMapEditor'
+import { faceMapFromProtocolJson, type FaceMapMetadata } from '@/lib/clinic/face-map'
 
 type ProcedureRef = { id: string; name: string } | null
 
@@ -2507,6 +2509,9 @@ function PhotosTab({
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [offlinePhotos, setOfflinePhotos] = useState<OfflineMediaDraft[]>([])
+  const [faceMapOpen, setFaceMapOpen] = useState(false)
+  const [faceMapInitial, setFaceMapInitial] = useState<FaceMapMetadata | null>(null)
+  const [faceMapSaving, setFaceMapSaving] = useState(false)
 
   const selectedVisit = useMemo(
     () => (visitId ? patient.visits.find((visit) => visit.id === visitId) ?? null : null),
@@ -2702,6 +2707,67 @@ function PhotosTab({
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [patient, dateLocale, t.visitUnassigned])
 
+  const faceMaps = useMemo(
+    () => allMedia.filter((m) => Boolean(faceMapFromProtocolJson(m.protocolJson))),
+    [allMedia]
+  )
+  const latestFaceMap = faceMaps[0] ?? null
+  const faceMapMediaOptions: FaceMapMediaOption[] = useMemo(
+    () =>
+      allMedia
+        .filter((m) => !faceMapFromProtocolJson(m.protocolJson))
+        .map((m) => ({
+          id: m.id,
+          imageUrl: `/api/clinic/media/${m.id}`,
+          label: `${photoKindLabel(t, m.kind)} · ${m.visitLabel}${m.caption ? ` · ${m.caption}` : ''}`,
+        })),
+    [allMedia, t]
+  )
+  const defaultFaceMapBase =
+    faceMapMediaOptions.length > 0
+      ? { source: 'media' as const, sourceMediaId: faceMapMediaOptions[0].id }
+      : { source: 'template' as const, sourceMediaId: null }
+
+  const openLatestFaceMap = () => {
+    setFaceMapInitial(latestFaceMap ? faceMapFromProtocolJson(latestFaceMap.protocolJson) : null)
+    setFaceMapOpen(true)
+  }
+
+  const openNewFaceMap = () => {
+    setFaceMapInitial(null)
+    setFaceMapOpen(true)
+  }
+
+  const saveFaceMap = async (blob: Blob, metadata: FaceMapMetadata) => {
+    setFaceMapSaving(true)
+    setError(null)
+    setNotice(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', blob, `face-map-${Date.now()}.png`)
+      fd.append('kind', 'OTHER')
+      fd.append('caption', `${t.faceMapCaptionPrefix} · ${new Date().toLocaleString(dateLocale)}`)
+      fd.append('faceMap', JSON.stringify(metadata))
+      const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
+        method: 'POST',
+        body: fd,
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.faceMapSaveFailed)
+      }
+      await onRefresh()
+      setFaceMapOpen(false)
+      setFaceMapInitial(null)
+      setNotice(t.faceMapSaved)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.faceMapSaveFailed)
+    } finally {
+      setFaceMapSaving(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <DesktopTabHeader
@@ -2714,6 +2780,68 @@ function PhotosTab({
           { label: t.offlinePhotoDraftsTitle, value: String(offlinePhotos.length) },
         ]}
       />
+
+      <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-slate-950 text-white shadow-xl shadow-slate-950/15">
+        <div className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-orange-200">
+              <Pencil className="h-3.5 w-3.5" aria-hidden />
+              {t.faceMapBadge}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em]">{t.faceMapTitle}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{t.faceMapHint}</p>
+            <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
+                <span className="block font-semibold text-white">{faceMaps.length}</span>
+                {t.faceMapSavedMaps}
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
+                <span className="block font-semibold text-white">
+                  {latestFaceMap ? new Date(latestFaceMap.createdAt).toLocaleDateString(dateLocale) : t.emptyValue}
+                </span>
+                {t.faceMapLatest}
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
+                <span className="block font-semibold text-white">{faceMapMediaOptions.length}</span>
+                {t.faceMapBasePhotos}
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:min-w-72 lg:grid-cols-1">
+            <button
+              type="button"
+              onClick={openLatestFaceMap}
+              disabled={!latestFaceMap}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-sm font-semibold text-slate-950 shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {t.faceMapOpenLatest}
+            </button>
+            <button
+              type="button"
+              onClick={openNewFaceMap}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-orange-400 px-4 text-sm font-semibold text-slate-950 shadow-sm"
+            >
+              {t.faceMapNew}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {faceMapOpen && (
+        <ClinicFaceMapEditor
+          key={`${faceMapInitial?.updatedAt ?? 'new'}:${faceMapInitial?.sourceMediaId ?? defaultFaceMapBase.sourceMediaId ?? 'template'}`}
+          t={t}
+          mediaOptions={faceMapMediaOptions}
+          initialBase={defaultFaceMapBase}
+          initialFaceMap={faceMapInitial}
+          saving={faceMapSaving}
+          onSave={saveFaceMap}
+          onClose={() => {
+            setFaceMapOpen(false)
+            setFaceMapInitial(null)
+          }}
+        />
+      )}
 
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -2911,6 +3039,7 @@ function PhotosTab({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         {allMedia.map((m) => {
           const checked = photoProtocolCheckedFromJson(m.protocolJson)
+          const faceMap = faceMapFromProtocolJson(m.protocolJson)
           return (
             <div key={m.id} className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2931,20 +3060,40 @@ function PhotosTab({
                     {t.photoProtocol}: {checked.length}/{PHOTO_PROTOCOL_ITEMS.length}
                   </p>
                 )}
+                {faceMap && (
+                  <p className="rounded-lg bg-orange-50 px-2 py-1 text-orange-800">
+                    {t.faceMapBadge}: {faceMap.strokes.length} {t.faceMapMarks}
+                  </p>
+                )}
                 {m.marketingConsent && (
                   <p className="rounded-lg bg-emerald-50 px-2 py-1 text-emerald-800">
                     {t.photoMarketingConsentShort}
                   </p>
                 )}
-                <button
-                  type="button"
-                  onClick={() => deleteMedia(m.id)}
-                  disabled={deletingId === m.id}
-                  className="inline-flex items-center gap-1 rounded-lg border border-red-100 px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
-                >
-                  <Trash2 className="w-3 h-3" aria-hidden />
-                  {deletingId === m.id ? t.deletingEllipsis : t.deletePhoto}
-                </button>
+                <div className="flex flex-wrap gap-1.5">
+                  {faceMap && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFaceMapInitial(faceMap)
+                        setFaceMapOpen(true)
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-orange-100 px-2 py-1 text-[11px] font-semibold text-orange-700 hover:bg-orange-50"
+                    >
+                      <Pencil className="w-3 h-3" aria-hidden />
+                      {t.faceMapModify}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => deleteMedia(m.id)}
+                    disabled={deletingId === m.id}
+                    className="inline-flex items-center gap-1 rounded-lg border border-red-100 px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                  >
+                    <Trash2 className="w-3 h-3" aria-hidden />
+                    {deletingId === m.id ? t.deletingEllipsis : t.deletePhoto}
+                  </button>
+                </div>
               </div>
             </div>
           )

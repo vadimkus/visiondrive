@@ -305,6 +305,24 @@
 
 ---
 
+## Chunk 83 — 2026-04-29 (patient face-map annotations)
+
+**Shipped**
+
+- **Face map panel:** added an aesthetic injection/modification map workflow inside the patient Photos tab.
+- **Base images:** practitioners can start from a built-in lady-face template or any existing patient photo.
+- **Annotation editor:** supports drawing directly on the face map, color selection, line width, undo, and clearing marks.
+- **Persistence:** saving creates a rendered PNG in the existing private patient media store and stores editable vector strokes in `protocolJson.faceMap`.
+- **Versioning:** each save creates a new media version, so old maps remain reviewable while the latest map can be reopened for cleanup or continued marking.
+- **RU coverage/docs:** added Russian copy, architecture note, docs index entry, helper tests, and session note.
+
+**Operational**
+
+- Run `npm run type-check`, `npm run lint`, `npm run test -- face-map`, and `npm run test:clinic-flow`.
+- No schema change.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**
