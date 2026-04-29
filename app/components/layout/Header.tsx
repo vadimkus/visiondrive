@@ -110,7 +110,7 @@ export default function Header() {
                 <span className="text-[17px] md:text-lg font-semibold text-gray-900 leading-tight">
                   Vision<span className="text-orange-500">Drive</span>
                 </span>
-                <span className="text-[10px] text-gray-400 leading-snug max-w-[200px] md:max-w-none">
+                <span className="hidden text-[10px] text-gray-400 leading-snug max-w-[200px] sm:block md:max-w-none">
                   {visiondriveSlogan[publicLanguage]}
                 </span>
               </div>

@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import Logo from '@/app/components/common/Logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -59,59 +61,45 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white md:bg-[#f5f5f7] flex flex-col">
-      {/* Mobile-optimized layout */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 md:py-16">
-        
-        {/* Logo & Branding */}
-        <div className="text-center mb-10 md:mb-12">
-          {/* VisionDrive Logo */}
-          <div className="flex items-center justify-center mb-6">
-            <img 
-              src="/images/logo/logo.jpg" 
-              alt="VisionDrive" 
-              className="w-20 h-20 md:w-24 md:h-24 rounded-[20px] md:rounded-[24px] shadow-2xl shadow-gray-900/20"
-            />
-          </div>
-          
-          {/* Brand Name */}
-          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 tracking-tight">
-            Vision<span className="text-orange-500">Drive</span>
-          </h1>
-          <p className="text-base md:text-lg text-gray-500 mt-1">Practice console</p>
-          <p className="text-xs text-gray-400 mt-2 max-w-xs mx-auto leading-snug">
-            Practice operations, made clear
-          </p>
+    <div className="flex min-h-[100dvh] flex-col bg-white text-slate-950 md:bg-[#f5f5f7]">
+      <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center px-5 py-8 md:max-w-[440px] md:px-6">
+        <div className="mb-7 flex items-center justify-between">
+          <Link href="/" className="flex min-h-11 items-center gap-3" aria-label="VisionDrive home">
+            <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-orange-100">
+              <Logo className="h-9 w-9" priority />
+            </span>
+            <span>
+              <span className="block text-base font-semibold tracking-tight">
+                Vision<span className="text-orange-500">Drive</span>
+              </span>
+              <span className="block text-xs text-slate-500">Practice OS</span>
+            </span>
+          </Link>
+          <Link href="/contact" className="rounded-full px-3 py-2 text-sm font-medium text-slate-500 active:bg-slate-100">
+            Access
+          </Link>
         </div>
 
-        {/* Login Card - Full width on mobile, constrained on desktop */}
-        <div className="w-full max-w-[400px]">
-          {/* Card wrapper - no background on mobile, card on desktop */}
-          <div className="md:bg-white md:rounded-3xl md:shadow-xl md:shadow-gray-200/60 md:p-8">
-            
-            {/* Welcome Text */}
-            <div className="text-center mb-8">
-              <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
-                Welcome back
-              </h2>
-              <p className="text-gray-500 mt-1 text-sm md:text-base">
-                Sign in to your account
-              </p>
-            </div>
+        <div className="md:rounded-[2rem] md:bg-white md:p-8 md:shadow-xl md:shadow-slate-200/70">
+          <div className="mb-7">
+            <p className="text-sm font-semibold text-orange-600">Practice console</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950 md:text-4xl">
+              Sign in
+            </h1>
+          </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl">
-                <p className="text-sm text-red-600 text-center font-medium">{error}</p>
+              <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 p-3">
+                <p className="text-sm font-medium text-red-600">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email Field */}
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label 
                   htmlFor="email" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="mb-2 block text-sm font-medium text-slate-700"
                 >
                   Email
                 </label>
@@ -125,10 +113,10 @@ export default function LoginPage() {
                   inputMode="email"
                   className="
                     w-full px-4 py-4 md:py-3.5
-                    bg-gray-50 md:bg-gray-100/80 border-0
+                    bg-slate-50 md:bg-slate-100/80 border-0
                     rounded-2xl
-                    text-gray-900 text-[17px] md:text-[16px]
-                    placeholder:text-gray-400
+                    text-slate-950 text-[17px] md:text-[16px]
+                    placeholder:text-slate-400
                     focus:bg-white focus:ring-2 focus:ring-orange-500/50
                     transition-all duration-200
                     outline-none
@@ -139,11 +127,10 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Password Field */}
               <div>
                 <label 
                   htmlFor="password" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="mb-2 block text-sm font-medium text-slate-700"
                 >
                   Password
                 </label>
@@ -154,10 +141,10 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     className="
                       w-full px-4 py-4 md:py-3.5 pr-14
-                      bg-gray-50 md:bg-gray-100/80 border-0
+                      bg-slate-50 md:bg-slate-100/80 border-0
                       rounded-2xl
-                      text-gray-900 text-[17px] md:text-[16px]
-                      placeholder:text-gray-400
+                      text-slate-950 text-[17px] md:text-[16px]
+                      placeholder:text-slate-400
                       focus:bg-white focus:ring-2 focus:ring-orange-500/50
                       transition-all duration-200
                       outline-none
@@ -172,8 +159,8 @@ export default function LoginPage() {
                     className="
                       absolute right-2 top-1/2 -translate-y-1/2
                       p-2.5 rounded-xl
-                      text-gray-400 hover:text-gray-600
-                      active:bg-gray-200
+                      text-slate-400 hover:text-slate-600
+                      active:bg-slate-200
                       transition-colors
                     "
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -187,7 +174,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between pt-1">
                 <label className="flex items-center cursor-pointer group">
                   <div className="relative flex items-center">
@@ -198,7 +184,7 @@ export default function LoginPage() {
                       className="sr-only peer"
                     />
                     <div className="
-                      w-6 h-6 rounded-lg border-2 border-gray-300
+                      w-6 h-6 rounded-lg border-2 border-slate-300
                       peer-checked:bg-orange-500 peer-checked:border-orange-500
                       transition-all duration-200
                       flex items-center justify-center
@@ -218,24 +204,23 @@ export default function LoginPage() {
                       </svg>
                     </div>
                   </div>
-                  <span className="ml-3 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                  <span className="ml-3 text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
                     Remember me
                   </span>
                 </label>
-                <a 
-                  href="#" 
-                  className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors"
+                <Link
+                  href="/contact"
+                  className="text-sm font-medium text-orange-600 transition-colors hover:text-orange-700"
                 >
-                  Forgot password?
-                </a>
+                  Need access?
+                </Link>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
                 className="
-                  w-full py-4 mt-4
+                  w-full py-4 mt-3
                   bg-orange-500 hover:bg-orange-600
                   active:scale-[0.98]
                   text-white font-semibold text-[17px] md:text-[16px]
@@ -249,56 +234,17 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Signing in...
+                    Signing in…
                   </>
                 ) : (
-                  'Sign In'
+                  'Open portal'
                 )}
               </button>
             </form>
-
-            {/* Divider */}
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-4 bg-white md:bg-white text-sm text-gray-400">or</span>
-              </div>
-            </div>
-
-            {/* Contact Link */}
-            <p className="text-center text-sm md:text-base text-gray-500">
-              Don&apos;t have an account?{' '}
-              <a 
-                href="/contact" 
-                className="text-orange-600 hover:text-orange-700 font-semibold transition-colors"
-              >
-                Contact us
-              </a>
-            </p>
-          </div>
         </div>
       </div>
-
-      {/* Footer - Fixed at bottom on mobile */}
-      <footer className="py-6 px-6 text-center border-t border-gray-100 md:border-0">
-        <div className="flex flex-col items-center gap-3">
-          {/* Compliance Badges */}
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-            <span className="flex items-center gap-1">
-              <span>🇦🇪</span>
-              <span>Dubai · UAE</span>
-            </span>
-            <span className="w-1 h-1 rounded-full bg-gray-300" />
-            <span>VisionDrive Technologies</span>
-          </div>
-          
-          {/* Copyright */}
-          <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()} VisionDrive. All rights reserved.
-          </p>
-        </div>
+      <footer className="px-5 pb-6 text-center text-xs text-slate-400">
+        Dubai · UAE · © {new Date().getFullYear()} VisionDrive
       </footer>
     </div>
   )

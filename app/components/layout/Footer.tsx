@@ -83,10 +83,8 @@ export default function Footer() {
     <footer className="bg-white border-t border-gray-200">
       <div className="mx-auto max-w-7xl px-5 md:px-8 py-10 md:py-12">
         
-        {/* Mobile: Stacked Layout */}
         <div className="md:hidden">
-          {/* Brand - Center aligned */}
-          <div className="mb-8 text-center">
+          <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2.5 mb-3 justify-center">
               <Logo className="h-10 w-10" />
               <div className="text-left">
@@ -98,81 +96,34 @@ export default function Footer() {
                 </span>
               </div>
             </Link>
-            <p className="text-sm text-gray-500">{t.description}</p>
+            <p className="mx-auto max-w-xs text-sm text-gray-500">{t.description}</p>
           </div>
 
-          {/* Links Grid - 2 columns */}
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            <div className="text-center">
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                {t.company}
-              </h3>
-              <ul className="space-y-3">
-                {footerNavigation.company.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className={`text-sm transition-colors ${
-                        pathname === item.href ? 'text-orange-500' : 'text-gray-600'
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="text-center">
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                {t.solutions}
-              </h3>
-              <ul className="space-y-3">
-                {footerNavigation.solutions.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className={`text-sm transition-colors ${
-                        pathname === item.href.split('#')[0] ? 'text-orange-500' : 'text-gray-600'
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Contact */}
-          <div className="mb-8 text-center">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+          <div className="my-7 flex justify-center gap-3">
+            <a
+              href="mailto:tech@visiondrive.ae"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-50 text-gray-500"
+              aria-label="Email VisionDrive"
+            >
+              <Mail className="h-4 w-4" />
+            </a>
+            <a
+              href="https://wa.me/971559152985"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
+              aria-label="WhatsApp VisionDrive"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </a>
+            <Link
+              href="/contact"
+              className="flex h-11 items-center justify-center rounded-full bg-orange-50 px-4 text-sm font-semibold text-orange-600"
+            >
               {t.contact}
-            </h3>
-            <div className="space-y-3">
-              <a 
-                href="mailto:tech@visiondrive.ae" 
-                className="flex items-center justify-center gap-3 text-sm text-gray-600"
-              >
-                <Mail className="h-4 w-4 text-orange-500" />
-                tech@visiondrive.ae
-              </a>
-              <a 
-                href="https://wa.me/971559152985" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center justify-center gap-3 text-sm text-gray-600"
-              >
-                <MessageCircle className="h-4 w-4 text-emerald-500" />
-                +971 55 915 2985
-              </a>
-              <div className="flex items-center justify-center gap-3 text-sm text-gray-600">
-                <MapPin className="h-4 w-4 text-red-500" />
-                <span>Compass Coworking, RAK, UAE</span>
-              </div>
-            </div>
+            </Link>
           </div>
 
-          {/* Bottom */}
           <div className="pt-6 border-t border-gray-200">
             <div className="flex justify-center gap-6 mb-4">
               {footerNavigation.legal.map((item) => (
