@@ -1242,24 +1242,28 @@ model ClinicPatientPortalRequest {
 }
 
 model ClinicIntakeQuestion {
-  id              String                   @id @default(cuid())
-  tenantId        String
-  procedureId     String
-  prompt          String                   @db.Text
-  helpText        String?                  @db.Text
-  type            ClinicIntakeQuestionType @default(TEXT)
-  required        Boolean                  @default(false)
-  active          Boolean                  @default(true)
-  sortOrder       Int                      @default(0)
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  createdByUserId String?
+  id                 String                   @id @default(cuid())
+  tenantId           String
+  procedureId        String
+  prompt             String                   @db.Text
+  helpText           String?                  @db.Text
+  type               ClinicIntakeQuestionType @default(TEXT)
+  required           Boolean                  @default(false)
+  internalOnly       Boolean                  @default(false)
+  showWhenQuestionId String?
+  showWhenAnswer     String?
+  active             Boolean                  @default(true)
+  sortOrder          Int                      @default(0)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  createdByUserId    String?
 
   tenant    Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   procedure ClinicProcedure        @relation(fields: [procedureId], references: [id], onDelete: Cascade)
   responses ClinicIntakeResponse[]
 
   @@index([tenantId, procedureId, active, sortOrder])
+  @@index([showWhenQuestionId])
   @@map("clinic_intake_questions")
 }
 

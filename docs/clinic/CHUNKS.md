@@ -204,6 +204,22 @@
 
 ---
 
+## Chunk 77 — 2026-04-29 (smart forms v2)
+
+**Shipped**
+
+- **Conditional fields:** `ClinicIntakeQuestion` supports `showWhenQuestionId` + `showWhenAnswer`; public booking hides dependent questions until the condition matches.
+- **Internal-only fields:** staff can mark service form questions as internal-only so they stay out of public booking.
+- **Validation:** required intake validation now runs only against visible public questions.
+- **Patient card:** overview shows recent smart-form answer groups by appointment/service.
+- **i18n/tests/docs:** added EN/RU labels, conditional visibility unit coverage, architecture docs, docs index, and session note.
+
+**Operational**
+
+- Schema change: run Prisma generate/push for target DBs.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

@@ -335,6 +335,27 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
+  const intakeResponses = await prisma.clinicIntakeResponse.findMany({
+    where: { tenantId: session.tenantId, patientId: patient.id },
+    orderBy: { createdAt: 'desc' },
+    take: 24,
+    select: {
+      id: true,
+      promptSnapshot: true,
+      typeSnapshot: true,
+      answerText: true,
+      createdAt: true,
+      procedure: { select: { id: true, name: true } },
+      appointment: {
+        select: {
+          id: true,
+          startsAt: true,
+          procedure: { select: { id: true, name: true } },
+        },
+      },
+    },
+  })
+
   const clientBalance = buildClientBalanceSummary({
     charges: buildClientBalanceChargesFromAppointments(patient.appointments),
     standalonePayments: patient.payments.filter(
@@ -345,6 +366,7 @@ export async function GET(
   return NextResponse.json({
     patient: {
       ...patient,
+      intakeResponses,
       clientBalance,
       appointments: patient.appointments.map(({ visits, ...appointment }) => appointment),
     },

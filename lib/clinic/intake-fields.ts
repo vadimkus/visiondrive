@@ -6,6 +6,9 @@ export type IntakeQuestionLike = {
   helpText?: string | null
   type: ClinicIntakeQuestionType | string
   required: boolean
+  internalOnly?: boolean | null
+  showWhenQuestionId?: string | null
+  showWhenAnswer?: string | null
 }
 
 export type IntakeAnswerInput = {
@@ -36,6 +39,11 @@ export function normalizeIntakeHelpText(value: unknown) {
   return text || null
 }
 
+export function normalizeIntakeConditionAnswer(value: unknown) {
+  const text = String(value ?? '').trim().slice(0, 200)
+  return text || null
+}
+
 export function normalizeIntakeAnswer(type: ClinicIntakeQuestionType | string, value: unknown) {
   const questionType = normalizeIntakeQuestionType(type)
   if (questionType === ClinicIntakeQuestionType.YES_NO) {
@@ -47,6 +55,13 @@ export function normalizeIntakeAnswer(type: ClinicIntakeQuestionType | string, v
   const limit = questionType === ClinicIntakeQuestionType.TEXTAREA ? 2000 : 500
   const text = String(value ?? '').trim().slice(0, limit)
   return text || null
+}
+
+function comparableIntakeAnswer(value: unknown) {
+  const text = String(value ?? '').trim().toLowerCase()
+  if (['yes', 'да', 'true', '1', 'y'].includes(text)) return 'yes'
+  if (['no', 'нет', 'false', '0', 'n'].includes(text)) return 'no'
+  return text
 }
 
 export function parseIntakeAnswerInputs(value: unknown): IntakeAnswerInput[] {
@@ -62,15 +77,40 @@ export function parseIntakeAnswerInputs(value: unknown): IntakeAnswerInput[] {
     .filter((item): item is IntakeAnswerInput => item !== null)
 }
 
-export function normalizeIntakeResponses(
+export function visibleIntakeQuestions(
   questions: IntakeQuestionLike[],
   answerInputs: IntakeAnswerInput[]
 ) {
   const answers = new Map(answerInputs.map((answer) => [answer.questionId, answer.answer]))
+
+  return questions.filter((question) => {
+    const controllingQuestionId = question.showWhenQuestionId?.trim()
+    const expectedAnswer = question.showWhenAnswer?.trim()
+    if (!controllingQuestionId || !expectedAnswer) return true
+
+    const controllingQuestion = questions.find((candidate) => candidate.id === controllingQuestionId)
+    const rawAnswer = answers.get(controllingQuestionId)
+    const normalizedAnswer = normalizeIntakeAnswer(controllingQuestion?.type ?? 'TEXT', rawAnswer)
+    const normalizedExpected = comparableIntakeAnswer(expectedAnswer)
+
+    return (
+      comparableIntakeAnswer(normalizedAnswer) === normalizedExpected ||
+      comparableIntakeAnswer(rawAnswer) === normalizedExpected
+    )
+  })
+}
+
+export function normalizeIntakeResponses(
+  questions: IntakeQuestionLike[],
+  answerInputs: IntakeAnswerInput[]
+) {
+  const visibleQuestions = visibleIntakeQuestions(questions, answerInputs)
+  const answers = new Map(answerInputs.map((answer) => [answer.questionId, answer.answer]))
   const missingRequired: IntakeQuestionLike[] = []
   const responses: NormalizedIntakeAnswer[] = []
 
-  for (const question of questions) {
+  for (const question of visibleQuestions) {
+    if (question.internalOnly) continue
     const type = normalizeIntakeQuestionType(question.type)
     const answerText = normalizeIntakeAnswer(type, answers.get(question.id))
     if (question.required && !answerText) {

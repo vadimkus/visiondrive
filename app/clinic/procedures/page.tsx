@@ -43,6 +43,9 @@ type IntakeQuestion = {
   helpText: string | null
   type: 'TEXT' | 'TEXTAREA' | 'YES_NO'
   required: boolean
+  internalOnly: boolean
+  showWhenQuestionId: string | null
+  showWhenAnswer: string | null
   active: boolean
   sortOrder: number
 }
@@ -82,6 +85,9 @@ type IntakeForm = {
   helpText: string
   type: 'TEXT' | 'TEXTAREA' | 'YES_NO'
   required: boolean
+  internalOnly: boolean
+  showWhenQuestionId: string
+  showWhenAnswer: string
 }
 
 type AftercareForm = {
@@ -202,7 +208,15 @@ export default function ClinicProceduresPage() {
   }
 
   function updateIntakeForm(procedureId: string, patch: Partial<IntakeForm>) {
-    const defaultForm: IntakeForm = { prompt: '', helpText: '', type: 'TEXT', required: false }
+    const defaultForm: IntakeForm = {
+      prompt: '',
+      helpText: '',
+      type: 'TEXT',
+      required: false,
+      internalOnly: false,
+      showWhenQuestionId: '',
+      showWhenAnswer: '',
+    }
     setIntakeForms((current) => ({
       ...current,
       [procedureId]: {
@@ -334,6 +348,9 @@ export default function ClinicProceduresPage() {
           helpText: form.helpText || null,
           type: form.type,
           required: form.required,
+          internalOnly: form.internalOnly,
+          showWhenQuestionId: form.showWhenQuestionId || null,
+          showWhenAnswer: form.showWhenAnswer || null,
         }),
       })
       const data = await res.json()
@@ -343,7 +360,15 @@ export default function ClinicProceduresPage() {
       }
       setIntakeForms((current) => ({
         ...current,
-        [procedureId]: { prompt: '', helpText: '', type: 'TEXT', required: false },
+        [procedureId]: {
+          prompt: '',
+          helpText: '',
+          type: 'TEXT',
+          required: false,
+          internalOnly: false,
+          showWhenQuestionId: '',
+          showWhenAnswer: '',
+        },
       }))
       await load()
     } finally {
@@ -451,7 +476,15 @@ export default function ClinicProceduresPage() {
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((p) => {
             const form = forms[p.id] ?? { stockItemId: '', quantityPerVisit: '1', unitCost: '0', note: '' }
-            const intakeForm = intakeForms[p.id] ?? { prompt: '', helpText: '', type: 'TEXT' as const, required: false }
+            const intakeForm = intakeForms[p.id] ?? {
+              prompt: '',
+              helpText: '',
+              type: 'TEXT' as const,
+              required: false,
+              internalOnly: false,
+              showWhenQuestionId: '',
+              showWhenAnswer: '',
+            }
             const aftercareForm = aftercareForms[p.id] ?? { title: '', messageBody: '', documentName: '', documentUrl: '' }
             const policyForm = policyForms[p.id] ?? policyFormFromProcedure(p)
             const cost = materialCost(p.materials || [])
@@ -598,6 +631,10 @@ export default function ClinicProceduresPage() {
                                   ? t.intakeTypeTextarea
                                   : t.intakeTypeText}
                               {question.required ? ` · ${t.required}` : ''}
+                              {question.internalOnly ? ` · ${t.internalOnly}` : ''}
+                              {question.showWhenQuestionId && question.showWhenAnswer
+                                ? ` · ${t.conditionalQuestion}`
+                                : ''}
                               {!question.active ? ` · ${t.statusInactive}` : ''}
                             </p>
                             {question.helpText && <p className="mt-1 text-xs text-gray-500">{question.helpText}</p>}
@@ -651,6 +688,35 @@ export default function ClinicProceduresPage() {
                       />
                       {t.required}
                     </label>
+                    <label className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 text-sm font-medium text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={intakeForm.internalOnly}
+                        onChange={(e) => updateIntakeForm(p.id, { internalOnly: e.target.checked })}
+                        className="h-4 w-4 rounded border-blue-200 text-blue-600"
+                      />
+                      {t.internalOnly}
+                    </label>
+                    <select
+                      value={intakeForm.showWhenQuestionId}
+                      onChange={(e) => updateIntakeForm(p.id, { showWhenQuestionId: e.target.value })}
+                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                    >
+                      <option value="">{t.alwaysShowQuestion}</option>
+                      {p.intakeQuestions
+                        ?.filter((question) => question.type === 'YES_NO')
+                        .map((question) => (
+                          <option key={question.id} value={question.id}>
+                            {t.showWhenAnswerTo}: {question.prompt}
+                          </option>
+                        ))}
+                    </select>
+                    <input
+                      value={intakeForm.showWhenAnswer}
+                      onChange={(e) => updateIntakeForm(p.id, { showWhenAnswer: e.target.value })}
+                      placeholder={t.showWhenAnswerPlaceholder}
+                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                    />
                     <button
                       type="button"
                       disabled={busy === `intake-${p.id}`}

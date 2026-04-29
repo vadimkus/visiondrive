@@ -6,6 +6,7 @@ import {
   normalizeIntakeQuestionType,
   normalizeIntakeResponses,
   parseIntakeAnswerInputs,
+  visibleIntakeQuestions,
 } from './intake-fields'
 
 describe('clinic intake fields', () => {
@@ -55,5 +56,53 @@ describe('clinic intake fields', () => {
         },
       ])
     ).toContain('Recent procedures?: Peel last week')
+  })
+
+  it('applies conditional visibility and skips internal-only public responses', () => {
+    const questions = [
+      { id: 'q1', prompt: 'Pregnant?', type: ClinicIntakeQuestionType.YES_NO, required: true },
+      {
+        id: 'q2',
+        prompt: 'Trimester?',
+        type: ClinicIntakeQuestionType.TEXT,
+        required: true,
+        showWhenQuestionId: 'q1',
+        showWhenAnswer: 'Yes',
+      },
+      {
+        id: 'q3',
+        prompt: 'Staff prep note',
+        type: ClinicIntakeQuestionType.TEXT,
+        required: true,
+        internalOnly: true,
+      },
+    ]
+
+    expect(visibleIntakeQuestions(questions, [{ questionId: 'q1', answer: 'no' }]).map((q) => q.id)).toEqual([
+      'q1',
+      'q3',
+    ])
+    expect(
+      normalizeIntakeResponses(questions, [
+        { questionId: 'q1', answer: 'yes' },
+        { questionId: 'q2', answer: 'Second' },
+      ])
+    ).toEqual({
+      responses: [
+        {
+          questionId: 'q1',
+          promptSnapshot: 'Pregnant?',
+          typeSnapshot: ClinicIntakeQuestionType.YES_NO,
+          answerText: 'Yes',
+        },
+        {
+          questionId: 'q2',
+          promptSnapshot: 'Trimester?',
+          typeSnapshot: ClinicIntakeQuestionType.TEXT,
+          answerText: 'Second',
+        },
+      ],
+      missingRequired: [],
+    })
   })
 })

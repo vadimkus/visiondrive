@@ -29,6 +29,8 @@ type IntakeQuestion = {
   helpText: string | null
   type: 'TEXT' | 'TEXTAREA' | 'YES_NO'
   required: boolean
+  showWhenQuestionId: string | null
+  showWhenAnswer: string | null
 }
 
 type Slot = {
@@ -55,6 +57,33 @@ function depositRequiredCents(procedure: Procedure) {
     procedure.depositAmountCents,
     Math.round(procedure.basePriceCents * (Math.max(0, procedure.depositPercent) / 100))
   )
+}
+
+function normalizedPublicAnswer(question: IntakeQuestion | undefined, value: string | undefined) {
+  if (!question) return String(value ?? '').trim()
+  if (question.type !== 'YES_NO') return String(value ?? '').trim()
+  const normalized = String(value ?? '').trim().toLowerCase()
+  if (normalized === 'yes') return 'Yes'
+  if (normalized === 'no') return 'No'
+  return normalized
+}
+
+function comparablePublicAnswer(value: string | undefined | null) {
+  const text = String(value ?? '').trim().toLowerCase()
+  if (['yes', 'да', 'true', '1', 'y'].includes(text)) return 'yes'
+  if (['no', 'нет', 'false', '0', 'n'].includes(text)) return 'no'
+  return text
+}
+
+function visiblePublicIntakeQuestions(questions: IntakeQuestion[], answers: Record<string, string>) {
+  return questions.filter((question) => {
+    if (!question.showWhenQuestionId || !question.showWhenAnswer) return true
+    const controllingQuestion = questions.find((candidate) => candidate.id === question.showWhenQuestionId)
+    return (
+      comparablePublicAnswer(normalizedPublicAnswer(controllingQuestion, answers[question.showWhenQuestionId])) ===
+      comparablePublicAnswer(question.showWhenAnswer)
+    )
+  })
 }
 
 function readStoredLocale(): ClinicLocale {
@@ -269,6 +298,9 @@ export default function PublicBookingPage() {
   )
   const requiresPolicyAcceptance =
     selectedProcedure != null && selectedProcedure.bookingPolicyType !== 'NONE'
+  const visibleIntakeQuestions = selectedProcedure
+    ? visiblePublicIntakeQuestions(selectedProcedure.intakeQuestions, intakeAnswers)
+    : []
 
   const track = useCallback(
     (eventType: string, extra: Record<string, unknown> = {}) => {
@@ -575,12 +607,12 @@ export default function PublicBookingPage() {
               </label>
             </div>
 
-            {selectedProcedure?.intakeQuestions?.length ? (
+            {visibleIntakeQuestions.length ? (
               <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
                 <h3 className="text-sm font-semibold text-blue-950">{c.serviceQuestions}</h3>
                 <p className="mt-1 text-xs text-blue-900/70">{c.serviceQuestionsHint}</p>
                 <div className="mt-4 space-y-4">
-                  {selectedProcedure.intakeQuestions.map((question) => (
+                  {visibleIntakeQuestions.map((question) => (
                     <label key={question.id} className="block text-sm font-medium text-gray-700">
                       {question.prompt}
                       {question.required ? ' *' : ''}

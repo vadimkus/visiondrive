@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
   normalizeIntakeHelpText,
+  normalizeIntakeConditionAnswer,
   normalizeIntakePrompt,
   normalizeIntakeQuestionType,
 } from '@/lib/clinic/intake-fields'
@@ -42,6 +43,12 @@ export async function PATCH(
   if (body.helpText !== undefined) data.helpText = normalizeIntakeHelpText(body.helpText)
   if (body.type !== undefined) data.type = normalizeIntakeQuestionType(body.type)
   if (body.required !== undefined) data.required = body.required === true
+  if (body.internalOnly !== undefined) data.internalOnly = body.internalOnly === true
+  if (body.showWhenQuestionId !== undefined) {
+    data.showWhenQuestionId =
+      body.showWhenQuestionId != null ? String(body.showWhenQuestionId).trim() || null : null
+  }
+  if (body.showWhenAnswer !== undefined) data.showWhenAnswer = normalizeIntakeConditionAnswer(body.showWhenAnswer)
   if (body.active !== undefined) data.active = body.active === true
   if (body.sortOrder !== undefined && Number.isFinite(Number(body.sortOrder))) {
     data.sortOrder = Math.round(Number(body.sortOrder))

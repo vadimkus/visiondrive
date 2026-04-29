@@ -16,6 +16,10 @@ Point 23 from the Altegio home-visit adaptation backlog adds service-specific in
 - Answers are stored as appointment-linked snapshots and appended to appointment internal notes for staff visibility.
 - EN/RU copy and the in-app Knowledge Base were updated.
 
+## Follow-up: Smart Forms V2
+
+On 2026-04-29, intake fields gained conditional visibility, internal-only staff fields, and a patient-card answer summary. Required validation now applies only to questions visible to the public user.
+
 ## Operational Notes
 
 - Run `npm run db:push` for any target database because this changes schema.

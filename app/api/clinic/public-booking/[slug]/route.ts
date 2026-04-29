@@ -16,6 +16,7 @@ import {
   intakeResponsesNote,
   normalizeIntakeResponses,
   parseIntakeAnswerInputs,
+  visibleIntakeQuestions,
   type IntakeQuestionLike,
   type NormalizedIntakeAnswer,
 } from '@/lib/clinic/intake-fields'
@@ -92,7 +93,7 @@ export async function GET(
       noShowFeeCents: true,
       bookingPolicyText: true,
       intakeQuestions: {
-        where: { active: true },
+        where: { active: true, internalOnly: false },
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
         select: {
           id: true,
@@ -100,6 +101,9 @@ export async function GET(
           helpText: true,
           type: true,
           required: true,
+          internalOnly: true,
+          showWhenQuestionId: true,
+          showWhenAnswer: true,
           sortOrder: true,
         },
       },
@@ -211,7 +215,7 @@ export async function POST(
       noShowFeeCents: true,
       bookingPolicyText: true,
       intakeQuestions: {
-        where: { active: true },
+        where: { active: true, internalOnly: false },
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
         select: {
           id: true,
@@ -219,6 +223,9 @@ export async function POST(
           helpText: true,
           type: true,
           required: true,
+          internalOnly: true,
+          showWhenQuestionId: true,
+          showWhenAnswer: true,
         },
       },
     },
@@ -235,10 +242,9 @@ export async function POST(
 
   const endsAt = new Date(startsAt.getTime() + procedure.defaultDurationMin * 60 * 1000)
   const bufferAfterMinutes = normalizeBufferMinutes(procedure.bufferAfterMinutes)
-  const intake = normalizeIntakeResponses(
-    procedure.intakeQuestions as IntakeQuestionLike[],
-    parseIntakeAnswerInputs(body.intakeAnswers)
-  )
+  const answerInputs = parseIntakeAnswerInputs(body.intakeAnswers)
+  const publicIntakeQuestions = visibleIntakeQuestions(procedure.intakeQuestions as IntakeQuestionLike[], answerInputs)
+  const intake = normalizeIntakeResponses(publicIntakeQuestions, answerInputs)
   if (intake.missingRequired.length > 0) {
     return NextResponse.json(
       { error: 'Required intake questions are missing', missingQuestionIds: intake.missingRequired.map((q) => q.id) },

@@ -444,6 +444,20 @@ type PortalRequestRow = {
   } | null
 }
 
+type IntakeResponseRow = {
+  id: string
+  promptSnapshot: string
+  typeSnapshot: 'TEXT' | 'TEXTAREA' | 'YES_NO'
+  answerText: string | null
+  createdAt: string
+  procedure: ProcedureRef
+  appointment?: {
+    id: string
+    startsAt: string
+    procedure: ProcedureRef
+  } | null
+}
+
 type ClientBalance = {
   currency: string
   expectedCents: number
@@ -515,6 +529,7 @@ export type PatientRecord = {
   giftCardRedemptions: GiftCardRedemptionRow[]
   consentRecords: ConsentRecordRow[]
   treatmentPlans: TreatmentPlanRow[]
+  intakeResponses: IntakeResponseRow[]
   portalLinks: PortalLinkRow[]
   portalRequests: PortalRequestRow[]
   clientBalance: ClientBalance
@@ -1434,6 +1449,79 @@ function PatientPortalCard({
   )
 }
 
+function SmartFormsSummary({ patient }: { patient: PatientRecord }) {
+  const { locale, t } = useClinicLocale()
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const grouped = patient.intakeResponses.reduce((acc, response) => {
+    const appointmentId = response.appointment?.id ?? 'standalone'
+    const existing =
+      acc.get(appointmentId) ??
+      {
+        key: appointmentId,
+        serviceName: response.appointment?.procedure?.name ?? response.procedure?.name ?? t.unknownService,
+        createdAt: response.createdAt,
+        appointmentStartsAt: response.appointment?.startsAt ?? null,
+        responses: [] as IntakeResponseRow[],
+      }
+    existing.responses.push(response)
+    if (new Date(response.createdAt).getTime() > new Date(existing.createdAt).getTime()) {
+      existing.createdAt = response.createdAt
+    }
+    acc.set(appointmentId, existing)
+    return acc
+  }, new Map<string, { key: string; serviceName: string; createdAt: string; appointmentStartsAt: string | null; responses: IntakeResponseRow[] }>())
+  const groups = [...grouped.values()].slice(0, 4)
+
+  return (
+    <section className="rounded-2xl border border-blue-100 bg-blue-50/60 p-5 shadow-sm">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">{t.smartFormsSummary}</h2>
+          <p className="text-sm text-blue-950/75">{t.smartFormsSummaryHint}</p>
+        </div>
+        <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700">
+          {patient.intakeResponses.length} {t.answers}
+        </span>
+      </div>
+
+      {groups.length === 0 ? (
+        <p className="mt-4 rounded-xl border border-dashed border-blue-100 bg-white p-4 text-sm text-gray-500">
+          {t.noSmartFormAnswers}
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {groups.map((group) => (
+            <article key={group.key} className="rounded-2xl border border-blue-100 bg-white p-4">
+              <p className="text-sm font-semibold text-gray-950">{group.serviceName}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {(group.appointmentStartsAt ? new Date(group.appointmentStartsAt) : new Date(group.createdAt)).toLocaleString(
+                  dateLocale,
+                  {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }
+                )}
+              </p>
+              <dl className="mt-3 space-y-2">
+                {group.responses.slice(0, 4).map((response) => (
+                  <div key={response.id}>
+                    <dt className="text-xs font-semibold text-gray-500">{response.promptSnapshot}</dt>
+                    <dd className="mt-0.5 whitespace-pre-wrap text-sm text-gray-900">
+                      {response.answerText || t.emptyValue}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function OverviewTab({
   patient,
   editOpen,
@@ -2039,6 +2127,8 @@ function OverviewTab({
           </button>
         </form>
       )}
+
+      <SmartFormsSummary patient={patient} />
 
       <form
         onSubmit={logVisit}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import {
   normalizeIntakeHelpText,
+  normalizeIntakeConditionAnswer,
   normalizeIntakePrompt,
   normalizeIntakeQuestionType,
 } from '@/lib/clinic/intake-fields'
@@ -70,6 +71,10 @@ export async function POST(
       helpText: normalizeIntakeHelpText(body.helpText),
       type: normalizeIntakeQuestionType(body.type),
       required: body.required === true,
+      internalOnly: body.internalOnly === true,
+      showWhenQuestionId:
+        body.showWhenQuestionId != null ? String(body.showWhenQuestionId).trim() || null : null,
+      showWhenAnswer: normalizeIntakeConditionAnswer(body.showWhenAnswer),
       active: body.active !== false,
       sortOrder: Number.isFinite(Number(body.sortOrder)) ? Math.round(Number(body.sortOrder)) : 0,
       createdByUserId: session.userId,
