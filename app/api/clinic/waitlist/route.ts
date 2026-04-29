@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
   }
 
   const statusParam = request.nextUrl.searchParams.get('status')?.trim().toUpperCase()
+  const locale = request.nextUrl.searchParams.get('locale') === 'ru' ? 'ru' : 'en-GB'
   const slot = slotFromParams(request)
   const statuses =
     statusParam === 'ALL'
@@ -91,6 +92,7 @@ export async function GET(request: NextRequest) {
             firstName: entry.patient.firstName,
             service: serviceName,
             startsAt: slot.startsAt,
+            locale,
           })
         : null
 

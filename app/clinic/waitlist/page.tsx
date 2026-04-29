@@ -65,7 +65,7 @@ function patientName(patient: Pick<PatientOption, 'firstName' | 'lastName'>) {
 }
 
 export default function ClinicWaitlistPage() {
-  const { t } = useClinicLocale()
+  const { locale, t } = useClinicLocale()
   const [patients, setPatients] = useState<PatientOption[]>([])
   const [procedures, setProcedures] = useState<ProcedureOption[]>([])
   const [overview, setOverview] = useState<WaitlistResponse | null>(null)
@@ -103,13 +103,14 @@ export default function ClinicWaitlistPage() {
 
   const loadWaitlist = useCallback(async () => {
     const params = new URLSearchParams()
+    params.set('locale', locale)
     if (slot.slotStart) params.set('slotStart', new Date(slot.slotStart).toISOString())
     if (slot.procedureId) params.set('procedureId', slot.procedureId)
     const res = await fetch(`/api/clinic/waitlist?${params.toString()}`, { credentials: 'include' })
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || t.failedToLoad)
     setOverview(data)
-  }, [slot.procedureId, slot.slotStart, t.failedToLoad])
+  }, [locale, slot.procedureId, slot.slotStart, t.failedToLoad])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -283,7 +284,7 @@ export default function ClinicWaitlistPage() {
               <input
                 value={form.preferredTimeOfDay}
                 onChange={(event) => setForm((current) => ({ ...current, preferredTimeOfDay: event.target.value }))}
-                placeholder="Morning / afternoon / after 18:00"
+                placeholder={t.waitlistPreferredTimePlaceholder}
                 className="mt-1 min-h-11 w-full rounded-xl border border-gray-300 px-3 text-sm"
               />
             </label>
@@ -315,7 +316,7 @@ export default function ClinicWaitlistPage() {
             <input
               value={form.preferredDays}
               onChange={(event) => setForm((current) => ({ ...current, preferredDays: event.target.value }))}
-              placeholder="Mon, Wed, Friday"
+              placeholder={t.waitlistPreferredDaysPlaceholder}
               className="mt-1 min-h-11 w-full rounded-xl border border-gray-300 px-3 text-sm"
             />
           </label>

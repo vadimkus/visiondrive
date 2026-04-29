@@ -746,6 +746,245 @@ async function main() {
     )
   }
 
+  // ---------------------------------------------------------------------------
+  // Practice OS demo patients (RU-first). Idempotent demo data for UI testing.
+  // ---------------------------------------------------------------------------
+  try {
+    const demoPatientEmails = ['anna.demo.clinic@visiondrive.ae', 'maria.demo.clinic@visiondrive.ae']
+    await sql/*sql*/`
+      DELETE FROM clinic_patients
+      WHERE "tenantId" = ${ensuredTenantId}
+        AND email IN (${demoPatientEmails[0]}, ${demoPatientEmails[1]})
+    `
+
+    const ensureProcedure = async (name: string, duration: number, buffer: number, priceCents: number, sortOrder: number) => {
+      const existing = await sql/*sql*/`
+        SELECT id
+        FROM clinic_procedures
+        WHERE "tenantId" = ${ensuredTenantId} AND name = ${name}
+        LIMIT 1
+      `
+      const id = existing?.[0]?.id || randomUUID()
+      await sql/*sql*/`
+        INSERT INTO clinic_procedures (
+          id,
+          "tenantId",
+          name,
+          "defaultDurationMin",
+          "bufferAfterMinutes",
+          "basePriceCents",
+          currency,
+          active,
+          "sortOrder",
+          "createdAt",
+          "updatedAt"
+        )
+        VALUES (${id}, ${ensuredTenantId}, ${name}, ${duration}, ${buffer}, ${priceCents}, 'AED', true, ${sortOrder}, now(), now())
+        ON CONFLICT (id) DO UPDATE
+          SET "defaultDurationMin" = EXCLUDED."defaultDurationMin",
+              "bufferAfterMinutes" = EXCLUDED."bufferAfterMinutes",
+              "basePriceCents" = EXCLUDED."basePriceCents",
+              active = true,
+              "sortOrder" = EXCLUDED."sortOrder",
+              "updatedAt" = now()
+      `
+      return id
+    }
+
+    const consultProcedureId = await ensureProcedure('Первичная консультация', 60, 15, 45000, 1)
+    const bioProcedureId = await ensureProcedure('Биоревитализация лица', 90, 20, 120000, 2)
+
+    const now = new Date()
+    const atDubaiHour = (daysFromNow: number, hour: number, minute = 0) => {
+      const date = new Date(now)
+      date.setUTCDate(date.getUTCDate() + daysFromNow)
+      date.setUTCHours(hour - 4, minute, 0, 0)
+      return date
+    }
+
+    const demoPatients = [
+      {
+        id: randomUUID(),
+        firstName: 'Анна',
+        lastName: 'Петрова',
+        dateOfBirth: '1992-05-14',
+        phone: '+971501112233',
+        email: demoPatientEmails[0],
+        homeAddress: 'Dubai Marina, Marina Gate 2, Apt 1204',
+        area: 'Dubai Marina',
+        accessNotes: 'Парковка для гостей через консьержа, подъезд с Marina Walk.',
+        category: 'VIP',
+        anamnesis: {
+          allergies: 'Нет известных аллергий',
+          medications: 'Витамин D',
+          conditions: 'Чувствительная кожа',
+          social: 'Предпочитает утренние выезды',
+        },
+        procedureId: consultProcedureId,
+        startsAt: atDubaiHour(1, 10),
+        endsAt: atDubaiHour(1, 11),
+      },
+      {
+        id: randomUUID(),
+        firstName: 'Мария',
+        lastName: 'Иванова',
+        dateOfBirth: '1986-11-02',
+        phone: '+971502223344',
+        email: demoPatientEmails[1],
+        homeAddress: 'Business Bay, Executive Towers, Tower B',
+        area: 'Business Bay',
+        accessNotes: 'Охрана просит Emirates ID, лучше заложить 10 минут на вход.',
+        category: 'Regular',
+        anamnesis: {
+          allergies: 'Аллергия на лидокаин не подтверждена, уточнить перед процедурой',
+          medications: 'Нет постоянных препаратов',
+          conditions: 'Склонность к отёкам',
+          social: 'Удобнее после 18:00',
+        },
+        procedureId: bioProcedureId,
+        startsAt: atDubaiHour(2, 18),
+        endsAt: atDubaiHour(2, 19, 30),
+      },
+    ]
+
+    for (const patient of demoPatients) {
+      await sql/*sql*/`
+        INSERT INTO clinic_patients (
+          id,
+          "tenantId",
+          "firstName",
+          "lastName",
+          "dateOfBirth",
+          phone,
+          email,
+          "homeAddress",
+          area,
+          "accessNotes",
+          category,
+          "internalNotes",
+          "anamnesisJson",
+          "createdAt",
+          "updatedAt"
+        )
+        VALUES (
+          ${patient.id},
+          ${ensuredTenantId},
+          ${patient.firstName},
+          ${patient.lastName},
+          ${patient.dateOfBirth},
+          ${patient.phone},
+          ${patient.email},
+          ${patient.homeAddress},
+          ${patient.area},
+          ${patient.accessNotes},
+          ${patient.category},
+          'DEMO: RU-first patient for clinic UI testing',
+          ${sql.json(patient.anamnesis) as any},
+          now(),
+          now()
+        )
+      `
+
+      const appointmentId = randomUUID()
+      await sql/*sql*/`
+        INSERT INTO clinic_appointments (
+          id,
+          "tenantId",
+          "patientId",
+          "procedureId",
+          "startsAt",
+          "endsAt",
+          status,
+          source,
+          "bufferAfterMinutes",
+          "travelBufferBeforeMinutes",
+          "travelBufferAfterMinutes",
+          "locationAddress",
+          "locationArea",
+          "locationNotes",
+          "internalNotes",
+          "createdAt",
+          "updatedAt"
+        )
+        VALUES (
+          ${appointmentId},
+          ${ensuredTenantId},
+          ${patient.id},
+          ${patient.procedureId},
+          ${patient.startsAt},
+          ${patient.endsAt},
+          'SCHEDULED',
+          'MANUAL',
+          15,
+          20,
+          20,
+          ${patient.homeAddress},
+          ${patient.area},
+          ${patient.accessNotes},
+          'DEMO: тестовая запись для проверки русского интерфейса',
+          now(),
+          now()
+        )
+      `
+
+      await sql/*sql*/`
+        INSERT INTO clinic_crm_activities (
+          id,
+          "tenantId",
+          "patientId",
+          type,
+          body,
+          "occurredAt",
+          "createdAt"
+        )
+        VALUES (
+          ${randomUUID()},
+          ${ensuredTenantId},
+          ${patient.id},
+          'NOTE',
+          'DEMO: Пациент добавлен для проверки русской локализации, карточки, записи и CRM.',
+          now(),
+          now()
+        )
+      `
+    }
+
+    await sql/*sql*/`
+      INSERT INTO clinic_waitlist_entries (
+        id,
+        "tenantId",
+        "patientId",
+        "procedureId",
+        status,
+        priority,
+        "earliestAt",
+        "latestAt",
+        "preferredTimeOfDay",
+        note,
+        "createdAt",
+        "updatedAt"
+      )
+      VALUES (
+        ${randomUUID()},
+        ${ensuredTenantId},
+        ${demoPatients[1].id},
+        ${bioProcedureId},
+        'OPEN',
+        1,
+        ${atDubaiHour(1, 16)},
+        ${atDubaiHour(10, 20)},
+        'После 18:00',
+        'DEMO: готова прийти раньше при отмене вечернего слота.',
+        now(),
+        now()
+      )
+    `
+
+    console.log('✅ Ensured Practice OS RU demo patients and waitlist data')
+  } catch (e) {
+    console.warn('⚠️  Skipped Practice OS RU demo data:', e)
+  }
+
   // Convert sensor_events into a Timescale hypertable (if Timescale functions are available).
   // This is safe to run multiple times.
   try {

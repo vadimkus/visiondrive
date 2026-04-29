@@ -81,11 +81,15 @@ export function buildWaitlistFillMessage({
   startsAt: Date
   locale?: string
 }) {
-  const date = startsAt.toLocaleDateString(locale, { dateStyle: 'medium', timeZone: 'Asia/Dubai' })
-  const time = startsAt.toLocaleTimeString(locale, {
+  const dateLocale = locale === 'ru' ? 'ru-RU' : locale
+  const date = startsAt.toLocaleDateString(dateLocale, { dateStyle: 'medium', timeZone: 'Asia/Dubai' })
+  const time = startsAt.toLocaleTimeString(dateLocale, {
     hour: '2-digit',
     minute: '2-digit',
     timeZone: 'Asia/Dubai',
   })
+  if (locale === 'ru') {
+    return `Здравствуйте, ${firstName}! Освободилось окно на ${service}: ${date} в ${time}. Хотите, я забронирую это время для вас?`
+  }
   return `Hi ${firstName}, a ${service} slot opened on ${date} at ${time}. Would you like me to reserve it for you?`
 }

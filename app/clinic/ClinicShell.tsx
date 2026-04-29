@@ -191,9 +191,9 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         </Link>
 
         <nav className="mt-6 flex-1 space-y-6 overflow-y-auto pr-1 scrollbar-hide" aria-label={t.practiceConsole}>
-          {renderNavGroup(commandNav, 'Command')}
-          {renderNavGroup(growthNav, 'Growth')}
-          {renderNavGroup(systemNav, 'System')}
+          {renderNavGroup(commandNav, t.navGroupCommand)}
+          {renderNavGroup(growthNav, t.navGroupGrowth)}
+          {renderNavGroup(systemNav, t.navGroupSystem)}
         </nav>
 
         <div className="mt-4 rounded-3xl border border-white/80 bg-white/70 p-3 shadow-sm">

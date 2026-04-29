@@ -147,11 +147,11 @@ export default function ClinicDashboardPage() {
           <div className="relative">
             <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-orange-100">
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
-              Solo cockpit
+              {t.dashboardSoloCockpit}
             </p>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight">{t.dashboard}</h1>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-300">
-              Fast actions for a practitioner moving between visits.
+              {t.dashboardSoloCockpitHint}
             </p>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <Link
@@ -186,7 +186,7 @@ export default function ClinicDashboardPage() {
         <div className="rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-950">{t.quickActions}</p>
-            <span className="text-xs text-slate-400">44px+</span>
+            <span className="text-xs text-slate-400">{t.dashboardTapTargetHint}</span>
           </div>
           <div className="grid gap-2">
             {primaryActions.map((action) => (
@@ -263,8 +263,8 @@ export default function ClinicDashboardPage() {
             <div className="relative">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-orange-600">Command center</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Run today from one surface</h2>
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-orange-600">{t.dashboardCommandCenter}</p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{t.dashboardCommandCenterHint}</h2>
                 </div>
                 <Activity className="h-6 w-6 text-orange-500" aria-hidden />
               </div>
@@ -282,8 +282,8 @@ export default function ClinicDashboardPage() {
                 <ShieldCheck className="h-5 w-5 text-emerald-300" aria-hidden />
               </div>
               <div>
-                <p className="text-sm font-semibold">Operating posture</p>
-                <p className="text-xs text-slate-400">Booking, reminders, stock and reputation</p>
+                <p className="text-sm font-semibold">{t.dashboardOperatingPosture}</p>
+                <p className="text-xs text-slate-400">{t.dashboardOperatingPostureHint}</p>
               </div>
             </div>
             <div className="mt-6 space-y-3">
@@ -300,8 +300,8 @@ export default function ClinicDashboardPage() {
           <div className="rounded-[2rem] border border-white/80 bg-white/82 p-6 shadow-sm backdrop-blur">
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-400">Analytics</p>
-                <h2 className="mt-1 text-xl font-semibold text-slate-950">Deep-focus modules</h2>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-400">{t.dashboardAnalyticsLabel}</p>
+                <h2 className="mt-1 text-xl font-semibold text-slate-950">{t.dashboardDeepFocusModules}</h2>
               </div>
               <BarChart3 className="h-5 w-5 text-slate-400" aria-hidden />
             </div>
