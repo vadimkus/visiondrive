@@ -172,6 +172,22 @@
 
 ---
 
+## Chunk 75 — 2026-04-29 (Google/Instagram booking links)
+
+**Shipped**
+
+- **Channel links:** added `lib/clinic/booking-channel-links.ts` for Google, Instagram, and WhatsApp attributed booking URLs.
+- **Dashboard:** public booking card now exposes copy-ready Google profile, Instagram bio, WhatsApp message, and service-specific Instagram links.
+- **Public booking:** `/book/[slug]?procedureId=...` now preselects a service and loads that service's slots.
+- **Tracking:** generated links include source/UTM params so existing booking funnel analytics can attribute channel conversion.
+- **i18n/tests/docs:** added EN/RU copy, helper tests, docs index, architecture note, and session note.
+
+**Operational**
+
+- No schema change.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

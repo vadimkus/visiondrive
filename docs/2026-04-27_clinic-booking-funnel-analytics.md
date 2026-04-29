@@ -16,6 +16,10 @@ Point 21 from the Altegio home-visit practitioner backlog is **Booking funnel an
 - Added EN/RU strings and a Knowledge Base article.
 - Updated clinic architecture/data-model docs and the Altegio backlog/canvas.
 
+## Follow-up: Google / Instagram Links
+
+On 2026-04-29, the dashboard gained copy-ready Google, Instagram, WhatsApp, and service-specific booking links. These links use the same source/UTM metadata that the funnel already stores, and service links pass `procedureId` so the public page preselects the treatment before showing slots.
+
 ## Metric Notes
 
 - Stage counts are based on unique anonymous sessions, while the table also shows raw event count.

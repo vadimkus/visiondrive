@@ -61,6 +61,11 @@ function readStoredLocale(): ClinicLocale {
   return window.localStorage.getItem(CLINIC_LOCALE_STORAGE) === 'ru' ? 'ru' : 'en'
 }
 
+function initialProcedureIdFromUrl() {
+  if (typeof window === 'undefined') return ''
+  return new URLSearchParams(window.location.search).get('procedureId')?.trim() || ''
+}
+
 function bookingFunnelSession(slug: string) {
   if (typeof window === 'undefined') return ''
   const key = `visiondrive:booking-funnel:${slug}`
@@ -227,7 +232,7 @@ export default function PublicBookingPage() {
   const c = copy[locale]
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const [data, setData] = useState<PublicBookingData | null>(null)
-  const [procedureId, setProcedureId] = useState('')
+  const [procedureId, setProcedureId] = useState(() => initialProcedureIdFromUrl())
   const [selectedSlot, setSelectedSlot] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -316,7 +321,7 @@ export default function PublicBookingPage() {
       setData(json)
       if (!viewedRef.current) {
         viewedRef.current = true
-        track('LINK_VIEW')
+        track('LINK_VIEW', { procedureId: procedureId || undefined })
       }
       if (!procedureId && json.procedures?.[0]?.id) {
         setProcedureId(json.procedures[0].id)

@@ -25,6 +25,13 @@ import {
   Zap,
 } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
+import type { ClinicStrings } from '@/lib/clinic/strings'
+import {
+  bookingChannelLabel,
+  bookingChannelWhatsappText,
+  buildBookingChannelUrl,
+  type BookingChannel,
+} from '@/lib/clinic/booking-channel-links'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicPwaPractitionerCard } from '@/components/clinic/ClinicPwaPractitionerCard'
 import clsx from 'clsx'
@@ -36,6 +43,8 @@ type Stats = {
   appointmentUpcoming: number
   lowStockCount: number
   bookingUrl: string | null
+  practiceName: string | null
+  bookingProcedures: Array<{ id: string; name: string }>
   publicBookingEnabled: boolean
 }
 
@@ -46,6 +55,7 @@ export default function ClinicDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [bookingToggleBusy, setBookingToggleBusy] = useState(false)
+  const [copiedLink, setCopiedLink] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -101,6 +111,32 @@ export default function ClinicDashboardPage() {
     } finally {
       setBookingToggleBusy(false)
     }
+  }
+
+  function absoluteBookingUrl(path: string) {
+    if (typeof window === 'undefined') return path
+    return new URL(path, window.location.origin).toString()
+  }
+
+  async function copyText(value: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopiedLink(label)
+      window.setTimeout(() => setCopiedLink(''), 1800)
+    } catch {
+      setError(t.copyFailed)
+    }
+  }
+
+  function channelUrl(channel: BookingChannel, procedureId?: string | null) {
+    if (!stats?.bookingUrl) return ''
+    return absoluteBookingUrl(
+      buildBookingChannelUrl({
+        baseUrl: stats.bookingUrl,
+        channel,
+        procedureId,
+      })
+    )
   }
 
   if (loading) {
@@ -174,6 +210,18 @@ export default function ClinicDashboardPage() {
         {error && <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
         <ClinicPwaPractitionerCard />
+
+        {stats?.bookingUrl && (
+          <BookingChannelLinksCard
+            bookingEnabled={stats.publicBookingEnabled}
+            copiedLink={copiedLink}
+            channelUrl={channelUrl}
+            copyText={copyText}
+            practiceName={stats.practiceName}
+            procedures={stats.bookingProcedures}
+            t={t}
+          />
+        )}
 
         {stats && (
           <div className="grid grid-cols-2 gap-3">
@@ -316,6 +364,19 @@ export default function ClinicDashboardPage() {
           </div>
         </div>
 
+        {stats?.bookingUrl && (
+          <BookingChannelLinksCard
+            bookingEnabled={stats.publicBookingEnabled}
+            copiedLink={copiedLink}
+            channelUrl={channelUrl}
+            copyText={copyText}
+            practiceName={stats.practiceName}
+            procedures={stats.bookingProcedures}
+            t={t}
+            desktop
+          />
+        )}
+
         <p className="text-xs text-slate-500">{t.docsFooter}</p>
       </section>
     </>
@@ -328,6 +389,93 @@ type DashboardAction = {
   icon: typeof CalendarClock
   primary?: boolean
   compact?: boolean
+}
+
+function BookingChannelLinksCard({
+  bookingEnabled,
+  copiedLink,
+  channelUrl,
+  copyText,
+  practiceName,
+  procedures,
+  t,
+  desktop = false,
+}: {
+  bookingEnabled: boolean
+  copiedLink: string
+  channelUrl: (channel: BookingChannel, procedureId?: string | null) => string
+  copyText: (value: string, label: string) => Promise<void>
+  practiceName: string | null
+  procedures: Array<{ id: string; name: string }>
+  t: ClinicStrings
+  desktop?: boolean
+}) {
+  const channels: BookingChannel[] = ['google', 'instagram', 'whatsapp']
+  const primaryProcedure = procedures[0] ?? null
+
+  return (
+    <section
+      className={clsx(
+        'rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur',
+        desktop && 'p-6'
+      )}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-slate-950">{t.bookingChannelLinks}</p>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{t.bookingChannelLinksHint}</p>
+          {!bookingEnabled && <p className="mt-2 text-xs font-semibold text-amber-700">{t.bookingChannelEnableFirst}</p>}
+        </div>
+        {copiedLink && (
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            {t.copied}: {copiedLink}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-2 md:grid-cols-3">
+        {channels.map((channel) => {
+          const label = bookingChannelLabel(channel)
+          const url = channelUrl(channel)
+          const copyValue =
+            channel === 'whatsapp'
+              ? bookingChannelWhatsappText(url, practiceName)
+              : url
+
+          return (
+            <button
+              key={channel}
+              type="button"
+              onClick={() => void copyText(copyValue, label)}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm transition hover:border-orange-200 hover:shadow-sm"
+            >
+              <span className="font-semibold text-slate-950">{label}</span>
+              <span className="mt-1 block truncate text-xs text-slate-500">{url}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {primaryProcedure && (
+        <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50/70 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{t.serviceDirectLinks}</p>
+          <div className="mt-2 grid gap-2 md:grid-cols-3">
+            {procedures.slice(0, 3).map((procedure) => (
+              <button
+                key={procedure.id}
+                type="button"
+                onClick={() => void copyText(channelUrl('instagram', procedure.id), procedure.name)}
+                className="rounded-xl bg-white px-3 py-2 text-left text-xs font-semibold text-slate-800"
+              >
+                <span className="block truncate">{procedure.name}</span>
+                <span className="mt-0.5 block text-[11px] font-normal text-slate-500">{t.copyInstagramServiceLink}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  )
 }
 
 function ActionRow({ href, label, icon: Icon, primary }: DashboardAction) {

@@ -17,11 +17,17 @@ export async function GET(request: NextRequest) {
   endOfDay.setDate(endOfDay.getDate() + 1)
 
   try {
-    const [tenant, patientCount, procedureCount, appointmentToday, appointmentUpcoming, stockItems] =
+    const [tenant, procedures, patientCount, procedureCount, appointmentToday, appointmentUpcoming, stockItems] =
       await Promise.all([
         prisma.tenant.findFirst({
           where: { id: tenantId },
-          select: { slug: true, settings: { select: { thresholds: true } } },
+          select: { name: true, slug: true, settings: { select: { thresholds: true } } },
+        }),
+        prisma.clinicProcedure.findMany({
+          where: { tenantId, active: true },
+          select: { id: true, name: true },
+          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+          take: 12,
         }),
         prisma.clinicPatient.count({ where: { tenantId } }),
         prisma.clinicProcedure.count({ where: { tenantId, active: true } }),
@@ -54,6 +60,8 @@ export async function GET(request: NextRequest) {
       appointmentUpcoming,
       lowStockCount,
       bookingUrl: tenant?.slug ? `/book/${tenant.slug}` : null,
+      practiceName: tenant?.name ?? null,
+      bookingProcedures: procedures,
       publicBookingEnabled: publicBookingEnabledFromSettings(tenant?.settings?.thresholds),
     })
   } catch (e) {

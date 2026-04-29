@@ -107,6 +107,7 @@
 | [2026-04-29_clinic-deposit-payment-links.md](2026-04-29_clinic-deposit-payment-links.md) | Clinic deposit payment links and manual paid workflow |
 | [2026-04-29_clinic-policy-fee-enforcement.md](2026-04-29_clinic-policy-fee-enforcement.md) | Clinic late-cancel/no-show fee enforcement and waiver workflow |
 | [2026-04-29_clinic-portal-policy-receipt-text.md](2026-04-29_clinic-portal-policy-receipt-text.md) | Clinic patient portal policy terms and receipt explanations |
+| [2026-04-29_clinic-google-instagram-booking-links.md](2026-04-29_clinic-google-instagram-booking-links.md) | Clinic Google/Instagram attributed booking links |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |
