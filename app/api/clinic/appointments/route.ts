@@ -12,6 +12,12 @@ import {
   normalizeOverrideReason,
   overrideAllowed,
 } from '@/lib/clinic/scheduling-guard'
+import {
+  bookingPolicyAppointmentData,
+  bookingPolicyRequiresAcceptance,
+  buildBookingPolicySnapshot,
+  type BookingPolicyProcedure,
+} from '@/lib/clinic/booking-policy'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -45,7 +51,21 @@ export async function GET(request: NextRequest) {
           select: { id: true, firstName: true, lastName: true, homeAddress: true, area: true, accessNotes: true },
         },
         procedure: {
-          select: { id: true, name: true, defaultDurationMin: true, bufferAfterMinutes: true, basePriceCents: true, currency: true },
+          select: {
+            id: true,
+            name: true,
+            defaultDurationMin: true,
+            bufferAfterMinutes: true,
+            basePriceCents: true,
+            currency: true,
+            bookingPolicyType: true,
+            depositAmountCents: true,
+            depositPercent: true,
+            cancellationWindowHours: true,
+            lateCancelFeeCents: true,
+            noShowFeeCents: true,
+            bookingPolicyText: true,
+          },
         },
         visits: {
           select: { id: true, status: true, visitAt: true },
@@ -107,16 +127,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
   }
 
-  let procedure: { id: string; defaultDurationMin: number; bufferAfterMinutes: number } | null = null
+  let procedure: BookingPolicyProcedure & { defaultDurationMin: number; bufferAfterMinutes: number } | null = null
   if (procedureId) {
     procedure = await prisma.clinicProcedure.findFirst({
       where: { id: procedureId, tenantId: session.tenantId, active: true },
-      select: { id: true, defaultDurationMin: true, bufferAfterMinutes: true },
+      select: {
+        id: true,
+        name: true,
+        defaultDurationMin: true,
+        bufferAfterMinutes: true,
+        basePriceCents: true,
+        currency: true,
+        bookingPolicyType: true,
+        depositAmountCents: true,
+        depositPercent: true,
+        cancellationWindowHours: true,
+        lateCancelFeeCents: true,
+        noShowFeeCents: true,
+        bookingPolicyText: true,
+      },
     })
     if (!procedure) {
       return NextResponse.json({ error: 'Procedure not found or inactive' }, { status: 404 })
     }
   }
+  const bookingPolicyAccepted = body.bookingPolicyAccepted === true
+  if (bookingPolicyRequiresAcceptance(procedure) && !bookingPolicyAccepted) {
+    return NextResponse.json({ error: 'Booking policy acceptance is required' }, { status: 400 })
+  }
+  const bookingPolicyData = bookingPolicyAppointmentData(procedure, bookingPolicyAccepted)
+  const bookingPolicyEventSnapshot = procedure ? buildBookingPolicySnapshot(procedure) : null
 
   let endsAt: Date | null = endsAtRaw && !Number.isNaN(endsAtRaw.getTime()) ? endsAtRaw : null
   if (!endsAt && procedure) {
@@ -164,6 +204,7 @@ export async function POST(request: NextRequest) {
         overrideReason: conflict ? overrideReason : null,
         titleOverride,
         internalNotes,
+        ...bookingPolicyData,
       },
       include: {
         patient: {
@@ -180,7 +221,23 @@ export async function POST(request: NextRequest) {
             tags: true,
           },
         },
-        procedure: { select: { id: true, name: true, defaultDurationMin: true, bufferAfterMinutes: true, basePriceCents: true, currency: true } },
+        procedure: {
+          select: {
+            id: true,
+            name: true,
+            defaultDurationMin: true,
+            bufferAfterMinutes: true,
+            basePriceCents: true,
+            currency: true,
+            bookingPolicyType: true,
+            depositAmountCents: true,
+            depositPercent: true,
+            cancellationWindowHours: true,
+            lateCancelFeeCents: true,
+            noShowFeeCents: true,
+            bookingPolicyText: true,
+          },
+        },
         visits: { select: { id: true, status: true, visitAt: true }, orderBy: { visitAt: 'desc' }, take: 1 },
       },
     })
@@ -201,6 +258,7 @@ export async function POST(request: NextRequest) {
         source,
         overrideReason: conflict ? overrideReason : null,
         overrideConflictType: conflict?.type ?? null,
+        bookingPolicy: bookingPolicyEventSnapshot,
       },
       createdByUserId: session.userId,
     })

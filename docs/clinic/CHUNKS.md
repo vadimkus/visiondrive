@@ -103,6 +103,23 @@
 
 ---
 
+## Chunk 71 — 2026-04-29 (booking policy foundation)
+
+**Shipped**
+
+- **Schema:** added service booking policy fields on `ClinicProcedure` and appointment policy snapshots on `ClinicAppointment`.
+- **Policy types:** none, deposit, full prepay, and card-on-file hold intent.
+- **API:** added `PATCH /api/clinic/procedures/[id]` for policy terms; manual and public appointment creation require acceptance for policy-protected services.
+- **UI:** procedure catalog policy editor, new service policy fields, manual appointment policy acceptance, appointment edit policy view, and public booking policy acceptance.
+- **i18n:** EN/RU strings for policy setup, acceptance, deposit due, late-cancel, and no-show protection.
+- **Tests:** added `lib/clinic/booking-policy.test.ts`; `scripts/clinic-business-flow.ts` now verifies policy rejection without acceptance and success with acceptance.
+
+**Operational**
+
+- Schema change applied with `npx prisma db push`.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

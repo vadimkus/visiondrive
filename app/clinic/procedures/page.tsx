@@ -14,6 +14,13 @@ type Procedure = {
   bufferAfterMinutes: number
   basePriceCents: number
   currency: string
+  bookingPolicyType: 'NONE' | 'DEPOSIT' | 'FULL_PREPAY' | 'CARD_ON_FILE'
+  depositAmountCents: number
+  depositPercent: number
+  cancellationWindowHours: number
+  lateCancelFeeCents: number
+  noShowFeeCents: number
+  bookingPolicyText: string | null
   active: boolean
   materials: ProcedureMaterial[]
   intakeQuestions: IntakeQuestion[]
@@ -84,6 +91,16 @@ type AftercareForm = {
   documentUrl: string
 }
 
+type PolicyForm = {
+  bookingPolicyType: Procedure['bookingPolicyType']
+  depositAmount: string
+  depositPercent: string
+  cancellationWindowHours: string
+  lateCancelFee: string
+  noShowFee: string
+  bookingPolicyText: string
+}
+
 function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
 }
@@ -91,6 +108,22 @@ function formatMoney(cents: number, currency: string) {
 function parseMajorToCents(value: string) {
   const parsed = Number.parseFloat(value || '0')
   return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * 100)) : 0
+}
+
+function centsToMajor(cents: number) {
+  return (Math.max(0, cents) / 100).toFixed(2)
+}
+
+function policyFormFromProcedure(procedure: Procedure): PolicyForm {
+  return {
+    bookingPolicyType: procedure.bookingPolicyType,
+    depositAmount: centsToMajor(procedure.depositAmountCents),
+    depositPercent: String(procedure.depositPercent || 0),
+    cancellationWindowHours: String(procedure.cancellationWindowHours || 24),
+    lateCancelFee: centsToMajor(procedure.lateCancelFeeCents),
+    noShowFee: centsToMajor(procedure.noShowFeeCents),
+    bookingPolicyText: procedure.bookingPolicyText || '',
+  }
 }
 
 function materialCost(materials: ProcedureMaterial[]) {
@@ -107,6 +140,7 @@ export default function ClinicProceduresPage() {
   const [forms, setForms] = useState<Record<string, MaterialForm>>({})
   const [intakeForms, setIntakeForms] = useState<Record<string, IntakeForm>>({})
   const [aftercareForms, setAftercareForms] = useState<Record<string, AftercareForm>>({})
+  const [policyForms, setPolicyForms] = useState<Record<string, PolicyForm>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -130,6 +164,13 @@ export default function ClinicProceduresPage() {
       }
       setProcedures(procedureData.procedures || [])
       setStockItems((inventoryData.items || []).filter((item: StockItem) => item.active))
+      setPolicyForms((current) => {
+        const next = { ...current }
+        for (const procedure of (procedureData.procedures || []) as Procedure[]) {
+          if (!next[procedure.id]) next[procedure.id] = policyFormFromProcedure(procedure)
+        }
+        return next
+      })
     } catch {
       setError(t.networkError)
     } finally {
@@ -182,6 +223,46 @@ export default function ClinicProceduresPage() {
         ...patch,
       },
     }))
+  }
+
+  function updatePolicyForm(procedure: Procedure, patch: Partial<PolicyForm>) {
+    setPolicyForms((current) => ({
+      ...current,
+      [procedure.id]: {
+        ...policyFormFromProcedure(procedure),
+        ...current[procedure.id],
+        ...patch,
+      },
+    }))
+  }
+
+  async function savePolicy(procedure: Procedure) {
+    const form = policyForms[procedure.id] ?? policyFormFromProcedure(procedure)
+    setBusy(`policy-${procedure.id}`)
+    try {
+      const res = await fetch(`/api/clinic/procedures/${procedure.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingPolicyType: form.bookingPolicyType,
+          depositAmountCents: parseMajorToCents(form.depositAmount),
+          depositPercent: Number.parseInt(form.depositPercent || '0', 10),
+          cancellationWindowHours: Number.parseInt(form.cancellationWindowHours || '24', 10),
+          lateCancelFeeCents: parseMajorToCents(form.lateCancelFee),
+          noShowFeeCents: parseMajorToCents(form.noShowFee),
+          bookingPolicyText: form.bookingPolicyText || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.operationFailed)
+        return
+      }
+      await load()
+    } finally {
+      setBusy(null)
+    }
   }
 
   async function saveMaterial(procedureId: string) {
@@ -372,6 +453,7 @@ export default function ClinicProceduresPage() {
             const form = forms[p.id] ?? { stockItemId: '', quantityPerVisit: '1', unitCost: '0', note: '' }
             const intakeForm = intakeForms[p.id] ?? { prompt: '', helpText: '', type: 'TEXT' as const, required: false }
             const aftercareForm = aftercareForms[p.id] ?? { title: '', messageBody: '', documentName: '', documentUrl: '' }
+            const policyForm = policyForms[p.id] ?? policyFormFromProcedure(p)
             const cost = materialCost(p.materials || [])
             return (
               <article key={p.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -393,10 +475,102 @@ export default function ClinicProceduresPage() {
                       {p.defaultDurationMin} {t.minutesAbbr} · {t.appointmentBuffer}: {p.bufferAfterMinutes || 0}{' '}
                       {t.minutesAbbr} · {formatMoney(p.basePriceCents, p.currency)}
                     </p>
+                    {p.bookingPolicyType !== 'NONE' && (
+                      <p className="mt-2 inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-800">
+                        {t.bookingPolicyRequiredBadge}
+                      </p>
+                    )}
                   </div>
                   <div className="rounded-2xl bg-purple-50 px-4 py-3 text-purple-950">
                     <p className="text-xs font-semibold uppercase tracking-wide text-purple-700">{t.materialCost}</p>
                     <p className="mt-1 text-xl font-semibold">{formatMoney(cost, p.currency)}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-orange-100 bg-orange-50/60 p-4">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{t.bookingPolicy}</h3>
+                      <p className="text-xs text-gray-500">{t.bookingPolicyHint}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <label className="text-xs font-semibold text-gray-600">
+                      {t.bookingPolicyType}
+                      <select
+                        value={policyForm.bookingPolicyType}
+                        onChange={(e) => updatePolicyForm(p, { bookingPolicyType: e.target.value as Procedure['bookingPolicyType'] })}
+                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 bg-white px-3 text-sm text-gray-900"
+                      >
+                        <option value="NONE">{t.bookingPolicyNone}</option>
+                        <option value="DEPOSIT">{t.bookingPolicyDeposit}</option>
+                        <option value="FULL_PREPAY">{t.bookingPolicyFullPrepay}</option>
+                        <option value="CARD_ON_FILE">{t.bookingPolicyCardOnFile}</option>
+                      </select>
+                    </label>
+                    <label className="text-xs font-semibold text-gray-600">
+                      {t.bookingPolicyDepositAmount}
+                      <input
+                        value={policyForm.depositAmount}
+                        onChange={(e) => updatePolicyForm(p, { depositAmount: e.target.value })}
+                        inputMode="decimal"
+                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                      />
+                    </label>
+                    <label className="text-xs font-semibold text-gray-600">
+                      {t.bookingPolicyDepositPercent}
+                      <input
+                        value={policyForm.depositPercent}
+                        onChange={(e) => updatePolicyForm(p, { depositPercent: e.target.value })}
+                        inputMode="numeric"
+                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                      />
+                    </label>
+                    <label className="text-xs font-semibold text-gray-600">
+                      {t.bookingPolicyCancellationWindow}
+                      <input
+                        value={policyForm.cancellationWindowHours}
+                        onChange={(e) => updatePolicyForm(p, { cancellationWindowHours: e.target.value })}
+                        inputMode="numeric"
+                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                      />
+                    </label>
+                    <label className="text-xs font-semibold text-gray-600">
+                      {t.bookingPolicyLateCancelFee}
+                      <input
+                        value={policyForm.lateCancelFee}
+                        onChange={(e) => updatePolicyForm(p, { lateCancelFee: e.target.value })}
+                        inputMode="decimal"
+                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                      />
+                    </label>
+                    <label className="text-xs font-semibold text-gray-600">
+                      {t.bookingPolicyNoShowFee}
+                      <input
+                        value={policyForm.noShowFee}
+                        onChange={(e) => updatePolicyForm(p, { noShowFee: e.target.value })}
+                        inputMode="decimal"
+                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                      />
+                    </label>
+                    <label className="text-xs font-semibold text-gray-600 sm:col-span-2">
+                      {t.bookingPolicyText}
+                      <textarea
+                        rows={2}
+                        value={policyForm.bookingPolicyText}
+                        onChange={(e) => updatePolicyForm(p, { bookingPolicyText: e.target.value })}
+                        placeholder={t.bookingPolicyTextPlaceholder}
+                        className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-2 text-sm text-gray-900"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      disabled={busy === `policy-${p.id}`}
+                      onClick={() => void savePolicy(p)}
+                      className="min-h-11 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60 sm:col-span-2 xl:col-span-1"
+                    >
+                      {busy === `policy-${p.id}` ? t.savingEllipsis : t.saveBookingPolicy}
+                    </button>
                   </div>
                 </div>
 

@@ -30,6 +30,11 @@ import {
   renderReminderTemplate,
 } from '@/lib/clinic/reminders'
 import { getPublicBookingEnabled } from '@/lib/clinic/public-booking-settings'
+import {
+  bookingPolicyAppointmentData,
+  bookingPolicyRequiresAcceptance,
+  buildBookingPolicySnapshot,
+} from '@/lib/clinic/booking-policy'
 
 const ACTIVE_PUBLIC_STATUSES = [
   ClinicAppointmentStatus.SCHEDULED,
@@ -79,6 +84,13 @@ export async function GET(
       bufferAfterMinutes: true,
       basePriceCents: true,
       currency: true,
+      bookingPolicyType: true,
+      depositAmountCents: true,
+      depositPercent: true,
+      cancellationWindowHours: true,
+      lateCancelFeeCents: true,
+      noShowFeeCents: true,
+      bookingPolicyText: true,
       intakeQuestions: {
         where: { active: true },
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
@@ -188,6 +200,15 @@ export async function POST(
       name: true,
       defaultDurationMin: true,
       bufferAfterMinutes: true,
+      basePriceCents: true,
+      currency: true,
+      bookingPolicyType: true,
+      depositAmountCents: true,
+      depositPercent: true,
+      cancellationWindowHours: true,
+      lateCancelFeeCents: true,
+      noShowFeeCents: true,
+      bookingPolicyText: true,
       intakeQuestions: {
         where: { active: true },
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
@@ -204,6 +225,12 @@ export async function POST(
   if (!procedure) {
     return NextResponse.json({ error: 'Service not found' }, { status: 404 })
   }
+  const bookingPolicyAccepted = body.bookingPolicyAccepted === true
+  if (bookingPolicyRequiresAcceptance(procedure) && !bookingPolicyAccepted) {
+    return NextResponse.json({ error: 'Booking policy acceptance is required' }, { status: 400 })
+  }
+  const bookingPolicyData = bookingPolicyAppointmentData(procedure, bookingPolicyAccepted)
+  const bookingPolicyEventSnapshot = buildBookingPolicySnapshot(procedure)
 
   const endsAt = new Date(startsAt.getTime() + procedure.defaultDurationMin * 60 * 1000)
   const bufferAfterMinutes = normalizeBufferMinutes(procedure.bufferAfterMinutes)
@@ -260,6 +287,7 @@ export async function POST(
         source: ClinicAppointmentSource.ONLINE,
         bufferAfterMinutes,
         internalNotes: [publicBookingNote(client), intakeNote].filter(Boolean).join('\n\n'),
+        ...bookingPolicyData,
       },
       include: {
         patient: { select: { firstName: true, lastName: true, phone: true } },
@@ -291,6 +319,8 @@ export async function POST(
         source: ClinicAppointmentSource.ONLINE,
         consentAccepted: client.consentAccepted,
         notes: client.notes,
+        bookingPolicyAccepted,
+        bookingPolicy: bookingPolicyEventSnapshot,
         intakeAnswers: intake.responses.map((response) => ({
           questionId: response.questionId,
           prompt: response.promptSnapshot,

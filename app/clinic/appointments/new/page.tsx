@@ -14,7 +14,20 @@ type Patient = {
   area?: string | null
   accessNotes?: string | null
 }
-type Procedure = { id: string; name: string; bufferAfterMinutes: number }
+type Procedure = {
+  id: string
+  name: string
+  bufferAfterMinutes: number
+  basePriceCents: number
+  bookingPolicyType: 'NONE' | 'DEPOSIT' | 'FULL_PREPAY' | 'CARD_ON_FILE'
+  depositAmountCents: number
+  depositPercent: number
+  cancellationWindowHours: number
+  lateCancelFeeCents: number
+  noShowFeeCents: number
+  bookingPolicyText: string | null
+  currency: string
+}
 type SchedulingConflict = {
   type?: string
   patientName?: string
@@ -44,6 +57,19 @@ function conflictMessage(t: ReturnType<typeof useClinicLocale>['t'], conflict: S
     )
 }
 
+function formatMoney(cents: number, currency: string) {
+  return `${(Math.max(0, cents) / 100).toFixed(2)} ${currency}`
+}
+
+function depositRequiredCents(procedure: Procedure) {
+  if (procedure.bookingPolicyType === 'FULL_PREPAY') return procedure.basePriceCents
+  if (procedure.bookingPolicyType !== 'DEPOSIT') return 0
+  return Math.max(
+    procedure.depositAmountCents,
+    Math.round(procedure.basePriceCents * (Math.max(0, procedure.depositPercent) / 100))
+  )
+}
+
 export default function NewAppointmentPage() {
   const router = useRouter()
   const { t } = useClinicLocale()
@@ -63,6 +89,7 @@ export default function NewAppointmentPage() {
     locationArea: '',
     locationNotes: '',
     allowConflictOverride: false,
+    bookingPolicyAccepted: false,
     overrideReason: '',
     titleOverride: '',
     internalNotes: '',
@@ -119,6 +146,7 @@ export default function NewAppointmentPage() {
           locationArea: form.locationArea || undefined,
           locationNotes: form.locationNotes || undefined,
           allowConflictOverride: form.allowConflictOverride,
+          bookingPolicyAccepted: form.bookingPolicyAccepted,
           overrideReason: form.overrideReason || undefined,
           titleOverride: form.titleOverride || undefined,
           internalNotes: form.internalNotes || undefined,
@@ -145,6 +173,10 @@ export default function NewAppointmentPage() {
   if (loadMeta) {
     return <ClinicSpinner label={t.loading} className="min-h-[30vh]" />
   }
+
+  const selectedProcedure = procedures.find((p) => p.id === form.procedureId) ?? null
+  const requiresPolicyAcceptance =
+    selectedProcedure != null && selectedProcedure.bookingPolicyType !== 'NONE'
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
@@ -202,6 +234,7 @@ export default function NewAppointmentPage() {
                   ...form,
                   procedureId: e.target.value,
                   bufferAfterMinutes: String(procedure?.bufferAfterMinutes ?? 0),
+                  bookingPolicyAccepted: false,
                 })
               }}
             >
@@ -213,6 +246,43 @@ export default function NewAppointmentPage() {
               ))}
             </select>
           </div>
+          {requiresPolicyAcceptance && selectedProcedure && (
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4 space-y-3">
+              <div>
+                <h2 className="text-sm font-semibold text-orange-950">{t.bookingPolicy}</h2>
+                <p className="mt-1 text-xs text-orange-800">
+                  {selectedProcedure.bookingPolicyText || t.bookingPolicyTextPlaceholder}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-2 text-xs text-orange-950 sm:grid-cols-3">
+                {depositRequiredCents(selectedProcedure) > 0 && (
+                  <span className="rounded-xl bg-white px-3 py-2">
+                    {t.depositDue}: {formatMoney(depositRequiredCents(selectedProcedure), selectedProcedure.currency)}
+                  </span>
+                )}
+                {selectedProcedure.lateCancelFeeCents > 0 && (
+                  <span className="rounded-xl bg-white px-3 py-2">
+                    {t.lateCancelProtection}: {formatMoney(selectedProcedure.lateCancelFeeCents, selectedProcedure.currency)}
+                  </span>
+                )}
+                {selectedProcedure.noShowFeeCents > 0 && (
+                  <span className="rounded-xl bg-white px-3 py-2">
+                    {t.noShowProtection}: {formatMoney(selectedProcedure.noShowFeeCents, selectedProcedure.currency)}
+                  </span>
+                )}
+              </div>
+              <label className="flex items-start gap-3 text-sm font-semibold text-orange-950">
+                <input
+                  required
+                  type="checkbox"
+                  className="mt-1 h-5 w-5 rounded border-orange-300 text-orange-600"
+                  checked={form.bookingPolicyAccepted}
+                  onChange={(e) => setForm({ ...form, bookingPolicyAccepted: e.target.checked })}
+                />
+                <span>{t.bookingPolicyAccepted}</span>
+              </label>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t.appointmentBuffer}</label>
             <input

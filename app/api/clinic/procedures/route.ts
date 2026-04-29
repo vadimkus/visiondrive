@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getClinicSession } from '@/lib/clinic/session'
+import {
+  normalizeBookingPolicyType,
+  normalizeCancellationWindowHours,
+  normalizeMoneyCents,
+  normalizePercent,
+} from '@/lib/clinic/booking-policy'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -55,6 +61,14 @@ export async function POST(request: NextRequest) {
     body.bufferAfterMinutes != null ? Number(body.bufferAfterMinutes) : 0
   const basePriceCents = body.basePriceCents != null ? Number(body.basePriceCents) : 0
   const currency = body.currency != null ? String(body.currency).trim().toUpperCase() || 'AED' : 'AED'
+  const bookingPolicyType = normalizeBookingPolicyType(body.bookingPolicyType)
+  const depositAmountCents = normalizeMoneyCents(body.depositAmountCents)
+  const depositPercent = normalizePercent(body.depositPercent)
+  const cancellationWindowHours = normalizeCancellationWindowHours(body.cancellationWindowHours)
+  const lateCancelFeeCents = normalizeMoneyCents(body.lateCancelFeeCents)
+  const noShowFeeCents = normalizeMoneyCents(body.noShowFeeCents)
+  const bookingPolicyText =
+    body.bookingPolicyText != null ? String(body.bookingPolicyText).trim() || null : null
   const active = body.active !== false
   const sortOrder = body.sortOrder != null ? Number(body.sortOrder) : 0
 
@@ -76,6 +90,13 @@ export async function POST(request: NextRequest) {
       bufferAfterMinutes: Math.round(bufferAfterMinutes),
       basePriceCents: Math.round(basePriceCents),
       currency: currency.slice(0, 8),
+      bookingPolicyType,
+      depositAmountCents,
+      depositPercent,
+      cancellationWindowHours,
+      lateCancelFeeCents,
+      noShowFeeCents,
+      bookingPolicyText,
       active,
       sortOrder: Math.round(sortOrder),
     },

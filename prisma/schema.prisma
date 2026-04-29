@@ -789,6 +789,20 @@ enum ClinicAppointmentSource {
   ONLINE
 }
 
+enum ClinicBookingPolicyType {
+  NONE
+  DEPOSIT
+  FULL_PREPAY
+  CARD_ON_FILE
+}
+
+enum ClinicPaymentRequirementStatus {
+  NOT_REQUIRED
+  PENDING
+  PAID
+  WAIVED
+}
+
 enum ClinicWaitlistStatus {
   OPEN
   CONTACTED
@@ -927,6 +941,14 @@ model ClinicProcedure {
   bufferAfterMinutes Int      @default(0)
   basePriceCents     Int      @default(0)
   currency           String   @default("AED")
+  /// Booking policy shown before booking; payment capture happens in a later chunk.
+  bookingPolicyType  ClinicBookingPolicyType @default(NONE)
+  depositAmountCents Int      @default(0)
+  depositPercent     Int      @default(0)
+  cancellationWindowHours Int @default(24)
+  lateCancelFeeCents Int      @default(0)
+  noShowFeeCents     Int      @default(0)
+  bookingPolicyText  String?  @db.Text
   active             Boolean  @default(true)
   sortOrder          Int      @default(0)
   createdAt          DateTime @default(now())
@@ -974,6 +996,15 @@ model ClinicAppointment {
   /// Required when staff intentionally books through a conflict, blocked time, or outside working hours.
   overrideReason            String?                 @db.Text
   cancelReason              String?                 @db.Text
+  /// Snapshot of the selected service booking policy at booking time.
+  bookingPolicyType         ClinicBookingPolicyType @default(NONE)
+  bookingPolicySnapshot     Json?
+  bookingPolicyAcceptedAt   DateTime?               @db.Timestamptz(6)
+  paymentRequirementStatus  ClinicPaymentRequirementStatus @default(NOT_REQUIRED)
+  depositRequiredCents      Int                     @default(0)
+  cancellationWindowHours   Int                     @default(24)
+  lateCancelFeeCents        Int                     @default(0)
+  noShowFeeCents            Int                     @default(0)
   confirmedAt               DateTime?               @db.Timestamptz(6)
   arrivedAt                 DateTime?               @db.Timestamptz(6)
   completedAt               DateTime?               @db.Timestamptz(6)

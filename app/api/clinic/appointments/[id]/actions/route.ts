@@ -21,6 +21,7 @@ import {
   normalizeBufferMinutes,
   writeAppointmentEvent,
 } from '@/lib/clinic/appointments'
+import { bookingPolicyAppointmentData } from '@/lib/clinic/booking-policy'
 import {
   followUpStartsAt,
   normalizeFollowUpWeeks,
@@ -65,6 +66,15 @@ export async function POST(
           name: true,
           defaultDurationMin: true,
           bufferAfterMinutes: true,
+          basePriceCents: true,
+          currency: true,
+          bookingPolicyType: true,
+          depositAmountCents: true,
+          depositPercent: true,
+          cancellationWindowHours: true,
+          lateCancelFeeCents: true,
+          noShowFeeCents: true,
+          bookingPolicyText: true,
         },
       },
       visits: {
@@ -675,6 +685,7 @@ export async function POST(
           bufferAfterMinutes,
           source: ClinicAppointmentSource.FOLLOW_UP,
           titleOverride: existing.titleOverride,
+          ...bookingPolicyAppointmentData(existing.procedure, false),
         },
         include: {
           patient: { select: { id: true, firstName: true, lastName: true } },

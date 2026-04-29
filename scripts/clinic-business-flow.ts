@@ -8,6 +8,7 @@
 const BASE = (process.env.CLINIC_E2E_BASE_URL || 'http://127.0.0.1:3000').replace(/\/$/, '')
 const EMAIL = process.env.CLINIC_E2E_EMAIL || 'admin'
 const PASSWORD = process.env.CLINIC_E2E_PASSWORD || 'admin5'
+const E2E_IP = `127.0.0.${Math.max(2, (Date.now() % 240) + 2)}`
 
 /** 1×1 transparent PNG */
 const TINY_PNG = Buffer.from(
@@ -17,6 +18,25 @@ const TINY_PNG = Buffer.from(
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
+}
+
+function nextWeekdayAt(daysAhead: number, hour: number, minute = 0) {
+  const d = new Date()
+  d.setDate(d.getDate() + daysAhead)
+  while (d.getDay() === 0 || d.getDay() === 6) {
+    d.setDate(d.getDate() + 1)
+  }
+  d.setHours(hour, minute, 0, 0)
+  return d
+}
+
+function weekdayAfter(base: Date, daysAhead: number) {
+  const d = new Date(base)
+  d.setDate(d.getDate() + daysAhead)
+  while (d.getDay() === 0 || d.getDay() === 6) {
+    d.setDate(d.getDate() + 1)
+  }
+  return d
 }
 
 function cookieHeaderFromResponse(res: Response, existing = ''): string {
@@ -52,6 +72,7 @@ async function req(
   const { cookie, ...rest } = init
   const headers = new Headers(rest.headers)
   if (cookie) headers.set('Cookie', cookie)
+  headers.set('x-forwarded-for', E2E_IP)
   return fetch(`${BASE}${path}`, { ...rest, headers })
 }
 
@@ -134,6 +155,23 @@ async function main() {
   assert(procedureId, 'No procedure id')
   console.log('✓ POST procedure')
 
+  const policyRes = await req(`/api/clinic/procedures/${procedureId}`, {
+    method: 'PATCH',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      bookingPolicyType: 'DEPOSIT',
+      depositAmountCents: 10000,
+      cancellationWindowHours: 24,
+      lateCancelFeeCents: 15000,
+      noShowFeeCents: 25000,
+      bookingPolicyText: 'E2E policy: deposit and cancellation terms accepted before booking.',
+    }),
+  })
+  const policyJson = await policyRes.json()
+  assert(policyRes.ok, `policy patch ${policyRes.status}: ${JSON.stringify(policyJson)}`)
+  console.log('✓ PATCH procedure booking policy')
+
   // 5b) Stock linked to procedure (auto-deduct on completed visit with appointment)
   const preStockRes = await req('/api/clinic/inventory', {
     method: 'POST',
@@ -158,9 +196,30 @@ async function main() {
   console.log('✓ POST inventory (procedure-linked, consumePerVisit)')
 
   // 6) Appointment tomorrow 10:00 local
-  const start = new Date()
-  start.setDate(start.getDate() + 1)
-  start.setHours(10, 0, 0, 0)
+  const uniqueSeed = Number(suffix.replace('e2e-', '')) || Date.now()
+  const start = nextWeekdayAt(
+    21 + (uniqueSeed % 10),
+    9 + (uniqueSeed % 7),
+    (Math.floor(uniqueSeed / 7) % 6) * 10
+  )
+  const blockedPolicyRes = await req('/api/clinic/appointments', {
+    method: 'POST',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      patientId,
+      procedureId,
+      startsAt: start.toISOString(),
+      internalNotes: 'E2E appointment',
+    }),
+  })
+  const blockedPolicyJson = await blockedPolicyRes.json()
+  assert(
+    blockedPolicyRes.status === 400,
+    `policy acceptance should block appointment ${blockedPolicyRes.status}: ${JSON.stringify(blockedPolicyJson)}`
+  )
+  console.log('✓ Booking policy blocks appointment without acceptance')
+
   const apptRes = await req('/api/clinic/appointments', {
     method: 'POST',
     cookie,
@@ -170,6 +229,7 @@ async function main() {
       procedureId,
       startsAt: start.toISOString(),
       internalNotes: 'E2E appointment',
+      bookingPolicyAccepted: true,
     }),
   })
   const apptJson = await apptRes.json()
@@ -307,8 +367,7 @@ async function main() {
   console.log('✓ POST CRM')
 
   // 12) Reschedule appointment (+2 days, same clock)
-  const patchStart = new Date(start)
-  patchStart.setDate(patchStart.getDate() + 2)
+  const patchStart = weekdayAfter(start, 2)
   const patchRes = await req(`/api/clinic/appointments/${appointmentId}`, {
     method: 'PATCH',
     cookie,
@@ -320,11 +379,11 @@ async function main() {
   console.log('✓ PATCH appointment (reschedule)')
 
   // 13) List appointments in window
-  const from = new Date()
+  const from = new Date(start)
   from.setDate(from.getDate() - 1)
   from.setHours(0, 0, 0, 0)
-  const to = new Date()
-  to.setDate(to.getDate() + 14)
+  const to = new Date(patchStart)
+  to.setDate(to.getDate() + 7)
   const listRes = await req(
     `/api/clinic/appointments?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`,
     { cookie }

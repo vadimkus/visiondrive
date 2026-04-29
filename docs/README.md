@@ -101,6 +101,9 @@
 | [2026-04-29_clinic-adaptive-ui-overhaul-local.md](2026-04-29_clinic-adaptive-ui-overhaul-local.md) | Clinic adaptive UI overhaul local-first note |
 | [2026-04-29_clinic-ru-localization-demo-data.md](2026-04-29_clinic-ru-localization-demo-data.md) | Clinic Russian localization and demo-patient seed note |
 | [2026-04-29_mobile-pre-login-ui.md](2026-04-29_mobile-pre-login-ui.md) | Mobile pre-login public website and portal sign-in UI refresh |
+| [2026-04-29_clinic-patient-card-desktop-ui.md](2026-04-29_clinic-patient-card-desktop-ui.md) | Clinic desktop patient card UI refresh |
+| [2026-04-29_solo-practitioner-feature-research.md](2026-04-29_solo-practitioner-feature-research.md) | Solo-practitioner software research and recommended feature backlog |
+| [2026-04-29_clinic-booking-policy-foundation.md](2026-04-29_clinic-booking-policy-foundation.md) | Clinic booking policy foundation for deposits/no-show protection |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |
@@ -145,18 +148,18 @@ Implementation documentation aligned with `/notes` → **Section 11 (Action Plan
 
 ## Module-Specific Documentation
 
-### Smart Kitchen (`/smartkitchen/docs/`)
-Temperature monitoring system for commercial kitchens.
-- [smartkitchen/docs/README.md](../smartkitchen/docs/README.md) - Smart Kitchen overview
-- Architecture, API, setup guides, sensor configuration
+### Legacy IoT (`/smartkitchen/docs/`)
+Archived IoT documentation retained for engineering reference only.
+- [smartkitchen/docs/README.md](../smartkitchen/docs/README.md) - Legacy IoT overview
+- Architecture, API, setup guides, device configuration
 
 ---
 
 ## Key Information
 
 ### Project Context
-VisionDrive is a UAE-based IoT company providing:
-- **Smart Kitchen**: Dubai Municipality compliant temperature monitoring for commercial kitchens
+VisionDrive is a UAE-based software company providing:
+- **Practice OS**: mobile-first practice operations software for solo practitioners and independent clinics
 
 ### Compliance
 - TDRA IoT Services License: `IOT-26-100000007`

@@ -13,6 +13,13 @@ type Procedure = {
   bufferAfterMinutes: number
   basePriceCents: number
   currency: string
+  bookingPolicyType: 'NONE' | 'DEPOSIT' | 'FULL_PREPAY' | 'CARD_ON_FILE'
+  depositAmountCents: number
+  depositPercent: number
+  cancellationWindowHours: number
+  lateCancelFeeCents: number
+  noShowFeeCents: number
+  bookingPolicyText: string | null
   intakeQuestions: IntakeQuestion[]
 }
 
@@ -38,6 +45,15 @@ type PublicBookingData = {
 function money(cents: number, currency: string) {
   if (!cents) return ''
   return `${(cents / 100).toFixed(0)} ${currency}`
+}
+
+function depositRequiredCents(procedure: Procedure) {
+  if (procedure.bookingPolicyType === 'FULL_PREPAY') return procedure.basePriceCents
+  if (procedure.bookingPolicyType !== 'DEPOSIT') return 0
+  return Math.max(
+    procedure.depositAmountCents,
+    Math.round(procedure.basePriceCents * (Math.max(0, procedure.depositPercent) / 100))
+  )
 }
 
 function readStoredLocale(): ClinicLocale {
@@ -109,6 +125,14 @@ const copy = {
     loadingServices: 'Loading services...',
     min: 'min',
     buffer: 'buffer',
+    bookingPolicy: 'Booking policy',
+    policyRequired: 'Policy applies',
+    depositDue: 'Deposit due',
+    lateCancelFee: 'Late-cancel fee',
+    noShowFee: 'No-show fee',
+    policyFallback:
+      'This service has booking protection terms. Please review and accept them before requesting the appointment.',
+    acceptPolicy: 'I accept the booking, cancellation, and no-show policy for this service.',
     pickTime: '2. Pick time',
     noSlots: 'No available slots found. Try again later or contact the practice.',
     yourDetails: '3. Your details',
@@ -143,6 +167,7 @@ const copy = {
       'phone or email is required': 'Укажите телефон или email.',
       'Consent is required': 'Необходимо согласие на обработку данных.',
       'Required intake questions are missing': 'Ответьте на обязательные вопросы по услуге.',
+      'Booking policy acceptance is required': 'Необходимо принять правила записи.',
       'procedureId and valid startsAt are required': 'Выберите услугу и корректное время.',
       'Service not found': 'Услуга не найдена.',
       'This slot is no longer available': 'Этот слот больше недоступен.',
@@ -160,6 +185,14 @@ const copy = {
     loadingServices: 'Загрузка услуг...',
     min: 'мин',
     buffer: 'буфер',
+    bookingPolicy: 'Правила записи',
+    policyRequired: 'Действуют правила',
+    depositDue: 'Депозит',
+    lateCancelFee: 'Поздняя отмена',
+    noShowFee: 'Неявка',
+    policyFallback:
+      'Для этой услуги действуют условия защиты записи. Ознакомьтесь и примите их перед отправкой запроса.',
+    acceptPolicy: 'Я принимаю правила записи, отмены и неявки по этой услуге.',
     pickTime: '2. Выберите время',
     noSlots: 'Доступных слотов нет. Попробуйте позже или свяжитесь с клиникой.',
     yourDetails: '3. Ваши данные',
@@ -212,6 +245,7 @@ export default function PublicBookingPage() {
     email: '',
     notes: '',
     consentAccepted: false,
+    bookingPolicyAccepted: false,
   })
   const [intakeAnswers, setIntakeAnswers] = useState<Record<string, string>>({})
   const viewedRef = useRef(false)
@@ -221,6 +255,8 @@ export default function PublicBookingPage() {
     () => data?.procedures.find((procedure) => procedure.id === procedureId) ?? null,
     [data?.procedures, procedureId]
   )
+  const requiresPolicyAcceptance =
+    selectedProcedure != null && selectedProcedure.bookingPolicyType !== 'NONE'
 
   const track = useCallback(
     (eventType: string, extra: Record<string, unknown> = {}) => {
@@ -299,6 +335,7 @@ export default function PublicBookingPage() {
   useEffect(() => {
     setSelectedSlot('')
     setIntakeAnswers({})
+    setForm((current) => ({ ...current, bookingPolicyAccepted: false }))
   }, [procedureId])
 
   const chooseProcedure = (id: string) => {
@@ -445,6 +482,11 @@ export default function PublicBookingPage() {
                             ? ` + ${procedure.bufferAfterMinutes} ${c.min} ${c.buffer}`
                             : ''}
                         </p>
+                        {procedure.bookingPolicyType !== 'NONE' && (
+                          <p className="mt-2 inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-800">
+                            {c.policyRequired}
+                          </p>
+                        )}
                       </div>
                       <p className="text-sm font-semibold text-orange-800">
                         {money(procedure.basePriceCents, procedure.currency)}
@@ -561,6 +603,42 @@ export default function PublicBookingPage() {
                 </div>
               </div>
             ) : null}
+
+            {requiresPolicyAcceptance && selectedProcedure && (
+              <div className="mt-5 rounded-2xl border border-orange-100 bg-orange-50/70 p-4">
+                <h3 className="text-sm font-semibold text-orange-950">{c.bookingPolicy}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-orange-900/80">
+                  {selectedProcedure.bookingPolicyText || c.policyFallback}
+                </p>
+                <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-orange-950 sm:grid-cols-3">
+                  {depositRequiredCents(selectedProcedure) > 0 && (
+                    <span className="rounded-xl bg-white px-3 py-2">
+                      {c.depositDue}: {money(depositRequiredCents(selectedProcedure), selectedProcedure.currency)}
+                    </span>
+                  )}
+                  {selectedProcedure.lateCancelFeeCents > 0 && (
+                    <span className="rounded-xl bg-white px-3 py-2">
+                      {c.lateCancelFee}: {money(selectedProcedure.lateCancelFeeCents, selectedProcedure.currency)}
+                    </span>
+                  )}
+                  {selectedProcedure.noShowFeeCents > 0 && (
+                    <span className="rounded-xl bg-white px-3 py-2">
+                      {c.noShowFee}: {money(selectedProcedure.noShowFeeCents, selectedProcedure.currency)}
+                    </span>
+                  )}
+                </div>
+                <label className="mt-4 flex gap-3 rounded-2xl border border-orange-100 bg-white p-4 text-sm font-medium text-orange-950">
+                  <input
+                    required
+                    type="checkbox"
+                    checked={form.bookingPolicyAccepted}
+                    onChange={(e) => updateForm({ bookingPolicyAccepted: e.target.checked })}
+                    className="mt-1 h-5 w-5 rounded border-orange-300 text-orange-600"
+                  />
+                  <span>{c.acceptPolicy}</span>
+                </label>
+              </div>
+            )}
 
             <label className="mt-5 flex gap-3 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-sm text-orange-950">
               <input

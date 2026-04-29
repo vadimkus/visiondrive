@@ -23,6 +23,11 @@ import {
   buildClientBalanceChargesFromAppointments,
   buildClientBalanceSummary,
 } from '@/lib/clinic/client-balance'
+import {
+  bookingPolicyAppointmentData,
+  bookingPolicyRequiresAcceptance,
+  type BookingPolicyProcedure,
+} from '@/lib/clinic/booking-policy'
 
 function parseStatus(v: string): ClinicAppointmentStatus | null {
   const u = v.toUpperCase().trim()
@@ -81,6 +86,13 @@ export async function GET(
           bufferAfterMinutes: true,
           basePriceCents: true,
           currency: true,
+          bookingPolicyType: true,
+          depositAmountCents: true,
+          depositPercent: true,
+          cancellationWindowHours: true,
+          lateCancelFeeCents: true,
+          noShowFeeCents: true,
+          bookingPolicyText: true,
         },
       },
       visits: {
@@ -357,7 +369,23 @@ export async function PATCH(
   const existing = await prisma.clinicAppointment.findFirst({
     where: { id, tenantId: session.tenantId },
     include: {
-      procedure: { select: { id: true, defaultDurationMin: true } },
+      procedure: {
+        select: {
+          id: true,
+          name: true,
+          defaultDurationMin: true,
+          bufferAfterMinutes: true,
+          basePriceCents: true,
+          currency: true,
+          bookingPolicyType: true,
+          depositAmountCents: true,
+          depositPercent: true,
+          cancellationWindowHours: true,
+          lateCancelFeeCents: true,
+          noShowFeeCents: true,
+          bookingPolicyText: true,
+        },
+      },
     },
   })
   if (!existing) {
@@ -382,6 +410,14 @@ export async function PATCH(
     internalNotes?: string | null
     procedureId?: string | null
     overrideReason?: string | null
+    bookingPolicyType?: ReturnType<typeof bookingPolicyAppointmentData>['bookingPolicyType']
+    bookingPolicySnapshot?: ReturnType<typeof bookingPolicyAppointmentData>['bookingPolicySnapshot']
+    bookingPolicyAcceptedAt?: Date | null
+    paymentRequirementStatus?: ReturnType<typeof bookingPolicyAppointmentData>['paymentRequirementStatus']
+    depositRequiredCents?: number
+    cancellationWindowHours?: number
+    lateCancelFeeCents?: number
+    noShowFeeCents?: number
   } = {}
 
   const endsAtProvided = body.endsAt !== undefined
@@ -461,21 +497,47 @@ export async function PATCH(
     if (pid) {
       const proc = await prisma.clinicProcedure.findFirst({
         where: { id: pid, tenantId: session.tenantId, active: true },
-        select: { id: true, defaultDurationMin: true, bufferAfterMinutes: true },
+        select: {
+          id: true,
+          name: true,
+          defaultDurationMin: true,
+          bufferAfterMinutes: true,
+          basePriceCents: true,
+          currency: true,
+          bookingPolicyType: true,
+          depositAmountCents: true,
+          depositPercent: true,
+          cancellationWindowHours: true,
+          lateCancelFeeCents: true,
+          noShowFeeCents: true,
+          bookingPolicyText: true,
+        },
       })
       if (!proc) {
         return NextResponse.json({ error: 'Procedure not found or inactive' }, { status: 400 })
       }
+      const bookingPolicyAccepted = body.bookingPolicyAccepted === true
+      if (bookingPolicyRequiresAcceptance(proc) && !bookingPolicyAccepted) {
+        return NextResponse.json({ error: 'Booking policy acceptance is required' }, { status: 400 })
+      }
       data.procedureId = proc.id
+      Object.assign(data, bookingPolicyAppointmentData(proc, bookingPolicyAccepted))
       if (body.bufferAfterMinutes === undefined) {
         data.bufferAfterMinutes = proc.bufferAfterMinutes
       }
     } else {
       data.procedureId = null
+      Object.assign(data, bookingPolicyAppointmentData(null, false))
       if (body.bufferAfterMinutes === undefined) {
         data.bufferAfterMinutes = 0
       }
     }
+  } else if (body.bookingPolicyAccepted !== undefined) {
+    const proc = existing.procedure as (BookingPolicyProcedure & { defaultDurationMin: number }) | null
+    if (bookingPolicyRequiresAcceptance(proc) && body.bookingPolicyAccepted !== true) {
+      return NextResponse.json({ error: 'Booking policy acceptance is required' }, { status: 400 })
+    }
+    Object.assign(data, bookingPolicyAppointmentData(proc, body.bookingPolicyAccepted === true))
   }
 
   const shouldRecomputeEnd =
@@ -571,6 +633,13 @@ export async function PATCH(
             bufferAfterMinutes: true,
             basePriceCents: true,
             currency: true,
+            bookingPolicyType: true,
+            depositAmountCents: true,
+            depositPercent: true,
+            cancellationWindowHours: true,
+            lateCancelFeeCents: true,
+            noShowFeeCents: true,
+            bookingPolicyText: true,
           },
         },
         visits: { select: { id: true, status: true, visitAt: true }, orderBy: { visitAt: 'desc' }, take: 1 },
@@ -611,6 +680,10 @@ export async function PATCH(
         locationAddress: existing.locationAddress,
         locationArea: existing.locationArea,
         overrideReason: existing.overrideReason,
+        bookingPolicyType: existing.bookingPolicyType,
+        bookingPolicyAcceptedAt: existing.bookingPolicyAcceptedAt?.toISOString() ?? null,
+        paymentRequirementStatus: existing.paymentRequirementStatus,
+        depositRequiredCents: existing.depositRequiredCents,
       },
       after: {
         startsAt: appointment.startsAt.toISOString(),
@@ -623,6 +696,10 @@ export async function PATCH(
         locationAddress: appointment.locationAddress,
         locationArea: appointment.locationArea,
         overrideReason: appointment.overrideReason,
+        bookingPolicyType: appointment.bookingPolicyType,
+        bookingPolicyAcceptedAt: appointment.bookingPolicyAcceptedAt?.toISOString() ?? null,
+        paymentRequirementStatus: appointment.paymentRequirementStatus,
+        depositRequiredCents: appointment.depositRequiredCents,
       },
       createdByUserId: session.userId,
     })
