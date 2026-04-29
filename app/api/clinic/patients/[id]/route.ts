@@ -285,6 +285,23 @@ export async function GET(
           createdAt: true,
         },
       },
+      savedPaymentMethods: {
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          provider: true,
+          brand: true,
+          last4: true,
+          expiryMonth: true,
+          expiryYear: true,
+          status: true,
+          consentText: true,
+          consentedAt: true,
+          note: true,
+          createdAt: true,
+        },
+      },
       portalRequests: {
         orderBy: { createdAt: 'desc' },
         take: 10,

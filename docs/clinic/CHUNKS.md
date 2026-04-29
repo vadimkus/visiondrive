@@ -236,6 +236,23 @@
 
 ---
 
+## Chunk 79 — 2026-04-29 (card-on-file saved methods)
+
+**Shipped**
+
+- **Schema:** added `ClinicSavedPaymentMethod` and status enum for provider-ready card-on-file metadata.
+- **API:** `POST/PATCH /api/clinic/patients/[id]/saved-payment-methods` creates, revokes, or expires saved methods.
+- **Workflow:** adding an active saved method marks pending `CARD_ON_FILE` appointment requirements for that patient as satisfied.
+- **Patient card:** Payments tab now records card brand, last 4, optional expiry, and consent note; lists active/revoked/expired methods.
+- **Safety:** stores consented metadata only. Full card number, CVV, and card images are out of scope.
+- **i18n/tests/docs:** added EN/RU labels, saved-method helper tests, architecture note, docs index, and session note.
+
+**Operational**
+
+- Schema change: run Prisma generate/push for target DBs.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

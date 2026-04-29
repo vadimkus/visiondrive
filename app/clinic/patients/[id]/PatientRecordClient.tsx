@@ -429,6 +429,20 @@ type PortalLinkRow = {
   createdAt: string
 }
 
+type SavedPaymentMethodRow = {
+  id: string
+  provider: string
+  brand: string | null
+  last4: string
+  expiryMonth: number | null
+  expiryYear: number | null
+  status: 'ACTIVE' | 'REVOKED' | 'EXPIRED'
+  consentText: string | null
+  consentedAt: string
+  note: string | null
+  createdAt: string
+}
+
 type PortalRequestRow = {
   id: string
   type: 'RESCHEDULE' | 'CANCEL' | 'MESSAGE'
@@ -531,6 +545,7 @@ export type PatientRecord = {
   treatmentPlans: TreatmentPlanRow[]
   intakeResponses: IntakeResponseRow[]
   portalLinks: PortalLinkRow[]
+  savedPaymentMethods: SavedPaymentMethodRow[]
   portalRequests: PortalRequestRow[]
   clientBalance: ClientBalance
   crmActivities: CrmRow[]
@@ -618,6 +633,14 @@ function paymentRefundedCents(payment: PaymentRow) {
 
 function paymentRefundableCents(payment: PaymentRow) {
   return payment.status === 'PAID' ? Math.max(0, payment.amountCents - paymentRefundedCents(payment)) : 0
+}
+
+function savedPaymentMethodLabel(method: Pick<SavedPaymentMethodRow, 'brand' | 'last4' | 'expiryMonth' | 'expiryYear'>) {
+  const expiry =
+    method.expiryMonth && method.expiryYear
+      ? ` · ${String(method.expiryMonth).padStart(2, '0')}/${String(method.expiryYear).slice(-2)}`
+      : ''
+  return `${method.brand || 'Card'} ending ${method.last4}${expiry}`
 }
 
 function balanceLabel(t: ReturnType<typeof useClinicLocale>['t'], balance: ClientBalance) {
@@ -4315,6 +4338,13 @@ function PaymentsTab({
   const [giftCardNote, setGiftCardNote] = useState('')
   const [redeemingGiftCard, setRedeemingGiftCard] = useState(false)
   const [correctingId, setCorrectingId] = useState<string | null>(null)
+  const [cardBrand, setCardBrand] = useState('')
+  const [cardLast4, setCardLast4] = useState('')
+  const [cardExpiryMonth, setCardExpiryMonth] = useState('')
+  const [cardExpiryYear, setCardExpiryYear] = useState('')
+  const [cardConsentText, setCardConsentText] = useState('')
+  const [savingCard, setSavingCard] = useState(false)
+  const [updatingCardId, setUpdatingCardId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -4469,9 +4499,155 @@ function PaymentsTab({
     }
   }
 
+  const savePaymentMethod = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!/^\d{4}$/.test(cardLast4.trim())) {
+      alert(t.savedCardLast4Required)
+      return
+    }
+    setSavingCard(true)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/saved-payment-methods`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          provider: 'manual',
+          brand: cardBrand,
+          last4: cardLast4,
+          expiryMonth: cardExpiryMonth || null,
+          expiryYear: cardExpiryYear || null,
+          consentText: cardConsentText || t.savedCardDefaultConsent,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      setCardBrand('')
+      setCardLast4('')
+      setCardExpiryMonth('')
+      setCardExpiryYear('')
+      setCardConsentText('')
+      await onRefresh()
+    } finally {
+      setSavingCard(false)
+    }
+  }
+
+  const updateSavedPaymentMethod = async (methodId: string, status: 'REVOKED' | 'EXPIRED') => {
+    setUpdatingCardId(methodId)
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/saved-payment-methods`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ methodId, status }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || t.operationFailed)
+        return
+      }
+      await onRefresh()
+    } finally {
+      setUpdatingCardId(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <BalanceSummaryCard balance={patient.clientBalance} />
+
+      <section className="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">{t.savedPaymentMethods}</h2>
+          <p className="mt-1 text-sm text-gray-500">{t.savedPaymentMethodsHint}</p>
+        </div>
+
+        <form onSubmit={savePaymentMethod} className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+          <input
+            value={cardBrand}
+            onChange={(e) => setCardBrand(e.target.value)}
+            placeholder={t.savedCardBrand}
+            className="px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+          <input
+            value={cardLast4}
+            onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            inputMode="numeric"
+            placeholder={t.savedCardLast4}
+            className="px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+          <input
+            value={cardExpiryMonth}
+            onChange={(e) => setCardExpiryMonth(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            inputMode="numeric"
+            placeholder={t.savedCardExpiryMonth}
+            className="px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+          <input
+            value={cardExpiryYear}
+            onChange={(e) => setCardExpiryYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            inputMode="numeric"
+            placeholder={t.savedCardExpiryYear}
+            className="px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+          <button
+            type="submit"
+            disabled={savingCard}
+            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {savingCard ? t.savingEllipsis : t.saveCardOnFile}
+          </button>
+          <input
+            value={cardConsentText}
+            onChange={(e) => setCardConsentText(e.target.value)}
+            placeholder={t.savedCardConsentPlaceholder}
+            className="sm:col-span-5 px-3 py-2.5 rounded-xl border border-gray-200 text-base"
+          />
+        </form>
+
+        <div className="divide-y divide-gray-100 rounded-xl border border-gray-100">
+          {patient.savedPaymentMethods.length === 0 ? (
+            <p className="p-3 text-sm text-gray-500">{t.noSavedPaymentMethods}</p>
+          ) : (
+            patient.savedPaymentMethods.map((method) => (
+              <div key={method.id} className="flex flex-col gap-2 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">{savedPaymentMethodLabel(method)}</p>
+                  <p className="text-xs text-gray-500">
+                    {method.status} · {t.cardConsentedAt}{' '}
+                    {new Date(method.consentedAt).toLocaleDateString(dateLocale)}
+                  </p>
+                  {method.consentText && <p className="mt-1 text-xs text-gray-500">{method.consentText}</p>}
+                </div>
+                {method.status === 'ACTIVE' && (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateSavedPaymentMethod(method.id, 'EXPIRED')}
+                      disabled={updatingCardId === method.id}
+                      className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 disabled:opacity-60"
+                    >
+                      {t.markCardExpired}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSavedPaymentMethod(method.id, 'REVOKED')}
+                      disabled={updatingCardId === method.id}
+                      className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 disabled:opacity-60"
+                    >
+                      {t.revokeCardOnFile}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </section>
 
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">{t.recordPayment}</h2>

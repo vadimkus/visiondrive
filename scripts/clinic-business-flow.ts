@@ -313,6 +313,61 @@ async function main() {
   assert(noShowFeeJson.payment?.status === 'PENDING', 'No-show fee should create pending payment')
   console.log('✓ Enforce no-show policy fee')
 
+  const cardPolicyRes = await req(`/api/clinic/procedures/${procedureId}`, {
+    method: 'PATCH',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      bookingPolicyType: 'CARD_ON_FILE',
+      depositAmountCents: 0,
+      depositPercent: 0,
+      cancellationWindowHours: 24,
+      lateCancelFeeCents: 15000,
+      noShowFeeCents: 25000,
+      bookingPolicyText: 'E2E policy: card on file required for no-show protection.',
+    }),
+  })
+  const cardPolicyJson = await cardPolicyRes.json()
+  assert(cardPolicyRes.ok, `card policy patch ${cardPolicyRes.status}: ${JSON.stringify(cardPolicyJson)}`)
+
+  const cardOnFileStart = weekdayAfter(start, 10)
+  const cardApptRes = await req('/api/clinic/appointments', {
+    method: 'POST',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      patientId,
+      procedureId,
+      startsAt: cardOnFileStart.toISOString(),
+      internalNotes: 'E2E card-on-file appointment',
+      bookingPolicyAccepted: true,
+    }),
+  })
+  const cardApptJson = await cardApptRes.json()
+  assert(cardApptRes.status === 201, `card appointment ${cardApptRes.status}: ${JSON.stringify(cardApptJson)}`)
+  assert(
+    cardApptJson.appointment?.paymentRequirementStatus === 'PENDING',
+    'Card-on-file appointment should start pending'
+  )
+  const cardSavedRes = await req(`/api/clinic/patients/${patientId}/saved-payment-methods`, {
+    method: 'POST',
+    cookie,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      provider: 'manual',
+      brand: 'Visa',
+      last4: '4242',
+      expiryMonth: 12,
+      expiryYear: 2030,
+      consentText: 'E2E consent for card-on-file no-show protection.',
+    }),
+  })
+  const cardSavedJson = await cardSavedRes.json()
+  assert(cardSavedRes.status === 201, `saved payment method ${cardSavedRes.status}: ${JSON.stringify(cardSavedJson)}`)
+  assert(cardSavedJson.method?.last4 === '4242', 'Saved method missing last4')
+  assert(cardSavedJson.satisfiedAppointmentCount >= 1, 'Saved method should satisfy pending card-on-file requirement')
+  console.log('✓ Card-on-file saved method satisfies pending requirement')
+
   // 7) Full chart
   const chartRes = await req(`/api/clinic/patients/${patientId}`, { cookie })
   const chartJson = await chartRes.json()
@@ -331,6 +386,12 @@ async function main() {
         payment.reference === `NO_SHOW:${noShowAppointmentId}` && payment.status === 'PENDING'
     ),
     'Patient payment timeline missing pending no-show fee'
+  )
+  assert(
+    chartJson.patient?.savedPaymentMethods?.some(
+      (method: { last4?: string; status?: string }) => method.last4 === '4242' && method.status === 'ACTIVE'
+    ),
+    'Patient chart missing active saved payment method'
   )
   console.log('✓ GET patient chart')
 

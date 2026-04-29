@@ -100,6 +100,7 @@ model Tenant {
   clinicVisits                ClinicVisit[]
   clinicPatientMedia          ClinicPatientMedia[]
   clinicPatientPayments       ClinicPatientPayment[]
+  clinicSavedPaymentMethods   ClinicSavedPaymentMethod[]
   clinicPriceQuotes           ClinicPriceQuote[]
   clinicPriceQuoteLines       ClinicPriceQuoteLine[]
   clinicPaymentCorrections    ClinicPaymentCorrection[]
@@ -910,6 +911,7 @@ model ClinicPatient {
   visits              ClinicVisit[]
   media               ClinicPatientMedia[]
   payments            ClinicPatientPayment[]
+  savedPaymentMethods ClinicSavedPaymentMethod[]
   paymentCorrections  ClinicPaymentCorrection[]
   productSales        ClinicProductSale[]
   crmActivities       ClinicCrmActivity[]
@@ -1492,6 +1494,38 @@ model ClinicPatientPayment {
   @@index([paymentRequestExpiresAt])
   @@index([discountRuleId, paidAt])
   @@map("clinic_patient_payments")
+}
+
+enum ClinicSavedPaymentMethodStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+model ClinicSavedPaymentMethod {
+  id              String                         @id @default(cuid())
+  tenantId        String
+  patientId       String
+  provider        String                         @default("manual")
+  brand           String?
+  last4           String
+  expiryMonth     Int?
+  expiryYear      Int?
+  status          ClinicSavedPaymentMethodStatus @default(ACTIVE)
+  consentText     String?                        @db.Text
+  consentedAt     DateTime                       @default(now()) @db.Timestamptz(6)
+  providerRef     String?
+  note            String?                        @db.Text
+  createdAt       DateTime                       @default(now())
+  updatedAt       DateTime                       @updatedAt
+  createdByUserId String?
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient ClinicPatient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, patientId, status])
+  @@index([tenantId, providerRef])
+  @@map("clinic_saved_payment_methods")
 }
 
 model ClinicPriceQuote {

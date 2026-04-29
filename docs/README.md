@@ -111,6 +111,7 @@
 | [2026-04-29_clinic-login-free-booking-v2.md](2026-04-29_clinic-login-free-booking-v2.md) | Clinic login-free booking v2 with approval/instant modes |
 | [2026-04-29_clinic-smart-forms-v2.md](2026-04-29_clinic-smart-forms-v2.md) | Clinic smart forms v2 with conditional and internal-only fields |
 | [2026-04-29_clinic-calendar-sync-personal-blocks.md](2026-04-29_clinic-calendar-sync-personal-blocks.md) | Clinic calendar sync and personal blocks |
+| [2026-04-29_clinic-card-on-file-saved-methods.md](2026-04-29_clinic-card-on-file-saved-methods.md) | Clinic card-on-file saved-method workflow |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |
