@@ -398,6 +398,8 @@ Adapt the workflow, not the enterprise weight. The practitioner needs fewer scre
 
 5. Deep IP telephony integrations
    - Too heavy. Manual call log and WhatsApp links are enough.
+   - Status: shipped lightweight replacement.
+   - Shipped: added a Phone workflow panel to `/clinic/account` and EN/RU Knowledge Base guidance. Calls remain device-native (`tel:`/normal dialer), while outcomes and next actions are saved through the existing patient CRM call log. No IP telephony provider, call recording, webhook, or call-sync table added.
 
 6. Marketplace placement
    - Wrong direction. The product should protect direct client relationship and private booking.

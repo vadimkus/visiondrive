@@ -1212,6 +1212,24 @@
 
 ---
 
+## Chunk 69 — 2026-04-29 (phone workflow without IP telephony)
+
+**Shipped**
+
+- **Solo replacement:** treated deep IP telephony integrations as too heavy for solo practice.
+- **Account:** added a Phone workflow panel to `/clinic/account` explaining call-from-device, log outcome, and follow-up steps.
+- **Knowledge Base:** added EN/RU guidance for using phone calls without IP telephony.
+- **Source of truth:** existing patient CRM `CALL` activities remain the durable call record; `tel:` links/normal dialer handle the live call.
+- **Avoided scope:** no VoIP provider credentials, call recording, device call-log import, webhook delivery, or call-sync table.
+- **Docs/backlog:** updated backlog, architecture, data-model, docs index, and session note.
+
+**Validation**
+
+- Run `npm run type-check` and `npm run lint`.
+- No schema change.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

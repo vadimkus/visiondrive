@@ -55,6 +55,8 @@ Group classes/events are intentionally not modeled yet. Occasional workshops sho
 
 Multi-staff appointment assignment is intentionally not modeled in the solo first pass. The signed-in practitioner is treated as the operational owner; assistants are represented through support expenses and notes rather than appointment assignee rows.
 
+Deep IP telephony is intentionally not modeled. Calls are device-native, and the durable record is a `clinic_crm_activities` row with type `CALL`; there is no VoIP provider, recording, webhook, or call-sync table.
+
 ## API surface (high level)
 
 - `GET/POST /api/clinic/patients` — list (+ `?q=`, `?category=`, `?tag=` filters), create; list rows include computed `clientBalance`.

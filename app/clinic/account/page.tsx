@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, PhoneCall } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { urlBase64ToUint8Array } from '@/lib/clinic/web-push-encoding'
@@ -352,6 +352,32 @@ export default function ClinicAccountPage() {
           <div className="rounded-xl bg-white p-4 border border-orange-100">
             <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{t.assignmentMode}</p>
             <p className="mt-1 text-sm font-medium text-gray-900">{t.assignmentModeSolo}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-700">
+            <PhoneCall className="h-5 w-5" aria-hidden />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{t.phoneWorkflow}</h2>
+            <p className="mt-1 text-sm leading-relaxed text-gray-600">{t.phoneWorkflowHint}</p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+            <p className="text-sm font-semibold text-gray-900">{t.phoneWorkflowStepCall}</p>
+            <p className="mt-1 text-xs text-gray-500">{t.phoneWorkflowStepCallHint}</p>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+            <p className="text-sm font-semibold text-gray-900">{t.phoneWorkflowStepLog}</p>
+            <p className="mt-1 text-xs text-gray-500">{t.phoneWorkflowStepLogHint}</p>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+            <p className="text-sm font-semibold text-gray-900">{t.phoneWorkflowStepFollowUp}</p>
+            <p className="mt-1 text-xs text-gray-500">{t.phoneWorkflowStepFollowUpHint}</p>
           </div>
         </div>
       </section>
