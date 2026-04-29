@@ -156,6 +156,22 @@
 
 ---
 
+## Chunk 74 — 2026-04-29 (portal policy + receipt text)
+
+**Shipped**
+
+- **Portal API:** token-scoped patient portal responses now include upcoming appointment policy snapshots and policy-related payment rows.
+- **Portal UI:** upcoming appointment cards show accepted policy text, deposit/prepay status, cancellation window, and late-cancel/no-show fees in EN/RU.
+- **Receipts:** portal receipt cards now explain standard payments, deposits, late-cancel fees, and no-show fees using patient-facing text.
+- **Helper/tests:** `patientPortalPaymentKind` classifies ledger references for patient-facing receipt labels.
+- **Docs:** updated portal documentation, architecture, docs index, and session note.
+
+**Operational**
+
+- No schema change.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

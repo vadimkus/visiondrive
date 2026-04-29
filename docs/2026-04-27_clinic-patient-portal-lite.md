@@ -14,9 +14,10 @@ Point 22 from the Altegio home-visit practitioner backlog is **Private patient p
 - Patient chart now has a Patient portal lite card for creating/copying/revoking a link and reviewing recent requests.
 - Public route `/patient-portal/[token]` shows:
   - Upcoming appointments and home-visit location notes.
+  - Patient-facing booking policy terms, accepted timestamp, deposit/prepay/card-on-file status, cancellation window, and late-cancel/no-show fees.
   - Aftercare / next steps from completed visits.
   - Package balance.
-  - Payment receipts.
+  - Payment receipts with patient-friendly deposit/late-cancel/no-show descriptions.
   - Active treatment plans.
   - Accepted consent titles.
   - Reschedule and cancellation request form.

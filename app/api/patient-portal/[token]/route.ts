@@ -12,6 +12,7 @@ import {
   isPatientPortalLinkActive,
   normalizePatientPortalMessage,
   normalizePatientPortalRequestType,
+  patientPortalPaymentKind,
   patientPortalRequestLabel,
 } from '@/lib/clinic/patient-portal'
 
@@ -72,7 +73,34 @@ export async function GET(
           locationAddress: true,
           locationArea: true,
           locationNotes: true,
-          procedure: { select: { name: true, defaultDurationMin: true } },
+          bookingPolicyType: true,
+          bookingPolicySnapshot: true,
+          bookingPolicyAcceptedAt: true,
+          paymentRequirementStatus: true,
+          depositRequiredCents: true,
+          cancellationWindowHours: true,
+          lateCancelFeeCents: true,
+          noShowFeeCents: true,
+          procedure: { select: { name: true, defaultDurationMin: true, currency: true } },
+          payments: {
+            where: {
+              status: { in: [ClinicPaymentStatus.PENDING, ClinicPaymentStatus.PAID, ClinicPaymentStatus.REFUNDED] },
+              OR: [
+                { reference: { startsWith: 'DEPOSIT:' } },
+                { reference: { startsWith: 'LATE_CANCEL:' } },
+                { reference: { startsWith: 'NO_SHOW:' } },
+              ],
+            },
+            orderBy: { paidAt: 'desc' },
+            select: {
+              id: true,
+              amountCents: true,
+              currency: true,
+              status: true,
+              reference: true,
+              paymentRequestExpiresAt: true,
+            },
+          },
         },
       },
       visits: {
@@ -198,6 +226,7 @@ export async function GET(
     appointments: patient.appointments.map((appointment) => ({
       ...appointment,
       label: appointmentLabel(appointment),
+      policy: patientPortalAppointmentPolicy(appointment),
     })),
     aftercare: patient.visits
       .filter(
@@ -230,6 +259,7 @@ export async function GET(
         method: payment.method,
         status: payment.status,
         reference: payment.reference,
+        receiptKind: patientPortalPaymentKind(payment.reference),
         paidAt: payment.paidAt,
         label: appointment ? appointmentLabel(appointment) : 'Payment',
         receiptHref: `/api/patient-portal/${token}/payments/${payment.id}/receipt`,
@@ -242,6 +272,51 @@ export async function GET(
     })),
     consents: patient.consentRecords,
   })
+}
+
+function patientPortalAppointmentPolicy(appointment: {
+  bookingPolicyType: string
+  bookingPolicySnapshot: unknown
+  bookingPolicyAcceptedAt: Date | null
+  paymentRequirementStatus: string
+  depositRequiredCents: number
+  cancellationWindowHours: number
+  lateCancelFeeCents: number
+  noShowFeeCents: number
+  procedure: { currency: string } | null
+  payments: Array<{
+    id: string
+    amountCents: number
+    currency: string
+    status: string
+    reference: string | null
+    paymentRequestExpiresAt: Date | null
+  }>
+}) {
+  const snapshot =
+    appointment.bookingPolicySnapshot && typeof appointment.bookingPolicySnapshot === 'object'
+      ? (appointment.bookingPolicySnapshot as Record<string, unknown>)
+      : null
+  const snapshotNumber = (key: string, fallback: number) => {
+    const value = Number(snapshot?.[key] ?? fallback)
+    return Number.isFinite(value) ? value : fallback
+  }
+
+  return {
+    type: appointment.bookingPolicyType,
+    acceptedAt: appointment.bookingPolicyAcceptedAt,
+    paymentRequirementStatus: appointment.paymentRequirementStatus,
+    text: typeof snapshot?.bookingPolicyText === 'string' ? snapshot.bookingPolicyText : null,
+    currency: typeof snapshot?.currency === 'string' ? snapshot.currency : appointment.procedure?.currency ?? 'AED',
+    depositRequiredCents: snapshotNumber('depositRequiredCents', appointment.depositRequiredCents),
+    cancellationWindowHours: snapshotNumber('cancellationWindowHours', appointment.cancellationWindowHours),
+    lateCancelFeeCents: snapshotNumber('lateCancelFeeCents', appointment.lateCancelFeeCents),
+    noShowFeeCents: snapshotNumber('noShowFeeCents', appointment.noShowFeeCents),
+    payments: appointment.payments.map((payment) => ({
+      ...payment,
+      kind: patientPortalPaymentKind(payment.reference),
+    })),
+  }
 }
 
 export async function POST(

@@ -25,6 +25,27 @@ type PortalData = {
     locationAddress: string | null
     locationArea: string | null
     locationNotes: string | null
+    paymentRequirementStatus: string
+    policy: {
+      type: 'NONE' | 'DEPOSIT' | 'FULL_PREPAY' | 'CARD_ON_FILE'
+      acceptedAt: string | null
+      paymentRequirementStatus: string
+      text: string | null
+      currency: string
+      depositRequiredCents: number
+      cancellationWindowHours: number
+      lateCancelFeeCents: number
+      noShowFeeCents: number
+      payments: Array<{
+        id: string
+        amountCents: number
+        currency: string
+        status: string
+        reference: string | null
+        paymentRequestExpiresAt: string | null
+        kind: 'STANDARD' | 'DEPOSIT' | 'LATE_CANCEL_FEE' | 'NO_SHOW_FEE'
+      }>
+    }
   }>
   aftercare: Array<{
     id: string
@@ -55,6 +76,7 @@ type PortalData = {
     method: string
     status: string
     reference: string | null
+    receiptKind: 'STANDARD' | 'DEPOSIT' | 'LATE_CANCEL_FEE' | 'NO_SHOW_FEE'
     paidAt: string
     label: string
     receiptHref: string
@@ -118,6 +140,23 @@ const copy = {
     refresh: 'Refresh',
     location: 'Location',
     expires: 'expires',
+    policy: 'Booking policy',
+    policyAccepted: 'Accepted',
+    depositDue: 'Deposit due',
+    depositPaid: 'Deposit paid',
+    depositPending: 'Deposit pending',
+    fullPrepayDue: 'Full prepayment required',
+    cardOnFile: 'Card-on-file / no-show protection',
+    cancellationWindow: 'Free cancellation or reschedule up to',
+    hoursBefore: 'hours before the appointment',
+    lateCancelFee: 'Late-cancel fee',
+    noShowFee: 'No-show fee',
+    receiptText: 'This receipt confirms a payment recorded by the practice.',
+    depositReceiptText: 'This receipt confirms a deposit recorded for your appointment.',
+    lateCancelReceiptText: 'This receipt confirms a late-cancellation fee recorded by the practice.',
+    noShowReceiptText: 'This receipt confirms a no-show fee recorded by the practice.',
+    method: 'Method',
+    reference: 'Reference',
   },
   ru: {
     title: 'Кабинет пациента',
@@ -151,11 +190,41 @@ const copy = {
     refresh: 'Обновить',
     location: 'Адрес',
     expires: 'истекает',
+    policy: 'Правила записи',
+    policyAccepted: 'Принято',
+    depositDue: 'Депозит к оплате',
+    depositPaid: 'Депозит оплачен',
+    depositPending: 'Депозит ожидает оплаты',
+    fullPrepayDue: 'Требуется полная предоплата',
+    cardOnFile: 'Карта / защита от неявки',
+    cancellationWindow: 'Бесплатная отмена или перенос не позднее чем за',
+    hoursBefore: 'часов до записи',
+    lateCancelFee: 'Штраф за позднюю отмену',
+    noShowFee: 'Штраф за неявку',
+    receiptText: 'Этот чек подтверждает оплату, зафиксированную практикой.',
+    depositReceiptText: 'Этот чек подтверждает депозит по вашей записи.',
+    lateCancelReceiptText: 'Этот чек подтверждает штраф за позднюю отмену.',
+    noShowReceiptText: 'Этот чек подтверждает штраф за неявку.',
+    method: 'Метод',
+    reference: 'Номер/ссылка',
   },
 } as const
 
 function money(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+function receiptText(c: (typeof copy)['en'] | (typeof copy)['ru'], kind: PortalData['payments'][number]['receiptKind']) {
+  if (kind === 'DEPOSIT') return c.depositReceiptText
+  if (kind === 'LATE_CANCEL_FEE') return c.lateCancelReceiptText
+  if (kind === 'NO_SHOW_FEE') return c.noShowReceiptText
+  return c.receiptText
+}
+
+function depositStatusText(c: (typeof copy)['en'] | (typeof copy)['ru'], appointment: PortalData['appointments'][number]) {
+  const depositPayment = appointment.policy.payments.find((payment) => payment.kind === 'DEPOSIT')
+  if (appointment.policy.paymentRequirementStatus === 'PAID' || depositPayment?.status === 'PAID') return c.depositPaid
+  return c.depositPending
 }
 
 export default function PatientPortalPage() {
@@ -310,6 +379,43 @@ export default function PatientPortalPage() {
                     </p>
                   )}
                   {appointment.locationNotes && <p className="mt-1 text-sm text-gray-500">{appointment.locationNotes}</p>}
+                  {appointment.policy.type !== 'NONE' && (
+                    <div className="mt-3 rounded-2xl border border-orange-100 bg-white/80 p-3 text-sm">
+                      <p className="font-semibold text-orange-950">{c.policy}</p>
+                      {appointment.policy.text && (
+                        <p className="mt-1 whitespace-pre-wrap text-gray-700">{appointment.policy.text}</p>
+                      )}
+                      <div className="mt-2 space-y-1 text-gray-700">
+                        {appointment.policy.acceptedAt && (
+                          <p>
+                            {c.policyAccepted}:{' '}
+                            {new Date(appointment.policy.acceptedAt).toLocaleDateString(dateLocale)}
+                          </p>
+                        )}
+                        {appointment.policy.depositRequiredCents > 0 && (
+                          <p>
+                            {appointment.policy.type === 'FULL_PREPAY' ? c.fullPrepayDue : c.depositDue}:{' '}
+                            {money(appointment.policy.depositRequiredCents, appointment.policy.currency)} ·{' '}
+                            {depositStatusText(c, appointment)}
+                          </p>
+                        )}
+                        {appointment.policy.type === 'CARD_ON_FILE' && <p>{c.cardOnFile}</p>}
+                        <p>
+                          {c.cancellationWindow} {appointment.policy.cancellationWindowHours} {c.hoursBefore}.
+                        </p>
+                        {appointment.policy.lateCancelFeeCents > 0 && (
+                          <p>
+                            {c.lateCancelFee}: {money(appointment.policy.lateCancelFeeCents, appointment.policy.currency)}
+                          </p>
+                        )}
+                        {appointment.policy.noShowFeeCents > 0 && (
+                          <p>
+                            {c.noShowFee}: {money(appointment.policy.noShowFeeCents, appointment.policy.currency)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -433,8 +539,13 @@ export default function PatientPortalPage() {
                   <div key={payment.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                     <p className="font-semibold text-gray-950">{payment.label}</p>
                     <p className="mt-1 text-sm text-gray-700">{money(payment.amountCents, payment.currency)}</p>
+                    <p className="mt-1 text-sm text-gray-600">{receiptText(c, payment.receiptKind)}</p>
                     <p className="text-xs text-gray-400">
                       {new Date(payment.paidAt).toLocaleDateString(dateLocale)} · {payment.status}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {c.method}: {payment.method}
+                      {payment.reference ? ` · ${c.reference}: ${payment.reference}` : ''}
                     </p>
                     <a
                       href={payment.receiptHref}

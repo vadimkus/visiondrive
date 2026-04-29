@@ -8,6 +8,8 @@ export const PATIENT_PORTAL_TOKEN_BYTES = 32
 export const PATIENT_PORTAL_DEFAULT_EXPIRY_DAYS = 90
 export const PATIENT_PORTAL_MAX_MESSAGE_LENGTH = 1000
 
+export type PatientPortalPaymentKind = 'STANDARD' | 'DEPOSIT' | 'LATE_CANCEL_FEE' | 'NO_SHOW_FEE'
+
 export function createPatientPortalToken() {
   return randomBytes(PATIENT_PORTAL_TOKEN_BYTES).toString('base64url')
 }
@@ -48,4 +50,12 @@ export function patientPortalRequestLabel(type: ClinicPatientPortalRequestType) 
   if (type === ClinicPatientPortalRequestType.RESCHEDULE) return 'Reschedule request'
   if (type === ClinicPatientPortalRequestType.CANCEL) return 'Cancellation request'
   return 'Patient message'
+}
+
+export function patientPortalPaymentKind(reference: string | null | undefined): PatientPortalPaymentKind {
+  const value = String(reference || '')
+  if (value.startsWith('DEPOSIT:')) return 'DEPOSIT'
+  if (value.startsWith('LATE_CANCEL:')) return 'LATE_CANCEL_FEE'
+  if (value.startsWith('NO_SHOW:')) return 'NO_SHOW_FEE'
+  return 'STANDARD'
 }

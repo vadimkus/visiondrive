@@ -6,6 +6,7 @@ import {
   isPatientPortalLinkActive,
   normalizePatientPortalMessage,
   normalizePatientPortalRequestType,
+  patientPortalPaymentKind,
   patientPortalExpiresAt,
   patientPortalTokenLastFour,
 } from './patient-portal'
@@ -35,5 +36,13 @@ describe('clinic patient portal helpers', () => {
     expect(isPatientPortalLinkActive({ expiresAt, revokedAt: null }, now)).toBe(true)
     expect(isPatientPortalLinkActive({ expiresAt: new Date('2026-04-26T10:00:00Z'), revokedAt: null }, now)).toBe(false)
     expect(isPatientPortalLinkActive({ expiresAt, revokedAt: now }, now)).toBe(false)
+  })
+
+  it('classifies patient-facing receipt kinds from payment references', () => {
+    expect(patientPortalPaymentKind('DEPOSIT:appt_1')).toBe('DEPOSIT')
+    expect(patientPortalPaymentKind('LATE_CANCEL:appt_1')).toBe('LATE_CANCEL_FEE')
+    expect(patientPortalPaymentKind('NO_SHOW:appt_1')).toBe('NO_SHOW_FEE')
+    expect(patientPortalPaymentKind('VISIT:visit_1')).toBe('STANDARD')
+    expect(patientPortalPaymentKind(null)).toBe('STANDARD')
   })
 })
