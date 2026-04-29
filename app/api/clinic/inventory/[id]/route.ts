@@ -4,6 +4,12 @@ import { assertBarcodeAvailable, normalizeBarcode } from '@/lib/clinic/inventory
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { isClinicStockLow } from '@/lib/clinic/inventory'
 import { getClinicSession } from '@/lib/clinic/session'
+import {
+  injectableExpiryStatus,
+  notesWithoutInjectableBatchMetadata,
+  parseInjectableBatchMetadata,
+  withInjectableBatchMetadata,
+} from '@/lib/clinic/inventory-batches'
 
 export async function GET(
   request: NextRequest,
@@ -34,7 +40,12 @@ export async function GET(
   return NextResponse.json({
     item: {
       ...item,
+      notes: notesWithoutInjectableBatchMetadata(item.notes),
       lowStock: isClinicStockLow(item),
+      injectableBatch: {
+        ...parseInjectableBatchMetadata(item.notes),
+        expiryStatus: injectableExpiryStatus(parseInjectableBatchMetadata(item.notes).expiresAt),
+      },
     },
   })
 }
@@ -97,8 +108,20 @@ export async function PATCH(
   if (body.active !== undefined) {
     data.active = Boolean(body.active)
   }
-  if (body.notes !== undefined) {
-    data.notes = body.notes == null ? null : String(body.notes).trim() || null
+  if (body.notes !== undefined || body.batchNumber !== undefined || body.batchExpiresAt !== undefined) {
+    const baseNotes =
+      body.notes !== undefined ? (body.notes == null ? null : String(body.notes).trim() || null) : existing.notes
+    const existingBatch = parseInjectableBatchMetadata(existing.notes)
+    data.notes = withInjectableBatchMetadata(baseNotes, {
+      batchNumber:
+        body.batchNumber !== undefined
+          ? String(body.batchNumber ?? '').trim() || null
+          : existingBatch.batchNumber,
+      expiresAt:
+        body.batchExpiresAt !== undefined
+          ? String(body.batchExpiresAt ?? '').trim() || null
+          : existingBatch.expiresAt,
+    })
   }
   if (body.procedureId !== undefined) {
     if (body.procedureId === null) {
@@ -154,6 +177,14 @@ export async function PATCH(
   void handleLowStockNotificationsForItem(id).catch((err) => console.error('low-stock notify', err))
 
   return NextResponse.json({
-    item: { ...item, lowStock: isClinicStockLow(item) },
+    item: {
+      ...item,
+      notes: notesWithoutInjectableBatchMetadata(item.notes),
+      lowStock: isClinicStockLow(item),
+      injectableBatch: {
+        ...parseInjectableBatchMetadata(item.notes),
+        expiryStatus: injectableExpiryStatus(parseInjectableBatchMetadata(item.notes).expiresAt),
+      },
+    },
   })
 }

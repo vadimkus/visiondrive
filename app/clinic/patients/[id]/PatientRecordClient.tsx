@@ -42,6 +42,7 @@ import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
 import { ClinicFaceMapEditor, type FaceMapMediaOption } from '@/components/clinic/ClinicFaceMapEditor'
+import { buildBeforeAfterPairs } from '@/lib/clinic/before-after'
 import { faceMapFromProtocolJson, type FaceMapMetadata } from '@/lib/clinic/face-map'
 
 type ProcedureRef = { id: string; name: string } | null
@@ -1410,7 +1411,7 @@ function PatientPortalCard({
   return (
     <section className="rounded-2xl border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">{t.patientPortalLite}</p>
           <h2 className="mt-1 text-lg font-semibold text-gray-950">{t.patientPortalPrivateLink}</h2>
           <p className="mt-1 text-sm leading-relaxed text-blue-950/80">{t.patientPortalPrivateLinkHint}</p>
@@ -1419,7 +1420,7 @@ function PatientPortalCard({
           type="button"
           onClick={createLink}
           disabled={creating}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
         >
           <Link2 className="h-4 w-4" aria-hidden />
           {creating ? t.creatingEllipsis : t.patientPortalCreateLink}
@@ -1437,12 +1438,14 @@ function PatientPortalCard({
             <input
               readOnly
               value={portalUrl}
-              className="min-h-11 flex-1 rounded-xl border border-gray-200 px-3 text-sm text-gray-800"
+              onClick={() => void copyLink()}
+              aria-label={t.patientPortalCopyLink}
+              className="min-h-11 flex-1 cursor-copy rounded-xl border border-gray-200 px-3 text-sm text-gray-800"
             />
             <button
               type="button"
               onClick={copyLink}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 hover:bg-gray-50"
             >
               <Copy className="h-4 w-4" aria-hidden />
               {t.copy}
@@ -2728,6 +2731,8 @@ function PhotosTab({
       ? { source: 'media' as const, sourceMediaId: faceMapMediaOptions[0].id }
       : { source: 'template' as const, sourceMediaId: null }
 
+  const beforeAfterPairs = useMemo(() => buildBeforeAfterPairs(allMedia), [allMedia])
+
   const openLatestFaceMap = () => {
     setFaceMapInitial(latestFaceMap ? faceMapFromProtocolJson(latestFaceMap.protocolJson) : null)
     setFaceMapOpen(true)
@@ -2842,6 +2847,60 @@ function PhotosTab({
           }}
         />
       )}
+
+      <section className="rounded-[2rem] border border-indigo-100 bg-indigo-50/60 p-5 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">{t.beforeAfterV2Badge}</p>
+            <h2 className="mt-1 text-xl font-semibold text-indigo-950">{t.beforeAfterV2Title}</h2>
+            <p className="mt-1 max-w-2xl text-sm text-indigo-800">{t.beforeAfterV2Hint}</p>
+          </div>
+          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-indigo-800">
+            {beforeAfterPairs.length} {t.beforeAfterPairs}
+          </span>
+        </div>
+
+        {beforeAfterPairs.length === 0 ? (
+          <p className="mt-4 rounded-2xl bg-white/80 p-4 text-sm text-indigo-800">
+            {t.beforeAfterNoPairs}
+          </p>
+        ) : (
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {beforeAfterPairs.slice(0, 4).map((pair) => (
+              <div key={pair.id} className="overflow-hidden rounded-2xl border border-white bg-white shadow-sm">
+                <div className="grid grid-cols-2">
+                  {[
+                    { label: t.photoKindBefore, media: pair.before },
+                    { label: t.photoKindAfter, media: pair.after },
+                  ].map((slot) => (
+                    <div key={slot.media.id} className="min-w-0">
+                      <div className="flex items-center justify-between gap-2 bg-slate-950 px-3 py-2 text-xs font-semibold text-white">
+                        <span>{slot.label}</span>
+                        <span className="truncate text-slate-300">{slot.media.visitLabel}</span>
+                      </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`/api/clinic/media/${slot.media.id}`}
+                        alt={slot.media.caption || slot.label}
+                        className="aspect-square w-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 text-xs text-gray-600">
+                  <p className="font-semibold text-gray-900">
+                    {pair.after.caption || pair.before.caption || t.beforeAfterUntitled}
+                  </p>
+                  <p className="mt-1">
+                    {new Date(pair.before.createdAt).toLocaleDateString(dateLocale)} {' -> '}
+                    {new Date(pair.after.createdAt).toLocaleDateString(dateLocale)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">

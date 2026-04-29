@@ -4,6 +4,12 @@ import { assertBarcodeAvailable, normalizeBarcode } from '@/lib/clinic/inventory
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { isClinicStockLow } from '@/lib/clinic/inventory'
 import { getClinicSession } from '@/lib/clinic/session'
+import {
+  injectableExpiryStatus,
+  notesWithoutInjectableBatchMetadata,
+  parseInjectableBatchMetadata,
+  withInjectableBatchMetadata,
+} from '@/lib/clinic/inventory-batches'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -28,10 +34,18 @@ export async function GET(request: NextRequest) {
   const filtered = lowOnly ? items.filter((i) => isClinicStockLow(i)) : items
 
   return NextResponse.json({
-    items: filtered.map((i) => ({
-      ...i,
-      lowStock: isClinicStockLow(i),
-    })),
+    items: filtered.map((i) => {
+      const batch = parseInjectableBatchMetadata(i.notes)
+      return {
+        ...i,
+        notes: notesWithoutInjectableBatchMetadata(i.notes),
+        lowStock: isClinicStockLow(i),
+        injectableBatch: {
+          ...batch,
+          expiryStatus: injectableExpiryStatus(batch.expiresAt),
+        },
+      }
+    }),
   })
 }
 
@@ -65,7 +79,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'initialQuantity must be a non-negative number' }, { status: 400 })
   }
 
-  const notes = body.notes != null ? String(body.notes).trim() || null : null
+  const notes = withInjectableBatchMetadata(
+    body.notes != null ? String(body.notes).trim() || null : null,
+    {
+      batchNumber: body.batchNumber != null ? String(body.batchNumber).trim() || null : null,
+      expiresAt: body.batchExpiresAt != null ? String(body.batchExpiresAt).trim() || null : null,
+    }
+  )
 
   const barcode = normalizeBarcode(body.barcode)
   let consumePerVisit = body.consumePerVisit != null ? Number(body.consumePerVisit) : 0
@@ -141,7 +161,15 @@ export async function POST(request: NextRequest) {
       console.error('low-stock notify', err)
     )
 
-    return NextResponse.json({ item: { ...item, lowStock: isClinicStockLow(item) } }, { status: 201 })
+    const batch = parseInjectableBatchMetadata(item.notes)
+    return NextResponse.json({
+      item: {
+        ...item,
+        notes: notesWithoutInjectableBatchMetadata(item.notes),
+        lowStock: isClinicStockLow(item),
+        injectableBatch: { ...batch, expiryStatus: injectableExpiryStatus(batch.expiresAt) },
+      },
+    }, { status: 201 })
   } catch (e) {
     console.error('POST /api/clinic/inventory', e)
     return NextResponse.json({ error: 'Failed to create item' }, { status: 500 })

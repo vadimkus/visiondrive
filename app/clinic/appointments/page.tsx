@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Calendar, CalendarClock, CalendarDays, ChevronLeft, ChevronRight, MapPin, Plus } from 'lucide-react'
+import { Calendar, CalendarClock, CalendarDays, ChevronLeft, ChevronRight, MapPin, Navigation, Plus, Send } from 'lucide-react'
 import clsx from 'clsx'
 import {
   addDays,
@@ -26,6 +26,7 @@ import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
 import { ClinicAppointmentDrawer } from '@/components/clinic/ClinicAppointmentDrawer'
 import { ClinicRescheduleSheet } from '@/components/clinic/ClinicRescheduleSheet'
+import { buildMultiStopMapUrl, buildSingleStopMapUrl } from '@/lib/clinic/route-mode'
 
 type Appointment = {
   id: string
@@ -42,7 +43,7 @@ type Appointment = {
   locationNotes: string | null
   paymentRequirementStatus: 'NOT_REQUIRED' | 'PENDING' | 'PAID' | 'WAIVED'
   depositRequiredCents: number
-  patient: { id: string; firstName: string; lastName: string }
+  patient: { id: string; firstName: string; lastName: string; phone: string | null }
   procedure: { id: string; name: string; defaultDurationMin: number; basePriceCents?: number; currency?: string } | null
   payments?: Array<{
     id: string
@@ -67,7 +68,7 @@ function appointmentsOnDay(list: Appointment[], day: Date): Appointment[] {
 }
 
 function mapUrl(address: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+  return buildSingleStopMapUrl(address)
 }
 
 function hasPendingDeposit(appointment: Appointment) {
@@ -96,6 +97,7 @@ export default function ClinicAppointmentsPage() {
   const [dropTargetId, setDropTargetId] = useState<string | null>(null)
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null)
   const [activeOnly, setActiveOnly] = useState(true)
+  const [routeActionBusy, setRouteActionBusy] = useState<string | null>(null)
 
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
 
@@ -250,6 +252,33 @@ export default function ClinicAppointmentsPage() {
     }
   }
 
+  const sendOnMyWay = async (appointment: Appointment) => {
+    setRouteActionBusy(appointment.id)
+    setError('')
+    try {
+      const res = await fetch(`/api/clinic/appointments/${appointment.id}/actions`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send_on_my_way', locale }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.saveFailed)
+        return
+      }
+      if (data.whatsappUrl) {
+        window.open(data.whatsappUrl, '_blank', 'noopener,noreferrer')
+      } else {
+        setError(t.routeOnMyWayMissingPhone)
+      }
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setRouteActionBusy(null)
+    }
+  }
+
   if (loading && appointments.length === 0 && !error) {
     return <ClinicSpinner label={t.loading} />
   }
@@ -270,6 +299,10 @@ export default function ClinicAppointmentsPage() {
     }
   }
   const dayAppointments = appointmentsOnDay(visibleAppointments, selectedDay)
+  const routeStops = dayAppointments.filter(
+    (appointment): appointment is Appointment & { locationAddress: string } => Boolean(appointment.locationAddress)
+  )
+  const routeMapUrl = buildMultiStopMapUrl(routeStops)
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -500,12 +533,25 @@ export default function ClinicAppointmentsPage() {
                       {t.routeToday}
                     </p>
                     <h2 className="text-lg font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
+                    <p className="mt-1 text-sm text-emerald-800">{t.routeModeHint}</p>
                   </div>
-                  <MapPin className="h-5 w-5 text-emerald-700" aria-hidden />
+                  <div className="flex shrink-0 items-center gap-2">
+                    {routeMapUrl && (
+                      <a
+                        href={routeMapUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-3 text-sm font-semibold text-white"
+                      >
+                        <Navigation className="h-4 w-4" aria-hidden />
+                        {t.openFullRoute}
+                      </a>
+                    )}
+                    <MapPin className="hidden h-5 w-5 text-emerald-700 sm:block" aria-hidden />
+                  </div>
                 </div>
                 <div className="mt-3 space-y-2">
-                  {dayAppointments
-                    .filter((appointment) => appointment.locationAddress)
+                  {routeStops
                     .map((appointment, index) => (
                       <div
                         key={`route-${appointment.id}`}
@@ -528,7 +574,16 @@ export default function ClinicAppointmentsPage() {
                               ` · ${t.travelBefore}: ${appointment.travelBufferBeforeMinutes} ${t.minutesAbbr} · ${t.travelAfter}: ${appointment.travelBufferAfterMinutes} ${t.minutesAbbr}`}
                           </p>
                         </div>
-                        {appointment.locationAddress && (
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <button
+                            type="button"
+                            onClick={() => void sendOnMyWay(appointment)}
+                            disabled={routeActionBusy === appointment.id}
+                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 text-sm font-semibold text-emerald-800 disabled:cursor-wait disabled:opacity-60"
+                          >
+                            <Send className="h-4 w-4" aria-hidden />
+                            {routeActionBusy === appointment.id ? t.creatingEllipsis : t.onMyWay}
+                          </button>
                           <a
                             href={mapUrl(appointment.locationAddress)}
                             target="_blank"
@@ -537,7 +592,7 @@ export default function ClinicAppointmentsPage() {
                           >
                             {t.openMap}
                           </a>
-                        )}
+                        </div>
                       </div>
                     ))}
                   {dayAppointments.every((appointment) => !appointment.locationAddress) && (

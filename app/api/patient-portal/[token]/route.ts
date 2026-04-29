@@ -4,6 +4,7 @@ import {
   ClinicAppointmentStatus,
   ClinicCrmActivityType,
   ClinicPaymentStatus,
+  ClinicPatientPortalRequestType,
 } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
@@ -15,6 +16,13 @@ import {
   patientPortalPaymentKind,
   patientPortalRequestLabel,
 } from '@/lib/clinic/patient-portal'
+import {
+  buildPreVisitTasks,
+  parsePreVisitTaskCompletion,
+  preVisitCompletionSummary,
+  PRE_VISIT_TASKS_MESSAGE_PREFIX,
+  serializePreVisitTaskCompletion,
+} from '@/lib/clinic/previsit-tasks'
 
 async function getActivePortalLink(token: string) {
   const link = await prisma.clinicPatientPortalLink.findUnique({
@@ -41,6 +49,7 @@ export async function GET(
   if (!link) {
     return NextResponse.json({ error: 'Portal link not found or expired' }, { status: 404 })
   }
+  const locale = new URL(request.url).searchParams.get('locale') === 'ru' ? 'ru' : 'en'
 
   const now = new Date()
   const patient = await prisma.clinicPatient.findFirst({
@@ -214,6 +223,28 @@ export async function GET(
     data: { lastAccessedAt: now },
   })
 
+  const appointmentIds = patient.appointments.map((appointment) => appointment.id)
+  const latestTaskRequests =
+    appointmentIds.length > 0
+      ? await prisma.clinicPatientPortalRequest.findMany({
+          where: {
+            tenantId: link.tenantId,
+            patientId: link.patientId,
+            appointmentId: { in: appointmentIds },
+            type: ClinicPatientPortalRequestType.MESSAGE,
+            message: { startsWith: PRE_VISIT_TASKS_MESSAGE_PREFIX },
+          },
+          orderBy: { createdAt: 'desc' },
+          select: { appointmentId: true, message: true },
+        })
+      : []
+  const taskCompletionByAppointment = new Map<string, string[]>()
+  for (const request of latestTaskRequests) {
+    if (request.appointmentId && !taskCompletionByAppointment.has(request.appointmentId)) {
+      taskCompletionByAppointment.set(request.appointmentId, parsePreVisitTaskCompletion(request.message))
+    }
+  }
+
   return NextResponse.json({
     practice: { name: link.tenant.name },
     patient: {
@@ -227,6 +258,7 @@ export async function GET(
       ...appointment,
       label: appointmentLabel(appointment),
       policy: patientPortalAppointmentPolicy(appointment),
+      preVisitTasks: buildPreVisitTasks(taskCompletionByAppointment.get(appointment.id) ?? [], locale),
     })),
     aftercare: patient.visits
       .filter(
@@ -416,4 +448,103 @@ export async function POST(
   })
 
   return NextResponse.json({ request: created }, { status: 201 })
+}
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ token: string }> }
+) {
+  const { token } = await context.params
+  const link = await getActivePortalLink(token)
+  if (!link) {
+    return NextResponse.json({ error: 'Portal link not found or expired' }, { status: 404 })
+  }
+
+  let body: Record<string, unknown>
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  if (body.action !== 'save_previsit_tasks') {
+    return NextResponse.json({ error: 'Unsupported action' }, { status: 400 })
+  }
+
+  const appointmentId = String(body.appointmentId ?? '').trim()
+  const rawIds = Array.isArray(body.completedTaskIds) ? body.completedTaskIds.map(String) : []
+  if (!appointmentId) {
+    return NextResponse.json({ error: 'appointmentId is required' }, { status: 400 })
+  }
+
+  const appointment = await prisma.clinicAppointment.findFirst({
+    where: {
+      id: appointmentId,
+      tenantId: link.tenantId,
+      patientId: link.patientId,
+    },
+    select: {
+      id: true,
+      startsAt: true,
+      titleOverride: true,
+      procedure: { select: { name: true } },
+    },
+  })
+  if (!appointment) {
+    return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
+  }
+
+  const message = serializePreVisitTaskCompletion(rawIds)
+  const completedTaskIds = parsePreVisitTaskCompletion(message)
+  const summary = preVisitCompletionSummary(completedTaskIds)
+  const crmBody = [
+    `${summary} from patient portal.`,
+    `Appointment: ${appointmentLabel(appointment)} on ${appointment.startsAt.toISOString()}.`,
+  ].join('\n')
+
+  const created = await prisma.$transaction(async (tx) => {
+    const requestRow = await tx.clinicPatientPortalRequest.create({
+      data: {
+        tenantId: link.tenantId,
+        patientId: link.patientId,
+        appointmentId: appointment.id,
+        portalLinkId: link.id,
+        type: ClinicPatientPortalRequestType.MESSAGE,
+        message,
+      },
+      select: { id: true, type: true, status: true, createdAt: true },
+    })
+
+    await tx.clinicCrmActivity.create({
+      data: {
+        tenantId: link.tenantId,
+        patientId: link.patientId,
+        type: ClinicCrmActivityType.OTHER,
+        body: crmBody,
+        occurredAt: new Date(),
+      },
+    })
+
+    await writeAppointmentEvent(tx, {
+      tenantId: link.tenantId,
+      appointmentId: appointment.id,
+      type: ClinicAppointmentEventType.UPDATED,
+      message: crmBody,
+      after: {
+        source: 'PATIENT_PORTAL',
+        requestId: requestRow.id,
+        type: 'PRE_VISIT_TASKS',
+        completedTaskIds,
+      },
+      createdByUserId: null,
+    })
+
+    return requestRow
+  })
+
+  return NextResponse.json({
+    request: created,
+    completedTaskIds,
+    preVisitTasks: buildPreVisitTasks(completedTaskIds),
+  })
 }

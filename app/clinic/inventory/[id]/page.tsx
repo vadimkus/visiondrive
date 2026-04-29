@@ -33,6 +33,11 @@ type Item = {
   procedureId: string | null
   procedure: { id: string; name: string } | null
   lowStock: boolean
+  injectableBatch: {
+    batchNumber: string | null
+    expiresAt: string | null
+    expiryStatus: 'none' | 'valid' | 'expiring' | 'expired'
+  }
   movements: Movement[]
 }
 
@@ -57,6 +62,8 @@ export default function StockItemDetailPage() {
   const [notes, setNotes] = useState('')
   const [barcode, setBarcode] = useState('')
   const [consumePerVisit, setConsumePerVisit] = useState('0')
+  const [batchNumber, setBatchNumber] = useState('')
+  const [batchExpiresAt, setBatchExpiresAt] = useState('')
 
   const [movType, setMovType] = useState('RECEIPT')
   const [movDelta, setMovDelta] = useState('1')
@@ -89,6 +96,8 @@ export default function StockItemDetailPage() {
     setNotes(it.notes ?? '')
     setBarcode(it.barcode ?? '')
     setConsumePerVisit(String(it.consumePerVisit ?? 0))
+    setBatchNumber(it.injectableBatch?.batchNumber ?? '')
+    setBatchExpiresAt(it.injectableBatch?.expiresAt ?? '')
     setError('')
 
     if (pRes.ok) {
@@ -135,6 +144,8 @@ export default function StockItemDetailPage() {
           notes: notes.trim() || null,
           barcode: barcode.trim() || null,
           consumePerVisit: parseInt(consumePerVisit, 10) || 0,
+          batchNumber: batchNumber.trim() || null,
+          batchExpiresAt: batchExpiresAt || null,
         }),
       })
       const data = await res.json()
@@ -232,6 +243,15 @@ export default function StockItemDetailPage() {
           {item.lowStock && (
             <span className="inline-flex px-2 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-900">
               {t.lowStock}
+            </span>
+          )}
+          {item.injectableBatch.expiryStatus !== 'none' && (
+            <span className="inline-flex px-2 py-1 rounded-lg text-xs font-semibold bg-sky-100 text-sky-900">
+              {item.injectableBatch.expiryStatus === 'expired'
+                ? t.batchExpired
+                : item.injectableBatch.expiryStatus === 'expiring'
+                  ? t.batchExpiringSoon
+                  : t.batchTracked}
             </span>
           )}
         </div>
@@ -384,6 +404,29 @@ export default function StockItemDetailPage() {
           />
           {t.statusActive}
         </label>
+        <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4">
+          <h2 className="text-sm font-semibold text-sky-950">{t.injectableBatchTracking}</h2>
+          <p className="mt-1 text-xs text-sky-800">{t.injectableBatchHint}</p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="block text-sm text-gray-700">
+              {t.batchNumber}
+              <input
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 min-h-11"
+                value={batchNumber}
+                onChange={(e) => setBatchNumber(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm text-gray-700">
+              {t.batchExpiresAt}
+              <input
+                type="date"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 min-h-11"
+                value={batchExpiresAt}
+                onChange={(e) => setBatchExpiresAt(e.target.value)}
+              />
+            </label>
+          </div>
+        </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.stockNotes}</label>
           <textarea

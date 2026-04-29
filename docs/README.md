@@ -101,11 +101,13 @@
 | [2026-04-29_clinic-adaptive-ui-overhaul-local.md](2026-04-29_clinic-adaptive-ui-overhaul-local.md) | Clinic adaptive UI overhaul local-first note |
 | [2026-04-29_clinic-ru-localization-demo-data.md](2026-04-29_clinic-ru-localization-demo-data.md) | Clinic Russian localization and demo-patient seed note |
 | [2026-04-29_mobile-pre-login-ui.md](2026-04-29_mobile-pre-login-ui.md) | Mobile pre-login public website and portal sign-in UI refresh |
+| [2026-04-29_clinic-mobile-user-settings-header.md](2026-04-29_clinic-mobile-user-settings-header.md) | Clinic mobile header language dropdown and doctor settings shortcut |
 | [2026-04-29_clinic-patient-card-desktop-ui.md](2026-04-29_clinic-patient-card-desktop-ui.md) | Clinic desktop patient card UI refresh |
 | [2026-04-29_clinic-patient-tabs-desktop-ui.md](2026-04-29_clinic-patient-tabs-desktop-ui.md) | Clinic desktop patient-card tab UI pass |
 | [2026-04-29_clinic-mobile-dashboard-overflow-fix.md](2026-04-29_clinic-mobile-dashboard-overflow-fix.md) | Clinic mobile dashboard overflow fix |
 | [2026-04-29_clinic-face-map-annotations.md](2026-04-29_clinic-face-map-annotations.md) | Clinic aesthetic face-map annotations |
 | [2026-04-29_solo-practitioner-feature-research.md](2026-04-29_solo-practitioner-feature-research.md) | Solo-practitioner software research and recommended feature backlog |
+| [2026-04-29_clinic-home-doctor-field-workflows.md](2026-04-29_clinic-home-doctor-field-workflows.md) | Clinic route mode, pre-visit tasks, injectable batch tracking, and before/after v2 |
 | [2026-04-29_clinic-booking-policy-foundation.md](2026-04-29_clinic-booking-policy-foundation.md) | Clinic booking policy foundation for deposits/no-show protection |
 | [2026-04-29_clinic-deposit-payment-links.md](2026-04-29_clinic-deposit-payment-links.md) | Clinic deposit payment links and manual paid workflow |
 | [2026-04-29_clinic-policy-fee-enforcement.md](2026-04-29_clinic-policy-fee-enforcement.md) | Clinic late-cancel/no-show fee enforcement and waiver workflow |
@@ -116,6 +118,7 @@
 | [2026-04-29_clinic-calendar-sync-personal-blocks.md](2026-04-29_clinic-calendar-sync-personal-blocks.md) | Clinic calendar sync and personal blocks |
 | [2026-04-29_clinic-card-on-file-saved-methods.md](2026-04-29_clinic-card-on-file-saved-methods.md) | Clinic card-on-file saved-method workflow |
 | [2026-04-29_clinic-retail-addons-ai-note-assistant.md](2026-04-29_clinic-retail-addons-ai-note-assistant.md) | Clinic retail add-on recommendations and AI note assistant |
+| [2026-04-29_altegio-support-cross-check.md](2026-04-29_altegio-support-cross-check.md) | Altegio support scope cross-check and Practice OS completion status |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

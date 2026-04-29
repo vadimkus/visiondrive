@@ -56,6 +56,7 @@ import {
   renderReminderTemplate,
   whatsappUrl,
 } from '@/lib/clinic/reminders'
+import { buildOnMyWayMessage, buildOnMyWayWhatsappUrl } from '@/lib/clinic/route-mode'
 
 const FUTURE_APPOINTMENT_STATUSES = [
   ClinicAppointmentStatus.SCHEDULED,
@@ -495,6 +496,38 @@ export async function POST(
       reminderText: result.text,
       whatsappUrl: result.url,
       delivery: result.delivery,
+    })
+  }
+
+  if (action === 'send_on_my_way') {
+    const locale = body.locale === 'ru' ? 'ru' : 'en'
+    const text = buildOnMyWayMessage(existing, locale)
+    const url = buildOnMyWayWhatsappUrl(existing, locale)
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.clinicCrmActivity.create({
+        data: {
+          tenantId: session.tenantId,
+          patientId: existing.patientId,
+          type: ClinicCrmActivityType.WHATSAPP,
+          body: `On my way prepared: ${text}`,
+          occurredAt: new Date(),
+          createdByUserId: session.userId,
+        },
+      })
+      await writeAppointmentEvent(tx, {
+        tenantId: session.tenantId,
+        appointmentId: id,
+        type: ClinicAppointmentEventType.REMINDER_PREPARED,
+        message: 'On my way WhatsApp prepared',
+        after: { text },
+        createdByUserId: session.userId,
+      })
+      return { text, url }
+    })
+    return NextResponse.json({
+      reminderText: result.text,
+      whatsappUrl: result.url,
+      missingPhone: !phoneForWhatsapp(existing.patient.phone),
     })
   }
 

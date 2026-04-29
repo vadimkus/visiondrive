@@ -19,6 +19,11 @@ type Item = {
   reorderPoint: number
   active: boolean
   lowStock: boolean
+  injectableBatch: {
+    batchNumber: string | null
+    expiresAt: string | null
+    expiryStatus: 'none' | 'valid' | 'expiring' | 'expired'
+  }
   procedure: { id: string; name: string } | null
 }
 
@@ -210,6 +215,30 @@ function ClinicInventoryPageContent() {
                     )}
                     {!row.active && (
                       <span className="ms-2 text-xs text-gray-500">{t.stockInactive}</span>
+                    )}
+                    {row.injectableBatch.expiryStatus !== 'none' && (
+                      <span
+                        className={clsx(
+                          'ms-2 inline-flex px-2 py-0.5 rounded-lg text-xs font-semibold',
+                          row.injectableBatch.expiryStatus === 'expired'
+                            ? 'bg-red-100 text-red-800'
+                            : row.injectableBatch.expiryStatus === 'expiring'
+                              ? 'bg-amber-100 text-amber-900'
+                              : 'bg-sky-100 text-sky-800'
+                        )}
+                      >
+                        {row.injectableBatch.expiryStatus === 'expired'
+                          ? t.batchExpired
+                          : row.injectableBatch.expiryStatus === 'expiring'
+                            ? t.batchExpiringSoon
+                            : t.batchTracked}
+                      </span>
+                    )}
+                    {row.injectableBatch.batchNumber && (
+                      <p className="mt-0.5 text-xs text-gray-500">
+                        {t.batchNumber}: {row.injectableBatch.batchNumber}
+                        {row.injectableBatch.expiresAt ? ` · ${t.batchExpiresAt}: ${row.injectableBatch.expiresAt}` : ''}
+                      </p>
                     )}
                     <p className="text-xs text-gray-500 sm:hidden mt-0.5">
                       {row.quantityOnHand} {row.unit}

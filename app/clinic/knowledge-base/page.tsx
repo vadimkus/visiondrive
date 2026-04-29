@@ -67,6 +67,20 @@ const articlesEn: Article[] = [
     link: '/clinic',
   },
   {
+    id: 'route-mode-on-my-way',
+    category: 'Appointments',
+    title: 'Run home visits with Route Mode',
+    summary: 'Use the day view to open the full driving route and send an “On my way” WhatsApp before each stop.',
+    steps: [
+      'Open Appointments and switch to Day view.',
+      'Check that each home visit has a visit address, area, and access or parking note.',
+      'Use Full route to open the ordered day route in Google Maps.',
+      'Tap On my way before leaving for a patient; the system prepares WhatsApp copy and logs the handoff in the timeline.',
+      'Open the appointment drawer if you need payments, reminders, or visit actions after arrival.',
+    ],
+    link: '/clinic/appointments',
+  },
+  {
     id: 'group-classes-events',
     category: 'Appointments',
     title: 'Handle workshops without group booking',
@@ -109,6 +123,20 @@ const articlesEn: Article[] = [
     link: '/clinic/patients',
   },
   {
+    id: 'before-after-comparison-v2',
+    category: 'Patients',
+    title: 'Review before/after comparison v2',
+    summary: 'The Photos tab automatically pairs Before and After media for fast progress review.',
+    steps: [
+      'Open a patient card and go to Photos.',
+      'Upload at least one Before and one After image, ideally linked to the same visit or treatment plan milestone.',
+      'Use the Before / after review section to compare paired photos side by side.',
+      'Keep photo protocol checks consistent so lighting, angle, and background are comparable.',
+      'Use face maps separately when you need injection marks or correction planning on top of the photo.',
+    ],
+    link: '/clinic/patients',
+  },
+  {
     id: 'data-export-deletion',
     category: 'Patients',
     title: 'Export or delete a full patient record',
@@ -137,6 +165,20 @@ const articlesEn: Article[] = [
     link: '/clinic/patients',
   },
   {
+    id: 'pre-visit-patient-tasks',
+    category: 'Patients',
+    title: 'Use pre-visit tasks in the patient portal',
+    summary: 'Patients can confirm address, access details, health changes, and treatment readiness before a home visit.',
+    steps: [
+      'Create or reuse the patient portal link from the patient card.',
+      'Send the private link before a home visit.',
+      'The patient opens the portal and ticks the pre-visit checklist on the upcoming appointment.',
+      'Every save creates a patient portal request, CRM activity, and appointment history event.',
+      'Review the checklist status before leaving or when opening the appointment drawer.',
+    ],
+    link: '/clinic/patients',
+  },
+  {
     id: 'inventory',
     category: 'Inventory',
     title: 'Track consumables and avoid low-stock surprises',
@@ -146,6 +188,20 @@ const articlesEn: Article[] = [
       'Set minimum stock and reorder quantity.',
       'Review movements after purchase order receiving or visit completion.',
       'Enable browser push in Account to receive low-stock notifications.',
+    ],
+    link: '/clinic/inventory',
+  },
+  {
+    id: 'injectable-batch-expiry',
+    category: 'Inventory',
+    title: 'Track injectable batch and expiry',
+    summary: 'Record lot numbers and expiry dates for Botox, fillers, ampoules, and other regulated consumables.',
+    steps: [
+      'Open Inventory and create or edit an injectable stock item.',
+      'Use Injectable batch tracking to enter the batch/lot number and expiry date.',
+      'Watch the inventory list for Batch tracked, Expiring soon, or Expired batch badges.',
+      'When receiving a new lot, update the batch fields and record a stock receipt movement.',
+      'Do not use expired batches; adjust or write them off with an audited stock movement.',
     ],
     link: '/clinic/inventory',
   },
@@ -182,7 +238,7 @@ const articlesEn: Article[] = [
     id: 'pwa-practitioner-mode',
     category: 'Account',
     title: 'Use Practice OS as a mobile app',
-    summary: 'Install the clinic workspace and use the dashboard as a focused today screen.',
+    summary: 'Install the workspace and use the dashboard as a focused today screen.',
     steps: [
       'Open Practice OS on the phone or tablet you use in the field.',
       'Use the Practitioner mode card on the dashboard to install the app when the browser offers it.',
@@ -738,7 +794,7 @@ const articlesEn: Article[] = [
     summary:
       'Give a patient one secure link for upcoming appointments, aftercare, package balance, receipts, consents, and reschedule/cancel requests.',
     steps: [
-      'Open the patient chart and find Patient portal lite under the header.',
+      'Open the patient chart and find Patient portal under the header.',
       'Create a portal link; the old active link is revoked automatically and the new link expires after 90 days.',
       'Send the copied link privately through WhatsApp or email.',
       'Review portal requests in the patient chart and CRM timeline when a patient asks to reschedule or cancel.',
@@ -894,6 +950,20 @@ const articlesRu: Article[] = [
     link: '/clinic',
   },
   {
+    id: 'route-mode-on-my-way',
+    category: 'Записи',
+    title: 'Ведите выезды через Route Mode',
+    summary: 'В виде День открывайте общий маршрут и отправляйте WhatsApp «Уже выезжаю» перед каждым адресом.',
+    steps: [
+      'Откройте Записи и переключитесь на вид День.',
+      'Проверьте, что у каждого выездного визита есть адрес, район и заметки по входу или парковке.',
+      'Нажмите Весь маршрут, чтобы открыть порядок адресов в Google Maps.',
+      'Перед выездом к пациенту нажмите Уже выезжаю: система подготовит WhatsApp-текст и сохранит действие в истории.',
+      'После прибытия откройте карточку записи для оплаты, напоминаний или действий по визиту.',
+    ],
+    link: '/clinic/appointments',
+  },
+  {
     id: 'group-classes-events',
     category: 'Записи',
     title: 'Проводите воркшопы без групповой записи',
@@ -936,6 +1006,20 @@ const articlesRu: Article[] = [
     link: '/clinic/patients',
   },
   {
+    id: 'before-after-comparison-v2',
+    category: 'Пациенты',
+    title: 'Сравнивайте до/после v2',
+    summary: 'Вкладка Фото автоматически подбирает пары До и После для быстрой оценки прогресса.',
+    steps: [
+      'Откройте карту пациента и вкладку Фото.',
+      'Загрузите хотя бы одно фото До и одно фото После, лучше с привязкой к одному визиту или этапу плана лечения.',
+      'Используйте блок Обзор до / после, чтобы сравнить фото рядом.',
+      'Соблюдайте одинаковый протокол фото: свет, угол и фон.',
+      'Карту лица используйте отдельно, когда нужно отмечать точки инъекций или план коррекции поверх фото.',
+    ],
+    link: '/clinic/patients',
+  },
+  {
     id: 'data-export-deletion',
     category: 'Пациенты',
     title: 'Экспорт или удаление полной карты пациента',
@@ -964,6 +1048,20 @@ const articlesRu: Article[] = [
     link: '/clinic/patients',
   },
   {
+    id: 'pre-visit-patient-tasks',
+    category: 'Пациенты',
+    title: 'Используйте задачи перед визитом в кабинете пациента',
+    summary: 'Пациент подтверждает адрес, доступ, изменения здоровья и готовность к процедуре до выезда.',
+    steps: [
+      'Создайте или используйте существующую приватную ссылку кабинета пациента из карты пациента.',
+      'Отправьте ссылку перед выездным визитом.',
+      'Пациент открывает кабинет и отмечает чеклист перед визитом в будущей записи.',
+      'Каждое сохранение создаёт запрос из кабинета, CRM-запись и событие в истории записи.',
+      'Проверьте статус чеклиста перед выездом или при открытии карточки записи.',
+    ],
+    link: '/clinic/patients',
+  },
+  {
     id: 'inventory',
     category: 'Склад',
     title: 'Контролируйте расходники и низкие остатки',
@@ -973,6 +1071,20 @@ const articlesRu: Article[] = [
       'Укажите минимальный остаток и количество для заказа.',
       'Проверяйте движения после закупки или завершения визита.',
       'Включите push-уведомления в Аккаунте, чтобы получать низкие остатки.',
+    ],
+    link: '/clinic/inventory',
+  },
+  {
+    id: 'injectable-batch-expiry',
+    category: 'Склад',
+    title: 'Учитывайте партии и сроки годности инъекций',
+    summary: 'Фиксируйте номера лотов и сроки годности ботокса, филлеров, ампул и других расходников.',
+    steps: [
+      'Откройте Склад и создайте или отредактируйте инъекционный товар.',
+      'В блоке Партия и срок годности инъекций укажите номер партии/лота и дату истечения.',
+      'Следите за бейджами в списке: Партия учтена, Скоро истекает или Просроченная партия.',
+      'При получении новой партии обновите поля партии и добавьте движение прихода.',
+      'Не используйте просроченные партии; спишите или скорректируйте их через аудируемое движение склада.',
     ],
     link: '/clinic/inventory',
   },
@@ -1040,7 +1152,7 @@ const articlesRu: Article[] = [
     title: 'Быстро отправляйте пациенту расчёт стоимости',
     summary: 'Создавайте аккуратный estimate с ценами услуг, PDF, текстом для WhatsApp и email.',
     steps: [
-      'Откройте карту пациента и вкладку Котировки.',
+      'Откройте карту пациента и вкладку Расчёты.',
       'Выберите услуги из каталога процедур или добавьте свои строки.',
       'Укажите количество, цену, срок действия, скидку, заметку и условия.',
       'Сохраните расчёт, затем скачайте PDF или отправьте готовый текст через WhatsApp/email.',
@@ -1567,7 +1679,7 @@ const articlesRu: Article[] = [
     summary:
       'Одна защищённая ссылка для будущих записей, рекомендаций, баланса пакетов, чеков, согласий и запросов на перенос/отмену.',
     steps: [
-      'Откройте карту пациента и найдите блок Личный кабинет пациента Lite под шапкой.',
+      'Откройте карту пациента и найдите блок Личный кабинет пациента под шапкой.',
       'Создайте ссылку: старая активная ссылка отзывается автоматически, новая действует 90 дней.',
       'Отправьте скопированную ссылку приватно через WhatsApp или email.',
       'Проверяйте запросы из кабинета в карте пациента и CRM-ленте, когда пациент просит перенос или отмену.',

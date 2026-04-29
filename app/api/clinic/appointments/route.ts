@@ -48,7 +48,15 @@ export async function GET(request: NextRequest) {
       orderBy: { startsAt: 'asc' },
       include: {
         patient: {
-          select: { id: true, firstName: true, lastName: true, homeAddress: true, area: true, accessNotes: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            homeAddress: true,
+            area: true,
+            accessNotes: true,
+          },
         },
         procedure: {
           select: {

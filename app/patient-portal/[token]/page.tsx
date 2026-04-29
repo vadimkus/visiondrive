@@ -46,6 +46,12 @@ type PortalData = {
         kind: 'STANDARD' | 'DEPOSIT' | 'LATE_CANCEL_FEE' | 'NO_SHOW_FEE'
       }>
     }
+    preVisitTasks: Array<{
+      id: string
+      title: string
+      description: string
+      completed: boolean
+    }>
   }>
   aftercare: Array<{
     id: string
@@ -157,6 +163,9 @@ const copy = {
     noShowReceiptText: 'This receipt confirms a no-show fee recorded by the practice.',
     method: 'Method',
     reference: 'Reference',
+    preVisitTasks: 'Pre-visit tasks',
+    preVisitTasksHint: 'Please tick these before the practitioner arrives.',
+    preVisitSaved: 'Pre-visit tasks saved.',
   },
   ru: {
     title: 'Кабинет пациента',
@@ -207,6 +216,9 @@ const copy = {
     noShowReceiptText: 'Этот чек подтверждает штраф за неявку.',
     method: 'Метод',
     reference: 'Номер/ссылка',
+    preVisitTasks: 'Задачи перед визитом',
+    preVisitTasksHint: 'Отметьте это до приезда специалиста.',
+    preVisitSaved: 'Задачи перед визитом сохранены.',
   },
 } as const
 
@@ -242,6 +254,8 @@ export default function PatientPortalPage() {
   const [message, setMessage] = useState('')
   const [requesting, setRequesting] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
+  const [taskSavingKey, setTaskSavingKey] = useState('')
+  const [taskSaved, setTaskSaved] = useState(false)
 
   const selectedAppointment = useMemo(
     () => data?.appointments.find((appointment) => appointment.id === requestAppointmentId) ?? null,
@@ -253,7 +267,7 @@ export default function PatientPortalPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/patient-portal/${token}`)
+      const res = await fetch(`/api/patient-portal/${token}?locale=${locale}`)
       const json = await res.json()
       if (!res.ok) {
         setError(json.error ? c.expired : c.loadFailed)
@@ -266,7 +280,7 @@ export default function PatientPortalPage() {
     } finally {
       setLoading(false)
     }
-  }, [token, c.expired, c.loadFailed])
+  }, [token, locale, c.expired, c.loadFailed])
 
   useEffect(() => {
     void load()
@@ -306,6 +320,57 @@ export default function PatientPortalPage() {
       setError(c.loadFailed)
     } finally {
       setRequesting(false)
+    }
+  }
+
+  const savePreVisitTask = async (appointmentId: string, taskId: string, checked: boolean) => {
+    if (!data) return
+    const appointment = data.appointments.find((item) => item.id === appointmentId)
+    if (!appointment) return
+    const completedTaskIds = appointment.preVisitTasks
+      .filter((task) => (task.id === taskId ? checked : task.completed))
+      .map((task) => task.id)
+
+    setTaskSavingKey(`${appointmentId}:${taskId}`)
+    setTaskSaved(false)
+    try {
+      const res = await fetch(`/api/patient-portal/${token}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_previsit_tasks',
+          appointmentId,
+          completedTaskIds,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error || c.loadFailed)
+        return
+      }
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              appointments: current.appointments.map((item) =>
+                item.id === appointmentId
+                  ? {
+                      ...item,
+                      preVisitTasks: item.preVisitTasks.map((task) => ({
+                        ...task,
+                        completed: completedTaskIds.includes(task.id),
+                      })),
+                    }
+                  : item
+              ),
+            }
+          : current
+      )
+      setTaskSaved(true)
+    } catch {
+      setError(c.loadFailed)
+    } finally {
+      setTaskSavingKey('')
     }
   }
 
@@ -356,6 +421,12 @@ export default function PatientPortalPage() {
           </div>
         )}
 
+        {taskSaved && (
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800">
+            {c.preVisitSaved}
+          </div>
+        )}
+
         <PortalSection icon={CalendarClock} title={c.upcoming}>
           {data.appointments.length === 0 ? (
             <p className="text-sm text-gray-500">{c.noUpcoming}</p>
@@ -379,6 +450,36 @@ export default function PatientPortalPage() {
                     </p>
                   )}
                   {appointment.locationNotes && <p className="mt-1 text-sm text-gray-500">{appointment.locationNotes}</p>}
+                  {appointment.preVisitTasks.length > 0 && (
+                    <div className="mt-3 rounded-2xl border border-emerald-100 bg-white/80 p-3 text-sm">
+                      <p className="font-semibold text-emerald-950">{c.preVisitTasks}</p>
+                      <p className="mt-1 text-xs text-gray-500">{c.preVisitTasksHint}</p>
+                      <div className="mt-3 space-y-2">
+                        {appointment.preVisitTasks.map((task) => (
+                          <label
+                            key={task.id}
+                            className="flex gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={task.completed}
+                              disabled={taskSavingKey === `${appointment.id}:${task.id}`}
+                              onChange={(event) =>
+                                void savePreVisitTask(appointment.id, task.id, event.currentTarget.checked)
+                              }
+                              className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600"
+                            />
+                            <span>
+                              <span className="block font-semibold text-gray-900">{task.title}</span>
+                              <span className="mt-0.5 block text-xs leading-relaxed text-gray-500">
+                                {task.description}
+                              </span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {appointment.policy.type !== 'NONE' && (
                     <div className="mt-3 rounded-2xl border border-orange-100 bg-white/80 p-3 text-sm">
                       <p className="font-semibold text-orange-950">{c.policy}</p>

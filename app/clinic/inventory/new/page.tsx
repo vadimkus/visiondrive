@@ -23,6 +23,8 @@ export default function NewStockItemPage() {
     initialQuantity: '0',
     consumePerVisit: '0',
     procedureId: '',
+    batchNumber: '',
+    batchExpiresAt: '',
     notes: '',
   })
 
@@ -59,6 +61,8 @@ export default function NewStockItemPage() {
           initialQuantity: parseInt(form.initialQuantity, 10) || 0,
           consumePerVisit: parseInt(form.consumePerVisit, 10) || 0,
           procedureId: form.procedureId || null,
+          batchNumber: form.batchNumber.trim() || null,
+          batchExpiresAt: form.batchExpiresAt || null,
           notes: form.notes.trim() || null,
         }),
       })
@@ -172,6 +176,29 @@ export default function NewStockItemPage() {
             onChange={(e) => setForm({ ...form, consumePerVisit: e.target.value })}
           />
           <p className="text-xs text-gray-500 mt-1">{t.consumePerVisitHint}</p>
+        </div>
+        <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4">
+          <h2 className="text-sm font-semibold text-sky-950">{t.injectableBatchTracking}</h2>
+          <p className="mt-1 text-xs text-sky-800">{t.injectableBatchHint}</p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-medium text-gray-700">
+              {t.batchNumber}
+              <input
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900 min-h-11"
+                value={form.batchNumber}
+                onChange={(e) => setForm({ ...form, batchNumber: e.target.value })}
+              />
+            </label>
+            <label className="block text-sm font-medium text-gray-700">
+              {t.batchExpiresAt}
+              <input
+                type="date"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900 min-h-11"
+                value={form.batchExpiresAt}
+                onChange={(e) => setForm({ ...form, batchExpiresAt: e.target.value })}
+              />
+            </label>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t.stockNotes}</label>
