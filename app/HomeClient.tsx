@@ -19,7 +19,7 @@ const homeCopy = {
     headlineAccent: 'solo practitioners',
     sub: 'VisionDrive gives independent clinics and solo service providers one calm workspace for bookings, client records, treatment notes, photos, inventory, payments, and business reporting. Built for practitioners who need the discipline of a clinic system without the overhead of an enterprise suite.',
     mobileSub: 'Bookings. Records. Payments. One calm workspace.',
-    mobilePrimary: 'Open portal',
+    mobilePrimary: 'Open workspace',
     mobileSecondary: 'Request demo',
     ctaPrimary: 'Request product walkthrough',
     capabilities: [
@@ -29,10 +29,10 @@ const homeCopy = {
       { icon: Layers, label: 'Bookings to payments' },
     ],
     darkKicker: 'Practice workspace',
-    darkTitle: 'Run the whole practice from one console',
+    darkTitle: 'Run the whole practice from one workspace',
     darkBody:
       'Access is currently private while the product is prepared for selective onboarding. VisionDrive helps solo practitioners keep appointments, treatment history, follow-ups, stock, and finances organized in one professional operating system.',
-    darkPrimary: 'Open console',
+    darkPrimary: 'Open workspace',
     darkSecondary: 'Request access',
   },
   ru: {
@@ -40,7 +40,7 @@ const homeCopy = {
     headlineAccent: 'частных специалистов',
     sub: 'VisionDrive дает независимым клиникам и частным специалистам единое рабочее пространство для записей, клиентских карт, заметок по процедурам, фото, склада, оплат и управленческой отчетности. Это дисциплина клинической системы без сложности корпоративной платформы.',
     mobileSub: 'Записи. Карты. Оплаты. Всё спокойно и понятно.',
-    mobilePrimary: 'Открыть портал',
+    mobilePrimary: 'Открыть кабинет',
     mobileSecondary: 'Демо',
     ctaPrimary: 'Запросить демонстрацию',
     capabilities: [
@@ -50,10 +50,10 @@ const homeCopy = {
       { icon: Layers, label: 'От записи до оплаты' },
     ],
     darkKicker: 'Рабочее пространство',
-    darkTitle: 'Управляйте всей практикой из одной консоли',
+    darkTitle: 'Управляйте всей практикой из одного кабинета',
     darkBody:
       'Доступ сейчас закрытый, пока продукт готовится к выборочному подключению. VisionDrive помогает частным специалистам держать в порядке расписание, историю процедур, повторные визиты, склад и финансы в одной профессиональной операционной системе.',
-    darkPrimary: 'Открыть консоль',
+    darkPrimary: 'Открыть кабинет',
     darkSecondary: 'Запросить доступ',
   },
 } as const

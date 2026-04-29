@@ -13,7 +13,7 @@ export const contactTranslations = {
     },
     faq: {
       items: [
-        { q: 'How does Vision Drive work?', a: 'Real-time sensors detect availability displayed in our app.' },
+        { q: 'How does Vision Drive work?', a: 'Practice OS brings booking, patient records, payments, reminders, and reporting into one workspace.' },
         { q: 'Where is Vision Drive available?', a: 'Select pilot locations across Dubai.' },
         { q: 'How do I become a partner?', a: 'Contact us through the form above.' },
       ],
@@ -33,7 +33,7 @@ export const contactTranslations = {
     },
     faq: {
       items: [
-        { q: 'كيف يعمل Vision Drive؟', a: 'المستشعرات في الوقت الفعلي تكتشف التوفر المعروض في تطبيقنا.' },
+        { q: 'كيف يعمل Vision Drive؟', a: 'يجمع Practice OS الحجز وسجلات العملاء والمدفوعات والتذكيرات والتقارير في مساحة عمل واحدة.' },
         { q: 'أين يتوفر Vision Drive؟', a: 'مواقع تجريبية مختارة عبر دبي.' },
         { q: 'كيف أصبح شريكاً؟', a: 'اتصل بنا من خلال النموذج أعلاه.' },
       ],

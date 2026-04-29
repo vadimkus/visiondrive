@@ -62,13 +62,10 @@ export default function Header() {
         } else if (response.ok) {
           const data = await response.json()
           const portal = data?.user?.portal as string | undefined
-          const role = data?.user?.role as string | undefined
           if (portal === 'clinic') {
             setDashboardHref('/clinic')
-          } else if (portal === 'kitchen') {
-            setDashboardHref(role === 'KITCHEN_OWNER' ? '/kitchen-owner' : '/portal/smart-kitchen')
           } else {
-            setDashboardHref('/portal')
+            setDashboardHref('/clinic')
           }
           setIsLoggedIn(true)
         } else {

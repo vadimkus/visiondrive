@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Contact VisionDrive - Smart Kitchen Solutions UAE',
-  description: 'Get in touch with VisionDrive for NB-IoT smart kitchen temperature monitoring solutions. Contact us for enterprise projects, partnerships, and technical integrations in the UAE.',
-  keywords: 'contact VisionDrive, smart kitchen inquiry, UAE IoT solutions, temperature monitoring contact, food safety partnership',
+  title: 'Contact VisionDrive - Practice OS UAE',
+  description: 'Get in touch with VisionDrive for Practice OS demos, solo-practitioner onboarding, workflow review, and UAE practice operations software.',
+  keywords: 'contact VisionDrive, Practice OS demo, solo practitioner software UAE, clinic software onboarding, practice management software',
   alternates: { canonical: '/contact' },
   openGraph: {
-    title: 'Contact VisionDrive - Smart Kitchen Solutions',
-    description: 'Contact us for enterprise projects, partnerships, and smart kitchen deployments across the UAE.',
+    title: 'Contact VisionDrive - Practice OS',
+    description: 'Contact us for Practice OS demos, practitioner onboarding, and workflow review.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

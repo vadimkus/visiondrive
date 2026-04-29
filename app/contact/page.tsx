@@ -8,9 +8,8 @@ import {
   MessageCircle, 
   Clock, 
   CheckCircle2, 
-  ChefHat,
-  Thermometer, 
-  Zap,
+  ClipboardList,
+  CalendarDays, 
   ArrowRight,
   Send,
   FileCheck,
@@ -53,30 +52,30 @@ const contactMethods = [
 
 const reasons = [
   {
-    icon: Thermometer,
-    title: 'Temperature Monitoring',
-    description: 'Deploy smart sensors for real-time fridge, freezer, and ambient temperature monitoring in your kitchen.',
+    icon: CalendarDays,
+    title: 'Practice Setup',
+    description: 'Configure services, availability, booking links, patient records, and daily workflow.',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
   },
   {
     icon: FileCheck,
-    title: 'Compliance Support',
-    description: 'Ensure your kitchen meets Dubai Municipality food safety standards with automated compliance reporting.',
+    title: 'Records & Documents',
+    description: 'Set up patient-safe exports, consent templates, treatment notes, and portal sharing.',
     color: 'text-green-600',
     bg: 'bg-green-50',
   },
   {
     icon: Bell,
-    title: 'Alert Configuration',
-    description: 'Set up custom temperature thresholds and alert channels for your specific kitchen requirements.',
+    title: 'Reminders & Follow-Up',
+    description: 'Configure WhatsApp-ready reminders, aftercare messages, waitlist fill, and review requests.',
     color: 'text-orange-600',
     bg: 'bg-orange-50',
   },
   {
     icon: Shield,
     title: 'Technical Support',
-    description: 'Get dedicated support for sensor deployment, configuration, and ongoing maintenance.',
+    description: 'Get onboarding support for secure workflows, data residency, and private portal access.',
     color: 'text-purple-600',
     bg: 'bg-purple-50',
   },
@@ -84,26 +83,26 @@ const reasons = [
 
 const features = [
   { icon: Clock, text: 'Response within 1 business day' },
-  { icon: ChefHat, text: 'Kitchen-focused solutions' },
+  { icon: ClipboardList, text: 'Practice workflow review' },
   { icon: Shield, text: 'UAE data residency compliant' },
 ]
 
 const faqs = [
   {
-    q: 'How quickly can sensors be installed?',
-    a: 'Sensors are wireless and can be deployed within hours. No complex wiring or infrastructure changes required.',
+    q: 'How quickly can I see a demo?',
+    a: 'We can usually walk through the product and your workflow within one business day.',
   },
   {
-    q: 'What types of kitchens do you serve?',
-    a: 'We serve restaurants, hotels, catering companies, central kitchens, and food production facilities across the UAE.',
+    q: 'What types of practitioners do you serve?',
+    a: 'We serve solo practitioners, home-visit providers, aesthetics professionals, wellness operators, and independent clinics across the UAE.',
   },
   {
-    q: 'Is the system Dubai Municipality compliant?',
-    a: 'Yes, our reports are designed to meet Dubai Municipality food safety inspection requirements and HACCP documentation standards.',
+    q: 'Can you help configure my workflow?',
+    a: 'Yes. We can review your services, intake forms, follow-up flow, payments, packages, and patient-card structure during onboarding.',
   },
   {
-    q: 'What happens if a sensor goes offline?',
-    a: 'You receive immediate alerts if a sensor loses connectivity. Sensors also store data locally and sync when reconnected.',
+    q: 'Can I use it on mobile?',
+    a: 'Yes. Practice OS is designed for mobile browser use with a practitioner-focused dashboard and patient-card workflow.',
   },
 ]
 
@@ -116,12 +115,12 @@ export default function ContactPage() {
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <div className="text-center md:text-left">
               <h1 className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 mb-4 sm:mb-6">
-                Start Monitoring
-                <span className="text-orange-500 block sm:inline"> Your Kitchen</span> Today
+                Start Running
+                <span className="text-orange-500 block sm:inline"> Your Practice</span> Today
               </h1>
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8">
-                Whether you manage a single restaurant or a chain of kitchens, we&apos;re ready to help you 
-                ensure food safety compliance with smart temperature monitoring.
+                Whether you are a solo practitioner or an independent clinic, we&apos;re ready to help you
+                organize bookings, records, payments, stock, and follow-up.
               </p>
               
               {/* Features */}
@@ -205,7 +204,7 @@ export default function ContactPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">How Can We Help?</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We work with restaurants, hotels, and food service businesses across the UAE
+              We work with solo practitioners and independent clinics across the UAE
             </p>
           </div>
 
@@ -232,7 +231,7 @@ export default function ContactPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
             <p className="text-lg text-gray-600">
-              Quick answers to common questions about our smart kitchen solutions
+              Quick answers to common questions about Practice OS onboarding
             </p>
           </div>
 
@@ -268,11 +267,11 @@ export default function ContactPage() {
         <div className="max-w-4xl mx-auto">
           <div className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl p-8 md:p-12 text-white text-center">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              Ready to Ensure Food Safety Compliance?
+              Ready to Bring the Practice Under Control?
             </h2>
             <p className="text-lg text-orange-100 mb-8 max-w-2xl mx-auto">
-              Join restaurants, hotels, and food service businesses across the UAE using smart 
-              temperature monitoring to protect their customers and reputation.
+              Request a walkthrough and see how VisionDrive can support your booking, treatment,
+              payment, and follow-up workflow.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
