@@ -208,7 +208,7 @@ export default function ClinicDashboardPage() {
 
   return (
     <>
-      <section className="space-y-5 lg:hidden">
+      <section className="min-w-0 space-y-5 lg:hidden">
         <div className="relative overflow-hidden rounded-[2rem] bg-slate-950 p-5 text-white shadow-2xl shadow-slate-950/20">
           <div className="absolute -right-12 -top-16 h-40 w-40 rounded-full bg-orange-400/40 blur-3xl" />
           <div className="absolute -bottom-16 left-8 h-36 w-36 rounded-full bg-indigo-400/30 blur-3xl" />
@@ -460,17 +460,17 @@ function BookingChannelLinksCard({
   return (
     <section
       className={clsx(
-        'rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur',
+        'min-w-0 overflow-hidden rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur',
         desktop && 'p-6'
       )}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-slate-950">{t.bookingChannelLinks}</p>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{t.bookingChannelLinksHint}</p>
           {!bookingEnabled && <p className="mt-2 text-xs font-semibold text-amber-700">{t.bookingChannelEnableFirst}</p>}
         </div>
-        <div className="flex flex-col items-start gap-2 sm:items-end">
+        <div className="flex min-w-0 flex-col items-start gap-2 sm:items-end">
           {copiedLink && (
             <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
               {t.copied}: {copiedLink}
@@ -497,7 +497,7 @@ function BookingChannelLinksCard({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 md:grid-cols-3">
+      <div className="mt-4 grid min-w-0 gap-2 md:grid-cols-3">
         {channels.map((channel) => {
           const label = bookingChannelLabel(channel)
           const url = channelUrl(channel)
@@ -511,25 +511,25 @@ function BookingChannelLinksCard({
               key={channel}
               type="button"
               onClick={() => void copyText(copyValue, label)}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm transition hover:border-orange-200 hover:shadow-sm"
+              className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm transition hover:border-orange-200 hover:shadow-sm"
             >
-              <span className="font-semibold text-slate-950">{label}</span>
-              <span className="mt-1 block truncate text-xs text-slate-500">{url}</span>
+              <span className="block truncate font-semibold text-slate-950">{label}</span>
+              <span className="mt-1 block min-w-0 truncate text-xs text-slate-500">{url}</span>
             </button>
           )
         })}
       </div>
 
       {primaryProcedure && (
-        <div className="mt-4 rounded-2xl border border-orange-100 bg-orange-50/70 p-3">
+        <div className="mt-4 min-w-0 rounded-2xl border border-orange-100 bg-orange-50/70 p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{t.serviceDirectLinks}</p>
-          <div className="mt-2 grid gap-2 md:grid-cols-3">
+          <div className="mt-2 grid min-w-0 gap-2 md:grid-cols-3">
             {procedures.slice(0, 3).map((procedure) => (
               <button
                 key={procedure.id}
                 type="button"
                 onClick={() => void copyText(channelUrl('instagram', procedure.id), procedure.name)}
-                className="rounded-xl bg-white px-3 py-2 text-left text-xs font-semibold text-slate-800"
+                className="min-w-0 rounded-xl bg-white px-3 py-2 text-left text-xs font-semibold text-slate-800"
               >
                 <span className="block truncate">{procedure.name}</span>
                 <span className="mt-0.5 block text-[11px] font-normal text-slate-500">{t.copyInstagramServiceLink}</span>

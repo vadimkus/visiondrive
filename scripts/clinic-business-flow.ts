@@ -195,11 +195,11 @@ async function main() {
   assert(preStockId, 'No pre-visit stock id')
   console.log('✓ POST inventory (procedure-linked, consumePerVisit)')
 
-  // 6) Appointment tomorrow 10:00 local
+  // 6) Appointment far enough ahead, inside default Dubai working hours (10:00-18:00)
   const uniqueSeed = Number(suffix.replace('e2e-', '')) || Date.now()
   const start = nextWeekdayAt(
     365 + (uniqueSeed % 90),
-    9 + (uniqueSeed % 7),
+    10 + (uniqueSeed % 6),
     (Math.floor(uniqueSeed / 7) % 6) * 10
   )
   const blockedPolicyRes = await req('/api/clinic/appointments', {

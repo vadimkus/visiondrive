@@ -898,16 +898,16 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   }
 
   const age = ageFromDob(patient.dateOfBirth)
-  const tabs: { id: Tab; label: string; icon: typeof Calendar }[] = [
-    { id: 'overview', label: t.overview, icon: ClipboardList },
-    { id: 'timeline', label: t.timeline, icon: Clock },
-    { id: 'photos', label: t.photos, icon: Camera },
-    { id: 'quotes', label: t.priceQuotes, icon: Send },
-    { id: 'payments', label: t.payments, icon: CreditCard },
-    { id: 'packages', label: t.packages, icon: PackageCheck },
-    { id: 'treatment-plans', label: t.treatmentPlans, icon: ClipboardList },
-    { id: 'consents', label: t.consents, icon: ShieldCheck },
-    { id: 'crm', label: t.crm, icon: MessageSquare },
+  const tabs: { id: Tab; label: string; icon: typeof Calendar; count: number | null }[] = [
+    { id: 'overview', label: t.overview, icon: ClipboardList, count: null },
+    { id: 'timeline', label: t.timeline, icon: Clock, count: timelineItems.length },
+    { id: 'photos', label: t.photos, icon: Camera, count: patient.media.length },
+    { id: 'quotes', label: t.priceQuotes, icon: Send, count: patient.priceQuotes.length },
+    { id: 'payments', label: t.payments, icon: CreditCard, count: patient.payments.length },
+    { id: 'packages', label: t.packages, icon: PackageCheck, count: patient.packages.length },
+    { id: 'treatment-plans', label: t.treatmentPlans, icon: ClipboardList, count: patient.treatmentPlans.length },
+    { id: 'consents', label: t.consents, icon: ShieldCheck, count: patient.consentRecords.length },
+    { id: 'crm', label: t.crm, icon: MessageSquare, count: patient.crmActivities.length },
   ]
 
   const filterChips: { id: TimelineFilter; label: string }[] = [
@@ -1049,21 +1049,31 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           </div>
 
           <div className="rounded-[1.75rem] border border-white/80 bg-white/75 p-2 shadow-sm">
-            <div className="flex gap-1 overflow-x-auto scrollbar-thin">
-              {tabs.map(({ id, label, icon: Icon }) => (
+            <div className="flex gap-1 overflow-x-auto scrollbar-thin xl:grid xl:grid-cols-9 xl:overflow-visible">
+              {tabs.map(({ id, label, icon: Icon, count }) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => setTab(id)}
                   className={clsx(
-                    'flex min-h-11 shrink-0 items-center gap-2 rounded-2xl px-4 text-sm font-semibold whitespace-nowrap transition-colors',
+                    'flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold whitespace-nowrap transition-colors xl:min-w-0 xl:px-2',
                     tab === id
                       ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/10'
                       : 'text-slate-500 hover:bg-white hover:text-slate-950'
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                  {label}
+                  <span className="truncate">{label}</span>
+                  {count != null && (
+                    <span
+                      className={clsx(
+                        'rounded-full px-2 py-0.5 text-[11px] font-bold',
+                        tab === id ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-500'
+                      )}
+                    >
+                      {count}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -1112,7 +1122,17 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
             />
           )}
           {tab === 'timeline' && (
-            <div className="space-y-3">
+            <div className="space-y-4">
+              <DesktopTabHeader
+                icon={Clock}
+                title={t.timeline}
+                hint={t.patientTabTimelineHint}
+                stats={[
+                  { label: t.timelineAll, value: String(timelineItems.length) },
+                  { label: t.timelineVisits, value: String(patient.visits.length) },
+                  { label: t.timelinePayments, value: String(patient.payments.length) },
+                ]}
+              />
               <div
                 className="flex flex-wrap gap-2"
                 role="tablist"
@@ -1232,6 +1252,46 @@ function ActionTile({
       </span>
       <FileDown className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
     </a>
+  )
+}
+
+function DesktopTabHeader({
+  icon: Icon,
+  title,
+  hint,
+  stats,
+}: {
+  icon: LucideIcon
+  title: string
+  hint: string
+  stats?: { label: string; value: string }[]
+}) {
+  return (
+    <section className="overflow-hidden rounded-[1.75rem] border border-white/80 bg-slate-950 text-white shadow-sm">
+      <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div className="flex min-w-0 items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-orange-300 ring-1 ring-white/10">
+            <Icon className="h-5 w-5" aria-hidden />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xl font-semibold tracking-[-0.03em] lg:text-2xl">{title}</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-300">{hint}</p>
+          </div>
+        </div>
+        {stats && stats.length > 0 && (
+          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:min-w-[22rem]">
+            {stats.map((stat) => (
+              <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/10 p-3">
+                <dt className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  {stat.label}
+                </dt>
+                <dd className="mt-1 text-lg font-semibold text-white">{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -1891,6 +1951,18 @@ function OverviewTab({
 
   return (
     <div className="space-y-6">
+      <DesktopTabHeader
+        icon={ClipboardList}
+        title={t.overview}
+        hint={t.patientTabOverviewHint}
+        stats={[
+          { label: t.timelineVisits, value: String(patient.visits.length) },
+          { label: t.answers, value: String(patient.intakeResponses.length) },
+          { label: t.treatmentPlans, value: String(patient.treatmentPlans.length) },
+        ]}
+      />
+
+      <div className="grid gap-5 lg:grid-cols-2">
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-2 text-sm">
         <div className="flex justify-between items-start gap-3">
           <p className="font-medium text-gray-900">{t.contact}</p>
@@ -2000,6 +2072,7 @@ function OverviewTab({
         ) : (
           <p className="text-gray-500">{t.anamnesisNoneOnFile}</p>
         )}
+      </div>
       </div>
 
       {editOpen && (
@@ -2631,6 +2704,17 @@ function PhotosTab({
 
   return (
     <div className="space-y-6">
+      <DesktopTabHeader
+        icon={Camera}
+        title={t.photos}
+        hint={t.patientTabPhotosHint}
+        stats={[
+          { label: t.photos, value: String(allMedia.length) },
+          { label: t.photoProtocol, value: String(allMedia.filter((m) => photoProtocolCheckedFromJson(m.protocolJson).length > 0).length) },
+          { label: t.offlinePhotoDraftsTitle, value: String(offlinePhotos.length) },
+        ]}
+      />
+
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Camera className="w-5 h-5 text-orange-600" />
@@ -2824,7 +2908,7 @@ function PhotosTab({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         {allMedia.map((m) => {
           const checked = photoProtocolCheckedFromJson(m.protocolJson)
           return (
@@ -2985,6 +3069,17 @@ function TreatmentPlansTab({
 
   return (
     <div className="space-y-6">
+      <DesktopTabHeader
+        icon={ClipboardList}
+        title={t.treatmentPlans}
+        hint={t.patientTabTreatmentPlansHint}
+        stats={[
+          { label: t.treatmentPlanStatusActive, value: String(plans.filter((plan) => plan.status === 'ACTIVE').length) },
+          { label: t.treatmentPlanStatusPaused, value: String(plans.filter((plan) => plan.status === 'PAUSED').length) },
+          { label: t.treatmentPlanStatusCompleted, value: String(plans.filter((plan) => plan.status === 'COMPLETED').length) },
+        ]}
+      />
+
       <section className="rounded-2xl border border-purple-100 bg-purple-50 p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wide text-purple-700">{t.treatmentPlans}</p>
         <h2 className="mt-1 text-xl font-semibold text-purple-950">{t.createTreatmentPlan}</h2>
@@ -3336,6 +3431,17 @@ function PackagesTab({
 
   return (
     <div className="space-y-6">
+      <DesktopTabHeader
+        icon={PackageCheck}
+        title={t.packages}
+        hint={t.patientTabPackagesHint}
+        stats={[
+          { label: t.treatmentPlanStatusActive, value: String(sortedPackages.filter((pkg) => pkg.status === 'ACTIVE').length) },
+          { label: t.packageSessions, value: String(sortedPackages.reduce((sum, pkg) => sum + pkg.remainingSessions, 0)) },
+          { label: t.payments, value: formatMoney(sortedPackages.reduce((sum, pkg) => sum + pkg.priceCents - pkg.discountCents, 0), 'AED') },
+        ]}
+      />
+
       <section className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{t.treatmentPackages}</p>
         <h2 className="mt-1 text-xl font-semibold text-emerald-950">{t.sellPackage}</h2>
@@ -3711,6 +3817,17 @@ function ConsentsTab({
 
   return (
     <div className="space-y-6">
+      <DesktopTabHeader
+        icon={ShieldCheck}
+        title={t.consents}
+        hint={t.patientTabConsentsHint}
+        stats={[
+          { label: t.consentTemplateLibrary, value: String(templates.length) },
+          { label: t.consentForms, value: String(patient.consentRecords.length) },
+          { label: t.aftercareText, value: String(patient.consentRecords.filter((record) => record.aftercareAcknowledged).length) },
+        ]}
+      />
+
       <section className="rounded-2xl border border-blue-100 bg-blue-50 p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">{t.consentForms}</p>
         <h2 className="mt-1 text-xl font-semibold text-blue-950">{t.signConsent}</h2>
@@ -4131,6 +4248,17 @@ function PriceQuotesTab({
 
   return (
     <div className="space-y-6">
+      <DesktopTabHeader
+        icon={Send}
+        title={t.priceQuotes}
+        hint={t.patientTabQuotesHint}
+        stats={[
+          { label: t.quoteStatusDraft, value: String(patient.priceQuotes.filter((quote) => quote.status === 'DRAFT').length) },
+          { label: t.quoteStatusSent, value: String(patient.priceQuotes.filter((quote) => quote.status === 'SENT').length) },
+          { label: t.quoteStatusAccepted, value: String(patient.priceQuotes.filter((quote) => quote.status === 'ACCEPTED').length) },
+        ]}
+      />
+
       <form onSubmit={createQuote} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -4621,6 +4749,17 @@ function PaymentsTab({
 
   return (
     <div className="space-y-6">
+      <DesktopTabHeader
+        icon={CreditCard}
+        title={t.payments}
+        hint={t.patientTabPaymentsHint}
+        stats={[
+          { label: t.paid, value: formatMoney(patient.clientBalance.paidCents, patient.clientBalance.currency) },
+          { label: t.balancePending, value: formatMoney(patient.clientBalance.pendingCents, patient.clientBalance.currency) },
+          { label: t.savedPaymentMethods, value: String(patient.savedPaymentMethods.filter((method) => method.status === 'ACTIVE').length) },
+        ]}
+      />
+
       <BalanceSummaryCard balance={patient.clientBalance} />
 
       <section className="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm space-y-4">
@@ -5262,6 +5401,17 @@ function CrmTab({
 
   return (
     <div className="space-y-6">
+      <DesktopTabHeader
+        icon={MessageSquare}
+        title={t.crm}
+        hint={t.patientTabCrmHint}
+        stats={[
+          { label: t.crmTypeCall, value: String(callActivities.length) },
+          { label: t.messageHistory, value: String(messageActivities.length) },
+          { label: t.timelineAll, value: String(patient.crmActivities.length) },
+        ]}
+      />
+
       <form onSubmit={submitCall} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">

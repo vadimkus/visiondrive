@@ -143,7 +143,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
 
   return (
     <div
-      className="min-h-[100dvh] bg-[#f6f3ee] text-slate-950 lg:flex lg:bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.20),transparent_26rem),radial-gradient(circle_at_78%_0%,rgba(99,102,241,0.16),transparent_24rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_46%,#eef2ff_100%)]"
+      className="min-h-[100dvh] w-full min-w-0 overflow-x-hidden bg-[#f6f3ee] text-slate-950 lg:flex lg:bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.20),transparent_26rem),radial-gradient(circle_at_78%_0%,rgba(99,102,241,0.16),transparent_24rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_46%,#eef2ff_100%)]"
       dir="ltr"
       lang={locale}
     >
@@ -224,7 +224,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
         {children}
       </main>
 

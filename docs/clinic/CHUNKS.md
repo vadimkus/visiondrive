@@ -271,6 +271,40 @@
 
 ---
 
+## Chunk 81 — 2026-04-29 (patient tabs desktop UI pass)
+
+**Shipped**
+
+- **Tab navigation:** added per-tab record counts so desktop users can see where data exists before opening a tab.
+- **Per-tab context:** added a shared desktop header with purpose text and live summary metrics across Overview, Timeline, Photos, Quotes, Payments, Packages, Treatment plans, Consents, and CRM.
+- **Overview:** improved desktop scanability with a two-column contact/anamnesis layout.
+- **Photos:** added protocol/offline-draft metrics and widened the desktop gallery grid.
+- **RU coverage/docs:** added Russian copy for the new tab explanations plus a session note and docs index entry.
+
+**Operational**
+
+- Run `npm run type-check`, `npm run lint`, and `npm run test:clinic-flow`.
+- No schema change.
+
+---
+
+## Chunk 82 — 2026-04-29 (mobile dashboard overflow fix)
+
+**Shipped**
+
+- **Mobile shell:** added explicit full-width/min-width bounds to the clinic app wrapper and shell.
+- **Overflow guard:** hid horizontal overflow at the shell boundary so oversized children cannot create the blank-right mobile web layout.
+- **Booking links:** constrained the Google/Instagram/WhatsApp link card with `min-w-0` and truncation so long attributed URLs stay inside their cards.
+- **Service links:** kept direct service links copyable while preventing long service names from stretching the grid.
+- **Docs:** added a mobile overflow fix session note and docs index entry.
+
+**Operational**
+
+- Run `npm run type-check`, `npm run lint`, and `npm run test:clinic-flow`.
+- No schema change.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

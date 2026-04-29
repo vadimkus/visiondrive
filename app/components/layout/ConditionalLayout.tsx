@@ -27,7 +27,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   }
 
   if (isPortal || isKitchenOwner || isClinic || isLogin) {
-    return <main id="main-content" className="flex-1 min-h-screen">{children}</main>
+    return <main id="main-content" className="min-h-screen w-full min-w-0 flex-1 overflow-x-hidden">{children}</main>
   }
 
   return (

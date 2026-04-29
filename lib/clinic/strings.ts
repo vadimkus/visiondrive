@@ -186,6 +186,24 @@ const table = {
     packages: 'Packages',
     treatmentPlans: 'Treatment plans',
     crm: 'CRM',
+    patientTabOverviewHint:
+      'One desktop workspace for contact details, clinical background, smart-form answers, and today’s visit note.',
+    patientTabTimelineHint:
+      'Chronological activity across bookings, visits, payments, and CRM so staff can reconstruct the relationship fast.',
+    patientTabPhotosHint:
+      'Capture comparable before/after photos, check protocol quality, and keep consent visible before marketing use.',
+    patientTabQuotesHint:
+      'Build treatment estimates, share them over WhatsApp or email, and track quote status without leaving the patient card.',
+    patientTabPaymentsHint:
+      'Control balance, saved card metadata, gift card redemptions, retail sales, deposits, and corrections in one finance view.',
+    patientTabPackagesHint:
+      'Sell prepaid care bundles and see remaining session liability before booking the next visit.',
+    patientTabTreatmentPlansHint:
+      'Plan multi-session care with cadence, milestones, progress, outcomes, and linked visit history.',
+    patientTabConsentsHint:
+      'Create reusable consent templates, sign patient-specific consent records, and keep aftercare acknowledgement auditable.',
+    patientTabCrmHint:
+      'Log calls, messages, follow-ups, and voice notes so the relationship history stays tied to the patient.',
     scheduled: 'Scheduled:',
     fromLastVisit: 'From last visit:',
     staffNotesLabel: 'Staff notes:',
@@ -1955,6 +1973,24 @@ const ruOverrides: Partial<ClinicStrings> = {
   packages: 'Пакеты',
   treatmentPlans: 'Планы лечения',
   crm: 'CRM',
+  patientTabOverviewHint:
+    'Единое рабочее место: контакты, клинический фон, ответы смарт-форм и заметка по сегодняшнему визиту.',
+  patientTabTimelineHint:
+    'Хронология записей, визитов, платежей и CRM, чтобы быстро восстановить историю отношений с клиентом.',
+  patientTabPhotosHint:
+    'Делайте сопоставимые фото до/после, проверяйте протокол съёмки и держите согласие на маркетинг на виду.',
+  patientTabQuotesHint:
+    'Собирайте сметы лечения, отправляйте их в WhatsApp или email и отслеживайте статус прямо в карточке пациента.',
+  patientTabPaymentsHint:
+    'Баланс, сохранённые карты, подарочные сертификаты, розничные продажи, депозиты и корректировки в одном финансовом экране.',
+  patientTabPackagesHint:
+    'Продавайте предоплаченные курсы и видите остаток сессий перед следующей записью.',
+  patientTabTreatmentPlansHint:
+    'Планируйте многоэтапное лечение: ритм визитов, контрольные точки, прогресс, цели и связанные визиты.',
+  patientTabConsentsHint:
+    'Создавайте шаблоны согласий, подписывайте записи под пациента и храните подтверждение aftercare в аудируемом виде.',
+  patientTabCrmHint:
+    'Фиксируйте звонки, сообщения, follow-up и голосовые заметки, чтобы история общения оставалась в карточке пациента.',
   scheduled: 'Запланировано:',
   fromLastVisit: 'После последнего визита:',
   staffNotesLabel: 'Заметки персонала:',
