@@ -220,6 +220,22 @@
 
 ---
 
+## Chunk 78 — 2026-04-29 (calendar sync + personal blocks)
+
+**Shipped**
+
+- **Private ICS feed:** added hashed-token calendar feed management with create/rotate/revoke.
+- **Public subscription route:** `/calendar/clinic/[token]` emits sanitized appointment + blocked-time events as `text/calendar`.
+- **Availability UI:** added calendar sync card to the working-hours/blocked-time page, with copy-ready feed URL after creation.
+- **Privacy:** feed excludes patient names, contacts, DOB, notes, and clinical details.
+- **Tests/docs:** added calendar feed helper tests, architecture note, docs index, and session note.
+
+**Operational**
+
+- No schema change; token metadata is stored in existing tenant settings JSON.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { CalendarClock, Plus, Trash2 } from 'lucide-react'
+import { CalendarClock, Copy, Link2, Plus, Trash2 } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
@@ -40,6 +40,14 @@ type Procedure = {
   active: boolean
   defaultDurationMin: number
   bufferAfterMinutes: number
+}
+
+type CalendarFeed = {
+  active: boolean
+  tokenLastFour: string | null
+  createdAt: string | null
+  revokedAt: string | null
+  url?: string
 }
 
 const dayNamesEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -118,6 +126,17 @@ export default function ClinicAvailabilityPage() {
       : 'When a service has rules for a day, booking and conflict checks use them instead of general hours.',
     previewService: isRu ? 'Предпросмотр услуги' : 'Preview service',
     removeRule: isRu ? 'Удалить правило' : 'Remove rule',
+    calendarSync: isRu ? 'Синхронизация календаря' : 'Calendar sync',
+    calendarSyncHint: isRu
+      ? 'Создайте приватную ссылку ICS для Apple Calendar, Google Calendar или Outlook. В ней только записи и закрытые слоты, без данных пациента.'
+      : 'Create a private ICS subscription link for Apple Calendar, Google Calendar, or Outlook. It includes appointments and blocked time, with no patient details.',
+    createCalendarFeed: isRu ? 'Создать ссылку календаря' : 'Create calendar feed',
+    rotateCalendarFeed: isRu ? 'Обновить ссылку' : 'Rotate feed link',
+    revokeCalendarFeed: isRu ? 'Отключить ссылку' : 'Revoke feed',
+    calendarFeedActive: isRu ? 'Активна' : 'Active',
+    calendarFeedNotActive: isRu ? 'Не активна' : 'Not active',
+    calendarFeedCopied: isRu ? 'Ссылка скопирована.' : 'Calendar link copied.',
+    calendarFeedEnding: isRu ? 'Окончание токена' : 'Token ending',
   }
 
   const [rules, setRules] = useState<AvailabilityRule[]>(defaultRows)
@@ -134,6 +153,8 @@ export default function ClinicAvailabilityPage() {
     dateTimeLocalValue(new Date(Date.now() + 60 * 60 * 1000))
   )
   const [blockReason, setBlockReason] = useState('')
+  const [calendarFeed, setCalendarFeed] = useState<CalendarFeed | null>(null)
+  const [calendarBusy, setCalendarBusy] = useState(false)
 
   const previewRange = useMemo(() => {
     const from = new Date()
@@ -145,22 +166,24 @@ export default function ClinicAvailabilityPage() {
     setLoading(true)
     setError('')
     try {
-      const [availabilityRes, blockedRes, slotsRes] = await Promise.all([
+      const [availabilityRes, blockedRes, slotsRes, feedRes] = await Promise.all([
         fetch('/api/clinic/availability', { credentials: 'include' }),
         fetch('/api/clinic/blocked-times', { credentials: 'include' }),
         fetch(
           `/api/clinic/availability/slots?from=${encodeURIComponent(previewRange.from.toISOString())}&to=${encodeURIComponent(previewRange.to.toISOString())}&durationMinutes=60${previewProcedureId ? `&procedureId=${encodeURIComponent(previewProcedureId)}` : ''}`,
           { credentials: 'include' }
         ),
+        fetch('/api/clinic/calendar-feed', { credentials: 'include' }),
       ])
-      if ([availabilityRes, blockedRes, slotsRes].some((res) => res.status === 401)) {
+      if ([availabilityRes, blockedRes, slotsRes, feedRes].some((res) => res.status === 401)) {
         router.replace('/login')
         return
       }
       const availabilityData = await availabilityRes.json()
       const blockedData = await blockedRes.json()
       const slotsData = await slotsRes.json()
-      if (!availabilityRes.ok || !blockedRes.ok || !slotsRes.ok) {
+      const feedData = await feedRes.json()
+      if (!availabilityRes.ok || !blockedRes.ok || !slotsRes.ok || !feedRes.ok) {
         setError(availabilityData.error || blockedData.error || slotsData.error || t.failedToLoad)
         return
       }
@@ -178,6 +201,7 @@ export default function ClinicAvailabilityPage() {
       }
       setBlockedTimes(blockedData.blockedTimes || [])
       setSlots(slotsData.slots || [])
+      setCalendarFeed(feedData)
     } catch {
       setError(t.networkError)
     } finally {
@@ -288,6 +312,60 @@ export default function ClinicAvailabilityPage() {
     }
   }
 
+  const createCalendarFeed = async () => {
+    setCalendarBusy(true)
+    setError('')
+    setMessage('')
+    try {
+      const res = await fetch('/api/clinic/calendar-feed', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.saveFailed)
+        return
+      }
+      setCalendarFeed(data)
+      if (data.url) {
+        await navigator.clipboard?.writeText(data.url).catch(() => undefined)
+        setMessage(copy.calendarFeedCopied)
+      }
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setCalendarBusy(false)
+    }
+  }
+
+  const revokeCalendarFeed = async () => {
+    setCalendarBusy(true)
+    setError('')
+    setMessage('')
+    try {
+      const res = await fetch('/api/clinic/calendar-feed', {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.operationFailed)
+        return
+      }
+      setCalendarFeed((current) => ({ ...(current ?? {}), ...data, url: undefined }))
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setCalendarBusy(false)
+    }
+  }
+
+  const copyCalendarFeed = async () => {
+    if (!calendarFeed?.url) return
+    await navigator.clipboard?.writeText(calendarFeed.url).catch(() => undefined)
+    setMessage(copy.calendarFeedCopied)
+  }
+
   if (loading) {
     return <ClinicSpinner label={t.loading} />
   }
@@ -314,6 +392,60 @@ export default function ClinicAvailabilityPage() {
 
       {error && <ClinicAlert variant="error">{error}</ClinicAlert>}
       {message && <ClinicAlert variant="success">{message}</ClinicAlert>}
+
+      <section className="rounded-2xl bg-white border border-blue-100 p-4 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+              <Link2 className="h-3.5 w-3.5" aria-hidden />
+              {copy.calendarSync}
+            </div>
+            <h2 className="mt-3 font-semibold text-gray-900">{copy.calendarSync}</h2>
+            <p className="mt-1 max-w-2xl text-sm text-gray-600">{copy.calendarSyncHint}</p>
+            <p className="mt-2 text-xs text-gray-500">
+              {calendarFeed?.active ? copy.calendarFeedActive : copy.calendarFeedNotActive}
+              {calendarFeed?.tokenLastFour ? ` · ${copy.calendarFeedEnding}: ${calendarFeed.tokenLastFour}` : ''}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {calendarFeed?.url && (
+              <button
+                type="button"
+                onClick={() => void copyCalendarFeed()}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+              >
+                <Copy className="h-4 w-4" aria-hidden />
+                {t.copy}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => void createCalendarFeed()}
+              disabled={calendarBusy}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {calendarFeed?.active ? copy.rotateCalendarFeed : copy.createCalendarFeed}
+            </button>
+            {calendarFeed?.active && (
+              <button
+                type="button"
+                onClick={() => void revokeCalendarFeed()}
+                disabled={calendarBusy}
+                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-red-100 px-4 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+              >
+                {copy.revokeCalendarFeed}
+              </button>
+            )}
+          </div>
+        </div>
+        {calendarFeed?.url && (
+          <input
+            readOnly
+            value={calendarFeed.url}
+            className="mt-4 w-full rounded-xl border border-blue-100 bg-blue-50/50 px-3 py-2 text-xs text-blue-950"
+          />
+        )}
+      </section>
 
       <section className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
         <div className="flex flex-col gap-3 p-4 border-b border-gray-100 md:flex-row md:items-start md:justify-between">

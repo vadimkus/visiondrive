@@ -198,7 +198,7 @@ async function main() {
   // 6) Appointment tomorrow 10:00 local
   const uniqueSeed = Number(suffix.replace('e2e-', '')) || Date.now()
   const start = nextWeekdayAt(
-    21 + (uniqueSeed % 10),
+    365 + (uniqueSeed % 90),
     9 + (uniqueSeed % 7),
     (Math.floor(uniqueSeed / 7) % 6) * 10
   )

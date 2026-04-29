@@ -17,6 +17,10 @@ Backlog item 49 asks for occupancy analytics adapted to solo home-visit practiti
 - Flags travel-heavy days when travel buffers are high versus treatment time.
 - Added sidebar navigation, dashboard quick action, EN/RU strings, and Knowledge Base guidance.
 
+## Follow-up: Calendar Sync
+
+On 2026-04-29, Availability gained a private ICS feed for external calendars. The feed includes appointments and blocked time, so personal blocks remain the source for lunch, leave, training, supply runs, and other unavailable periods.
+
 ## Limits
 
 - First pass is single-practitioner only.

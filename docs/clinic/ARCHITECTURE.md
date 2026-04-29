@@ -54,6 +54,8 @@ Relationships: `ClinicAppointment` → `ClinicPatient`, optional → `ClinicProc
 
 Availability: `/api/clinic/availability/slots` combines `ClinicAvailabilityRule`, `ClinicBlockedTime`, existing active appointments, service duration, and hidden buffers. General rules apply to all services; if a procedure has rules for a given day, those service-specific rules override the general day rules. `FIXED` rules step by `slotIntervalMinutes`; `DYNAMIC` rules step by selected service duration plus buffer for tighter packing. It returns candidate slots only; appointment creation still goes through the conflict-safe appointment API.
 
+Calendar sync: `/api/clinic/calendar-feed` creates, rotates, and revokes a private ICS feed token stored hashed in `tenant_settings.thresholds.calendarFeed`. `/calendar/clinic/[token]` returns active appointments plus blocked time as `text/calendar` without patient names, contacts, DOB, internal notes, or clinical data. This is a standards-based subscription/export first pass, not Google/Apple OAuth.
+
 Scheduling guard: appointment create/reschedule checks existing appointment occupancy, blocked time, working hours, and minimum lead time. Staff can override a violation only when `allowConflictOverride=true` and a non-empty `overrideReason` is provided; the reason is stored on the appointment and visible in the drawer.
 
 Home visits: patient records store the default address, area, and parking/access notes. Appointments snapshot the visit location and `travelBufferBeforeMinutes` / `travelBufferAfterMinutes`; these buffers expand the occupied scheduling window so route time is protected from overlaps.
@@ -113,6 +115,7 @@ Knowledge base: `/clinic/knowledge-base` is a static in-app help center with EN/
 - **Suppliers:** `GET/POST /api/clinic/suppliers`, `GET/PATCH /api/clinic/suppliers/[id]`, `POST .../[id]/settlements`; supplier profiles aggregate linked purchase history, received value, settlements, and unpaid amount.
 - **Purchase orders:** `GET/POST /api/clinic/purchase-orders`, `GET/PATCH /api/clinic/purchase-orders/[id]`, `POST .../[id]/receive`; new POs may pass `supplierId`, with `supplierName` kept as a snapshot.
 - **Availability:** `GET/PATCH /api/clinic/availability`, `GET /api/clinic/availability/slots`, `GET/POST /api/clinic/blocked-times`, `DELETE .../blocked-times/[id]`.
+- **Calendar feed:** `GET/POST/DELETE /api/clinic/calendar-feed` manages the private ICS subscription token; `GET /calendar/clinic/[token]` exposes sanitized appointment + blocked-time events.
 - **Smart waitlist:** `GET/POST /api/clinic/waitlist`, `PATCH /api/clinic/waitlist/[id]`; optional `slotStart` and `procedureId` query params return ranked cancellation-fill candidates with WhatsApp copy.
 - **Service areas:** `GET /api/clinic/service-areas/overview` derives neighborhood demand and route-planning signals from patient areas and appointment location snapshots.
 - **Reminders/reputation:** `GET/PATCH /api/clinic/reminders/templates`, `GET /api/clinic/reminders/deliveries`, `GET/POST /api/clinic/reminders/run`, `GET /api/clinic/reviews`, `PATCH /api/clinic/reviews/[id]`; appointment actions support `send_reminder`, `schedule_reminder`, `no_show_follow_up`, `schedule_rebooking_follow_up`, and `send_review_request`.
