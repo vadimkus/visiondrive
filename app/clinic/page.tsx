@@ -3,7 +3,27 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Users, ListOrdered, Calendar, CalendarClock, ArrowRight, Package, Send, Sparkles, Link as LinkIcon, BarChart3, Target, Gauge, MessageCircleReply, MapPin, ClipboardList } from 'lucide-react'
+import {
+  Users,
+  ListOrdered,
+  Calendar,
+  CalendarClock,
+  ArrowRight,
+  Package,
+  Send,
+  Sparkles,
+  Link as LinkIcon,
+  BarChart3,
+  Target,
+  Gauge,
+  MessageCircleReply,
+  MapPin,
+  ClipboardList,
+  Activity,
+  Clock3,
+  ShieldCheck,
+  Zap,
+} from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicPwaPractitionerCard } from '@/components/clinic/ClinicPwaPractitionerCard'
@@ -87,258 +107,342 @@ export default function ClinicDashboardPage() {
     return <ClinicSpinner label={t.loading} className="min-h-[40vh]" />
   }
 
-  const statCardClass =
-    'group relative overflow-hidden bg-white/90 rounded-3xl border border-white/80 p-4 md:p-5 shadow-sm shadow-orange-100/40 backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/60 hover:border-orange-200/80 focus-within:ring-2 focus-within:ring-orange-400/40 focus-within:ring-offset-2'
+  const metrics = stats
+    ? [
+        { href: '/clinic/patients', label: t.patients, value: stats.patientCount, icon: Users, tone: 'orange' },
+        { href: '/clinic/procedures', label: t.procedures, value: stats.procedureCount, icon: ListOrdered, tone: 'violet' },
+        { href: '/clinic/appointments', label: t.appointmentsToday, value: stats.appointmentToday, icon: Clock3, tone: 'emerald' },
+        { href: '/clinic/appointments', label: t.upcomingScheduled, value: stats.appointmentUpcoming, icon: Calendar, tone: 'sky' },
+        {
+          href: stats.lowStockCount > 0 ? '/clinic/inventory?lowStock=1' : '/clinic/inventory',
+          label: t.lowStockAlerts,
+          value: stats.lowStockCount,
+          icon: Package,
+          tone: stats.lowStockCount > 0 ? 'amber' : 'slate',
+        },
+      ]
+    : []
+
+  const primaryActions = [
+    { href: '/clinic/appointments/new', label: t.newAppointment, icon: CalendarClock, primary: true },
+    { href: '/clinic/patients/new', label: t.addPatient, icon: Users },
+    { href: '/clinic/waitlist', label: t.smartWaitlist, icon: ClipboardList },
+    { href: '/clinic/whatsapp-assistant', label: t.whatsappAssistant, icon: Zap },
+  ]
+
+  const intelligenceActions = [
+    { href: '/clinic/service-analytics', label: t.serviceAnalytics, icon: BarChart3 },
+    { href: '/clinic/revenue-plan', label: t.revenuePlan, icon: Target },
+    { href: '/clinic/occupancy', label: t.occupancyReport, icon: Gauge },
+    { href: '/clinic/service-areas', label: t.serviceAreas, icon: MapPin },
+    { href: '/clinic/review-analytics', label: t.reviewAnalytics, icon: MessageCircleReply },
+  ]
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
-      <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-xl shadow-orange-100/50 backdrop-blur md:p-8">
-        <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-orange-200/50 blur-3xl" />
-        <div className="absolute -bottom-24 left-1/2 h-64 w-64 rounded-full bg-indigo-200/40 blur-3xl" />
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-800">
+    <>
+      <section className="space-y-5 lg:hidden">
+        <div className="relative overflow-hidden rounded-[2rem] bg-slate-950 p-5 text-white shadow-2xl shadow-slate-950/20">
+          <div className="absolute -right-12 -top-16 h-40 w-40 rounded-full bg-orange-400/40 blur-3xl" />
+          <div className="absolute -bottom-16 left-8 h-36 w-36 rounded-full bg-indigo-400/30 blur-3xl" />
+          <div className="relative">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-orange-100">
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
-              {t.practiceOsTitle}
+              Solo cockpit
+            </p>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight">{t.dashboard}</h1>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-300">
+              Fast actions for a practitioner moving between visits.
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <Link
+                href="/clinic/appointments/new"
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-sm font-semibold text-slate-950 active:scale-[0.98]"
+              >
+                {t.newAppointment}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+              <Link
+                href="/clinic/waitlist"
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-orange-400 px-4 text-sm font-semibold text-slate-950 active:scale-[0.98]"
+              >
+                {t.smartWaitlist}
+              </Link>
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-gray-950 md:text-4xl">{t.dashboard}</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">{t.dashboardIntro}</p>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:flex">
-            <Link
-              href="/clinic/appointments/new"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600"
-            >
-              {t.newAppointment}
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-            <Link
-              href="/clinic/reminders"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50"
-            >
-              <Send className="h-4 w-4" aria-hidden />
-              {t.reminders}
-            </Link>
+        </div>
+
+        {error && <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+
+        <ClinicPwaPractitionerCard />
+
+        {stats && (
+          <div className="grid grid-cols-2 gap-3">
+            {metrics.slice(0, 4).map((metric) => (
+              <MobileMetric key={metric.label} {...metric} />
+            ))}
+          </div>
+        )}
+
+        <div className="rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-950">{t.quickActions}</p>
+            <span className="text-xs text-slate-400">44px+</span>
+          </div>
+          <div className="grid gap-2">
+            {primaryActions.map((action) => (
+              <ActionRow key={action.href} {...action} />
+            ))}
             {stats?.bookingUrl && (
               <Link
                 href={stats.bookingUrl}
-                className="col-span-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50 sm:col-span-1"
+                className="flex min-h-14 items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 active:scale-[0.99]"
               >
-                <LinkIcon className="h-4 w-4" aria-hidden />
-                {t.publicBookingLink}
+                <span className="inline-flex items-center gap-3">
+                  <LinkIcon className="h-5 w-5 text-slate-500" aria-hidden />
+                  {t.publicBookingLink}
+                </span>
+                <ArrowRight className="h-4 w-4 text-slate-400" aria-hidden />
               </Link>
             )}
+          </div>
+        </div>
+
+        <p className="px-1 text-xs text-slate-500">{t.docsFooter}</p>
+      </section>
+
+      <section className="hidden max-w-[92rem] space-y-8 lg:block">
+        <div className="flex items-center justify-between gap-6">
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-sm text-slate-500">
+              <span>{t.practiceConsole}</span>
+              <span>/</span>
+              <span className="font-medium text-slate-900">{t.dashboard}</span>
+            </div>
+            <h1 className="text-5xl font-semibold tracking-[-0.04em] text-slate-950">{t.dashboard}</h1>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">{t.dashboardIntro}</p>
+          </div>
+          <div className="flex items-center gap-3">
             {stats?.bookingUrl && (
               <button
                 type="button"
                 onClick={() => void togglePublicBooking()}
                 disabled={bookingToggleBusy}
                 className={clsx(
-                  'col-span-2 inline-flex min-h-11 items-center justify-center rounded-2xl px-4 text-sm font-semibold shadow-sm disabled:opacity-60 sm:col-span-1',
+                  'inline-flex min-h-12 items-center justify-center rounded-2xl px-5 text-sm font-semibold shadow-sm transition disabled:opacity-60',
                   stats.publicBookingEnabled
                     ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                    : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    : 'border border-white/80 bg-white text-slate-700 hover:bg-slate-50'
                 )}
               >
                 {stats.publicBookingEnabled ? t.publicBookingOn : t.publicBookingOff}
               </button>
             )}
+            <Link
+              href="/clinic/appointments/new"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-xl shadow-slate-950/15 transition hover:-translate-y-0.5"
+            >
+              {t.newAppointment}
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
           </div>
         </div>
-      </div>
 
-      {error && (
-        <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
-          {error}
+        {error && <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+
+        {stats && (
+          <div className="grid grid-cols-5 gap-4">
+            {metrics.map((metric) => (
+              <DesktopMetric key={metric.label} {...metric} />
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-[1.2fr_0.8fr] gap-6">
+          <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/82 p-6 shadow-xl shadow-slate-200/60 backdrop-blur">
+            <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-orange-200/40 blur-3xl" />
+            <div className="relative">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-orange-600">Command center</p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Run today from one surface</h2>
+                </div>
+                <Activity className="h-6 w-6 text-orange-500" aria-hidden />
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                {primaryActions.map((action) => (
+                  <CommandAction key={action.href} {...action} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-white/80 bg-slate-950 p-6 text-white shadow-xl shadow-slate-950/20">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+                <ShieldCheck className="h-5 w-5 text-emerald-300" aria-hidden />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Operating posture</p>
+                <p className="text-xs text-slate-400">Booking, reminders, stock and reputation</p>
+              </div>
+            </div>
+            <div className="mt-6 space-y-3">
+              <StatusLine label={t.publicBookingLink} active={stats?.publicBookingEnabled === true} />
+              <StatusLine label={t.lowStockAlerts} active={(stats?.lowStockCount ?? 0) === 0} />
+              <StatusLine label={t.smartWaitlist} active />
+            </div>
+          </div>
         </div>
+
+        <div className="grid grid-cols-[0.85fr_1.15fr] gap-6">
+          <ClinicPwaPractitionerCard />
+
+          <div className="rounded-[2rem] border border-white/80 bg-white/82 p-6 shadow-sm backdrop-blur">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-400">Analytics</p>
+                <h2 className="mt-1 text-xl font-semibold text-slate-950">Deep-focus modules</h2>
+              </div>
+              <BarChart3 className="h-5 w-5 text-slate-400" aria-hidden />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {intelligenceActions.map((action) => (
+                <CommandAction key={action.href} {...action} compact />
+              ))}
+              {stats?.bookingUrl && (
+                <CommandAction href={stats.bookingUrl} label={t.publicBookingLink} icon={LinkIcon} compact />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-500">{t.docsFooter}</p>
+      </section>
+    </>
+  )
+}
+
+type DashboardAction = {
+  href: string
+  label: string
+  icon: typeof CalendarClock
+  primary?: boolean
+  compact?: boolean
+}
+
+function ActionRow({ href, label, icon: Icon, primary }: DashboardAction) {
+  return (
+    <Link
+      href={href}
+      className={clsx(
+        'flex min-h-14 items-center justify-between rounded-2xl px-4 text-sm font-semibold transition active:scale-[0.99]',
+        primary ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/15' : 'border border-slate-200 bg-white text-slate-800'
       )}
+    >
+      <span className="inline-flex items-center gap-3">
+        <Icon className={clsx('h-5 w-5', primary ? 'text-orange-300' : 'text-slate-500')} aria-hidden />
+        {label}
+      </span>
+      <ArrowRight className="h-4 w-4 text-current opacity-50" aria-hidden />
+    </Link>
+  )
+}
 
-      <ClinicPwaPractitionerCard />
-
-      {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
-          <Link
-            href="/clinic/patients"
-            className={clsx(statCardClass, 'block outline-none')}
-            aria-label={`${t.patients}: ${stats.patientCount}`}
-          >
-            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-3 group-hover:bg-orange-500/15 transition-colors">
-              <Users className="w-5 h-5 text-orange-600" aria-hidden />
-            </div>
-            <p className="text-2xl font-semibold text-gray-900 tabular-nums">{stats.patientCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{t.patients}</p>
-            <ArrowRight className="w-4 h-4 text-gray-300 absolute top-4 end-4 opacity-0 group-hover:opacity-100 transition-opacity rtl:rotate-180" aria-hidden />
-          </Link>
-          <Link
-            href="/clinic/procedures"
-            className={clsx(statCardClass, 'block outline-none')}
-            aria-label={`${t.procedures}: ${stats.procedureCount}`}
-          >
-            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-3 group-hover:bg-orange-500/15 transition-colors">
-              <ListOrdered className="w-5 h-5 text-orange-600" aria-hidden />
-            </div>
-            <p className="text-2xl font-semibold text-gray-900 tabular-nums">{stats.procedureCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{t.procedures}</p>
-            <ArrowRight className="w-4 h-4 text-gray-300 absolute top-4 end-4 opacity-0 group-hover:opacity-100 transition-opacity rtl:rotate-180" aria-hidden />
-          </Link>
-          <Link
-            href="/clinic/appointments"
-            className={clsx(statCardClass, 'block outline-none')}
-            aria-label={`${t.appointmentsToday}: ${stats.appointmentToday}`}
-          >
-            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-3 group-hover:bg-orange-500/15 transition-colors">
-              <CalendarClock className="w-5 h-5 text-orange-600" aria-hidden />
-            </div>
-            <p className="text-2xl font-semibold text-gray-900 tabular-nums">{stats.appointmentToday}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{t.appointmentsToday}</p>
-            <ArrowRight className="w-4 h-4 text-gray-300 absolute top-4 end-4 opacity-0 group-hover:opacity-100 transition-opacity rtl:rotate-180" aria-hidden />
-          </Link>
-          <Link
-            href="/clinic/appointments"
-            className={clsx(statCardClass, 'block outline-none')}
-            aria-label={`${t.upcomingScheduled}: ${stats.appointmentUpcoming}`}
-          >
-            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-3 group-hover:bg-orange-500/15 transition-colors">
-              <Calendar className="w-5 h-5 text-orange-600" aria-hidden />
-            </div>
-            <p className="text-2xl font-semibold text-gray-900 tabular-nums">{stats.appointmentUpcoming}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{t.upcomingScheduled}</p>
-            <ArrowRight className="w-4 h-4 text-gray-300 absolute top-4 end-4 opacity-0 group-hover:opacity-100 transition-opacity rtl:rotate-180" aria-hidden />
-          </Link>
-          <Link
-            href={stats.lowStockCount > 0 ? '/clinic/inventory?lowStock=1' : '/clinic/inventory'}
-            className={clsx(
-              statCardClass,
-              'block outline-none',
-              stats.lowStockCount > 0 && 'border-amber-300/80 bg-amber-50/40'
-            )}
-            aria-label={`${t.lowStockAlerts}: ${stats.lowStockCount}`}
-          >
-            <div
-              className={clsx(
-                'w-10 h-10 rounded-2xl flex items-center justify-center mb-3 transition-colors',
-                stats.lowStockCount > 0 ? 'bg-amber-500/15' : 'bg-orange-500/10 group-hover:bg-orange-500/15'
-              )}
-            >
-              <Package
-                className={clsx(
-                  'w-5 h-5',
-                  stats.lowStockCount > 0 ? 'text-amber-700' : 'text-orange-600'
-                )}
-                aria-hidden
-              />
-            </div>
-            <p
-              className={clsx(
-                'text-2xl font-semibold tabular-nums',
-                stats.lowStockCount > 0 ? 'text-amber-900' : 'text-gray-900'
-              )}
-            >
-              {stats.lowStockCount}
-            </p>
-            <p className="text-sm text-gray-500 mt-0.5">{t.lowStockAlerts}</p>
-            <ArrowRight className="w-4 h-4 text-gray-300 absolute top-4 end-4 opacity-0 group-hover:opacity-100 transition-opacity rtl:rotate-180" aria-hidden />
-          </Link>
-        </div>
+function CommandAction({ href, label, icon: Icon, primary, compact }: DashboardAction) {
+  return (
+    <Link
+      href={href}
+      className={clsx(
+        'group rounded-3xl border p-4 transition hover:-translate-y-0.5 hover:shadow-xl',
+        compact ? 'min-h-24' : 'min-h-32',
+        primary
+          ? 'border-slate-950 bg-slate-950 text-white shadow-xl shadow-slate-950/15'
+          : 'border-slate-200 bg-white/88 text-slate-950 hover:border-orange-200'
       )}
-
-      <div className="bg-white/90 rounded-3xl border border-white/80 p-5 shadow-sm shadow-orange-100/40 backdrop-blur space-y-3">
-        <p className="text-sm font-medium text-gray-900">{t.quickActions}</p>
-        <div className="grid grid-cols-1 gap-2 min-[430px]:grid-cols-2 lg:flex lg:flex-wrap">
-          <Link
-            href="/clinic/patients/new"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 shadow-sm hover:shadow transition-shadow"
-          >
-            {t.addPatient}
-            <ArrowRight className="w-4 h-4 shrink-0 rtl:rotate-180" aria-hidden />
-          </Link>
-          <Link
-            href="/clinic/appointments/new"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            {t.newAppointment}
-          </Link>
-          <Link
-            href="/clinic/inventory/new"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            {t.addStockItem}
-          </Link>
-          <Link
-            href="/clinic/reminders"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            {t.reminders}
-          </Link>
-          <Link
-            href="/clinic/service-analytics"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            <BarChart3 className="h-4 w-4" aria-hidden />
-            {t.serviceAnalytics}
-          </Link>
-          <Link
-            href="/clinic/revenue-plan"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            <Target className="h-4 w-4" aria-hidden />
-            {t.revenuePlan}
-          </Link>
-          <Link
-            href="/clinic/occupancy"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            <Gauge className="h-4 w-4" aria-hidden />
-            {t.occupancyReport}
-          </Link>
-          <Link
-            href="/clinic/service-areas"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            <MapPin className="h-4 w-4" aria-hidden />
-            {t.serviceAreas}
-          </Link>
-          <Link
-            href="/clinic/waitlist"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            <ClipboardList className="h-4 w-4" aria-hidden />
-            {t.smartWaitlist}
-          </Link>
-          <Link
-            href="/clinic/review-analytics"
-            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-          >
-            <MessageCircleReply className="h-4 w-4" aria-hidden />
-            {t.reviewAnalytics}
-          </Link>
-          {stats?.bookingUrl && (
-            <Link
-              href={stats.bookingUrl}
-              className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-            >
-              {t.publicBookingLink}
-            </Link>
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span
+          className={clsx(
+            'flex h-11 w-11 items-center justify-center rounded-2xl',
+            primary ? 'bg-white/10 text-orange-300' : 'bg-orange-50 text-orange-600'
           )}
-          {stats?.bookingUrl && (
-            <button
-              type="button"
-              onClick={() => void togglePublicBooking()}
-              disabled={bookingToggleBusy}
-              className={clsx(
-                'inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-colors disabled:opacity-60',
-                stats.publicBookingEnabled
-                  ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                  : 'border border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50'
-              )}
-            >
-              {stats.publicBookingEnabled ? t.publicBookingOn : t.publicBookingOff}
-            </button>
-          )}
-        </div>
+        >
+          <Icon className="h-5 w-5" aria-hidden />
+        </span>
+        <ArrowRight className="h-4 w-4 opacity-40 transition group-hover:translate-x-0.5 group-hover:opacity-80" aria-hidden />
       </div>
+      <p className="mt-4 text-sm font-semibold leading-snug">{label}</p>
+    </Link>
+  )
+}
 
-      <p className="text-xs text-gray-500">{t.docsFooter}</p>
+function MobileMetric({
+  href,
+  label,
+  value,
+  icon: Icon,
+}: {
+  href: string
+  label: string
+  value: number
+  icon: typeof Users
+  tone: string
+}) {
+  return (
+    <Link href={href} className="rounded-[1.5rem] border border-white/80 bg-white/85 p-4 shadow-sm active:scale-[0.99]">
+      <Icon className="h-5 w-5 text-orange-600" aria-hidden />
+      <p className="mt-4 text-2xl font-semibold tabular-nums text-slate-950">{value}</p>
+      <p className="mt-1 text-xs font-medium leading-snug text-slate-500">{label}</p>
+    </Link>
+  )
+}
+
+function DesktopMetric({
+  href,
+  label,
+  value,
+  icon: Icon,
+  tone,
+}: {
+  href: string
+  label: string
+  value: number
+  icon: typeof Users
+  tone: string
+}) {
+  const toneClass =
+    tone === 'amber'
+      ? 'bg-amber-50 text-amber-700 ring-amber-100'
+      : tone === 'emerald'
+        ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
+        : tone === 'sky'
+          ? 'bg-sky-50 text-sky-700 ring-sky-100'
+          : tone === 'violet'
+            ? 'bg-violet-50 text-violet-700 ring-violet-100'
+            : 'bg-slate-100 text-slate-600 ring-slate-200'
+
+  return (
+    <Link
+      href={href}
+      className="group rounded-[1.75rem] border border-white/80 bg-white/82 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-200/70"
+    >
+      <div className="flex items-center justify-between">
+        <span className={clsx('flex h-11 w-11 items-center justify-center rounded-2xl ring-1', toneClass)}>
+          <Icon className="h-5 w-5" aria-hidden />
+        </span>
+        <ArrowRight className="h-4 w-4 text-slate-300 opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden />
+      </div>
+      <p className="mt-5 text-3xl font-semibold tracking-tight tabular-nums text-slate-950">{value}</p>
+      <p className="mt-1 text-sm text-slate-500">{label}</p>
+    </Link>
+  )
+}
+
+function StatusLine({ label, active }: { label: string; active: boolean }) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl bg-white/8 px-4 py-3">
+      <span className="text-sm text-slate-300">{label}</span>
+      <span className={clsx('h-2.5 w-2.5 rounded-full', active ? 'bg-emerald-300' : 'bg-amber-300')} />
     </div>
   )
 }

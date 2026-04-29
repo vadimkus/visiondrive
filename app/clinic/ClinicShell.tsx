@@ -29,6 +29,7 @@ import {
   Target,
   UserCircle,
   MapPin,
+  MoreHorizontal,
 } from 'lucide-react'
 import clsx from 'clsx'
 import Logo from '@/app/components/common/Logo'
@@ -63,6 +64,18 @@ const nav = [
   { href: '/clinic/account', labelKey: 'account' as const, icon: UserCircle },
 ]
 
+const mobileTabs = [
+  { href: '/clinic', labelKey: 'dashboard' as const, icon: LayoutDashboard },
+  { href: '/clinic/appointments', labelKey: 'appointments' as const, icon: Calendar },
+  { href: '/clinic/patients', labelKey: 'patients' as const, icon: Users },
+  { href: '/clinic/waitlist', labelKey: 'smartWaitlist' as const, icon: ClipboardList },
+  { href: '/clinic/inbox', labelKey: 'inbox' as const, icon: Inbox },
+]
+
+const commandNav = nav.slice(0, 15)
+const growthNav = nav.slice(15, 21)
+const systemNav = nav.slice(21)
+
 export default function ClinicShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -94,107 +107,154 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
     router.refresh()
   }
 
+  const renderNavGroup = (items: typeof nav, title: string) => (
+    <div className="space-y-1">
+      <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+        {title}
+      </p>
+      {items.map(({ href, labelKey, icon: Icon }) => {
+        const active = pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
+        const label = t[labelKey]
+        return (
+          <Link
+            key={href}
+            href={href}
+            className={clsx(
+              'group flex min-h-11 items-center gap-3 rounded-2xl px-3 text-sm font-medium transition-all',
+              active
+                ? 'bg-slate-950 text-white shadow-xl shadow-slate-950/15'
+                : 'text-slate-600 hover:bg-white hover:text-slate-950 hover:shadow-sm'
+            )}
+          >
+            <span
+              className={clsx(
+                'flex h-8 w-8 items-center justify-center rounded-xl transition-colors',
+                active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-orange-50 group-hover:text-orange-600'
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" aria-hidden />
+            </span>
+            <span className="truncate">{label}</span>
+          </Link>
+        )
+      })}
+    </div>
+  )
+
   return (
     <div
-      className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.16),transparent_34rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_42%,#eef2ff_100%)] flex flex-col lg:flex-row pb-[env(safe-area-inset-bottom)]"
+      className="min-h-[100dvh] bg-[#f6f3ee] text-slate-950 lg:flex lg:bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.20),transparent_26rem),radial-gradient(circle_at_78%_0%,rgba(99,102,241,0.16),transparent_24rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_46%,#eef2ff_100%)]"
       dir="ltr"
       lang={locale}
     >
-      <aside className="sticky top-0 z-40 shrink-0 border-b border-white/70 bg-white/90 shadow-sm shadow-orange-100/40 backdrop-blur-xl lg:w-64 lg:border-b-0 lg:border-r lg:min-h-screen lg:shadow-[inset_-1px_0_0_rgba(255,255,255,0.55)]">
-        <div className="flex flex-col gap-2 p-3 sm:p-4 lg:min-h-screen lg:gap-6">
-          <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-stretch lg:justify-start lg:gap-5">
-            <Link
-              href="/clinic"
-              className="flex min-h-11 min-w-0 items-center gap-2 lg:px-2"
-              aria-label={t.dashboard}
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-orange-100">
-                <Logo className="h-9 w-9" priority />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold leading-tight text-gray-900">{t.practiceOsTitle}</p>
-                <p className="hidden text-[11px] leading-snug text-gray-500 sm:block">{t.practiceOsBrand}</p>
-              </div>
-            </Link>
-
-            <div className="flex shrink-0 items-center gap-2 lg:flex-col lg:items-stretch">
-              <div
-                className="flex items-center gap-1 lg:px-2"
-                role="group"
-                aria-label={t.language}
-              >
-                {(['en', 'ru'] as const satisfies ClinicLocale[]).map((code) => (
-                  <button
-                    key={code}
-                    type="button"
-                    onClick={() => setLocale(code)}
-                    className={clsx(
-                      'min-h-11 min-w-11 rounded-xl px-2 text-xs font-semibold transition-colors',
-                      locale === code
-                        ? 'bg-orange-100 text-orange-900 shadow-sm'
-                        : 'text-gray-500 hover:bg-white'
-                    )}
-                    aria-pressed={locale === code}
-                  >
-                    {code === 'en' ? t.localeEn : t.localeRu}
-                  </button>
-                ))}
-              </div>
+      <header className="sticky top-0 z-40 border-b border-white/70 bg-white/80 px-4 py-3 backdrop-blur-2xl safe-area-top lg:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/clinic" className="flex min-h-11 min-w-0 items-center gap-3" aria-label={t.dashboard}>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-orange-100">
+              <Logo className="h-9 w-9" priority />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-[15px] font-semibold leading-tight text-slate-950">
+                {t.practiceOsTitle}
+              </span>
+              <span className="block truncate text-xs text-slate-500">{t.practiceOsBrand}</span>
+            </span>
+          </Link>
+          <div className="flex items-center gap-1">
+            {(['en', 'ru'] as const satisfies ClinicLocale[]).map((code) => (
               <button
+                key={code}
                 type="button"
-                onClick={logout}
-                className="flex min-h-11 min-w-11 items-center justify-center rounded-2xl text-gray-600 hover:bg-white hover:text-gray-900 lg:hidden"
-                aria-label={t.signOut}
+                onClick={() => setLocale(code)}
+                className={clsx(
+                  'min-h-11 min-w-11 rounded-2xl px-2 text-xs font-semibold transition active:scale-95',
+                  locale === code ? 'bg-slate-950 text-white shadow-sm' : 'bg-white text-slate-500'
+                )}
+                aria-pressed={locale === code}
               >
-                <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+                {code === 'en' ? t.localeEn : t.localeRu}
               </button>
-            </div>
-          </div>
-
-          <nav
-            className="-mx-3 flex gap-1 overflow-x-auto overscroll-x-contain px-3 pb-1 scroll-smooth [scrollbar-width:none] sm:-mx-4 sm:px-4 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden"
-            aria-label={t.practiceConsole}
-          >
-            {nav.map(({ href, labelKey, icon: Icon }) => {
-              const active =
-                pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
-              const label = t[labelKey]
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={clsx(
-                    'flex min-h-11 shrink-0 items-center gap-2 rounded-2xl px-3 py-3 text-sm font-medium whitespace-nowrap transition-all lg:py-2.5',
-                    active
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-lg shadow-orange-500/20'
-                      : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'
-                  )}
-                >
-                  <Icon className="w-4 h-4 shrink-0" aria-hidden />
-                  {label}
-                </Link>
-              )
-            })}
-          </nav>
-          <div className="hidden items-center gap-2 lg:mt-auto lg:flex lg:flex-col lg:pt-6">
-            <Link
-              href="/"
-              className="min-h-11 px-2 py-2 text-xs text-gray-500 hover:text-orange-600"
-            >
-              visiondrive.ae
-            </Link>
-            <button
-              type="button"
-              onClick={logout}
-              className="flex items-center justify-center gap-2 px-3 py-3 rounded-2xl text-sm text-gray-600 hover:bg-white hover:text-gray-900 min-h-11"
-            >
-              <LogOut className="w-4 h-4 shrink-0" aria-hidden />
-              <span className="hidden lg:inline">{t.signOut}</span>
-            </button>
+            ))}
           </div>
         </div>
+      </header>
+
+      <aside className="sticky top-0 hidden h-[100dvh] w-[18rem] shrink-0 border-r border-white/70 bg-white/72 p-4 shadow-[inset_-1px_0_0_rgba(255,255,255,0.7)] backdrop-blur-2xl lg:flex lg:flex-col">
+        <Link href="/clinic" className="flex min-h-12 items-center gap-3 rounded-3xl px-2" aria-label={t.dashboard}>
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-orange-100">
+            <Logo className="h-10 w-10" priority />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold text-slate-950">{t.practiceOsTitle}</span>
+            <span className="block text-xs text-slate-500">{t.practiceOsBrand}</span>
+          </span>
+        </Link>
+
+        <nav className="mt-6 flex-1 space-y-6 overflow-y-auto pr-1 scrollbar-hide" aria-label={t.practiceConsole}>
+          {renderNavGroup(commandNav, 'Command')}
+          {renderNavGroup(growthNav, 'Growth')}
+          {renderNavGroup(systemNav, 'System')}
+        </nav>
+
+        <div className="mt-4 rounded-3xl border border-white/80 bg-white/70 p-3 shadow-sm">
+          <div className="mb-3 flex items-center gap-1" role="group" aria-label={t.language}>
+            {(['en', 'ru'] as const satisfies ClinicLocale[]).map((code) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => setLocale(code)}
+                className={clsx(
+                  'min-h-10 flex-1 rounded-2xl px-2 text-xs font-semibold transition-colors',
+                  locale === code ? 'bg-slate-950 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+                )}
+                aria-pressed={locale === code}
+              >
+                {code === 'en' ? t.localeEn : t.localeRu}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+          >
+            <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+            {t.signOut}
+          </button>
+        </div>
       </aside>
-      <main className="min-w-0 flex-1 px-3 pb-24 pt-3 sm:p-5 lg:p-8">{children}</main>
+
+      <main className="min-w-0 flex-1 px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
+        {children}
+      </main>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/80 bg-white/88 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl lg:hidden" aria-label={t.practiceConsole}>
+        <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
+          {mobileTabs.map(({ href, labelKey, icon: Icon }) => {
+            const active = pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={clsx(
+                  'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-semibold transition active:scale-95',
+                  active ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/15' : 'text-slate-500 active:bg-slate-100'
+                )}
+              >
+                <Icon className="h-5 w-5" aria-hidden />
+                <span className="max-w-full truncate">{t[labelKey]}</span>
+              </Link>
+            )
+          })}
+        </div>
+        <Link
+          href="/clinic/knowledge-base"
+          className="absolute right-3 top-[-3.25rem] flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-500 shadow-xl ring-1 ring-slate-200 active:scale-95"
+          aria-label={t.knowledgeBase}
+        >
+          <MoreHorizontal className="h-5 w-5" aria-hidden />
+        </Link>
+      </nav>
     </div>
   )
 }
