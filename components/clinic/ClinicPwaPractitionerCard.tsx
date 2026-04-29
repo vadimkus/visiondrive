@@ -180,14 +180,14 @@ export function ClinicPwaPractitionerCard() {
           </div>
         </div>
 
-        <div className="grid flex-1 gap-3 md:grid-cols-2">
-          <div className="rounded-3xl bg-white p-4 text-gray-900">
+        <div className="grid flex-1 gap-3 xl:grid-cols-2">
+          <div className="min-w-0 rounded-3xl bg-white p-4 text-gray-900">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold">{t.pwaTodayAgenda}</p>
+              <p className="min-w-0 text-sm font-semibold leading-snug">{t.pwaTodayAgenda}</p>
               <button
                 type="button"
                 onClick={() => void loadAgenda()}
-                className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="shrink-0 rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
                 aria-label={t.refresh}
               >
                 <RefreshCw className="h-4 w-4" />
@@ -221,8 +221,8 @@ export function ClinicPwaPractitionerCard() {
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-4 text-gray-900">
-            <p className="text-sm font-semibold">{t.pwaOfflineDraft}</p>
+          <div className="min-w-0 rounded-3xl bg-white p-4 text-gray-900">
+            <p className="text-sm font-semibold leading-snug">{t.pwaOfflineDraft}</p>
             <p className="mt-1 text-xs text-gray-500">{t.pwaOfflineDraftHint}</p>
             <textarea
               value={draft}
@@ -230,17 +230,17 @@ export function ClinicPwaPractitionerCard() {
               placeholder={t.pwaOfflineDraftPlaceholder}
               className="mt-3 min-h-28 w-full resize-none rounded-2xl border border-gray-200 p-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20"
             />
-            <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="mt-2 flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={() => setDraft('')}
-                className="text-xs font-semibold text-gray-500 hover:text-gray-800"
+                className="min-h-9 rounded-xl px-2 text-xs font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-800"
               >
                 {t.pwaClearDraft}
               </button>
               <Link
                 href="/clinic/patients"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-orange-700 hover:text-orange-800"
+                className="inline-flex min-h-9 items-center gap-1 rounded-xl px-2 text-xs font-semibold text-orange-700 hover:bg-orange-50 hover:text-orange-800"
               >
                 {t.pwaAttachLater}
                 <ArrowRight className="h-3.5 w-3.5" />
