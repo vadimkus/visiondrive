@@ -29,7 +29,7 @@ import {
   reminderScheduledFor,
   renderReminderTemplate,
 } from '@/lib/clinic/reminders'
-import { getPublicBookingEnabled } from '@/lib/clinic/public-booking-settings'
+import { getPublicBookingSettings } from '@/lib/clinic/public-booking-settings'
 import {
   bookingPolicyAppointmentData,
   bookingPolicyRequiresAcceptance,
@@ -59,8 +59,8 @@ export async function GET(
   if (!tenant) {
     return NextResponse.json({ error: 'Booking link not found' }, { status: 404 })
   }
-  const enabled = await getPublicBookingEnabled(prisma, tenant.id)
-  if (!enabled) {
+  const bookingSettings = await getPublicBookingSettings(prisma, tenant.id)
+  if (!bookingSettings.enabled) {
     return NextResponse.json({ error: 'Booking link not found' }, { status: 404 })
   }
 
@@ -157,6 +157,7 @@ export async function GET(
 
   return NextResponse.json({
     tenant,
+    settings: { confirmationMode: bookingSettings.confirmationMode },
     procedures,
     slots,
     range: { from: from.toISOString(), to: to.toISOString() },
@@ -172,8 +173,8 @@ export async function POST(
   if (!tenant) {
     return NextResponse.json({ error: 'Booking link not found' }, { status: 404 })
   }
-  const enabled = await getPublicBookingEnabled(prisma, tenant.id)
-  if (!enabled) {
+  const bookingSettings = await getPublicBookingSettings(prisma, tenant.id)
+  if (!bookingSettings.enabled) {
     return NextResponse.json({ error: 'Booking link not found' }, { status: 404 })
   }
 
@@ -284,6 +285,11 @@ export async function POST(
         procedureId: procedure.id,
         startsAt,
         endsAt,
+        status:
+          bookingSettings.confirmationMode === 'INSTANT'
+            ? ClinicAppointmentStatus.CONFIRMED
+            : ClinicAppointmentStatus.SCHEDULED,
+        confirmedAt: bookingSettings.confirmationMode === 'INSTANT' ? new Date() : null,
         source: ClinicAppointmentSource.ONLINE,
         bufferAfterMinutes,
         internalNotes: [publicBookingNote(client), intakeNote].filter(Boolean).join('\n\n'),
@@ -317,6 +323,7 @@ export async function POST(
       message: 'Online booking created',
       after: {
         source: ClinicAppointmentSource.ONLINE,
+        confirmationMode: bookingSettings.confirmationMode,
         consentAccepted: client.consentAccepted,
         notes: client.notes,
         bookingPolicyAccepted,
@@ -363,6 +370,8 @@ export async function POST(
         id: result.appointment.id,
         startsAt: result.appointment.startsAt,
         endsAt: result.appointment.endsAt,
+        status: result.appointment.status,
+        confirmationMode: bookingSettings.confirmationMode,
         service: result.appointment.procedure?.name,
         patientName: result.publicPatientName,
       },

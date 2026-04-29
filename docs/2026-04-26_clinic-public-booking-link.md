@@ -24,6 +24,7 @@ Context: Implemented point 4 from the Altegio-inspired solo-practitioner backlog
 - Staff panel:
   - dashboard exposes the booking link
   - dashboard turns public booking on/off
+  - dashboard can switch between practitioner approval and instant confirmation
   - knowledge base article explains the flow
 
 ## Design Decision
@@ -31,6 +32,8 @@ Context: Implemented point 4 from the Altegio-inspired solo-practitioner backlog
 Public booking is disabled by default. The public API returns `404` until staff explicitly turns the link on from the dashboard.
 
 Public users cannot override conflicts. If a slot disappears before submission, the API returns `409` and the page refreshes availability.
+
+By default, online bookings remain approval requests. If the practitioner switches public booking to instant mode, the created online appointment is immediately marked `CONFIRMED` and the public success page says the booking is confirmed.
 
 DOB is required because `ClinicPatient.dateOfBirth` is mandatory in the current clinical data model. The public form asks for it explicitly rather than creating unsafe placeholder patient records.
 

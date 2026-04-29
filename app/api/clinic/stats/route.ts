@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isClinicStockLow } from '@/lib/clinic/inventory'
 import { getClinicSession } from '@/lib/clinic/session'
-import { publicBookingEnabledFromSettings } from '@/lib/clinic/public-booking-settings'
+import { publicBookingSettingsFromThresholds } from '@/lib/clinic/public-booking-settings'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
       ])
 
     const lowStockCount = stockItems.filter((i) => isClinicStockLow(i)).length
+    const publicBooking = publicBookingSettingsFromThresholds(tenant?.settings?.thresholds)
 
     return NextResponse.json({
       patientCount,
@@ -62,7 +63,8 @@ export async function GET(request: NextRequest) {
       bookingUrl: tenant?.slug ? `/book/${tenant.slug}` : null,
       practiceName: tenant?.name ?? null,
       bookingProcedures: procedures,
-      publicBookingEnabled: publicBookingEnabledFromSettings(tenant?.settings?.thresholds),
+      publicBookingEnabled: publicBooking.enabled,
+      publicBookingConfirmationMode: publicBooking.confirmationMode,
     })
   } catch (e) {
     console.error('GET /api/clinic/stats', e)

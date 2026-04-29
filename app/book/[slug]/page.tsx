@@ -38,6 +38,7 @@ type Slot = {
 
 type PublicBookingData = {
   tenant: { name: string; slug: string }
+  settings: { confirmationMode: 'REQUEST' | 'INSTANT' }
   procedures: Procedure[]
   slots: Slot[]
 }
@@ -118,8 +119,10 @@ const copy = {
     createFailedRetry: 'Could not create booking. Please try again.',
     errors: {},
     bookingRequested: 'Booking requested',
+    bookingConfirmed: 'Booking confirmed',
     confirmationPrefix: 'Thank you, {name}. Your {service} is reserved for {date}.',
     confirmationSuffix: 'The practice will confirm if anything needs adjusting.',
+    instantConfirmationSuffix: 'You are confirmed. Contact the practice if you need to change anything.',
     privateLink: 'Private booking link',
     bookWith: 'Book with {practice}',
     fallbackPractice: 'the practice',
@@ -178,8 +181,10 @@ const copy = {
       'This slot is no longer available': 'Этот слот больше недоступен.',
     },
     bookingRequested: 'Запрос на запись отправлен',
+    bookingConfirmed: 'Запись подтверждена',
     confirmationPrefix: 'Спасибо, {name}. Ваша услуга «{service}» зарезервирована на {date}.',
     confirmationSuffix: 'Клиника подтвердит запись, если потребуется уточнение.',
+    instantConfirmationSuffix: 'Запись подтверждена. Если нужно что-то изменить, свяжитесь с клиникой.',
     privateLink: 'Приватная ссылка для записи',
     bookWith: 'Запись в {practice}',
     fallbackPractice: 'клинику',
@@ -241,6 +246,8 @@ export default function PublicBookingPage() {
     startsAt: string
     service: string
     patientName: string
+    status: 'SCHEDULED' | 'CONFIRMED'
+    confirmationMode: 'REQUEST' | 'INSTANT'
   } | null>(null)
   const [form, setForm] = useState({
     firstName: '',
@@ -411,7 +418,9 @@ export default function PublicBookingPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
               <CheckCircle2 className="h-9 w-9 text-emerald-700" aria-hidden />
             </div>
-            <h1 className="mt-5 text-3xl font-semibold text-gray-950">{c.bookingRequested}</h1>
+            <h1 className="mt-5 text-3xl font-semibold text-gray-950">
+              {confirmed.confirmationMode === 'INSTANT' ? c.bookingConfirmed : c.bookingRequested}
+            </h1>
             <p className="mt-3 text-sm leading-relaxed text-gray-600">
               {c.confirmationPrefix
                 .replace('{name}', confirmed.patientName)
@@ -423,7 +432,7 @@ export default function PublicBookingPage() {
                     timeStyle: 'short',
                   })
                 )}{' '}
-              {c.confirmationSuffix}
+              {confirmed.confirmationMode === 'INSTANT' ? c.instantConfirmationSuffix : c.confirmationSuffix}
             </p>
           </div>
         </section>

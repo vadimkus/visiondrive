@@ -46,6 +46,7 @@ type Stats = {
   practiceName: string | null
   bookingProcedures: Array<{ id: string; name: string }>
   publicBookingEnabled: boolean
+  publicBookingConfirmationMode: 'REQUEST' | 'INSTANT'
 }
 
 export default function ClinicDashboardPage() {
@@ -104,7 +105,38 @@ export default function ClinicDashboardPage() {
         return
       }
       setStats((current) =>
-        current ? { ...current, publicBookingEnabled: data.enabled === true } : current
+        current
+          ? {
+              ...current,
+              publicBookingEnabled: data.enabled === true,
+              publicBookingConfirmationMode: data.confirmationMode ?? current.publicBookingConfirmationMode,
+            }
+          : current
+      )
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setBookingToggleBusy(false)
+    }
+  }
+
+  async function updatePublicBookingMode(mode: Stats['publicBookingConfirmationMode']) {
+    setBookingToggleBusy(true)
+    setError('')
+    try {
+      const res = await fetch('/api/clinic/public-booking/settings', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmationMode: mode }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.saveFailed)
+        return
+      }
+      setStats((current) =>
+        current ? { ...current, publicBookingConfirmationMode: data.confirmationMode ?? mode } : current
       )
     } catch {
       setError(t.networkError)
@@ -219,6 +251,9 @@ export default function ClinicDashboardPage() {
             copyText={copyText}
             practiceName={stats.practiceName}
             procedures={stats.bookingProcedures}
+            confirmationMode={stats.publicBookingConfirmationMode}
+            updateMode={updatePublicBookingMode}
+            busy={bookingToggleBusy}
             t={t}
           />
         )}
@@ -372,6 +407,9 @@ export default function ClinicDashboardPage() {
             copyText={copyText}
             practiceName={stats.practiceName}
             procedures={stats.bookingProcedures}
+            confirmationMode={stats.publicBookingConfirmationMode}
+            updateMode={updatePublicBookingMode}
+            busy={bookingToggleBusy}
             t={t}
             desktop
           />
@@ -398,6 +436,9 @@ function BookingChannelLinksCard({
   copyText,
   practiceName,
   procedures,
+  confirmationMode,
+  updateMode,
+  busy,
   t,
   desktop = false,
 }: {
@@ -407,6 +448,9 @@ function BookingChannelLinksCard({
   copyText: (value: string, label: string) => Promise<void>
   practiceName: string | null
   procedures: Array<{ id: string; name: string }>
+  confirmationMode: 'REQUEST' | 'INSTANT'
+  updateMode: (mode: 'REQUEST' | 'INSTANT') => Promise<void>
+  busy: boolean
   t: ClinicStrings
   desktop?: boolean
 }) {
@@ -426,11 +470,31 @@ function BookingChannelLinksCard({
           <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{t.bookingChannelLinksHint}</p>
           {!bookingEnabled && <p className="mt-2 text-xs font-semibold text-amber-700">{t.bookingChannelEnableFirst}</p>}
         </div>
-        {copiedLink && (
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-            {t.copied}: {copiedLink}
-          </span>
-        )}
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          {copiedLink && (
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              {t.copied}: {copiedLink}
+            </span>
+          )}
+          <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1">
+            {(['REQUEST', 'INSTANT'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                disabled={busy}
+                onClick={() => void updateMode(mode)}
+                className={clsx(
+                  'rounded-xl px-3 py-2 text-xs font-semibold transition disabled:opacity-60',
+                  confirmationMode === mode
+                    ? 'bg-slate-950 text-white'
+                    : 'text-slate-600 hover:bg-slate-50'
+                )}
+              >
+                {mode === 'INSTANT' ? t.publicBookingInstant : t.publicBookingRequestApproval}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-2 md:grid-cols-3">

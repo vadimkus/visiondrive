@@ -69,6 +69,8 @@ const table = {
     publicBookingLink: 'Booking link',
     publicBookingOn: 'Booking on',
     publicBookingOff: 'Booking off',
+    publicBookingRequestApproval: 'Approval',
+    publicBookingInstant: 'Instant',
     bookingChannelLinks: 'Google / Instagram booking links',
     bookingChannelLinksHint:
       'Copy attributed booking links for Google Business Profile, Instagram bio, or WhatsApp. Service links preselect one treatment and keep funnel tracking clean.',
@@ -1791,6 +1793,8 @@ const ruOverrides: Partial<ClinicStrings> = {
   publicBookingLink: 'Ссылка для записи',
   publicBookingOn: 'Запись включена',
   publicBookingOff: 'Запись выключена',
+  publicBookingRequestApproval: 'Подтверждение',
+  publicBookingInstant: 'Мгновенно',
   bookingChannelLinks: 'Ссылки для Google / Instagram',
   bookingChannelLinksHint:
     'Скопируйте ссылки с UTM для Google Business Profile, Instagram bio или WhatsApp. Ссылки на услугу сразу выбирают процедуру и сохраняют чистую воронку.',

@@ -188,6 +188,22 @@
 
 ---
 
+## Chunk 76 — 2026-04-29 (login-free booking v2)
+
+**Shipped**
+
+- **Settings:** public booking now has `confirmationMode` stored in existing tenant thresholds (`REQUEST` default, `INSTANT` optional).
+- **Dashboard:** staff can switch approval vs instant confirmation beside the channel-link controls.
+- **Public API:** online booking creation marks appointments `SCHEDULED` in request mode or `CONFIRMED` with `confirmedAt` in instant mode.
+- **Public UI:** success screen distinguishes booking requested vs booking confirmed in EN/RU.
+- **Tests/docs:** updated public booking settings tests, architecture, docs index, and session note.
+
+**Operational**
+
+- No schema change.
+
+---
+
 ## Chunk 8 — 2026-04-26 (inventory follow-ups hardening)
 
 **Shipped**
