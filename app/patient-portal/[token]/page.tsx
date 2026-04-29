@@ -3,15 +3,42 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import { useParams } from 'next/navigation'
 import {
+  BadgePercent,
   CalendarClock,
   CreditCard,
   FileText,
+  Gift,
   MessageCircle,
   PackageCheck,
   RefreshCw,
+  ReceiptText,
   ShieldCheck,
+  Wallet,
 } from 'lucide-react'
 import { CLINIC_LOCALE_STORAGE, type ClinicLocale } from '@/lib/clinic/strings'
+
+type PortalPackage = {
+  id: string
+  name: string
+  totalSessions: number
+  remainingSessions: number
+  status: string
+  expiresAt: string | null
+  procedure: { name: string } | null
+}
+
+type PortalPayment = {
+  id: string
+  amountCents: number
+  currency: string
+  method: string
+  status: string
+  reference: string | null
+  receiptKind: 'STANDARD' | 'DEPOSIT' | 'LATE_CANCEL_FEE' | 'NO_SHOW_FEE'
+  paidAt: string
+  label: string
+  receiptHref: string
+}
 
 type PortalData = {
   practice: { name: string }
@@ -66,27 +93,81 @@ type PortalData = {
     aftercareSentAt: string | null
     treatmentPlanTitle: string | null
   }>
-  packages: Array<{
-    id: string
-    name: string
-    totalSessions: number
-    remainingSessions: number
-    status: string
-    expiresAt: string | null
-    procedure: { name: string } | null
-  }>
-  payments: Array<{
-    id: string
-    amountCents: number
-    currency: string
-    method: string
-    status: string
-    reference: string | null
-    receiptKind: 'STANDARD' | 'DEPOSIT' | 'LATE_CANCEL_FEE' | 'NO_SHOW_FEE'
-    paidAt: string
-    label: string
-    receiptHref: string
-  }>
+  packages: PortalPackage[]
+  payments: PortalPayment[]
+  wallet: {
+    balance: {
+      currency: string
+      dueCents: number
+      creditCents: number
+      pendingCents: number
+      status: 'CLEAR' | 'DEBT' | 'CREDIT'
+      lastPaymentAt: string | null
+    }
+    overview: {
+      currency: string
+      dueCents: number
+      creditCents: number
+      pendingCents: number
+      pendingRequestCents: number
+      activePackageSessions: number
+      activeGiftCardBalanceCents: number
+      activeSavedPaymentMethods: number
+      status: 'CLEAR' | 'DEBT' | 'CREDIT'
+    }
+    pendingPayments: Array<{
+      id: string
+      amountCents: number
+      currency: string
+      method: string
+      status: string
+      reference: string | null
+      paymentRequestExpiresAt: string | null
+      kind: 'STANDARD' | 'DEPOSIT' | 'LATE_CANCEL_FEE' | 'NO_SHOW_FEE'
+      label: string
+    }>
+    quotes: Array<{
+      id: string
+      quoteNumber: string
+      title: string
+      status: string
+      currency: string
+      totalCents: number
+      validUntil: string | null
+      createdAt: string
+    }>
+    packageBalances: PortalPackage[]
+    giftCards: Array<{
+      id: string
+      code: string
+      buyerName: string
+      recipientName: string | null
+      initialBalanceCents: number
+      remainingBalanceCents: number
+      currency: string
+      status: string
+      purchasedAt: string
+      expiresAt: string | null
+    }>
+    giftCardRedemptions: Array<{
+      id: string
+      amountCents: number
+      currency: string
+      redeemedAt: string
+      giftCard: { code: string; recipientName: string | null }
+    }>
+    savedPaymentMethods: Array<{
+      id: string
+      provider: string
+      brand: string | null
+      last4: string
+      expiryMonth: number | null
+      expiryYear: number | null
+      status: string
+      consentedAt: string
+    }>
+    receipts: PortalPayment[]
+  }
   treatmentPlans: Array<{
     id: string
     title: string
@@ -118,6 +199,28 @@ const copy = {
     title: 'Patient portal',
     secure: 'Private patient link',
     intro: 'Your upcoming appointments, aftercare, packages, receipts, and requests in one secure page.',
+    clientWallet: 'Client wallet',
+    walletIntro: 'Balances, unpaid requests, quotes, packages, gift cards, saved payment methods, and receipts.',
+    accountBalance: 'Account balance',
+    amountDue: 'Amount due',
+    accountCredit: 'Account credit',
+    clearBalance: 'Nothing due',
+    pendingRequests: 'Payment requests',
+    noPendingPayments: 'No unpaid requests.',
+    activePackageSessions: 'Package sessions',
+    giftCardBalance: 'Gift card balance',
+    savedMethods: 'Saved payment methods',
+    noSavedMethods: 'No saved payment methods.',
+    cardEnding: 'ending in',
+    quotes: 'Quotes',
+    noQuotes: 'No shared quotes.',
+    total: 'Total',
+    validUntil: 'Valid until',
+    giftCards: 'Gift cards',
+    noGiftCards: 'No gift cards linked to this client.',
+    redeemed: 'Redeemed',
+    walletPackages: 'Packages',
+    recentReceipts: 'Recent receipts',
     loadFailed: 'Could not load portal link.',
     expired: 'This patient portal link is not available or has expired.',
     upcoming: 'Upcoming appointments',
@@ -171,6 +274,28 @@ const copy = {
     title: 'Кабинет пациента',
     secure: 'Приватная ссылка пациента',
     intro: 'Будущие записи, рекомендации, пакеты, чеки и запросы на одной защищённой странице.',
+    clientWallet: 'Кошелёк клиента',
+    walletIntro: 'Баланс, неоплаченные запросы, расчёты, пакеты, подарочные карты, сохранённые способы оплаты и чеки.',
+    accountBalance: 'Баланс счёта',
+    amountDue: 'К оплате',
+    accountCredit: 'Кредит клиента',
+    clearBalance: 'Нет задолженности',
+    pendingRequests: 'Запросы на оплату',
+    noPendingPayments: 'Неоплаченных запросов нет.',
+    activePackageSessions: 'Сеансы в пакетах',
+    giftCardBalance: 'Баланс подарочных карт',
+    savedMethods: 'Сохранённые способы оплаты',
+    noSavedMethods: 'Сохранённых способов оплаты нет.',
+    cardEnding: 'оканчивается на',
+    quotes: 'Расчёты',
+    noQuotes: 'Отправленных расчётов пока нет.',
+    total: 'Итого',
+    validUntil: 'Действует до',
+    giftCards: 'Подарочные карты',
+    noGiftCards: 'Подарочных карт у клиента нет.',
+    redeemed: 'Использовано',
+    walletPackages: 'Пакеты',
+    recentReceipts: 'Последние чеки',
     loadFailed: 'Не удалось загрузить кабинет.',
     expired: 'Эта ссылка недоступна или истекла.',
     upcoming: 'Будущие записи',
@@ -233,10 +358,38 @@ function receiptText(c: (typeof copy)['en'] | (typeof copy)['ru'], kind: PortalD
   return c.receiptText
 }
 
+function paymentKindText(c: (typeof copy)['en'] | (typeof copy)['ru'], kind: PortalPayment['receiptKind']) {
+  if (kind === 'DEPOSIT') return c.depositDue
+  if (kind === 'LATE_CANCEL_FEE') return c.lateCancelFee
+  if (kind === 'NO_SHOW_FEE') return c.noShowFee
+  return c.pendingRequests
+}
+
 function depositStatusText(c: (typeof copy)['en'] | (typeof copy)['ru'], appointment: PortalData['appointments'][number]) {
   const depositPayment = appointment.policy.payments.find((payment) => payment.kind === 'DEPOSIT')
   if (appointment.policy.paymentRequirementStatus === 'PAID' || depositPayment?.status === 'PAID') return c.depositPaid
   return c.depositPending
+}
+
+function walletBalanceLabel(c: (typeof copy)['en'] | (typeof copy)['ru'], overview: PortalData['wallet']['overview']) {
+  if (overview.dueCents > 0) return c.amountDue
+  if (overview.creditCents > 0) return c.accountCredit
+  return c.clearBalance
+}
+
+function walletBalanceAmount(overview: PortalData['wallet']['overview']) {
+  if (overview.dueCents > 0) return money(overview.dueCents, overview.currency)
+  if (overview.creditCents > 0) return money(overview.creditCents, overview.currency)
+  return money(0, overview.currency)
+}
+
+function savedMethodLabel(c: (typeof copy)['en'] | (typeof copy)['ru'], method: PortalData['wallet']['savedPaymentMethods'][number]) {
+  const brand = method.brand || method.provider
+  const expiry =
+    method.expiryMonth && method.expiryYear
+      ? ` · ${String(method.expiryMonth).padStart(2, '0')}/${String(method.expiryYear).slice(-2)}`
+      : ''
+  return `${brand} ${c.cardEnding} ${method.last4}${expiry}`
 }
 
 export default function PatientPortalPage() {
@@ -427,6 +580,184 @@ export default function PatientPortalPage() {
           </div>
         )}
 
+        <PortalSection icon={Wallet} title={c.clientWallet}>
+          <p className="mb-4 text-sm leading-relaxed text-gray-600">{c.walletIntro}</p>
+          <div className="grid gap-3 md:grid-cols-4">
+            <WalletMetric
+              label={walletBalanceLabel(c, data.wallet.overview)}
+              value={walletBalanceAmount(data.wallet.overview)}
+              tone={data.wallet.overview.dueCents > 0 ? 'red' : data.wallet.overview.creditCents > 0 ? 'emerald' : 'gray'}
+            />
+            <WalletMetric
+              label={c.pendingRequests}
+              value={money(data.wallet.overview.pendingCents, data.wallet.overview.currency)}
+              tone={data.wallet.overview.pendingCents > 0 ? 'amber' : 'gray'}
+            />
+            <WalletMetric
+              label={c.activePackageSessions}
+              value={String(data.wallet.overview.activePackageSessions)}
+              tone={data.wallet.overview.activePackageSessions > 0 ? 'indigo' : 'gray'}
+            />
+            <WalletMetric
+              label={c.giftCardBalance}
+              value={money(data.wallet.overview.activeGiftCardBalanceCents, data.wallet.overview.currency)}
+              tone={data.wallet.overview.activeGiftCardBalanceCents > 0 ? 'emerald' : 'gray'}
+            />
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <WalletPanel icon={CreditCard} title={c.pendingRequests}>
+              {data.wallet.pendingPayments.length === 0 ? (
+                <p className="text-sm text-gray-500">{c.noPendingPayments}</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.wallet.pendingPayments.map((payment) => (
+                    <div key={payment.id} className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
+                      <p className="font-semibold text-gray-950">{payment.label}</p>
+                      <p className="mt-1 text-sm font-semibold text-amber-900">
+                        {money(payment.amountCents, payment.currency)}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {paymentKindText(c, payment.kind)}
+                        {payment.paymentRequestExpiresAt
+                          ? ` · ${c.expires} ${new Date(payment.paymentRequestExpiresAt).toLocaleDateString(dateLocale)}`
+                          : ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </WalletPanel>
+
+            <WalletPanel icon={BadgePercent} title={c.quotes}>
+              {data.wallet.quotes.length === 0 ? (
+                <p className="text-sm text-gray-500">{c.noQuotes}</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.wallet.quotes.map((quote) => (
+                    <div key={quote.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-gray-950">{quote.title}</p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            {quote.quoteNumber} · {quote.status}
+                          </p>
+                        </div>
+                        <p className="shrink-0 text-sm font-semibold text-gray-950">
+                          {money(quote.totalCents, quote.currency)}
+                        </p>
+                      </div>
+                      {quote.validUntil && (
+                        <p className="mt-2 text-xs text-gray-500">
+                          {c.validUntil} {new Date(quote.validUntil).toLocaleDateString(dateLocale)}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </WalletPanel>
+
+            <WalletPanel icon={PackageCheck} title={c.walletPackages}>
+              {data.wallet.packageBalances.length === 0 ? (
+                <p className="text-sm text-gray-500">{c.noPackages}</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.wallet.packageBalances.map((pkg) => (
+                    <div key={pkg.id} className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+                      <p className="font-semibold text-gray-950">{pkg.name}</p>
+                      <p className="mt-1 text-sm text-gray-700">
+                        {pkg.remainingSessions}/{pkg.totalSessions} {c.sessionsLeft}
+                      </p>
+                      {pkg.procedure && <p className="text-sm text-gray-500">{pkg.procedure.name}</p>}
+                      {pkg.expiresAt && (
+                        <p className="text-xs text-gray-400">
+                          {c.expires} {new Date(pkg.expiresAt).toLocaleDateString(dateLocale)}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </WalletPanel>
+
+            <WalletPanel icon={Gift} title={c.giftCards}>
+              {data.wallet.giftCards.length === 0 && data.wallet.giftCardRedemptions.length === 0 ? (
+                <p className="text-sm text-gray-500">{c.noGiftCards}</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.wallet.giftCards.map((card) => (
+                    <div key={card.id} className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+                      <p className="font-semibold text-gray-950">{card.code}</p>
+                      <p className="mt-1 text-sm text-gray-700">
+                        {money(card.remainingBalanceCents, card.currency)} / {money(card.initialBalanceCents, card.currency)}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {card.recipientName || card.buyerName} · {card.status}
+                      </p>
+                    </div>
+                  ))}
+                  {data.wallet.giftCardRedemptions.map((redemption) => (
+                    <div key={redemption.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                      <p className="font-semibold text-gray-950">{c.redeemed}: {redemption.giftCard.code}</p>
+                      <p className="mt-1 text-sm text-gray-700">
+                        {money(redemption.amountCents, redemption.currency)}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {new Date(redemption.redeemedAt).toLocaleDateString(dateLocale)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </WalletPanel>
+
+            <WalletPanel icon={ShieldCheck} title={c.savedMethods}>
+              {data.wallet.savedPaymentMethods.length === 0 ? (
+                <p className="text-sm text-gray-500">{c.noSavedMethods}</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.wallet.savedPaymentMethods.map((method) => (
+                    <div key={method.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                      <p className="font-semibold text-gray-950">{savedMethodLabel(c, method)}</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {method.status} · {new Date(method.consentedAt).toLocaleDateString(dateLocale)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </WalletPanel>
+
+            <WalletPanel icon={ReceiptText} title={c.recentReceipts}>
+              {data.wallet.receipts.length === 0 ? (
+                <p className="text-sm text-gray-500">{c.noPayments}</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.wallet.receipts.map((payment) => (
+                    <div key={payment.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                      <p className="font-semibold text-gray-950">{payment.label}</p>
+                      <p className="mt-1 text-sm text-gray-700">{money(payment.amountCents, payment.currency)}</p>
+                      <p className="mt-1 text-sm text-gray-600">{receiptText(c, payment.receiptKind)}</p>
+                      <p className="text-xs text-gray-400">
+                        {new Date(payment.paidAt).toLocaleDateString(dateLocale)} · {payment.status}
+                      </p>
+                      <a
+                        href={payment.receiptHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex min-h-10 items-center rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-800"
+                      >
+                        {c.receipt}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </WalletPanel>
+          </div>
+        </PortalSection>
+
         <PortalSection icon={CalendarClock} title={c.upcoming}>
           {data.appointments.length === 0 ? (
             <p className="text-sm text-gray-500">{c.noUpcoming}</p>
@@ -607,62 +938,6 @@ export default function PatientPortalPage() {
           )}
         </PortalSection>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <PortalSection icon={PackageCheck} title={c.packages}>
-            {data.packages.length === 0 ? (
-              <p className="text-sm text-gray-500">{c.noPackages}</p>
-            ) : (
-              <div className="space-y-3">
-                {data.packages.map((pkg) => (
-                  <div key={pkg.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                    <p className="font-semibold text-gray-950">{pkg.name}</p>
-                    <p className="mt-1 text-sm text-gray-700">
-                      {pkg.remainingSessions}/{pkg.totalSessions} {c.sessionsLeft}
-                    </p>
-                    {pkg.procedure && <p className="text-sm text-gray-500">{pkg.procedure.name}</p>}
-                    {pkg.expiresAt && (
-                      <p className="text-xs text-gray-400">
-                        {c.expires} {new Date(pkg.expiresAt).toLocaleDateString(dateLocale)}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </PortalSection>
-
-          <PortalSection icon={CreditCard} title={c.payments}>
-            {data.payments.length === 0 ? (
-              <p className="text-sm text-gray-500">{c.noPayments}</p>
-            ) : (
-              <div className="space-y-3">
-                {data.payments.map((payment) => (
-                  <div key={payment.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                    <p className="font-semibold text-gray-950">{payment.label}</p>
-                    <p className="mt-1 text-sm text-gray-700">{money(payment.amountCents, payment.currency)}</p>
-                    <p className="mt-1 text-sm text-gray-600">{receiptText(c, payment.receiptKind)}</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(payment.paidAt).toLocaleDateString(dateLocale)} · {payment.status}
-                    </p>
-                    <p className="mt-1 text-xs text-gray-500">
-                      {c.method}: {payment.method}
-                      {payment.reference ? ` · ${c.reference}: ${payment.reference}` : ''}
-                    </p>
-                    <a
-                      href={payment.receiptHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-3 inline-flex min-h-10 items-center rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-800"
-                    >
-                      {c.receipt}
-                    </a>
-                  </div>
-                ))}
-              </div>
-            )}
-          </PortalSection>
-        </div>
-
         <PortalSection icon={FileText} title={c.treatmentPlans}>
           {data.treatmentPlans.length === 0 ? (
             <p className="text-sm text-gray-500">{c.noPlans}</p>
@@ -723,5 +998,52 @@ function PortalSection({
       </div>
       {children}
     </section>
+  )
+}
+
+function WalletMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  tone: 'gray' | 'red' | 'amber' | 'emerald' | 'indigo'
+}) {
+  const tones = {
+    gray: 'border-gray-100 bg-gray-50 text-gray-950',
+    red: 'border-red-100 bg-red-50 text-red-950',
+    amber: 'border-amber-100 bg-amber-50 text-amber-950',
+    emerald: 'border-emerald-100 bg-emerald-50 text-emerald-950',
+    indigo: 'border-indigo-100 bg-indigo-50 text-indigo-950',
+  } as const
+
+  return (
+    <div className={`rounded-2xl border p-4 ${tones[tone]}`}>
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] opacity-70">{label}</p>
+      <p className="mt-2 text-xl font-semibold tracking-tight">{value}</p>
+    </div>
+  )
+}
+
+function WalletPanel({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <div className="rounded-[1.5rem] border border-gray-100 bg-white/80 p-4">
+      <div className="mb-3 flex items-center gap-2 text-gray-950">
+        <span className="rounded-xl bg-gray-50 p-2 text-orange-700">
+          <Icon className="h-4 w-4" aria-hidden />
+        </span>
+        <h3 className="font-semibold">{title}</h3>
+      </div>
+      {children}
+    </div>
   )
 }

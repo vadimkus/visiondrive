@@ -121,6 +121,7 @@
 | [2026-04-29_altegio-support-cross-check.md](2026-04-29_altegio-support-cross-check.md) | Altegio support scope cross-check and Practice OS completion status |
 | [2026-04-29_clinic-patient-list-identity-ui.md](2026-04-29_clinic-patient-list-identity-ui.md) | Clinic patient list identity-first card UI |
 | [2026-04-29_clinic-workspace-layout-alignment.md](2026-04-29_clinic-workspace-layout-alignment.md) | Clinic workspace centered layout alignment |
+| [2026-04-29_clinic-client-wallet.md](2026-04-29_clinic-client-wallet.md) | Clinic client wallet in the patient portal |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

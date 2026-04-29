@@ -5,9 +5,15 @@ import {
   ClinicCrmActivityType,
   ClinicPaymentStatus,
   ClinicPatientPortalRequestType,
+  ClinicPriceQuoteStatus,
 } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { writeAppointmentEvent } from '@/lib/clinic/appointments'
+import {
+  buildClientBalanceChargesFromAppointments,
+  buildClientBalanceSummary,
+} from '@/lib/clinic/client-balance'
+import { buildClientWalletOverview } from '@/lib/clinic/client-wallet'
 import {
   hashPatientPortalToken,
   isPatientPortalLinkActive,
@@ -245,6 +251,192 @@ export async function GET(
     }
   }
 
+  const balancePaymentSelect = {
+    id: true,
+    amountCents: true,
+    discountCents: true,
+    feeCents: true,
+    currency: true,
+    status: true,
+    reference: true,
+    paidAt: true,
+  } as const
+
+  const [
+    balanceAppointments,
+    standalonePayments,
+    pendingPayments,
+    walletQuotes,
+    walletGiftCards,
+    walletGiftCardRedemptions,
+    walletSavedPaymentMethods,
+  ] = await Promise.all([
+    prisma.clinicAppointment.findMany({
+      where: { tenantId: link.tenantId, patientId: link.patientId },
+      orderBy: { startsAt: 'desc' },
+      take: 80,
+      select: {
+        status: true,
+        procedure: { select: { basePriceCents: true, currency: true } },
+        visits: { select: { payments: { select: balancePaymentSelect } } },
+        payments: { select: balancePaymentSelect },
+      },
+    }),
+    prisma.clinicPatientPayment.findMany({
+      where: {
+        tenantId: link.tenantId,
+        patientId: link.patientId,
+        visitId: null,
+        appointmentId: null,
+      },
+      select: balancePaymentSelect,
+    }),
+    prisma.clinicPatientPayment.findMany({
+      where: {
+        tenantId: link.tenantId,
+        patientId: link.patientId,
+        status: ClinicPaymentStatus.PENDING,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: {
+        id: true,
+        amountCents: true,
+        currency: true,
+        method: true,
+        status: true,
+        reference: true,
+        paymentRequestExpiresAt: true,
+        appointment: {
+          select: {
+            startsAt: true,
+            titleOverride: true,
+            procedure: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    prisma.clinicPriceQuote.findMany({
+      where: {
+        tenantId: link.tenantId,
+        patientId: link.patientId,
+        status: {
+          in: [
+            ClinicPriceQuoteStatus.SENT,
+            ClinicPriceQuoteStatus.ACCEPTED,
+            ClinicPriceQuoteStatus.EXPIRED,
+          ],
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 12,
+      select: {
+        id: true,
+        quoteNumber: true,
+        title: true,
+        status: true,
+        currency: true,
+        totalCents: true,
+        validUntil: true,
+        createdAt: true,
+      },
+    }),
+    prisma.clinicGiftCard.findMany({
+      where: { tenantId: link.tenantId, buyerPatientId: link.patientId },
+      orderBy: { purchasedAt: 'desc' },
+      take: 12,
+      select: {
+        id: true,
+        code: true,
+        buyerName: true,
+        recipientName: true,
+        initialBalanceCents: true,
+        remainingBalanceCents: true,
+        currency: true,
+        status: true,
+        purchasedAt: true,
+        expiresAt: true,
+      },
+    }),
+    prisma.clinicGiftCardRedemption.findMany({
+      where: { tenantId: link.tenantId, patientId: link.patientId },
+      orderBy: { redeemedAt: 'desc' },
+      take: 12,
+      select: {
+        id: true,
+        amountCents: true,
+        currency: true,
+        redeemedAt: true,
+        giftCard: { select: { code: true, recipientName: true } },
+      },
+    }),
+    prisma.clinicSavedPaymentMethod.findMany({
+      where: { tenantId: link.tenantId, patientId: link.patientId },
+      orderBy: { createdAt: 'desc' },
+      take: 8,
+      select: {
+        id: true,
+        provider: true,
+        brand: true,
+        last4: true,
+        expiryMonth: true,
+        expiryYear: true,
+        status: true,
+        consentedAt: true,
+      },
+    }),
+  ])
+
+  const clientBalance = buildClientBalanceSummary({
+    charges: buildClientBalanceChargesFromAppointments(balanceAppointments),
+    standalonePayments,
+  })
+
+  const walletReceipts = patient.payments.map((payment) => {
+    const appointment = payment.appointment ?? payment.visit?.appointment ?? null
+    return {
+      id: payment.id,
+      amountCents: payment.amountCents,
+      currency: payment.currency,
+      method: payment.method,
+      status: payment.status,
+      reference: payment.reference,
+      receiptKind: patientPortalPaymentKind(payment.reference),
+      paidAt: payment.paidAt,
+      label: appointment ? appointmentLabel(appointment) : 'Payment',
+      receiptHref: `/api/patient-portal/${token}/payments/${payment.id}/receipt`,
+    }
+  })
+  const walletPendingPayments = pendingPayments.map((payment) => ({
+    id: payment.id,
+    amountCents: payment.amountCents,
+    currency: payment.currency,
+    method: payment.method,
+    status: payment.status,
+    reference: payment.reference,
+    paymentRequestExpiresAt: payment.paymentRequestExpiresAt,
+    kind: patientPortalPaymentKind(payment.reference),
+    label: payment.appointment ? appointmentLabel(payment.appointment) : 'Payment request',
+  }))
+  const walletPackageBalances = patient.packages
+  const wallet = {
+    balance: clientBalance,
+    overview: buildClientWalletOverview({
+      clientBalance,
+      pendingPayments: walletPendingPayments,
+      packages: walletPackageBalances,
+      giftCards: walletGiftCards,
+      savedPaymentMethods: walletSavedPaymentMethods,
+    }),
+    pendingPayments: walletPendingPayments,
+    quotes: walletQuotes,
+    packageBalances: walletPackageBalances,
+    giftCards: walletGiftCards,
+    giftCardRedemptions: walletGiftCardRedemptions,
+    savedPaymentMethods: walletSavedPaymentMethods,
+    receipts: walletReceipts,
+  }
+
   return NextResponse.json({
     practice: { name: link.tenant.name },
     patient: {
@@ -281,22 +473,9 @@ export async function GET(
         aftercareSentAt: visit.aftercareSentAt,
         treatmentPlanTitle: visit.treatmentPlan?.title ?? null,
       })),
+    wallet,
     packages: patient.packages,
-    payments: patient.payments.map((payment) => {
-      const appointment = payment.appointment ?? payment.visit?.appointment ?? null
-      return {
-        id: payment.id,
-        amountCents: payment.amountCents,
-        currency: payment.currency,
-        method: payment.method,
-        status: payment.status,
-        reference: payment.reference,
-        receiptKind: patientPortalPaymentKind(payment.reference),
-        paidAt: payment.paidAt,
-        label: appointment ? appointmentLabel(appointment) : 'Payment',
-        receiptHref: `/api/patient-portal/${token}/payments/${payment.id}/receipt`,
-      }
-    }),
+    payments: walletReceipts,
     treatmentPlans: patient.treatmentPlans.map((plan) => ({
       ...plan,
       completedSessions: plan.visits.length,
