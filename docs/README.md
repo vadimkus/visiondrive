@@ -96,6 +96,8 @@
 | [2026-04-28_clinic-group-classes-events-decision.md](2026-04-28_clinic-group-classes-events-decision.md) | Clinic group classes/events decision note |
 | [2026-04-28_clinic-solo-practitioner-assignment.md](2026-04-28_clinic-solo-practitioner-assignment.md) | Clinic solo practitioner assignment note |
 | [2026-04-29_clinic-phone-workflow-no-ip-telephony.md](2026-04-29_clinic-phone-workflow-no-ip-telephony.md) | Clinic phone workflow without IP telephony note |
+| [2026-04-29_clinic-competitive-feature-scan.md](2026-04-29_clinic-competitive-feature-scan.md) | Clinic competitive feature scan note |
+| [2026-04-29_clinic-smart-waitlist-cancellation-fill.md](2026-04-29_clinic-smart-waitlist-cancellation-fill.md) | Clinic smart waitlist and cancellation-fill note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |

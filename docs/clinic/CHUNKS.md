@@ -1230,6 +1230,24 @@
 
 ---
 
+## Chunk 70 — 2026-04-29 (smart waitlist + cancellation fill)
+
+**Shipped**
+
+- **Schema:** added `ClinicWaitlistEntry` and `ClinicWaitlistStatus` for tenant-scoped waitlist rows.
+- **API:** added `GET/POST /api/clinic/waitlist` and `PATCH /api/clinic/waitlist/[id]`.
+- **Matching:** ranked cancellation-fill candidates by procedure match, priority, acceptable date window, and time waiting.
+- **UI:** added `/clinic/waitlist`, clinic navigation, and dashboard quick action.
+- **WhatsApp handoff:** generated patient-ready cancellation-fill copy; opening WhatsApp marks the row contacted and logs CRM activity.
+- **i18n/docs/tests:** EN/RU strings, feature note, architecture/data-model/docs index updates, and helper Vitest coverage.
+
+**Validation**
+
+- Run `npx prisma format`, `npx prisma generate`, and `npm run type-check`.
+- Schema change requires `npx prisma db push` before use against a database.
+
+---
+
 ## Chunk 6 — 2026-04-23 (patient summary PDF)
 
 **Shipped**

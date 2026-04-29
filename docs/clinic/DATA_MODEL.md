@@ -23,6 +23,7 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_patient_portal_requests` | Patient-submitted portal requests for reschedule, cancellation, or message; mirrored into CRM notes for staff follow-up. |
 | `clinic_intake_questions` | Service-specific public booking questions configured per procedure: prompt, help text, type, required flag, active flag, and sort order. |
 | `clinic_intake_responses` | Appointment-linked intake answer snapshots from public booking, preserving the original prompt/type for clinical context. |
+| `clinic_waitlist_entries` | Smart waitlist / cancellation-fill candidates: patient, optional procedure, priority, acceptable date window, preferred days/time, status, contact metadata, and optional booked appointment link. |
 | `clinic_patient_reviews` | Internal review/reputation workflow: request status, rating, private note, candidate public text, requested/replied/published timestamps. |
 | `clinic_visits` | Completed encounters; optional `treatment_plan_id`; **next_steps** drives “what to do next” on the chart; aftercare template snapshots store patient-facing message/document references; **inventory_consumed_at** prevents repeated auto-deduct. |
 | `clinic_patient_media` | Before/after/other images captured from camera or uploaded from file picker: Postgres **`BYTEA`** and/or optional **Vercel Blob** (`blob_pathname`); mime/caption plus capture-protocol JSON and marketing-consent marker. |
@@ -82,6 +83,7 @@ Deep IP telephony is intentionally not modeled. Calls are device-native, and the
 - `GET/POST /api/clinic/appointments` — range query + conflict-safe create; create checks existing appointments, blocked time, working hours, and minimum lead time.
 - `GET/PATCH /api/clinic/appointments/[id]` — read/update one appointment, including drawer context, patient balance, and event history; schedule changes require override reason when they violate scheduling rules.
 - `POST /api/clinic/appointments/[id]/actions` — reminder, start/complete visit, follow-up, and review-request actions.
+- `GET/POST /api/clinic/waitlist`; `PATCH /api/clinic/waitlist/[id]` — manage cancellation-fill waitlist entries. `GET` accepts `slotStart` and optional `procedureId` to return ranked WhatsApp-ready suggestions.
 - `GET/PATCH /api/clinic/availability` — read/save general and service-specific working-hour rules.
 - `GET /api/clinic/availability/slots` — generate bookable slots from working hours, service-specific overrides, fixed/dynamic slot mode, blocked time, appointments, service duration, and buffers.
 - `GET/POST /api/clinic/blocked-times`; `DELETE /api/clinic/blocked-times/[id]` — manual private/closed time.

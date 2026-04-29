@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Users, ListOrdered, Calendar, CalendarClock, ArrowRight, Package, Send, Sparkles, Link as LinkIcon, BarChart3, Target, Gauge, MessageCircleReply, MapPin } from 'lucide-react'
+import { Users, ListOrdered, Calendar, CalendarClock, ArrowRight, Package, Send, Sparkles, Link as LinkIcon, BarChart3, Target, Gauge, MessageCircleReply, MapPin, ClipboardList } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicPwaPractitionerCard } from '@/components/clinic/ClinicPwaPractitionerCard'
@@ -297,6 +297,13 @@ export default function ClinicDashboardPage() {
           >
             <MapPin className="h-4 w-4" aria-hidden />
             {t.serviceAreas}
+          </Link>
+          <Link
+            href="/clinic/waitlist"
+            className="inline-flex items-center justify-center gap-2 min-h-11 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+          >
+            <ClipboardList className="h-4 w-4" aria-hidden />
+            {t.smartWaitlist}
           </Link>
           <Link
             href="/clinic/review-analytics"

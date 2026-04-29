@@ -52,6 +52,7 @@ model User {
   clinicAppointmentEvents    ClinicAppointmentEvent[]         @relation("ClinicAppointmentEventActor")
   clinicPatientPortalLinks   ClinicPatientPortalLink[]        @relation("ClinicPatientPortalLinkCreator")
   clinicPriceQuotesCreated   ClinicPriceQuote[]               @relation("ClinicPriceQuoteCreator")
+  clinicWaitlistEntries      ClinicWaitlistEntry[]            @relation("ClinicWaitlistEntryCreator")
 
   @@map("users")
 }
@@ -138,6 +139,7 @@ model Tenant {
   clinicPatientPortalRequests ClinicPatientPortalRequest[]
   clinicIntakeQuestions       ClinicIntakeQuestion[]
   clinicIntakeResponses       ClinicIntakeResponse[]
+  clinicWaitlistEntries       ClinicWaitlistEntry[]
 
   @@map("tenants")
 }
@@ -787,6 +789,13 @@ enum ClinicAppointmentSource {
   ONLINE
 }
 
+enum ClinicWaitlistStatus {
+  OPEN
+  CONTACTED
+  BOOKED
+  CLOSED
+}
+
 enum ClinicAppointmentEventType {
   CREATED
   UPDATED
@@ -900,6 +909,7 @@ model ClinicPatient {
   portalRequests      ClinicPatientPortalRequest[]
   intakeResponses     ClinicIntakeResponse[]
   priceQuotes         ClinicPriceQuote[]
+  waitlistEntries     ClinicWaitlistEntry[]
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -936,6 +946,7 @@ model ClinicProcedure {
   intakeQuestions     ClinicIntakeQuestion[]
   intakeResponses     ClinicIntakeResponse[]
   priceQuoteLines     ClinicPriceQuoteLine[]
+  waitlistEntries     ClinicWaitlistEntry[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -971,20 +982,21 @@ model ClinicAppointment {
   createdAt                 DateTime                @default(now())
   updatedAt                 DateTime                @updatedAt
 
-  tenant              Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient             ClinicPatient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  procedure           ClinicProcedure?             @relation(fields: [procedureId], references: [id], onDelete: SetNull)
-  visits              ClinicVisit[]
-  events              ClinicAppointmentEvent[]
-  reviews             ClinicPatientReview[]
-  packageRedemptions  ClinicPackageRedemption[]
-  giftCardRedemptions ClinicGiftCardRedemption[]
-  consentRecords      ClinicConsentRecord[]
-  payments            ClinicPatientPayment[]
-  productSales        ClinicProductSale[]
-  bookingFunnelEvents ClinicBookingFunnelEvent[]
-  portalRequests      ClinicPatientPortalRequest[]
-  intakeResponses     ClinicIntakeResponse[]
+  tenant                Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient               ClinicPatient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure             ClinicProcedure?             @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  visits                ClinicVisit[]
+  events                ClinicAppointmentEvent[]
+  reviews               ClinicPatientReview[]
+  packageRedemptions    ClinicPackageRedemption[]
+  giftCardRedemptions   ClinicGiftCardRedemption[]
+  consentRecords        ClinicConsentRecord[]
+  payments              ClinicPatientPayment[]
+  productSales          ClinicProductSale[]
+  bookingFunnelEvents   ClinicBookingFunnelEvent[]
+  portalRequests        ClinicPatientPortalRequest[]
+  intakeResponses       ClinicIntakeResponse[]
+  bookedWaitlistEntries ClinicWaitlistEntry[]        @relation("WaitlistBookedAppointment")
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1009,6 +1021,36 @@ model ClinicAppointmentEvent {
   @@index([tenantId, createdAt])
   @@index([appointmentId, createdAt])
   @@map("clinic_appointment_events")
+}
+
+model ClinicWaitlistEntry {
+  id                  String               @id @default(cuid())
+  tenantId            String
+  patientId           String
+  procedureId         String?
+  status              ClinicWaitlistStatus @default(OPEN)
+  priority            Int                  @default(2)
+  earliestAt          DateTime?            @db.Timestamptz(6)
+  latestAt            DateTime?            @db.Timestamptz(6)
+  preferredDays       String[]             @default([])
+  preferredTimeOfDay  String?
+  note                String?              @db.Text
+  lastContactedAt     DateTime?            @db.Timestamptz(6)
+  bookedAppointmentId String?
+  createdByUserId     String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient           ClinicPatient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure         ClinicProcedure?   @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  bookedAppointment ClinicAppointment? @relation("WaitlistBookedAppointment", fields: [bookedAppointmentId], references: [id], onDelete: SetNull)
+  createdBy         User?              @relation("ClinicWaitlistEntryCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, patientId])
+  @@index([tenantId, procedureId])
+  @@map("clinic_waitlist_entries")
 }
 
 model ClinicAvailabilityRule {
