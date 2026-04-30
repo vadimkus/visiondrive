@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -46,6 +46,7 @@ import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import type { ClinicLocale } from '@/lib/clinic/strings'
 
 type PracticeNavTone = 'amber' | 'blue' | 'cyan' | 'emerald' | 'fuchsia' | 'indigo' | 'orange' | 'pink' | 'rose' | 'sky' | 'teal' | 'violet'
+const CLINIC_LITE_MODE_STORAGE = 'visiondrive-clinic-lite-mode'
 
 type PracticeNavItem = {
   href: string
@@ -96,6 +97,39 @@ const mobileTabs: PracticeNavItem[] = [
 const commandNav = nav.slice(0, 15)
 const growthNav = nav.slice(15, 24)
 const systemNav = nav.slice(24)
+const navByHref = new Map(nav.map((item) => [item.href, item]))
+const liteNavOrder = [
+  '/clinic',
+  '/clinic/appointments',
+  '/clinic/patients',
+  '/clinic/inbox',
+  '/clinic/finance',
+  '/clinic/inventory',
+  '/clinic/waitlist',
+]
+const liteMobileOrder = ['/clinic', '/clinic/appointments', '/clinic/patients', '/clinic/inbox', '/clinic/finance']
+const liteNavHrefs = new Set([
+  '/clinic',
+  '/clinic/appointments',
+  '/clinic/patients',
+  '/clinic/inbox',
+  '/clinic/finance',
+  '/clinic/inventory',
+  '/clinic/waitlist',
+])
+const liteCommandNav = liteNavOrder.flatMap((href) => {
+  const item = navByHref.get(href)
+  return item ? [item] : []
+})
+const liteMobileTabs = liteMobileOrder.flatMap((href) => {
+  const item = navByHref.get(href)
+  return item ? [item] : []
+})
+
+function readLiteModePreference() {
+  if (typeof window === 'undefined') return false
+  return window.localStorage.getItem(CLINIC_LITE_MODE_STORAGE) === '1'
+}
 
 const iconToneClasses: Record<PracticeNavTone, { active: string; idle: string; glow: string }> = {
   amber: {
@@ -200,6 +234,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const { locale, setLocale, t } = useClinicLocale()
+  const [liteMode, setLiteMode] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -221,11 +256,27 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
     }
   }, [setLocale])
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setLiteMode(readLiteModePreference())
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
+
+  const updateLiteMode = (next: boolean) => {
+    setLiteMode(next)
+    window.localStorage.setItem(CLINIC_LITE_MODE_STORAGE, next ? '1' : '0')
+  }
+
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     router.push('/login')
     router.refresh()
   }
+
+  const litePathVisible = Array.from(liteNavHrefs).some(
+    (href) => pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
+  )
 
   const renderNavGroup = (items: typeof nav, title: string) => (
     <div className="space-y-1">
@@ -254,6 +305,42 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
     </div>
   )
 
+  const modeToggle = (compact = false) => (
+    <button
+      type="button"
+      onClick={() => updateLiteMode(!liteMode)}
+      className={clsx(
+        'group flex w-full items-center justify-between rounded-2xl border transition-all active:scale-[0.99]',
+        compact
+          ? 'min-h-11 border-slate-200 bg-white px-3 text-xs shadow-sm'
+          : 'border-orange-100 bg-orange-50/70 p-3 text-left hover:bg-orange-50'
+      )}
+      aria-pressed={liteMode}
+      aria-label={liteMode ? t.liteModeSwitchToFull : t.liteModeSwitchToLite}
+    >
+      <span className="min-w-0">
+        <span className={clsx('block truncate font-semibold', compact ? 'text-slate-800' : 'text-slate-950')}>
+          {compact ? (liteMode ? t.liteModeShort : t.fullModeShort) : liteMode ? t.liteModeOn : t.liteModeOff}
+        </span>
+        {!compact && <span className="mt-0.5 block text-xs leading-5 text-slate-500">{t.liteModeHint}</span>}
+      </span>
+      <span
+        className={clsx(
+          'ml-3 flex h-6 w-11 shrink-0 items-center rounded-full p-1 transition-colors',
+          liteMode ? 'bg-orange-500' : 'bg-slate-300'
+        )}
+        aria-hidden
+      >
+        <span
+          className={clsx(
+            'h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+            liteMode && 'translate-x-5'
+          )}
+        />
+      </span>
+    </button>
+  )
+
   return (
     <div
       className="min-h-[100dvh] w-full min-w-0 overflow-x-hidden bg-[#f6f3ee] text-slate-950 lg:flex lg:bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.20),transparent_26rem),radial-gradient(circle_at_78%_0%,rgba(99,102,241,0.16),transparent_24rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_46%,#eef2ff_100%)]"
@@ -274,6 +361,9 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
             </span>
           </Link>
           <div className="flex shrink-0 items-center gap-2">
+            <div className="w-[5.75rem] sm:w-[8.5rem]">
+              {modeToggle(true)}
+            </div>
             <label className="sr-only" htmlFor="clinic-mobile-language">
               {t.language}
             </label>
@@ -315,10 +405,20 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
           </span>
         </Link>
 
-        <nav className="mt-6 flex-1 space-y-6 overflow-y-auto pr-1 scrollbar-hide" aria-label={t.practiceConsole}>
-          {renderNavGroup(commandNav, t.navGroupCommand)}
-          {renderNavGroup(growthNav, t.navGroupGrowth)}
-          {renderNavGroup(systemNav, t.navGroupSystem)}
+        <div className="mt-5">
+          {modeToggle()}
+        </div>
+
+        <nav className="mt-5 flex-1 space-y-6 overflow-y-auto pr-1 scrollbar-hide" aria-label={t.practiceConsole}>
+          {liteMode ? (
+            renderNavGroup(liteCommandNav, t.liteModeEssentials)
+          ) : (
+            <>
+              {renderNavGroup(commandNav, t.navGroupCommand)}
+              {renderNavGroup(growthNav, t.navGroupGrowth)}
+              {renderNavGroup(systemNav, t.navGroupSystem)}
+            </>
+          )}
         </nav>
 
         <div className="mt-4 rounded-3xl border border-white/80 bg-white/70 p-3 shadow-sm">
@@ -350,12 +450,26 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       </aside>
 
       <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
+        {liteMode && !litePathVisible && (
+          <div className="mx-auto mb-4 max-w-7xl rounded-3xl border border-orange-100 bg-orange-50/90 p-4 text-sm text-orange-950 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="leading-6">{t.liteModeHiddenPage}</p>
+              <button
+                type="button"
+                onClick={() => updateLiteMode(false)}
+                className="inline-flex min-h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition active:scale-[0.98]"
+              >
+                {t.liteModeSwitchToFull}
+              </button>
+            </div>
+          </div>
+        )}
         {children}
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/80 bg-white/88 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl lg:hidden" aria-label={t.practiceConsole}>
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
-          {mobileTabs.map(({ href, labelKey, icon: Icon, tone }) => {
+          {(liteMode ? liteMobileTabs : mobileTabs).map(({ href, labelKey, icon: Icon, tone }) => {
             const active = pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
             return (
               <Link

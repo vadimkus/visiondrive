@@ -130,6 +130,7 @@
 | [2026-04-30_compliance-page-practice-os-rework.md](2026-04-30_compliance-page-practice-os-rework.md) | Public Compliance page Practice OS rework |
 | [2026-04-30_terms-page-practice-os-rework.md](2026-04-30_terms-page-practice-os-rework.md) | Public Terms page Practice OS rework |
 | [2026-04-30_public-ru-localization-pass.md](2026-04-30_public-ru-localization-pass.md) | Public website Russian localization pass |
+| [2026-04-30_clinic-lite-mode.md](2026-04-30_clinic-lite-mode.md) | Clinic Lite Mode toggle and simplified daily navigation |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Clinic public practitioner profile page |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
