@@ -41,7 +41,7 @@ const categories = {
         },
         {
           question: 'Who is it built for?',
-          answer: 'It is built for independent practitioners and small clinics in the UAE: aesthetics, wellness, home-visit services, private therapists, and specialists who need clinic discipline without enterprise software overhead.',
+          answer: 'It is built for independent practitioners and small private practices in the UAE: aesthetics, wellness, home-visit services, private therapists, and specialists who need operational discipline without enterprise software overhead.',
         },
         {
           question: 'Does it work on mobile?',
@@ -184,7 +184,7 @@ const categories = {
         },
         {
           question: 'Для кого это создано?',
-          answer: 'Для независимых специалистов и небольших клиник в ОАЭ: эстетика, wellness, выездные услуги, частные терапевты и специалисты, которым нужна дисциплина клиники без тяжелой корпоративной системы.',
+          answer: 'Для независимых специалистов и небольших частных практик в ОАЭ: эстетика, wellness, выездные услуги, частные терапевты и специалисты, которым нужна операционная дисциплина без тяжелой корпоративной системы.',
         },
         {
           question: 'Работает ли это на телефоне?',

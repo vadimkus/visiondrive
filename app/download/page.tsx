@@ -1,12 +1,5 @@
-import DownloadSection from '../components/sections/app/DownloadSection'
-import UserTestimonials from '../components/sections/app/UserTestimonials'
+import { redirect } from 'next/navigation'
 
 export default function DownloadPage() {
-  return (
-    <>
-      <DownloadSection />
-      <UserTestimonials />
-    </>
-  )
+  redirect('/login')
 }
-

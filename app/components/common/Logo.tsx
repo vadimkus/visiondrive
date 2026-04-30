@@ -57,6 +57,7 @@ export default function Logo({ className = 'h-[42px] w-[42px]', priority = false
           src={imageSrc}
           alt="Vision Drive Logo"
           fill
+          sizes="(min-width: 768px) 44px, 36px"
           className="object-contain"
           priority={priority}
           onError={handleError}

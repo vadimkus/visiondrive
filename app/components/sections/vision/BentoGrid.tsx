@@ -8,43 +8,43 @@ const motion = fmMotion as any
 
 const features = [
   {
-    title: 'End Manual Temperature Logging',
-    description: 'Automated monitoring and compliance reports. No more clipboard checks.',
+    title: 'End Manual Admin',
+    description: 'Bookings, records, payments, and follow-up in one calm workspace.',
     icon: Clock,
     color: 'from-gold-500 to-gold-600',
     span: 'col-span-1 md:col-span-2',
   },
   {
-    title: 'RTA-Approved Sensor Technology',
-    description: 'Partnered with certified IoT sensors meeting Dubai standards.',
+    title: 'Private Records by Design',
+    description: 'Patient-safe exports, consent history, and UAE-hosted infrastructure.',
     icon: Shield,
     color: 'from-blue-500 to-blue-600',
     span: 'col-span-1',
   },
   {
-    title: 'Dubai Marina & JLT Ready',
-    description: 'Already in talks with major towers. Pilot program launching Q1 2026.',
+    title: 'Built for UAE Practitioners',
+    description: 'Designed for solo clinics, home visits, and mobile-first daily work.',
     icon: MapPin,
     color: 'from-green-500 to-green-600',
     span: 'col-span-1',
   },
   {
-    title: '99.5% Accuracy Guaranteed',
-    description: 'Flush-mount sensors with redundant verification systems.',
+    title: 'Structured Patient Cards',
+    description: 'Visits, photos, quotes, balances, packages, and notes stay connected.',
     icon: CheckCircle2,
     color: 'from-purple-500 to-purple-600',
     span: 'col-span-1 md:col-span-2',
   },
   {
-    title: 'Zero Digging Required',
-    description: 'Surface-mounted sensors. No infrastructure disruption.',
+    title: 'No Hardware Required',
+    description: 'Start with a browser, services, clients, and a clean booking workflow.',
     icon: Zap,
     color: 'from-orange-500 to-orange-600',
     span: 'col-span-1',
   },
   {
-    title: 'Launch-Ready in 90 Days',
-    description: 'Proven technology stack. Rapid deployment capability.',
+    title: 'Launch-Ready Fast',
+    description: 'Import clients, configure services, and start running appointments.',
     icon: TrendingUp,
     color: 'from-pink-500 to-pink-600',
     span: 'col-span-1',
@@ -66,7 +66,7 @@ export default function BentoGrid() {
               Why Vision Drive?
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Benefit-driven solutions for the UAE's food safety challenges
+              Benefit-driven software for solo practitioner operations in the UAE
             </p>
           </motion.div>
         </div>

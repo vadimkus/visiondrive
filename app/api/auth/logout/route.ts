@@ -4,7 +4,6 @@ export async function POST() {
   const response = NextResponse.json({ success: true })
   response.cookies.delete('authToken')
   response.cookies.delete('portal')
-  response.cookies.delete('kitchenId')
   return response
 }
 

@@ -26,12 +26,6 @@ Core capabilities:
 - Inventory, purchase orders, barcode lookup, procedure bill of materials, stock-taking, and product sales from visits.
 - Inline payments, receipts, client balances, prepaid packages, and P&L / procedure profitability reporting.
 
-## Secondary / Legacy Product
-
-### Smart Kitchen Temperature Monitoring
-
-VisionDrive also maintains Smart Kitchen IoT temperature monitoring materials for UAE commercial kitchens: NB-IoT sensors, alerts, compliance reports, and Dubai Municipality food-safety workflows.
-
 ## Key Public Pages
 
 - Home: https://visiondrive.ae/

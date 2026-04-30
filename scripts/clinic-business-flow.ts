@@ -309,6 +309,8 @@ async function main() {
       startsAt: noShowStart.toISOString(),
       internalNotes: 'E2E no-show policy fee appointment',
       bookingPolicyAccepted: true,
+      allowConflictOverride: true,
+      overrideReason: 'E2E no-show policy fee validation slot',
     }),
   })
   const noShowApptJson = await noShowApptRes.json()

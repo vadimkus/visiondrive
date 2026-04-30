@@ -20,17 +20,13 @@ All documentation is centralized in `/docs/`:
 ### Key Documents
 - `docs/PROJECT_STRUCTURE.md` - Project architecture
 - `docs/WEBSITE_STRUCTURE_V2.md` - Website structure
-- `docs/IOT_CERTIFICATE_ADDITION.md` - IoT certificate details
-- `docs/TDRA_COMPLIANCE_SUMMARY.md` - Regulatory compliance
-
-### Module Documentation
-- `smartkitchen/docs/` - Smart Kitchen system
+- `docs/IOT_CERTIFICATE_ADDITION.md` - Legacy company certificate reference
 
 ## Project Context
 
-VisionDrive is a UAE IoT company:
-- **Smart Kitchen**: Temperature monitoring (Dubai Municipality compliant)
-- **Compliance**: TDRA certified, UAE data resident (AWS me-central-1)
+VisionDrive is building Practice OS for UAE solo practitioners and independent private practices:
+- **Practice OS**: booking, patient records, payments, inventory, reminders, and practice operations
+- **Compliance**: UAE data residency and patient-data handling patterns
 
 ## Before Making Changes
 

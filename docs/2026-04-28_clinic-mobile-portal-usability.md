@@ -4,7 +4,7 @@ Date: 2026-04-28
 
 ## Context
 
-Solo practitioners are likely to run the practice console from an iPhone or iPad rather than a laptop. The shared portal shell needed another mobile-first pass before adding more backlog items.
+Solo practitioners are likely to run the workspace from an iPhone or iPad rather than a laptop. The shared shell needed another mobile-first pass before adding more backlog items.
 
 ## Shipped
 

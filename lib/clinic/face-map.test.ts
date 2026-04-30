@@ -55,4 +55,14 @@ describe('face map metadata', () => {
     expect(meta?.source).toBe('media')
     expect(meta?.sourceMediaId).toBe('media_123')
   })
+
+  it('keeps single-point strokes for injection dot marks', () => {
+    const meta = normalizeFaceMapMetadata({
+      source: 'template',
+      strokes: [{ id: 'dot', color: '#2563eb', width: 10, points: [{ x: 440, y: 520 }] }],
+    })
+
+    expect(meta?.strokes).toHaveLength(1)
+    expect(meta?.strokes[0].points).toEqual([{ x: 440, y: 520 }])
+  })
 })

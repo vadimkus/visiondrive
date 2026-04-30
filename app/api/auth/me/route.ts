@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { sql } from '@/lib/sql'
-import jwt from 'jsonwebtoken'
-
-const KITCHEN_JWT_SECRET = process.env.KITCHEN_JWT_SECRET ?? ''
-const IS_DEV = process.env.NODE_ENV !== 'production'
 
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('authToken')?.value || 
                   request.headers.get('authorization')?.replace('Bearer ', '')
-    const portal = request.cookies.get('portal')?.value
 
     if (!token) {
       return NextResponse.json(
@@ -19,68 +14,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Handle Kitchen portal authentication (AWS-based)
-    if (portal === 'kitchen') {
-      // Demo tokens only valid in development
-      if (IS_DEV && token.startsWith('admin_')) {
-        return NextResponse.json({
-          success: true,
-          user: {
-            id: 'admin-vadim-001',
-            email: 'vadim@visiondrive.ae',
-            name: 'Vadim',
-            role: 'ADMIN',
-            status: 'ACTIVE',
-            portal: 'kitchen',
-          },
-        })
-      }
-
-      if (IS_DEV && token.startsWith('demo_')) {
-        return NextResponse.json({
-          success: true,
-          user: {
-            id: 'owner-abdul-001',
-            email: 'abdul@kitchen.ae',
-            name: 'Abdul Rahman',
-            role: 'KITCHEN_OWNER',
-            status: 'ACTIVE',
-            portal: 'kitchen',
-          },
-        })
-      }
-
-      // JWT verification for AWS tokens
-      try {
-        const decoded = jwt.verify(token, KITCHEN_JWT_SECRET) as {
-          userId: string
-          email: string
-          role: string
-          kitchenId?: string
-        }
-
-        return NextResponse.json({
-          success: true,
-          user: {
-            id: decoded.userId,
-            email: decoded.email,
-            name: decoded.email.split('@')[0], // Use email prefix as name
-            role: decoded.role || 'CUSTOMER_ADMIN',
-            status: 'ACTIVE',
-            tenantId: decoded.kitchenId || null,
-            portal: 'kitchen',
-          },
-        })
-      } catch (err) {
-        console.error('Kitchen token verification failed:', err)
-        return NextResponse.json(
-          { success: false, error: 'Invalid kitchen token' },
-          { status: 401 }
-        )
-      }
-    }
-
-    // Handle portal authentication (Timescale-based)
     const decoded = verifyToken(token)
     if (!decoded) {
       return NextResponse.json(
@@ -122,10 +55,6 @@ export async function GET(request: NextRequest) {
         ? 'MASTER_ADMIN'
         : (user.membershipStatus === 'ACTIVE' && user.tenantRole ? user.tenantRole : user.role)
 
-    const portalCookie = request.cookies.get('portal')?.value
-    const resolvedPortal =
-      portalCookie === 'clinic' ? 'clinic' : portalCookie === 'kitchen' ? 'kitchen' : 'operations'
-
     return NextResponse.json({
       success: true,
       user: {
@@ -135,7 +64,7 @@ export async function GET(request: NextRequest) {
         role: effectiveRole,
         status: user.status,
         tenantId: activeTenantId || user.defaultTenantId || null,
-        portal: resolvedPortal,
+        portal: 'clinic',
       },
     })
   } catch (error) {

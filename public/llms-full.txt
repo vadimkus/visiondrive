@@ -7,7 +7,6 @@
 - Legal Name: VisionDrive Technologies FZ-LLC
 - Website: https://visiondrive.ae
 - Current Primary Category: Practice management software / business software
-- Secondary Category: IoT / food-safety technology
 - Jurisdiction: Ras Al Khaimah Free Zone, United Arab Emirates
 - Office: Compass Coworking Centre, Ras Al Khaimah, UAE
 - Email: tech@visiondrive.ae
@@ -103,37 +102,6 @@ Private or non-public routes:
 - Do not index or quote private `/clinic`, `/portal`, `/book`, `/login`, or `/api` routes.
 - For access, demos, or onboarding, send users to https://visiondrive.ae/contact.
 
-## Secondary / Legacy Product: Smart Kitchen Temperature Monitoring
-
-VisionDrive also maintains Smart Kitchen IoT materials for commercial kitchens.
-
-**Summary:**
-
-Real-time NB-IoT temperature monitoring for UAE commercial kitchens, designed around alerts, compliance reporting, and food-safety workflows.
-
-**Hardware and monitoring details:**
-
-- Sensor model: Dragino S31-NB (NB-IoT Temperature & Humidity Sensor)
-- IoT module: Quectel BC660K-GL
-- Network: Etisalat NB-IoT in the UAE
-- Temperature range: -40°C to +85°C
-- Accuracy: ±0.3°C
-- Battery life: 5+ years
-- Waterproof rating: IP67
-- Fridge safe zone: 0°C to 5°C
-- Freezer safe zone: ≤ -18°C
-- Hot holding: ≥ 60°C
-- Danger zone: 5°C to 60°C
-
-**Smart Kitchen features:**
-
-- Real-time temperature readings
-- Alert management
-- Compliance report generation
-- Equipment management
-- Multi-location overview
-- Historical temperature trend analysis
-
 ## Technology Stack
 
 **Public web application:**
@@ -150,20 +118,12 @@ Real-time NB-IoT temperature monitoring for UAE commercial kitchens, designed ar
 - PDF generation for receipts and patient summaries
 - Vercel Blob optional for private media storage
 
-**Smart Kitchen / IoT materials:**
-
-- AWS Middle East (UAE) region: me-central-1
-- AWS IoT Core
-- AWS Lambda Node.js
-- MQTT over TLS
-
 ## Certifications and Compliance Context
 
 - TDRA IoT Services License: IOT-26-100000007
 - TDRA Type Approval: EA-2026-1-55656
 - UAE trade license
 - UAE PDPL-aware handling for sensitive records
-- Smart Kitchen materials reference Dubai Municipality food-safety workflows and HACCP-style documentation
 
 ## Data Residency
 
@@ -185,9 +145,6 @@ A: No. Patient photos are private clinic media and are served through authentica
 
 **Q: Does the product support Russian?**
 A: Yes. The clinic UI and Knowledge Base include Russian localization for the current workflows.
-
-**Q: Is Smart Kitchen still part of VisionDrive?**
-A: Smart Kitchen IoT materials are still present, but Practice OS is the current primary positioning on the homepage and LLM files.
 
 ## Contact
 

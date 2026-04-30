@@ -339,7 +339,7 @@ export default function CompliancePage() {
                 <div key={row.type} className="grid gap-2 px-6 py-5 sm:grid-cols-[1fr_1fr_1.4fr] sm:gap-4">
                   <div className="font-medium text-gray-900">{row.type}</div>
                   <div>
-                    <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
+                    <span className="inline-flex max-w-full rounded-full bg-orange-100 px-3 py-1 text-center text-xs font-medium leading-snug text-orange-800">
                       {row.retention}
                     </span>
                   </div>

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Our Mission - VisionDrive Smart Kitchen Vision',
-  description: 'VisionDrive\'s mission is to transform commercial kitchen food safety through intelligent IoT solutions. Learn about our vision for smart kitchens and sustainable food operations.',
-  keywords: 'VisionDrive mission, smart kitchen vision, UAE food safety, IoT temperature monitoring, sustainable food operations',
+  title: 'Our Mission - VisionDrive Practice OS',
+  description: 'VisionDrive builds practice operations software for UAE solo practitioners: bookings, patient records, notes, payments, inventory, and business visibility.',
+  keywords: 'VisionDrive mission, Practice OS, solo practitioners UAE, clinic software, practice management',
   alternates: { canonical: '/mission' },
   openGraph: {
-    title: 'VisionDrive Mission - Transforming Commercial Kitchen Safety',
-    description: 'Making kitchens smarter, food safer, and compliance effortless.',
+    title: 'VisionDrive Mission - Practice Operations for Solo Practitioners',
+    description: 'Helping independent practitioners run calm, professional, data-resident practices.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

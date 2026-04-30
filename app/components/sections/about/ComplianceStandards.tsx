@@ -3,7 +3,7 @@ import { CheckCircle } from 'lucide-react'
 
 const compliance = [
   'FZ-LLC Registered',
-  'UAE Smart City Standards',
+  'UAE Data Residency',
   'Data Privacy Compliant',
 ]
 

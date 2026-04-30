@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Smart Kitchen Solutions - VisionDrive Temperature Monitoring',
-  description: 'Enterprise-grade NB-IoT temperature sensors for commercial kitchens. Real-time monitoring, danger zone alerts, and Dubai Municipality compliance reporting.',
-  keywords: 'smart kitchen solutions, temperature monitoring, food safety sensors, Dubai Municipality compliance, commercial kitchen IoT, restaurant temperature monitoring',
+  title: 'Practice OS Solutions - VisionDrive',
+  description: 'Practice operations software for UAE solo practitioners: booking, patient records, mobile notes, payments, inventory, quotes, and follow-up.',
+  keywords: 'Practice OS, solo practitioner software, clinic management UAE, appointment scheduling, patient records, treatment notes, payments',
   alternates: { canonical: '/solutions' },
   openGraph: {
-    title: 'VisionDrive Smart Kitchen Solutions',
-    description: 'Temperature monitoring sensors for commercial kitchens with real-time alerts and compliance reporting.',
+    title: 'VisionDrive Practice OS Solutions',
+    description: 'Software for solo practitioners to manage appointments, patient records, treatments, payments, and follow-up.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

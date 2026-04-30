@@ -3,15 +3,15 @@ export const commonTranslations = {
     howItWorks: {
       title: 'How It Works',
       steps: [
-        { title: 'Sensors' },
-        { title: 'Gateway' },
-        { title: 'App' },
+        { title: 'Book' },
+        { title: 'Treat' },
+        { title: 'Follow Up' },
       ],
     },
     coreValue: {
       items: [
         { title: 'Time Savings' },
-        { title: 'Guaranteed Spots' },
+        { title: 'Protected Schedule' },
         { title: 'Reduced Stress' },
         { title: 'Seamless Experience' },
       ],
@@ -21,11 +21,11 @@ export const commonTranslations = {
       button: 'Contact Us',
     },
     clients: {
-      items: ['Dubai Mall', 'RTA', 'Emaar', 'Dubai Municipality'],
+      items: ['Solo practitioners', 'Independent clinics', 'Home visits', 'UAE practices'],
     },
     trust: {
       items: [
-        'UAE Smart City Standards',
+        'UAE Data Residency',
         'FZ-LLC Registered',
         'Data Privacy Compliant',
       ],
@@ -35,15 +35,15 @@ export const commonTranslations = {
     howItWorks: {
       title: 'كيف يعمل',
       steps: [
-        { title: 'المستشعرات' },
-        { title: 'البوابة' },
-        { title: 'التطبيق' },
+        { title: 'الحجز' },
+        { title: 'العلاج' },
+        { title: 'المتابعة' },
       ],
     },
     coreValue: {
       items: [
         { title: 'توفير الوقت' },
-        { title: 'أماكن مضمونة' },
+        { title: 'جدول محمي' },
         { title: 'إجهاد أقل' },
         { title: 'تجربة سلسة' },
       ],
@@ -53,11 +53,11 @@ export const commonTranslations = {
       button: 'اتصل بنا',
     },
     clients: {
-      items: ['دبي مول', 'هيئة الطرق والمواصلات', 'إعمار', 'بلدية دبي'],
+      items: ['ممارسون مستقلون', 'عيادات صغيرة', 'زيارات منزلية', 'ممارسات في الإمارات'],
     },
     trust: {
       items: [
-        'معايير المدينة الذكية في الإمارات',
+        'إقامة البيانات في الإمارات',
         'مسجل كشركة FZ-LLC',
         'متوافق مع خصوصية البيانات',
       ],

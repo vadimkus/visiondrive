@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Sensor Technology - Smart Kitchen NB-IoT Temperature Sensors',
-  description: 'NB-IoT temperature sensors with ±0.3°C accuracy, 5+ year battery life, IP67 rating. Real-time kitchen monitoring for UAE commercial food safety.',
-  keywords: 'NB-IoT temperature sensor, smart kitchen sensor, IoT temperature monitor, kitchen food safety sensor, wireless temperature sensor UAE',
+  title: 'Practice OS Technology - VisionDrive',
+  description: 'Technology foundation for VisionDrive Practice OS: secure records, UAE data residency, mobile practitioner workflows, and private patient portal links.',
+  keywords: 'Practice OS technology, solo practitioner software, clinic management UAE, patient records, mobile practice portal',
   alternates: { canonical: '/sensor' },
   openGraph: {
-    title: 'Sensor Technology - Smart Kitchen NB-IoT Temperature Sensors',
-    description: 'NB-IoT temperature sensors with ±0.3°C accuracy, 5+ year battery life, IP67 rating. Real-time kitchen monitoring for UAE commercial food safety.',
+    title: 'VisionDrive Practice OS Technology',
+    description: 'Secure practice operations technology for solo practitioners in the UAE.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

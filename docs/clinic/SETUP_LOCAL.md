@@ -35,7 +35,7 @@ Optional: set `CLINIC_*` seed variables in `.env` (see `.env.example`) before se
 npm run dev
 ```
 
-Sign in at `/login` (practice console uses `portal: 'clinic'` from the login page).
+Sign in at `/login` (Workspace uses `portal: 'clinic'` from the login page).
 
 ## Tests (no DB required)
 

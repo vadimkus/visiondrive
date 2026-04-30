@@ -1,5 +1,5 @@
 /**
- * Pure helpers to build a unified patient timeline for the practice console.
+ * Pure helpers to build a unified patient timeline for the workspace.
  * Keeps API response shaping out of React components and enables unit tests.
  */
 

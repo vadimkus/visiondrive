@@ -4,7 +4,7 @@
 
 **Shipped**
 
-- `docs/clinic/*` documentation set; `docs/archive/*` for legacy parking / kitchen docs (moved, not deleted).
+- `docs/clinic/*` documentation set; legacy non-practice app surfaces are no longer part of the active product.
 - Prisma: `ClinicPatient`, `ClinicProcedure`, `ClinicAppointment`, `ClinicAppointmentStatus`, relations on `Tenant`.
 - `lib/prisma.ts`, `lib/clinic/session.ts`.
 - Routes:
@@ -319,6 +319,23 @@
 **Operational**
 
 - Run `npm run type-check`, `npm run lint`, `npm run test -- face-map`, and `npm run test:clinic-flow`.
+- No schema change.
+
+---
+
+## Chunk 84 — 2026-04-29 (public practitioner profile)
+
+**Shipped**
+
+- **Public route:** `/profile/[tenant-slug]` shows a lightweight practitioner profile with services, booking CTA, public reviews, consent-approved before/after pairs, and policies.
+- **API:** `GET /api/clinic/public-profile/[slug]` returns public-safe profile data.
+- **Media safety:** `GET /api/public/clinic/media/[id]` serves only image media with `marketingConsent=true`.
+- **Dashboard:** booking-links card now includes a copy-ready public profile URL alongside Google/Instagram/WhatsApp booking links.
+- **Privacy:** review names are anonymized as first name plus last initial; private notes, internal photos, and non-consented media are never exposed.
+- **i18n/docs/tests:** public page has EN/RU copy, Knowledge Base entry, docs note, and helper tests.
+
+**Operational**
+
 - No schema change.
 
 ---
@@ -745,7 +762,7 @@
 - **Delete flow:** `DELETE /api/clinic/media/[id]` removes tenant-scoped private media and best-effort deletes Vercel Blob storage when used.
 - **UI/Knowledge Base:** photo cards show captions and delete controls; EN/RU Knowledge Base explains mobile capture and deleting mistakes.
 - **SEO privacy:** robots now blocks private `/clinic`, `/book`, `/portal`, `/login`, and `/api` routes from indexing.
-- **LLM files:** `llms.txt` and `llms-full.txt` now describe Practice OS as the primary VisionDrive product and keep Smart Kitchen as secondary/legacy context.
+- **LLM files:** `llms.txt` and `llms-full.txt` describe Practice OS as the primary VisionDrive product.
 - **Structured data:** public layout includes `PracticeSoftwareSchema` JSON-LD for VisionDrive Practice OS.
 
 **Validation**
@@ -798,7 +815,7 @@
 
 - **Schema:** added `ClinicPatientPortalLink`, `ClinicPatientPortalRequest`, request type/status enums, and tenant/patient/appointment/user relations.
 - **Security:** portal links store only SHA-256 token hashes plus last-four metadata; creating a new link revokes existing active links and sets a 90-day expiry.
-- **Staff controls:** patient chart now includes a Patient portal lite card to create/copy/revoke the private link and review recent portal requests.
+- **Staff controls:** patient chart now includes a Patient portal card to create/copy/revoke the private link and review recent portal requests.
 - **Public portal:** `/patient-portal/[token]` shows upcoming appointments, location notes, aftercare/next steps, package balances, payment receipts, active treatment plans, and accepted consent titles.
 - **Requests:** patients can request reschedule/cancellation from the portal; requests create structured portal rows, CRM notes, and appointment events for staff review without changing the appointment automatically.
 - **Receipts:** active portal tokens can download patient-safe receipt PDFs for that patient's payments.
@@ -1474,7 +1491,7 @@
 
 - **`GET /api/clinic/patients/[id]/summary-pdf`** — authenticated, tenant-scoped; `application/pdf` attachment.
 - **Content:** practice name, patient demographics, anamnesis v1, upcoming scheduled appointments, past appointment rows (date + procedure/title label only), visit dates (no chief complaint / staff notes / `nextSteps`).
-- **Lib:** `lib/clinic/patient-summary-pdf.ts` (jsPDF, matches smart-kitchen stack) + Vitest (PDF magic bytes).
+- **Lib:** `lib/clinic/patient-summary-pdf.ts` (jsPDF) + Vitest (PDF magic bytes).
 - **UI:** Patient record header — download link + hint (EN/AR).
 - **E2E:** `npm run test:clinic-flow` asserts PDF response.
 

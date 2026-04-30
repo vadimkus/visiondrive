@@ -3,11 +3,11 @@ export const footerTranslations = {
     solutions: 'Solutions',
     company: 'Company',
     contact: 'Contact',
-    description: 'Transforming UAE with\nSmart NB-IoT Solutions',
+    description: 'Practice operations, made clear.\nSoftware for UAE solo practitioners.',
     copyright: 'All rights reserved.',
     solutionsLinks: {
-      communities: 'For Communities',
-      municipalities: 'For Municipalities',
+      communities: 'For Independent Clinics',
+      municipalities: 'For Solo Practitioners',
       technology: 'Technology',
     },
     companyLinks: {
@@ -29,11 +29,11 @@ export const footerTranslations = {
     solutions: 'الحلول',
     company: 'الشركة',
     contact: 'اتصل بنا',
-    description: 'إحداث ثورة في التنقل الحضري في دولة الإمارات العربية المتحدة من خلال حلول إنترنت الأشياء الذكية.',
+    description: 'تشغيل الممارسة بوضوح.\nبرنامج للممارسين المستقلين في الإمارات.',
     copyright: 'جميع الحقوق محفوظة.',
     solutionsLinks: {
-      communities: 'للمجتمعات',
-      municipalities: 'للبلديات',
+      communities: 'للعيادات المستقلة',
+      municipalities: 'للممارسين المستقلين',
       technology: 'التكنولوجيا',
     },
     companyLinks: {

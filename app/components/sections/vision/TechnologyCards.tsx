@@ -1,31 +1,31 @@
 'use client'
 
 import { motion as fmMotion } from 'framer-motion'
-import { Radio, Wifi, Cpu, Code } from 'lucide-react'
+import { ClipboardList, Wifi, Cpu, Code } from 'lucide-react'
 
 // React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
 const motion = fmMotion as any
 
 const technologies = [
   {
-    title: 'NB-IoT Temperature Sensors',
-    description: 'Medical-grade temperature probes with ±0.3°C accuracy. Weather-resistant, maintenance-free design for commercial kitchens.',
-    icon: Radio,
-    specs: ['99.5% accuracy', '5-year battery', 'IP68 rated'],
+    title: 'Structured Practice Records',
+    description: 'Secure practice records, booking workflows, and mobile-first tools for independent practitioners.',
+    icon: ClipboardList,
+    specs: ['Patient-safe exports', 'Consent history', 'Audit trail'],
     color: 'from-gold-500 to-gold-600',
   },
   {
-    title: 'NB-IoT Connectivity',
-    description: 'Reliable NB-IoT cellular connectivity ensures 99.9% uptime with low power consumption.',
+    title: 'Connected Client Workflow',
+    description: 'Booking links, reminders, patient portal links, and follow-up messages keep work moving.',
     icon: Wifi,
-    specs: ['Dual-band', 'Auto-failover', 'Encrypted'],
+    specs: ['Booking links', 'Reminders', 'Portal links'],
     color: 'from-blue-500 to-blue-600',
   },
   {
-    title: 'Edge Computing Nodes',
-    description: 'Local processing reduces latency to <5 seconds. Works offline during network outages.',
+    title: 'Mobile-First Operations',
+    description: 'Fast daily workflows for practitioners using iPhone, iPad, or desktop.',
     icon: Cpu,
-    specs: ['<5ms latency', 'Offline capable', 'Auto-sync'],
+    specs: ['Touch-ready', 'Offline drafts', 'Auto-sync'],
     color: 'from-green-500 to-green-600',
   },
   {

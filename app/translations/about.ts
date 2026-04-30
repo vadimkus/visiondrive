@@ -2,7 +2,7 @@ export const aboutTranslations = {
   en: {
     hero: {
       title: 'About Vision Drive',
-      subtitle: 'Transforming UAE with Smart NB-IoT Solutions.',
+      subtitle: 'Practice operations software for UAE solo practitioners.',
     },
     values: {
       items: [
@@ -23,7 +23,7 @@ export const aboutTranslations = {
   ar: {
     hero: {
       title: 'من نحن',
-      subtitle: 'إحداث ثورة في التنقل الحضري في دولة الإمارات العربية المتحدة.',
+      subtitle: 'برنامج إدارة الممارسة للممارسين المستقلين في الإمارات.',
     },
     values: {
       items: [

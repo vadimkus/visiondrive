@@ -18,7 +18,7 @@ const homeCopy = {
   en: {
     headlineBefore: 'A professional system for ',
     headlineAccent: 'solo practitioners',
-    sub: 'VisionDrive gives independent clinics and solo service providers one calm workspace for bookings, client records, treatment notes, photos, inventory, payments, and business reporting. Built for practitioners who need the discipline of a clinic system without the overhead of an enterprise suite.',
+    sub: 'VisionDrive gives solo practitioners and independent service providers one calm workspace for bookings, client records, treatment notes, photos, inventory, payments, and business reporting. Built for practitioners who need disciplined operations without enterprise-suite overhead.',
     mobileSub: 'Bookings. Records. Payments. One calm workspace.',
     mobilePrimary: 'Open workspace',
     mobileSecondary: 'Request demo',
@@ -40,7 +40,7 @@ const homeCopy = {
   ru: {
     headlineBefore: 'Профессиональная система для ',
     headlineAccent: 'частных специалистов',
-    sub: 'VisionDrive дает независимым клиникам и частным специалистам единое рабочее пространство для записей, клиентских карт, заметок по процедурам, фото, склада, оплат и управленческой отчетности. Это дисциплина клинической системы без сложности корпоративной платформы.',
+    sub: 'VisionDrive дает частным специалистам и независимым практикам единое рабочее пространство для записей, клиентских карт, заметок по процедурам, фото, склада, оплат и управленческой отчетности. Это дисциплина в операциях без сложности корпоративной платформы.',
     mobileSub: 'Записи. Карты. Оплаты. Всё спокойно и понятно.',
     mobilePrimary: 'Открыть кабинет',
     mobileSecondary: 'Демо',
@@ -108,18 +108,18 @@ export default function HomeClient() {
           <div className="mb-8 grid grid-cols-2 gap-3 md:mb-10 md:flex md:justify-center">
             <Link
               href="/login"
-              className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-gray-950 px-5 text-[16px] font-semibold text-white shadow-lg shadow-gray-950/15 transition-all active:scale-[0.98] md:hidden"
+              className="flex min-h-[3.5rem] items-center justify-center gap-2 rounded-2xl bg-gray-950 px-4 text-center text-[16px] font-semibold leading-tight text-white shadow-lg shadow-gray-950/15 transition-all active:scale-[0.98] md:hidden"
             >
               {t.mobilePrimary}
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
             <Link
               href="/contact"
-              className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 text-[16px] font-semibold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98] md:px-8 md:text-[17px]"
+              className="flex min-h-[3.5rem] items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 text-center text-[16px] font-semibold leading-tight text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-[0.98] md:px-8 md:text-[17px]"
             >
               <span className="md:hidden">{t.mobileSecondary}</span>
               <span className="hidden md:inline">{t.ctaPrimary}</span>
-              <ArrowRight className="hidden h-5 w-5 md:block" />
+              <ArrowRight className="hidden h-5 w-5 shrink-0 md:block" />
             </Link>
           </div>
 
@@ -174,14 +174,14 @@ export default function HomeClient() {
               <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row md:mt-0">
                 <Link
                   href="/login"
-                  className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 text-[17px] font-semibold text-white transition-all hover:bg-orange-600 active:scale-[0.98]"
+                  className="flex min-h-[3.5rem] items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 text-center text-[17px] font-semibold leading-tight text-white transition-all hover:bg-orange-600 active:scale-[0.98]"
                 >
                   {t.darkPrimary}
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-5 w-5 shrink-0" />
                 </Link>
                 <Link
                   href="/contact"
-                  className="hidden h-14 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-8 text-[17px] font-semibold text-white transition-all hover:bg-white/20 active:scale-[0.98] sm:flex"
+                  className="hidden min-h-[3.5rem] items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-8 text-center text-[17px] font-semibold leading-tight text-white transition-all hover:bg-white/20 active:scale-[0.98] sm:flex"
                 >
                   {t.darkSecondary}
                 </Link>

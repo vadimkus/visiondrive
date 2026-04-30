@@ -26,11 +26,11 @@ const copy = {
     heroAccent: ' Your Practice',
     heroSuffix: ' Today',
     heroText:
-      "Whether you are a solo practitioner or an independent clinic, we're ready to help you organize bookings, records, payments, stock, and follow-up.",
+      "Whether you are a solo practitioner or an independent private practice, we're ready to help you organize bookings, records, payments, stock, and follow-up.",
     sendEmail: 'Send Email',
     contactMethods: [
       {
-        label: 'Почта',
+        label: 'Email',
         value: 'tech@visiondrive.ae',
         description: 'For inquiries and demonstrations',
         href: 'mailto:tech@visiondrive.ae',
@@ -69,7 +69,7 @@ const copy = {
       { icon: Shield, text: 'UAE data residency compliant' },
     ],
     helpTitle: 'How Can We Help?',
-    helpIntro: 'We work with solo practitioners and independent clinics across the UAE',
+    helpIntro: 'We work with solo practitioners and independent private practices across the UAE',
     reasons: [
       {
         icon: CalendarDays,
@@ -109,7 +109,7 @@ const copy = {
       },
       {
         q: 'What types of practitioners do you serve?',
-        a: 'We serve solo practitioners, home-visit providers, aesthetics professionals, wellness operators, and independent clinics across the UAE.',
+        a: 'We serve solo practitioners, home-visit providers, aesthetics professionals, wellness operators, and independent private practices across the UAE.',
       },
       {
         q: 'Can you help configure my workflow?',
@@ -134,11 +134,11 @@ const copy = {
     heroAccent: ' своей практикой',
     heroSuffix: ' уже сегодня',
     heroText:
-      'Если вы частный специалист или небольшая клиника, мы поможем навести порядок в записях, картах пациентов, оплатах, складе и повторных касаниях.',
-    sendEmail: 'Написать email',
+      'Если вы частный специалист или независимая практика, мы поможем навести порядок в записях, картах пациентов, оплатах, складе и повторных касаниях.',
+    sendEmail: 'Написать на почту',
     contactMethods: [
       {
-        label: 'Email',
+        label: 'Почта',
         value: 'tech@visiondrive.ae',
         description: 'Для вопросов и демонстрации',
         href: 'mailto:tech@visiondrive.ae',
@@ -169,7 +169,7 @@ const copy = {
       },
     ],
     office: 'Офис',
-    hq: 'VisionDrive HQ',
+    hq: 'Офис VisionDrive',
     address: 'Compass Coworking, РАК, ОАЭ',
     features: [
       { icon: Clock, text: 'Ответ в течение 1 рабочего дня' },
@@ -177,7 +177,7 @@ const copy = {
       { icon: Shield, text: 'Хранение данных в ОАЭ' },
     ],
     helpTitle: 'Чем мы можем помочь?',
-    helpIntro: 'Мы работаем с частными специалистами и независимыми клиниками в ОАЭ',
+    helpIntro: 'Мы работаем с частными специалистами и независимыми практиками в ОАЭ',
     reasons: [
       {
         icon: CalendarDays,
@@ -195,8 +195,8 @@ const copy = {
       },
       {
         icon: Bell,
-        title: 'Напоминания и follow-up',
-        description: 'Настроим тексты для WhatsApp, aftercare, заполнение отмен и запросы отзывов.',
+        title: 'Напоминания и повторные касания',
+        description: 'Настроим тексты для WhatsApp, рекомендации после процедуры, заполнение отмен и запросы отзывов.',
         color: 'text-orange-600',
         bg: 'bg-orange-50',
       },
@@ -217,11 +217,11 @@ const copy = {
       },
       {
         q: 'Для каких специалистов продукт?',
-        a: 'Для частных специалистов, выездных услуг, эстетики, wellness-направлений и независимых клиник в ОАЭ.',
+        a: 'Для частных специалистов, выездных услуг, эстетических направлений, wellness-практик и независимых практик в ОАЭ.',
       },
       {
         q: 'Вы поможете настроить мой процесс?',
-        a: 'Да. Во время подключения можно разобрать услуги, формы, follow-up, оплаты, пакеты и структуру карты пациента.',
+        a: 'Да. Во время подключения можно разобрать услуги, формы, повторные касания, оплаты, пакеты и структуру карты пациента.',
       },
       {
         q: 'Можно пользоваться с телефона?',
@@ -268,18 +268,18 @@ export default function ContactPage() {
               <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:gap-4 md:mb-0">
                 <a
                   href="mailto:tech@visiondrive.ae"
-                  className="inline-flex items-center justify-center rounded-xl bg-orange-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-orange-600/25 transition-all hover:bg-orange-700 active:scale-[0.98]"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-orange-600 px-6 py-3.5 text-center font-semibold leading-tight text-white shadow-lg shadow-orange-600/25 transition-all hover:bg-orange-700 active:scale-[0.98]"
                 >
-                  <Send className="mr-2 h-5 w-5" aria-hidden />
+                  <Send className="mr-2 h-5 w-5 shrink-0" aria-hidden />
                   {t.sendEmail}
                 </a>
                 <a
                   href="https://wa.me/971559152985"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-3.5 font-semibold text-white transition-all hover:bg-green-700 active:scale-[0.98]"
+                  className="inline-flex min-h-12 items-center justify-center rounded-xl bg-green-600 px-6 py-3.5 text-center font-semibold leading-tight text-white transition-all hover:bg-green-700 active:scale-[0.98]"
                 >
-                  <MessageCircle className="mr-2 h-5 w-5" aria-hidden />
+                  <MessageCircle className="mr-2 h-5 w-5 shrink-0" aria-hidden />
                   WhatsApp
                 </a>
               </div>
@@ -299,8 +299,8 @@ export default function ContactPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-xs font-medium uppercase tracking-wide text-gray-500">{contact.label}</div>
-                    <div className="truncate font-semibold text-gray-900 transition-colors group-hover:text-orange-600">{contact.value}</div>
-                    <div className="truncate text-xs text-gray-500 sm:text-sm">{contact.description}</div>
+                    <div className="break-words font-semibold leading-snug text-gray-900 transition-colors group-hover:text-orange-600">{contact.value}</div>
+                    <div className="text-xs leading-snug text-gray-500 sm:text-sm">{contact.description}</div>
                   </div>
                   <ArrowRight className="h-5 w-5 flex-shrink-0 text-gray-400 transition-all group-hover:translate-x-1 group-hover:text-orange-600" aria-hidden />
                 </a>

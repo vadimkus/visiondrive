@@ -34,8 +34,6 @@
     ".next",
     "dist",
     "build",
-    "smartkitchen",
-    "smartkitchen/**/*",
     "agent-pnl",
     "agent-pnl/**/*",
     "**/cdk/**/*"

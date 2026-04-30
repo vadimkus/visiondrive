@@ -8,14 +8,14 @@ const motion = fmMotion as any
 
 const badges = [
   {
-    title: 'RTA Pilot Ready',
-    description: 'Approved for Dubai smart kitchen initiatives',
+    title: 'Practice Pilot Ready',
+    description: 'Built for UAE practice operations pilots',
     icon: Shield,
     color: 'from-blue-500 to-blue-600',
   },
   {
-    title: 'TRA IoT Certified',
-    description: 'UAE Telecommunications Regulatory Authority certified',
+    title: 'UAE Data Ready',
+    description: 'Designed around UAE-hosted customer data',
     icon: Award,
     color: 'from-gold-500 to-gold-600',
   },

@@ -3,8 +3,8 @@ import AboutClient from './AboutClient'
 
 export const metadata: Metadata = {
   title: 'About VisionDrive - Practice OS for UAE Solo Practitioners',
-  description: 'VisionDrive Technologies FZ-LLC builds Practice OS, a UAE-based practice operations platform for solo practitioners and small clinics.',
-  keywords: 'VisionDrive, Practice OS, solo practitioner software UAE, clinic management software, appointment scheduling, patient records',
+  description: 'VisionDrive Technologies FZ-LLC builds Practice OS, a UAE-based practice operations platform for solo practitioners and small private practices.',
+  keywords: 'VisionDrive, Practice OS, solo practitioner software UAE, private practice software, appointment scheduling, patient records',
   alternates: { canonical: '/about' },
   openGraph: {
     title: 'About VisionDrive - Practice OS',

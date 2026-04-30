@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Routes that require authentication
-const protectedRoutes = ['/kitchen-owner', '/portal', '/clinic']
+const protectedRoutes = ['/portal', '/clinic']
 
 // Routes that are always public
 const publicRoutes = ['/login', '/api/auth/login', '/api/auth/logout']
@@ -39,7 +39,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Match all protected routes
-    '/kitchen-owner/:path*',
     '/portal/:path*',
     '/clinic/:path*',
   ],

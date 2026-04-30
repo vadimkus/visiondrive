@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Pricing & Budget - Smart Kitchen Monitoring Solutions',
-  description: 'VisionDrive smart kitchen monitoring costs and flexible pricing. Transparent budgeting for NB-IoT temperature sensor deployments in UAE commercial kitchens.',
-  keywords: 'smart kitchen pricing, temperature monitoring cost, IoT kitchen deployment budget, VisionDrive pricing',
+  title: 'Practice OS Pricing Inquiry - VisionDrive',
+  description: 'Contact VisionDrive for Practice OS pilot pricing, onboarding, and implementation options for UAE solo practitioners and small clinics.',
+  keywords: 'Practice OS pricing, solo practitioner software pricing, clinic software UAE, VisionDrive pricing',
   alternates: { canonical: '/budget' },
   openGraph: {
-    title: 'Pricing & Budget - Smart Kitchen Monitoring Solutions',
-    description: 'VisionDrive smart kitchen monitoring costs and flexible pricing. Transparent budgeting for NB-IoT temperature sensor deployments in UAE commercial kitchens.',
+    title: 'Practice OS Pricing Inquiry - VisionDrive',
+    description: 'Contact VisionDrive for Practice OS onboarding and implementation options.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

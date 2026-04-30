@@ -1,7 +1,7 @@
-# Clinic practice console — session changelog
+# Practice OS workspace — session changelog
 
 **Last updated:** 2026-04-23  
-**Product area:** VisionDrive **Practice console** (`/clinic`, `/api/clinic/*`)
+**Product area:** VisionDrive **Workspace** (`/clinic`, `/api/clinic/*`)
 
 This document records implementation work done after the baseline described in `CHUNKS.md` (chunks 1–3). Earlier chunks remain the source of truth for the initial vertical slice; **this file** is the detailed record of follow-on shipping: **full i18n sweep**, **month calendar**, **drag-to-reschedule**, and **optional Vercel Blob** for patient photos.
 

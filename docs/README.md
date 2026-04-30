@@ -18,21 +18,13 @@
 |----------|-------------|
 | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | Project architecture and folder structure |
 | [CODEBASE_REFERENCE.md](CODEBASE_REFERENCE.md) | **Codebase structure, API routes, libraries** |
-| [archive/README.md](archive/README.md) | **Legacy docs** (parking / smart-kitchen era) |
+| [archive/README.md](archive/README.md) | Legacy parking-era docs retained for reference |
 
 ### Compliance & Certificates
 | Document | Description |
 |----------|-------------|
-| [IOT_CERTIFICATE_ADDITION.md](IOT_CERTIFICATE_ADDITION.md) | TDRA IoT Services License (IOT-26-100000007) |
-| [TDRA_COMPLIANCE_SUMMARY.md](TDRA_COMPLIANCE_SUMMARY.md) | TDRA regulatory compliance details |
+| [IOT_CERTIFICATE_ADDITION.md](IOT_CERTIFICATE_ADDITION.md) | Legacy company certificate reference |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines |
-
-### Security
-| Document | Description |
-|----------|-------------|
-| [SECURITY_AWARENESS_TRAINING.md](SECURITY_AWARENESS_TRAINING.md) | Security training documentation |
-| [INCIDENT_RESPONSE_PLAN.md](INCIDENT_RESPONSE_PLAN.md) | Incident response procedures |
-| [PENETRATION_TESTING_SCHEDULE.md](PENETRATION_TESTING_SCHEDULE.md) | Security testing schedule |
 
 ### Setup & Configuration
 | Document | Description |
@@ -40,13 +32,11 @@
 | [QUICK_SETUP.md](QUICK_SETUP.md) | Quick start guide |
 | [SETUP_DB.md](SETUP_DB.md) | Database setup instructions |
 | [README_AUTH.md](README_AUTH.md) | Authentication setup |
-| [LAMBDA_RUNTIME_UPGRADE.md](LAMBDA_RUNTIME_UPGRADE.md) | AWS Lambda Node.js 22.x upgrade |
 | [update-favicon.md](update-favicon.md) | Favicon update instructions |
 
 ### Development Notes
 | Document | Description |
 |----------|-------------|
-| [archive/smart-kitchen-platform/SMART_KITCHEN_CHANGELOG.md](archive/smart-kitchen-platform/SMART_KITCHEN_CHANGELOG.md) | Smart Kitchen changelog (archived) |
 | [NOTES_REORGANIZATION_SUMMARY.md](NOTES_REORGANIZATION_SUMMARY.md) | Notes reorganization |
 | [SENSOR_TESTING_PLAN.md](SENSOR_TESTING_PLAN.md) | Sensor testing procedures |
 | [README_IMAGES.md](README_IMAGES.md) | Image guidelines |
@@ -130,6 +120,7 @@
 | [2026-04-30_compliance-page-practice-os-rework.md](2026-04-30_compliance-page-practice-os-rework.md) | Public Compliance page Practice OS rework |
 | [2026-04-30_terms-page-practice-os-rework.md](2026-04-30_terms-page-practice-os-rework.md) | Public Terms page Practice OS rework |
 | [2026-04-30_public-ru-localization-pass.md](2026-04-30_public-ru-localization-pass.md) | Public website Russian localization pass |
+| [2026-04-30_public-prelogin-practice-audit.md](2026-04-30_public-prelogin-practice-audit.md) | Public pre-login website audit and Practice OS redirect cleanup |
 | [2026-04-30_clinic-lite-mode.md](2026-04-30_clinic-lite-mode.md) | Clinic Lite Mode toggle and simplified daily navigation |
 | [2026-04-30_clinic-guided-setup-onboarding.md](2026-04-30_clinic-guided-setup-onboarding.md) | Clinic guided setup checklist and smart empty states |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Clinic public practitioner profile page |
@@ -175,15 +166,6 @@ Implementation documentation aligned with `/notes` → **Section 11 (Action Plan
 
 ---
 
-## Module-Specific Documentation
-
-### Legacy IoT (`/smartkitchen/docs/`)
-Archived IoT documentation retained for engineering reference only.
-- [smartkitchen/docs/README.md](../smartkitchen/docs/README.md) - Legacy IoT overview
-- Architecture, API, setup guides, device configuration
-
----
-
 ## Key Information
 
 ### Project Context
@@ -194,7 +176,6 @@ VisionDrive is a UAE-based software company providing:
 - TDRA IoT Services License: `IOT-26-100000007`
 - TDRA Type Approval: `EA-2026-1-55656`
 - UAE Data Residency: AWS me-central-1 (Abu Dhabi)
-- Dubai Municipality: DM-HSD-GU46-KFPA2 compliant
 
 ### Certificates Location
 All certificates are in `/public/Certification/`:

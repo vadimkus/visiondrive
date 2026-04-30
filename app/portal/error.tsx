@@ -29,7 +29,7 @@ export default function PortalError({
             Try Again
           </button>
           <Link
-            href="/portal/smart-kitchen"
+            href="/portal"
             className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
           >
             Back to Dashboard

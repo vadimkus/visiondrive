@@ -1,20 +1,20 @@
 export const appTranslations = {
   en: {
     hero: {
-      title: 'Monitor Kitchen Temps in Real Time',
-      subtitle: 'Join UAE kitchen operators already saving hours on compliance. Real-time temperature monitoring with ±0.3°C accuracy from TDRA-certified sensors.',
+      title: 'Run Your Practice from One Workspace',
+      subtitle: 'Join UAE practitioners organizing bookings, client records, payments, stock, reminders, and reporting in Practice OS.',
       promo: 'First 1,000 Users Get Free Reservations',
       cta: 'Download',
     },
     features: {
       items: [
         {
-          title: 'Real-time Map',
-          description: 'Live availability updated every 5 seconds',
+          title: 'Today View',
+          description: 'Appointments, balances, and tasks in one mobile view',
         },
         {
-          title: 'Reservations',
-          description: 'Reserve your spot up to 2 hours ahead',
+          title: 'Bookings',
+          description: 'Private booking links, reminders, and waitlist fill',
         },
         {
           title: 'Pricing',
@@ -22,15 +22,15 @@ export const appTranslations = {
         },
         {
           title: 'Payment',
-          description: 'Secure payment with Apple Pay & Google Pay',
+          description: 'Quotes, receipts, packages, and balances',
         },
       ],
     },
     benefits: {
       items: [
         {
-          title: 'Guaranteed Spot',
-          description: '99.5% accuracy from flush-mount sensors',
+          title: 'Protected Schedule',
+          description: 'Waitlist and reminders reduce empty slots',
         },
         {
           title: 'Save 30% Time',
@@ -38,32 +38,32 @@ export const appTranslations = {
         },
         {
           title: 'Less Stress',
-          description: 'No more circling blocks searching for space',
+          description: 'Less admin between appointments',
         },
       ],
     },
     download: {
-      title: 'Reserve Your Spot Today',
-      subtitle: 'Join 50,000+ Dubai drivers already saving time. First 1,000 users get free reservations for the first month.',
+      title: 'Open Your Practice Workspace',
+      subtitle: 'Run bookings, records, payments, packages, and follow-up from one mobile-first portal.',
     },
     testimonials: [],
   },
   ar: {
     hero: {
-      title: 'ابحث عن موقف في ثوانٍ، وليس دقائق',
-      subtitle: 'انضم إلى أكثر من 50000 سائق في دبي يوفرون بالفعل 30% من الوقت في البحث عن موقف. توفر فوري بدقة 99.5% من مستشعرات معتمدة من هيئة الطرق والمواصلات.',
-      promo: 'أول 1000 مستخدم يحصلون على حجوزات مجانية',
+      title: 'أدر ممارستك من مساحة عمل واحدة',
+      subtitle: 'نظام للمواعيد وسجلات العملاء والمدفوعات والمخزون والتذكيرات والتقارير.',
+      promo: 'نسخة تجريبية مبكرة للممارسين في الإمارات',
       cta: 'تحميل',
     },
     features: {
       items: [
         {
-          title: 'خريطة في الوقت الفعلي',
-          description: 'التوفر المباشر محدث كل 5 ثوانٍ',
+          title: 'عرض اليوم',
+          description: 'المواعيد والأرصدة والمهام في عرض جوال واحد',
         },
         {
           title: 'الحجوزات',
-          description: 'احجز مكانك حتى ساعتين مسبقاً',
+          description: 'روابط حجز خاصة وتذكيرات وقائمة انتظار',
         },
         {
           title: 'التسعير',
@@ -71,29 +71,29 @@ export const appTranslations = {
         },
         {
           title: 'الدفع',
-          description: 'دفع آمن مع Apple Pay و Google Pay',
+          description: 'عروض أسعار وإيصالات وباقات وأرصدة',
         },
       ],
     },
     benefits: {
       items: [
         {
-          title: 'مكان مضمون',
-          description: 'دقة 99.5% من مستشعرات مثبتة على السطح',
+          title: 'جدول محمي',
+          description: 'قائمة الانتظار والتذكيرات تقلل المواعيد الفارغة',
         },
         {
           title: 'وفر 30% من الوقت',
-          description: 'بيانات هيئة الطرق والمواصلات تظهر اكتشاف مواقف أسرع',
+          description: 'تقارير أسرع وسير عمل أقل ازدحاماً',
         },
         {
           title: 'إجهاد أقل',
-          description: 'لا مزيد من الدوران حول الأحياء بحثاً عن مكان',
+          description: 'إدارة أقل بين المواعيد',
         },
       ],
     },
     download: {
-      title: 'احجز مكانك اليوم',
-      subtitle: 'انضم إلى أكثر من 50000 سائق في دبي يوفرون الوقت بالفعل. أول 1000 مستخدم يحصلون على حجوزات مجانية للشهر الأول.',
+      title: 'افتح مساحة عمل ممارستك',
+      subtitle: 'أدر الحجوزات والسجلات والمدفوعات والباقات والمتابعة من بوابة واحدة مصممة للجوال.',
     },
     testimonials: [],
   },

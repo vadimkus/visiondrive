@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Our Partners - VisionDrive UAE Partnerships',
-  description: 'VisionDrive partners with UAE government entities and enterprise clients for smart kitchen IoT infrastructure deployment and food safety compliance.',
-  keywords: 'VisionDrive partners, UAE partnerships, IoT partners, smart kitchen partners, food safety compliance partners',
+  description: 'VisionDrive partners with UAE practitioners, independent clinics, and service providers to improve practice operations with Practice OS.',
+  keywords: 'VisionDrive partners, UAE practice software partners, clinic software partnerships, Practice OS',
   alternates: { canonical: '/partners' },
   openGraph: {
     title: 'VisionDrive Partners',
-    description: 'Working with UAE entities to deploy smart kitchen IoT infrastructure across the Emirates.',
+    description: 'Working with UAE practitioners and independent clinics to improve practice operations.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

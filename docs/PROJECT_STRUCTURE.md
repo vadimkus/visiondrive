@@ -1,122 +1,73 @@
 # Project Structure Guide
 
-## Directory Overview
+VisionDrive is focused on **Practice OS** for UAE solo practitioners and independent clinics.
 
-### Root Level
-- `package.json` - Next.js app, Prisma, dependencies
-- `.env` - Environment variables (DATABASE_URL, JWT_SECRET, etc.)
-- `.gitignore` - Git ignore rules
-- `README.md` - Project overview and mission statement
-- `CONTRIBUTING.md` - Contribution guidelines
-- `LICENSE` - MIT License
-- `middleware.ts` - Auth, route protection
+## Application
 
-### Application (`/app`)
-Next.js App Router — web application for visiondrive.ae.
-
-```
+```text
 app/
-├── api/                    # API routes (REST)
-│   ├── auth/               # Login, logout, me
-│   ├── portal/             # Portal APIs (smart-kitchen, map, sensors, etc.)
-│   ├── replay/             # Replay upload, run, dead-letters
-│   ├── webhooks/           # Stripe webhooks
-│   └── images/             # Logo, upload
-├── components/             # Shared components
-│   ├── layout/             # Header, Footer, ConditionalLayout
-│   ├── portal/             # PortalSidebar, PortalNavigation
-│   └── common/             # Logo, LanguageSelector
-├── contexts/               # React contexts (LanguageContext)
-├── portal/                 # Operator portal pages
-│   ├── smart-kitchen/      # Kitchen temperature monitoring
-│   ├── admin/              # Admin, tenants, finance, audit
-│   ├── map/                # Map view
-│   ├── alerts/             # Alerts
-│   ├── sensors/           # Sensors list & detail
-│   ├── events/             # Events viewer
-│   ├── replay/             # Replay tools
-│   ├── calibration/        # Calibration
-│   └── reports/            # Reports
-├── kitchen-owner/          # Owner-facing simplified portal
+├── api/
+│   ├── auth/               # Login, logout, current user, registration
+│   └── clinic/             # Practice OS APIs
+├── clinic/                 # Authenticated practitioner workspace
+├── book/                   # Public booking pages
+├── patient-portal/         # Token-based patient portal
+├── profile/                # Public practitioner profiles
+├── components/             # Public site components
+├── contexts/               # Public language context
+├── translations/           # Public website copy
 ├── page.tsx                # Home
-├── login/                  # Login (dual portal)
-├── solutions/              # Solutions page
-├── about/                   # About
-├── contact/                # Contact
-└── ...                     # Other public pages
+├── login/                  # Workspace login
+├── about/                  # Company/product page
+├── contact/                # Demo/contact page
+├── compliance/             # Security and data-residency page
+├── privacy/                # Privacy policy
+└── terms/                  # Terms of service
 ```
 
-### Shared Libraries (`/lib`)
-Server-side utilities and business logic.
+## Shared Code
 
-```
+```text
+components/clinic/          # Practice OS reusable UI
 lib/
-├── auth.ts                 # JWT, bcrypt, authenticateUser
-├── sql.ts                  # PostgreSQL client
-├── rate-limit.ts           # Brute-force protection
-├── password-policy.ts      # Password validation
-├── audit.ts                # Audit logging
-├── stripe-webhook.ts       # Stripe verification
-├── smart-kitchen/          # AWS client for Smart Kitchen
-├── portal/                 # Portal session
-└── decoders/               # Sensor payload decoders
+├── clinic/                 # Practice OS domain helpers
+├── auth.ts                 # JWT and password hashing
+├── prisma.ts               # Prisma client
+├── sql.ts                  # SQL helper
+├── rate-limit.ts           # Login rate limiting
+└── password-policy.ts      # Password rules
 ```
 
-### Database (`/prisma`)
-- `schema.prisma` - PostgreSQL schema (users, tenants, sensors, alerts, etc.)
-- `seed.ts` - Seed admin user, logo
+## Data
 
-### Smart Kitchen (`/smartkitchen`)
-IoT temperature monitoring — AWS-based.
-
-```
-smartkitchen/
-├── docs/                   # ARCHITECTURE, API_REFERENCE, AWS_SETUP, etc.
-├── infrastructure/
-│   └── cdk/lib/            # CDK stacks (IoT, Lambda, API, WAF, CloudTrail)
-└── scripts/                # Provisioning, utilities
+```text
+prisma/
+├── schema.prisma           # PostgreSQL schema
+└── seed.ts                 # Seed users and demo data
 ```
 
-### Documentation (`/docs`)
-- `README.md` - Documentation index
-- `clinic/` - Practice OS (plan, architecture, chunk log)
-- `archive/` - Legacy parking / smart-kitchen documentation
-- `CODEBASE_REFERENCE.md` - Code structure, API, libraries
-- `api/` - API documentation
-- `architecture/` - System architecture
+## Documentation
 
-### Public (`/public`)
-- Static assets
-- `Certification/` - TDRA, DM certificates (PDF)
-
-### Scripts (`/scripts`)
-Utility scripts for development and deployment.
+```text
+docs/
+├── README.md               # Documentation index
+├── CODEBASE_REFERENCE.md   # Current codebase reference
+└── clinic/                 # Practice OS product documentation
+```
 
 ## Technology Stack
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16 (App Router) |
+| Framework | Next.js App Router |
 | Language | TypeScript |
-| Styling | Tailwind CSS 4 |
-| Database | PostgreSQL (Prisma) |
-| IoT | AWS Lambda, DynamoDB (Smart Kitchen) |
-| Maps | Mapbox GL JS |
+| Styling | Tailwind CSS |
+| Database | PostgreSQL + Prisma |
 | Auth | JWT, bcrypt |
+| Hosting | Vercel |
 
 ## Related Documentation
 
-- [clinic/README.md](clinic/README.md) - Practice OS overview
-- [archive/smart-kitchen-platform/FEATURES_AND_FUNCTIONALITY.md](archive/smart-kitchen-platform/FEATURES_AND_FUNCTIONALITY.md) - Legacy feature overview
-- [CODEBASE_REFERENCE.md](CODEBASE_REFERENCE.md) - Detailed code reference
-
-
-
-
-
-
-
-
-
-
-
+- [clinic/README.md](clinic/README.md)
+- [clinic/ARCHITECTURE.md](clinic/ARCHITECTURE.md)
+- [CODEBASE_REFERENCE.md](CODEBASE_REFERENCE.md)

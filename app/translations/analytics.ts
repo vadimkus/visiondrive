@@ -1,31 +1,31 @@
 export const analyticsTranslations = {
   en: {
     hero: {
-      title: 'Real-Time Kitchen Intelligence for Smart Food Safety',
-      subtitle: 'Data-driven insights that drive revenue, optimize operations, and reduce congestion for shopping malls, municipalities, and real-estate developers.',
-      trust: 'Trusted by RTA, 15+ Dubai malls, and Abu Dhabi DMT',
+      title: 'Practice Intelligence for Solo Practitioners',
+      subtitle: 'Data-driven insights that help solo practitioners protect revenue, reduce admin, and understand client retention.',
+      trust: 'Built for UAE solo practitioners and independent clinics',
     },
     dashboard: {
       items: [
-        { label: 'Average Occupancy', description: '2025 pilot' },
-        { label: 'Revenue Uplift', description: 'Parkin case study' },
-        { label: 'Daily Users', description: 'Active drivers' },
-        { label: 'Average Search Time', description: 'RTA validated' },
+        { label: 'Schedule Occupancy', description: 'Booked vs free time' },
+        { label: 'Revenue Uplift', description: 'Service and package performance' },
+        { label: 'Daily Clients', description: 'Active appointments' },
+        { label: 'Admin Time Saved', description: 'Workflow automation' },
       ],
     },
     intelligence: {
       items: [
         {
-          title: 'Urban Planning',
-          description: 'Peak-hour patterns, congestion hotspots, and infrastructure optimization insights',
+          title: 'Practice Planning',
+          description: 'Peak demand, free slots, service mix, and practitioner workload insights',
         },
         {
-          title: 'Dynamic Pricing',
-          description: 'AED 1.8M annual revenue uplift per 1,000 spaces through optimized rates',
+          title: 'Revenue Planning',
+          description: 'Service revenue, packages, products, discounts, and owner-income tracking',
         },
         {
           title: 'Investment ROI',
-          description: 'Up to 42% higher utilization – Dubai Marina pilot validated',
+          description: 'Higher schedule utilization through waitlist fill, reminders, and reactivation',
         },
       ],
     },
@@ -33,35 +33,35 @@ export const analyticsTranslations = {
       items: [
         {
           title: 'Demand Reports',
-          description: 'Peak-hour forecasting, seasonal trends, and capacity planning',
+          description: 'Peak-hour forecasting, seasonal trends, and service capacity planning',
         },
         {
           title: 'Revenue Analytics',
-          description: 'Per-space revenue, pricing optimization, and yield management',
+          description: 'Per-service revenue, pricing, package usage, and margin visibility',
         },
         {
           title: 'Compliance Reports',
-          description: 'Violation tracking, enforcement efficiency, and audit trails',
+          description: 'Patient-safe exports, consent history, and audit trails',
         },
         {
-          title: 'Traffic Flow Data',
-          description: 'Search-time reduction, congestion impact, and route optimization',
+          title: 'Client Flow Data',
+          description: 'Booking sources, conversion, no-shows, and rebooking behavior',
         },
       ],
     },
     useCases: {
       items: [
         {
-          title: 'Shopping Malls',
-          description: 'Increase footfall, reduce customer frustration, optimize valet operations',
+          title: 'Aesthetics Practitioners',
+          description: 'Manage photos, consents, packages, aftercare, and repeat treatments',
         },
         {
-          title: 'Municipalities & RTA',
-          description: 'Traffic flow optimization, congestion reduction, smart city integration',
+          title: 'Home-Visit Providers',
+          description: 'Manage travel buffers, areas, mobile patient cards, and offline drafts',
         },
         {
-          title: 'Real-Estate Developers',
-          description: 'Property value enhancement, tenant satisfaction, competitive differentiation',
+          title: 'Independent Clinics',
+          description: 'Manage records, payments, inventory, reports, and patient communication',
         },
       ],
     },
@@ -78,17 +78,17 @@ export const analyticsTranslations = {
         {
           name: 'Pilot',
           price: 'AED 15K/mo',
-          features: ['Up to 500 spaces', 'Real-time dashboard', 'Basic analytics', 'Email support'],
+          features: ['Solo practitioner setup', 'Real-time dashboard', 'Basic analytics', 'Email support'],
         },
         {
           name: 'Growth',
           price: 'AED 45K/mo',
-          features: ['Up to 2,000 spaces', 'Advanced BI reports', 'API access', 'Priority support', 'Custom integrations'],
+          features: ['Small clinic setup', 'Advanced BI reports', 'API access', 'Priority support', 'Custom integrations'],
         },
         {
           name: 'City-Wide',
           price: 'Custom',
-          features: ['Unlimited spaces', 'White-label solution', 'Dedicated account manager', '24/7 support', 'On-site training'],
+          features: ['Multi-practice rollout', 'White-label solution', 'Dedicated account manager', '24/7 support', 'On-site training'],
         },
       ],
       cta: 'Request Live Dashboard Access',
@@ -96,31 +96,31 @@ export const analyticsTranslations = {
   },
   ar: {
     hero: {
-      title: 'ذكاء مواقف السيارات في الوقت الفعلي للمدن الذكية',
-      subtitle: 'رؤى مدفوعة بالبيانات تدفع الإيرادات وتحسّن العمليات وتقلل الازدحام للمراكز التجارية والبلديات ومطوري العقارات.',
-      trust: 'موثوق به من قبل هيئة الطرق والمواصلات وأكثر من 15 مول في دبي وإدارة النقل في أبوظبي',
+      title: 'ذكاء الممارسة للممارسين المستقلين',
+      subtitle: 'رؤى تساعد الممارسين على حماية الإيرادات وتقليل العمل الإداري وفهم الاحتفاظ بالعملاء.',
+      trust: 'مصمم للممارسين المستقلين والعيادات الصغيرة في الإمارات',
     },
     dashboard: {
       items: [
-        { label: 'متوسط الإشغال', description: 'تجربة 2025' },
-        { label: 'زيادة الإيرادات', description: 'دراسة حالة باركين' },
-        { label: 'المستخدمون اليوميون', description: 'السائقون النشطون' },
-        { label: 'متوسط وقت البحث', description: 'تم التحقق من قبل هيئة الطرق والمواصلات' },
+        { label: 'إشغال الجدول', description: 'الوقت المحجوز مقابل الوقت المتاح' },
+        { label: 'زيادة الإيرادات', description: 'أداء الخدمات والباقات' },
+        { label: 'العملاء اليوميون', description: 'المواعيد النشطة' },
+        { label: 'توفير وقت الإدارة', description: 'أتمتة سير العمل' },
       ],
     },
     intelligence: {
       items: [
         {
-          title: 'التخطيط الحضري',
-          description: 'أنماط ساعات الذروة، نقاط الازدحام الساخنة، ورؤى تحسين البنية التحتية',
+          title: 'تخطيط الممارسة',
+          description: 'الطلب في أوقات الذروة، الفترات المتاحة، مزيج الخدمات، وعبء العمل',
         },
         {
-          title: 'التسعير الديناميكي',
-          description: 'زيادة إيرادات سنوية بمبلغ 1.8 مليون درهم لكل 1000 مساحة من خلال الأسعار المحسّنة',
+          title: 'تخطيط الإيرادات',
+          description: 'إيرادات الخدمات والباقات والمنتجات والخصومات ودخل المالك',
         },
         {
           title: 'عائد الاستثمار',
-          description: 'زيادة الاستفادة بنسبة تصل إلى 42% - تم التحقق من ذلك في تجربة دبي مارينا',
+          description: 'استخدام أعلى للجدول عبر قائمة الانتظار والتذكيرات وإعادة تنشيط العملاء',
         },
       ],
     },
@@ -128,35 +128,35 @@ export const analyticsTranslations = {
       items: [
         {
           title: 'تقارير الطلب',
-          description: 'التنبؤ بساعات الذروة، الاتجاهات الموسمية، وتخطيط السعة',
+          description: 'التنبؤ بساعات الذروة والاتجاهات الموسمية وتخطيط سعة الخدمات',
         },
         {
           title: 'تحليلات الإيرادات',
-          description: 'الإيرادات لكل مساحة، تحسين التسعير، وإدارة العائد',
+          description: 'إيرادات كل خدمة، التسعير، استخدام الباقات، ووضوح الهامش',
         },
         {
           title: 'تقارير الامتثال',
-          description: 'تتبع المخالفات، كفاءة الإنفاذ، ومسارات التدقيق',
+          description: 'تصدير آمن للعملاء، تاريخ الموافقات، ومسارات التدقيق',
         },
         {
-          title: 'بيانات تدفق المرور',
-          description: 'تقليل وقت البحث، تأثير الازدحام، وتحسين المسار',
+          title: 'بيانات تدفق العملاء',
+          description: 'مصادر الحجز، التحويل، الغياب، وسلوك إعادة الحجز',
         },
       ],
     },
     useCases: {
       items: [
         {
-          title: 'المراكز التجارية',
-          description: 'زيادة عدد الزوار، تقليل إحباط العملاء، تحسين عمليات ال valet',
+          title: 'ممارسو التجميل',
+          description: 'إدارة الصور والموافقات والباقات والرعاية اللاحقة والعلاجات المتكررة',
         },
         {
-          title: 'البلديات وهيئة الطرق والمواصلات',
-          description: 'تحسين تدفق المرور، تقليل الازدحام، التكامل مع المدينة الذكية',
+          title: 'مقدمو الزيارات المنزلية',
+          description: 'إدارة فترات السفر والمناطق وبطاقات العملاء على الجوال والمسودات دون اتصال',
         },
         {
-          title: 'مطورو العقارات',
-          description: 'تعزيز قيمة العقار، رضا المستأجرين، التمايز التنافسي',
+          title: 'العيادات المستقلة',
+          description: 'إدارة السجلات والمدفوعات والمخزون والتقارير والتواصل مع العملاء',
         },
       ],
     },
@@ -173,17 +173,17 @@ export const analyticsTranslations = {
         {
           name: 'تجريبي',
           price: '15 ألف درهم/شهر',
-          features: ['حتى 500 مساحة', 'لوحة تحكم في الوقت الفعلي', 'تحليلات أساسية', 'دعم عبر البريد الإلكتروني'],
+          features: ['إعداد ممارس مستقل', 'لوحة تحكم في الوقت الفعلي', 'تحليلات أساسية', 'دعم عبر البريد الإلكتروني'],
         },
         {
           name: 'نمو',
           price: '45 ألف درهم/شهر',
-          features: ['حتى 2000 مساحة', 'تقارير ذكاء أعمال متقدمة', 'وصول API', 'دعم ذو أولوية', 'تكاملات مخصصة'],
+          features: ['إعداد عيادة صغيرة', 'تقارير ذكاء أعمال متقدمة', 'وصول API', 'دعم ذو أولوية', 'تكاملات مخصصة'],
         },
         {
-          name: 'على مستوى المدينة',
+          name: 'توسع',
           price: 'مخصص',
-          features: ['مساحات غير محدودة', 'حل علامة تجارية بيضاء', 'مدير حساب مخصص', 'دعم 24/7', 'تدريب في الموقع'],
+          features: ['توسع متعدد الممارسات', 'حل علامة تجارية بيضاء', 'مدير حساب مخصص', 'دعم 24/7', 'تدريب في الموقع'],
         },
       ],
       cta: 'طلب الوصول إلى لوحة التحكم المباشرة',

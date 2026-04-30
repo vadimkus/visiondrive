@@ -9,9 +9,9 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Sign in — Practice console',
+  title: 'Sign in — Workspace',
   description:
-    'VisionDrive practice console — practice operations, made clear. Secure sign-in for authorized team members.',
+    'VisionDrive workspace — practice operations, made clear. Secure sign-in for authorized team members.',
   robots: { index: false, follow: false },
   themeColor: '#f5f5f7',
   appleWebApp: {

@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Technical Roadmap - VisionDrive Detailed Plan',
-  description: 'Detailed technical roadmap for VisionDrive smart kitchen IoT deployment. AWS infrastructure, MQTT broker, portal development, and pilot phases.',
-  keywords: 'technical roadmap, VisionDrive implementation, AWS deployment, MQTT integration, IoT deployment plan',
+  description: 'Detailed technical roadmap for VisionDrive Practice OS: private records, practitioner portal, payments, automation, analytics, and onboarding phases.',
+  keywords: 'technical roadmap, VisionDrive implementation, Practice OS roadmap, clinic software plan, practitioner portal',
   alternates: { canonical: '/roadmap2' },
   openGraph: {
     title: 'VisionDrive Technical Roadmap',
-    description: 'Detailed technical implementation plan for smart kitchen IoT infrastructure.',
+    description: 'Detailed technical implementation plan for Practice OS infrastructure.',
     type: 'website',
   },
 }

@@ -1,7 +1,7 @@
 {
   "name": "visiondrive",
   "version": "1.0.0",
-  "description": "VisionDrive — public site and practice console (UAE)",
+  "description": "VisionDrive — public site and Practice OS workspace (UAE)",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3000",

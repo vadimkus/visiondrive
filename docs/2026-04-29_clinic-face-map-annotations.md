@@ -30,3 +30,4 @@ No schema change. Face maps reuse `ClinicPatientMedia`:
 - `npm run test -- face-map`: passed.
 - `npm run test:clinic-flow`: passed.
 - Browser sanity check: opened a patient Photos tab, created a template face map, saved it to the patient card, and reopened the latest map for modification.
+- Follow-up validation fixed single-tap injection dots so one-point marks render in the editor and saved PNG, then re-ran the full suite: `npm run type-check`, `npm run lint`, `npm run test`, and `npm run test:clinic-flow` all passed.

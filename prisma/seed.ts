@@ -684,7 +684,7 @@ async function main() {
   console.log('✅ Ensured tenant settings exist')
 
   // ---------------------------------------------------------------------------
-  // Practice console users (optional). Set env vars before `npm run db:seed`.
+  // Workspace users (optional). Set env vars before `npm run db:seed`.
   // Passwords must satisfy lib/password-policy unless CLINIC_SEED_ALLOW_WEAK_PASSWORD=true
   // (development only — never enable in production).
   // ---------------------------------------------------------------------------
@@ -736,7 +736,7 @@ async function main() {
             status = EXCLUDED.status,
             "updatedAt" = now()
     `
-    console.log('✅ Ensured practice console user:', email)
+    console.log('✅ Ensured workspace user:', email)
     clinicSeededCount += 1
   }
 

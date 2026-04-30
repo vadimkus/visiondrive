@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Contact VisionDrive - Practice OS UAE',
   description: 'Get in touch with VisionDrive for Practice OS demos, solo-practitioner onboarding, workflow review, and UAE practice operations software.',
-  keywords: 'contact VisionDrive, Practice OS demo, solo practitioner software UAE, clinic software onboarding, practice management software',
+  keywords: 'contact VisionDrive, Practice OS demo, solo practitioner software UAE, private practice onboarding, practice management software',
   alternates: { canonical: '/contact' },
   openGraph: {
     title: 'Contact VisionDrive - Practice OS',

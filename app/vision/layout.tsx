@@ -1,12 +1,12 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Vision - Smart Kitchen IoT for UAE Municipalities & Enterprise | VisionDrive',
-  description: 'TDRA-certified smart kitchen temperature monitoring with NB-IoT sensors. Dubai Municipality compliant food safety solution for commercial kitchens across the UAE.',
+  title: 'Mission - Practice OS for UAE Solo Practitioners | VisionDrive',
+  description: 'VisionDrive mission for Practice OS: helping UAE solo practitioners manage bookings, records, payments, reminders, and practice reporting from one workspace.',
   alternates: { canonical: '/vision' },
   openGraph: {
-    title: 'Vision - Smart Kitchen IoT for UAE Municipalities & Enterprise',
-    description: 'TDRA-certified smart kitchen temperature monitoring with NB-IoT sensors. Dubai Municipality compliant food safety solution.',
+    title: 'Mission - Practice OS for UAE Solo Practitioners',
+    description: 'Helping solo practitioners run bookings, records, payments, and follow-up from one workspace.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

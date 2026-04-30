@@ -452,7 +452,7 @@ export default function PortalPageClient() {
                 <p className="text-sm text-gray-600">Performance analytics and insights</p>
               </button>
               
-              {/* Network/Gateway/Weather views removed (NB-IoT migration cleanup) */}
+              {/* Network/Gateway/Weather views removed during legacy migration cleanup. */}
             </div>
           </div>
         </div>

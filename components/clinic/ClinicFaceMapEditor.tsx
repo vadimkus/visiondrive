@@ -192,6 +192,14 @@ async function renderFaceMapPng(metadata: FaceMapMetadata, imageUrl: string | nu
     if (stroke.points.length === 0) return
     ctx.strokeStyle = stroke.color
     ctx.lineWidth = stroke.width * scale
+    if (stroke.points.length === 1) {
+      const point = stroke.points[0]
+      ctx.fillStyle = stroke.color
+      ctx.beginPath()
+      ctx.arc(point.x * scale, point.y * scale, Math.max(4, (stroke.width * scale) / 2), 0, Math.PI * 2)
+      ctx.fill()
+      return
+    }
     ctx.beginPath()
     ctx.moveTo(stroke.points[0].x * scale, stroke.points[0].y * scale)
     stroke.points.slice(1).forEach((point) => ctx.lineTo(point.x * scale, point.y * scale))
@@ -224,6 +232,7 @@ export function ClinicFaceMapEditor({
   onClose: () => void
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
+  const activeStrokeRef = useRef<FaceMapStroke | null>(null)
   const [base, setBase] = useState<FaceMapBase>(initialFaceMap ?? initialBase)
   const [strokes, setStrokes] = useState<FaceMapStroke[]>(initialFaceMap?.strokes ?? [])
   const [activeStroke, setActiveStroke] = useState<FaceMapStroke | null>(null)
@@ -253,12 +262,14 @@ export function ClinicFaceMapEditor({
     const point = pointFromEvent(event)
     if (!point) return
     event.currentTarget.setPointerCapture(event.pointerId)
-    setActiveStroke({
+    const stroke = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       color,
       width,
       points: [point],
-    })
+    }
+    activeStrokeRef.current = stroke
+    setActiveStroke(stroke)
   }
 
   const continueStroke = (event: PointerEvent<SVGSVGElement>) => {
@@ -269,14 +280,18 @@ export function ClinicFaceMapEditor({
       const last = current.points[current.points.length - 1]
       const distance = Math.hypot(point.x - last.x, point.y - last.y)
       if (distance < 3) return current
-      return { ...current, points: [...current.points, point] }
+      const next = { ...current, points: [...current.points, point] }
+      activeStrokeRef.current = next
+      return next
     })
   }
 
   const finishStroke = () => {
-    if (activeStroke && activeStroke.points.length > 0) {
-      setStrokes((existing) => [...existing, activeStroke])
+    const current = activeStrokeRef.current
+    if (current && current.points.length > 0) {
+      setStrokes((existing) => [...existing, current])
     }
+    activeStrokeRef.current = null
     setActiveStroke(null)
   }
 
@@ -285,6 +300,7 @@ export function ClinicFaceMapEditor({
       value === 'template' ? { source: 'template', sourceMediaId: null } : { source: 'media', sourceMediaId: value }
     setBase(nextBase)
     setStrokes([])
+    activeStrokeRef.current = null
     setActiveStroke(null)
   }
 
@@ -342,17 +358,27 @@ export function ClinicFaceMapEditor({
             ) : (
               <FaceTemplateSvg />
             )}
-            {visibleStrokes.map((stroke) => (
-              <path
-                key={stroke.id}
-                d={strokePath(stroke.points)}
-                fill="none"
-                stroke={stroke.color}
-                strokeWidth={stroke.width}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            ))}
+            {visibleStrokes.map((stroke) =>
+              stroke.points.length === 1 ? (
+                <circle
+                  key={stroke.id}
+                  cx={stroke.points[0].x}
+                  cy={stroke.points[0].y}
+                  r={Math.max(4, stroke.width / 2)}
+                  fill={stroke.color}
+                />
+              ) : (
+                <path
+                  key={stroke.id}
+                  d={strokePath(stroke.points)}
+                  fill="none"
+                  stroke={stroke.color}
+                  strokeWidth={stroke.width}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )
+            )}
           </svg>
         </div>
 

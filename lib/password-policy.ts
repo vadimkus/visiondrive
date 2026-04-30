@@ -1,5 +1,5 @@
 /**
- * Password Policy for VisionDrive Smart Kitchen
+ * Password Policy for VisionDrive Practice OS
  * 
  * 🔐 Security: Enforces strong password requirements (VD-2026-005)
  * 

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion as fmMotion } from 'framer-motion'
-import { Calendar, CheckCircle2, Clock } from 'lucide-react'
+import { CheckCircle2, Clock } from 'lucide-react'
 
 // React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
 const motion = fmMotion as any
@@ -9,45 +9,45 @@ const motion = fmMotion as any
 const roadmap = [
   {
     quarter: 'Q4 2025',
-    title: 'Sensor Procurement & Testing',
-    description: 'Finalize sensor selection, conduct field tests, obtain RTA approvals.',
+    title: 'Practice Setup',
+    description: 'Configure services, forms, booking rules, and demo client data.',
     status: 'current',
     milestones: [
-      'Sensor vendor selection',
-      'RTA certification',
-      'Field testing in Dubai Marina',
+      'Service catalogue',
+      'Booking rules',
+      'Demo data setup',
     ],
   },
   {
     quarter: 'Q1 2026',
-    title: 'Dubai Marina Pilot',
-    description: 'Deploy 500 sensors across Dubai Marina. Launch beta app.',
+    title: 'Solo Practitioner Pilot',
+    description: 'Run appointments, records, quotes, payments, and follow-up in one workspace.',
     status: 'upcoming',
     milestones: [
-      '500 spaces monitored',
-      'Beta app launch',
+      'Patient cards live',
+      'Mobile portal launch',
       'Partner onboarding',
     ],
   },
   {
     quarter: 'Q2 2026',
-    title: 'JLT + Business Bay Expansion',
-    description: 'Scale to 2,000 spaces. Integrate with RTA systems.',
+    title: 'Workflow Expansion',
+    description: 'Add automation, waitlist fill, price quotes, and marketing workflows.',
     status: 'upcoming',
     milestones: [
-      '2,000 spaces live',
-      'RTA API integration',
+      'Automation live',
+      'Client portal improvements',
       'Commercial partnerships',
     ],
   },
   {
     quarter: 'Q4 2026',
-    title: 'Full Dubai Coverage',
-    description: 'Complete deployment across all Dubai districts. 50,000+ spaces.',
+    title: 'Practice OS Scale',
+    description: 'Broaden to independent clinics and home-visit practitioners across the UAE.',
     status: 'upcoming',
     milestones: [
-      '50,000+ spaces',
-      'Full RTA integration',
+      'Clinic onboarding',
+      'WhatsApp workflows',
       'Multi-emirate expansion',
     ],
   },
@@ -68,7 +68,7 @@ export default function RoadmapTimeline() {
               Implementation Roadmap
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              A clear path from pilot to full deployment
+              A clear path from setup to daily practice operations
             </p>
           </motion.div>
         </div>

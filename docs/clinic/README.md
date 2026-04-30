@@ -33,4 +33,4 @@ This folder documents the **practice / clinic operations** product: appointments
 2. Run **`npx prisma db push`** against that database (CI or local with env).
 3. Ensure **`JWT_SECRET`** and clinic user seed env vars are set; redeploy.
 
-Legacy parking / kitchen documentation was moved under [`../archive/`](../archive/).
+Legacy non-practice modules have been removed from the active application surface.

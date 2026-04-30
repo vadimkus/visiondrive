@@ -1,19 +1,19 @@
 export const homeTranslations = {
   en: {
     hero: {
-      title: 'Smart Kitchen.',
-      titleHighlight: 'Food Safety Assured.',
-      subtitle: 'IoT temperature monitoring for commercial kitchens in UAE.',
-      trust: 'TDRA Certified | Dubai Municipality Compliant | UAE Data Residency',
+      title: 'Practice OS.',
+      titleHighlight: 'Solo Work Under Control.',
+      subtitle: 'Practice operations software for independent practitioners in the UAE.',
+      trust: 'UAE Data Residency | Private Records | Mobile First',
       cta: 'Get Started',
     },
   },
   ar: {
     hero: {
-      title: 'المطبخ الذكي.',
-      titleHighlight: 'سلامة الغذاء مضمونة.',
-      subtitle: 'مراقبة درجة الحرارة بتقنية إنترنت الأشياء للمطابخ التجارية في الإمارات.',
-      trust: 'معتمد من هيئة تنظيم الاتصالات | متوافق مع بلدية دبي | بيانات مقيمة في الإمارات',
+      title: 'Practice OS.',
+      titleHighlight: 'إدارة العمل الفردي بوضوح.',
+      subtitle: 'برنامج عمليات للممارسين المستقلين في الإمارات.',
+      trust: 'استضافة بيانات في الإمارات | سجلات خاصة | تجربة موبايل أولاً',
       cta: 'ابدأ الآن',
     },
   },

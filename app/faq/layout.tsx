@@ -3,13 +3,13 @@ import FAQSchema from '../components/schema/FAQSchema'
 import { faqItems } from './faqData'
 
 export const metadata: Metadata = {
-  title: 'FAQ - Smart Kitchen Temperature Monitoring Questions',
-  description: 'Frequently asked questions about VisionDrive smart kitchen temperature monitoring. Learn about NB-IoT sensors, installation, pricing, and Dubai Municipality compliance.',
-  keywords: 'VisionDrive FAQ, smart kitchen questions, temperature sensor FAQ, NB-IoT FAQ, UAE food safety, Dubai Municipality compliance',
+  title: 'FAQ - Practice OS for Solo Practitioners',
+  description: 'Frequently asked questions about VisionDrive Practice OS: booking, patient records, mobile practitioner mode, payments, patient portal, and UAE data residency.',
+  keywords: 'VisionDrive FAQ, Practice OS questions, solo practitioner software UAE, private practice software, patient records, online booking',
   alternates: { canonical: '/faq' },
   openGraph: {
-    title: 'VisionDrive FAQ - Smart Kitchen Questions',
-    description: 'Answers to common questions about smart kitchen temperature monitoring solutions.',
+    title: 'VisionDrive FAQ - Practice OS Questions',
+    description: 'Answers to common questions about VisionDrive Practice OS for solo practitioners.',
     type: 'website',
   },
 }

@@ -17,7 +17,6 @@ import {
   Gauge,
   Settings,
   ScrollText,
-  ChefHat
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { LucideIcon } from 'lucide-react'
@@ -128,10 +127,6 @@ export default function PortalSidebar() {
   const sensorsItems = [
     { icon: Users, label: 'Sensors', path: '/portal/sensors', color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
     { icon: Gauge, label: 'Calibration', path: '/portal/calibration', color: 'text-pink-600', bgColor: 'bg-pink-50', adminOnly: true },
-  ]
-
-  const smartKitchenItems = [
-    { icon: ChefHat, label: 'Smart Kitchen', path: '/portal/smart-kitchen', color: 'text-orange-600', bgColor: 'bg-orange-50' },
   ]
 
   const financeItems = [
@@ -272,12 +267,6 @@ export default function PortalSidebar() {
           {sensorsItems
             .filter((i) => (i.adminOnly ? isAdmin : true))
             .map(NavButton)}
-        </div>
-
-        {/* Smart Kitchen */}
-        <SectionTitle label="IoT Monitoring" />
-        <div className="space-y-1 px-2">
-          {smartKitchenItems.map(NavButton)}
         </div>
 
         {/* Admin */}

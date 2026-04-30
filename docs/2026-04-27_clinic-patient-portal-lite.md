@@ -11,7 +11,7 @@ Point 22 from the Altegio home-visit practitioner backlog is **Private patient p
 - Added `ClinicPatientPortalLink` for private portal links.
 - Added `ClinicPatientPortalRequest` for reschedule/cancel/message requests.
 - Portal tokens are generated once, stored only as SHA-256 hashes, expire after 90 days by default, and can be revoked.
-- Patient chart now has a Patient portal lite card for creating/copying/revoking a link and reviewing recent requests.
+- Patient chart now has a Patient portal card for creating/copying/revoking a link and reviewing recent requests.
 - Public route `/patient-portal/[token]` shows:
   - Upcoming appointments and home-visit location notes.
   - Patient-facing booking policy terms, accepted timestamp, deposit/prepay/card-on-file status, cancellation window, and late-cancel/no-show fees.

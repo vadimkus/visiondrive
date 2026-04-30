@@ -21,7 +21,7 @@ const copy = {
       },
       {
         icon: ClipboardList,
-        title: 'Clinical workspace',
+        title: 'Practitioner workspace',
         description: 'Patient cards, notes, consent records, treatment plans, aftercare, photos, and before/after tracking.',
       },
       {
@@ -32,7 +32,7 @@ const copy = {
     ],
     missionTitle: 'Our mission',
     missionBody:
-      'To give independent practitioners the operational discipline of a clinic system, without forcing them into heavy, multi-branch software. Practice OS is designed for the reality of home visits and small private practices: fast mobile workflows, clean patient context, simple money tracking, and repeat-client growth.',
+      'To give independent practitioners operational discipline without forcing them into heavy, multi-branch software. Practice OS is designed for the reality of home visits and small private practices: fast mobile workflows, clean patient context, simple money tracking, and repeat-client growth.',
     values: [
       {
         icon: Target,
@@ -52,7 +52,7 @@ const copy = {
     ],
     companyTitle: 'Company information',
     companyIntro:
-      'VisionDrive is incorporated in the UAE and is currently focused on Practice OS for solo practitioners and small clinics.',
+      'VisionDrive is incorporated in the UAE and is currently focused on Practice OS for solo practitioners and small private practices.',
     legalEntity: 'Legal entity',
     companyName: 'Company Name',
     jurisdiction: 'Jurisdiction',
@@ -64,7 +64,7 @@ const copy = {
     compliance: 'Compliance',
     complianceLink: 'View security and compliance information',
     contact: 'Contact',
-    email: 'Почта',
+    email: 'Email',
     phone: 'Phone',
     address: 'Address',
     addressValue: 'Compass Coworking Centre,\nRas Al Khaimah, UAE',
@@ -97,7 +97,7 @@ const copy = {
     ],
     missionTitle: 'Наша миссия',
     missionBody:
-      'Дать частным специалистам дисциплину клинической системы без тяжелого ПО для сетевых клиник. Practice OS учитывает реальность выездов и небольших частных практик: быстрые мобильные процессы, понятный контекст пациента, простой учет денег и рост повторных визитов.',
+      'Дать частным специалистам дисциплину в операциях без тяжелого ПО для сетевых организаций. Practice OS учитывает реальность выездов и небольших частных практик: быстрые мобильные процессы, понятный контекст пациента, простой учет денег и рост повторных визитов.',
     values: [
       {
         icon: Target,
@@ -117,7 +117,7 @@ const copy = {
     ],
     companyTitle: 'Информация о компании',
     companyIntro:
-      'VisionDrive зарегистрирована в ОАЭ и сейчас сфокусирована на Practice OS для частных специалистов и небольших клиник.',
+      'VisionDrive зарегистрирована в ОАЭ и сейчас сфокусирована на Practice OS для частных специалистов и небольших частных практик.',
     legalEntity: 'Юридическое лицо',
     companyName: 'Название компании',
     jurisdiction: 'Юрисдикция',
@@ -125,11 +125,11 @@ const copy = {
     type: 'Тип',
     typeValue: 'Free Zone LLC',
     tradeLicense: 'Торговая лицензия',
-    viewLicense: 'Открыть E-License',
+    viewLicense: 'Открыть электронную лицензию',
     compliance: 'Безопасность',
     complianceLink: 'Открыть информацию о безопасности и соответствии',
     contact: 'Контакты',
-    email: 'Email',
+    email: 'Почта',
     phone: 'Телефон',
     address: 'Адрес',
     addressValue: 'Compass Coworking Centre,\nРас-эль-Хайма, ОАЭ',

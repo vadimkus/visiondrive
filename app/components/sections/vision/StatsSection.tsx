@@ -2,7 +2,7 @@
 
 import { motion as fmMotion } from 'framer-motion'
 import AnimatedCounter from './AnimatedCounter'
-import { TrendingDown, Clock, Zap, MapPin } from 'lucide-react'
+import { TrendingDown, Clock, MapPin } from 'lucide-react'
 
 // React 19 + Framer Motion v10 typing edge-case: loosen typing for presentation-only animations.
 const motion = fmMotion as any
@@ -12,7 +12,7 @@ const stats = [
     icon: MapPin,
     value: 2183,
     suffix: '',
-    label: 'Commercial Kitchens',
+    label: 'Solo Practitioners',
     description: 'Coverage across UAE',
     color: 'from-gold-500 to-gold-600',
   },
@@ -20,24 +20,24 @@ const stats = [
     icon: TrendingDown,
     value: 30,
     suffix: '%',
-    label: 'Reduction in Search Time',
-    description: 'Based on RTA data',
+    label: 'Less Admin Time',
+    description: 'Booking, records, and follow-up in one flow',
     color: 'from-blue-500 to-blue-600',
   },
   {
     icon: MapPin,
     value: 190000,
     suffix: '+',
-    label: 'Paid Spaces in Dubai',
-    description: 'Real-time monitoring',
+    label: 'Practice Actions',
+    description: 'Bookings, notes, quotes, and payments',
     color: 'from-gold-500 to-gold-600',
   },
   {
     icon: Clock,
     value: 5,
     suffix: ' sec',
-    label: 'Real-Time Update',
-    description: 'Instant availability',
+    label: 'Daily Sync',
+    description: 'Fast mobile workflow',
     color: 'from-green-500 to-green-600',
   },
 ]
@@ -57,7 +57,7 @@ export default function StatsSection() {
               Real-Time Intelligence at Scale
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Powered by advanced sensor technology and edge computing
+              Powered by mobile-first workflows and structured practice data
             </p>
           </motion.div>
         </div>

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Municipality Solutions - Dubai Municipality Food Safety Compliance',
-  description: 'Smart kitchen temperature monitoring for UAE municipalities. Help food businesses achieve Dubai Municipality compliance with automated reporting and real-time alerts.',
-  keywords: 'Dubai Municipality compliance, food safety monitoring, municipal kitchen inspection, UAE food regulation, smart kitchen government',
+  title: 'Practice OS Solutions - VisionDrive',
+  description: 'VisionDrive Practice OS solutions for UAE solo practitioners and independent clinics: bookings, records, payments, reminders, and practice reporting.',
+  keywords: 'Practice OS solutions, solo practitioner software UAE, clinic management software, appointment software Dubai',
   alternates: { canonical: '/municipalities' },
   openGraph: {
-    title: 'Municipality Solutions - Dubai Municipality Food Safety Compliance',
-    description: 'Smart kitchen temperature monitoring for UAE municipalities. Help food businesses achieve Dubai Municipality compliance with automated reporting and real-time alerts.',
+    title: 'Practice OS Solutions - VisionDrive',
+    description: 'Practice operations software for UAE solo practitioners and independent clinics.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

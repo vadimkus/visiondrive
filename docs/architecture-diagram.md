@@ -1,49 +1,55 @@
-# VisionDrive Architecture
+# VisionDrive Practice OS Architecture
 
 ```mermaid
 flowchart TB
-    subgraph Sensors["IoT Sensors"]
-        SK[🌡️ Smart Kitchen<br/>Temperature Sensors]
+    subgraph Public["Public Website"]
+        Home[Marketing pages]
+        Booking[Public booking link]
+        Profile[Practitioner profile]
     end
 
-    subgraph Network["Network"]
-        NB[du NB-IoT]
+    subgraph App["Practice Workspace"]
+        Clinic[Clinic dashboard]
+        Patients[Patients and records]
+        Calendar[Appointments]
+        Finance[Payments and finance]
+        Inventory[Inventory]
+        Marketing[Reminders and campaigns]
     end
 
-    subgraph AWS["AWS me-central-1 (UAE)"]
-        IOT[AWS IoT Core]
-        Lambda[Lambda Functions]
-        DB[(DynamoDB)]
-        API[API Gateway]
+    subgraph Backend["Next.js API"]
+        Auth[Auth routes]
+        ClinicAPI[Practice OS APIs]
+        Portal[Patient portal links]
     end
 
-    subgraph Frontend["Frontend"]
-        Web[Next.js Website<br/>visiondrive.ae]
-        Portal[Kitchen Owner Portal]
+    subgraph Data["PostgreSQL"]
+        Tenants[(Tenants)]
+        Records[(Patients, visits, payments)]
+        Settings[(Practice settings)]
     end
 
-    subgraph Notifications["Alerts"]
-        WA[WhatsApp]
-        SNS[AWS SNS]
-    end
-
-    SK --> NB
-    NB --> IOT
-    IOT --> Lambda
-    Lambda --> DB
-    Lambda --> SNS
-    SNS --> WA
-    API --> Lambda
-    Web --> API
-    Portal --> API
+    Home --> Booking
+    Home --> Profile
+    Booking --> ClinicAPI
+    Profile --> Booking
+    Clinic --> ClinicAPI
+    Patients --> ClinicAPI
+    Calendar --> ClinicAPI
+    Finance --> ClinicAPI
+    Inventory --> ClinicAPI
+    Marketing --> ClinicAPI
+    Auth --> Tenants
+    ClinicAPI --> Records
+    ClinicAPI --> Settings
+    Portal --> Records
 ```
 
 ## Components
 
 | Component | Description |
 |-----------|-------------|
-| **Smart Kitchen** | Dragino temperature sensors for Dubai Municipality compliance |
-| **AWS IoT Core** | Sensor data ingestion |
-| **Lambda** | Data processing & alerts |
-| **DynamoDB** | UAE data residency storage |
-| **Next.js** | Web portal at visiondrive.ae |
+| Public website | Practice OS positioning, booking, practitioner profiles, and lead capture |
+| Practice workspace | Daily operations for solo practitioners and independent clinics |
+| Next.js API | Authenticated APIs for clinical, operational, and financial workflows |
+| PostgreSQL | Tenant-scoped practice data and audit-friendly records |
