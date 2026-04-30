@@ -52,7 +52,7 @@ const copy = {
     ],
     companyTitle: 'Company information',
     companyIntro:
-      'VisionDrive is incorporated in the UAE and is currently focused on Practice OS for solo practitioners and small private practices.',
+      'VisionDrive Technologies FZ-LLC is incorporated in the UAE and is currently focused on Practice OS for solo practitioners and small private practices.',
     legalEntity: 'Legal entity',
     companyName: 'Company Name',
     jurisdiction: 'Jurisdiction',
@@ -106,8 +106,9 @@ const copy = {
       },
       {
         icon: Shield,
-        title: 'Приватность по умолчанию',
-        description: 'Данные пациента остаются внутри кабинета, пока специалист явно не поделится безопасной ссылкой.',
+        title: 'Безопасность данных',
+        description:
+          'Данные пациентов хранятся в рабочем пространстве специалиста и не становятся публичными без его решения.',
       },
       {
         icon: Users,
@@ -117,7 +118,7 @@ const copy = {
     ],
     companyTitle: 'Информация о компании',
     companyIntro:
-      'VisionDrive зарегистрирована в ОАЭ и сейчас сфокусирована на Practice OS для частных специалистов и небольших частных практик.',
+      'VisionDrive Technologies FZ-LLC зарегистрирована в ОАЭ и сейчас сфокусирована на Practice OS для частных специалистов и небольших частных практик.',
     legalEntity: 'Юридическое лицо',
     companyName: 'Название компании',
     jurisdiction: 'Юрисдикция',
