@@ -6,7 +6,7 @@ export default function WebSiteSchema() {
     name: 'VisionDrive',
     url: 'https://visiondrive.ae',
     description:
-      'VisionDrive — practice operations, made clear. Software for solo practitioners in the UAE.',
+      'VisionDrive — practice operations, made clear. Software for solo practitioners, accessible from anywhere.',
     publisher: {
       '@type': 'Organization',
       name: 'VisionDrive Technologies FZ-LLC',

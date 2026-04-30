@@ -32,3 +32,11 @@ The public website must present VisionDrive as Practice OS for UAE solo practiti
 - Tightened public EN/RU copy on home, about, contact, FAQ, booking, profile, compliance, terms, and login surfaces so the public story is Practice OS for solo practitioners and independent private practices.
 - Adjusted CTA/button styling and compliance retention pills to avoid clipping or overlap in RU mobile views.
 - Validation passed: `npm run type-check`, `npm run lint`, `npm run build`, plus targeted searches for kitchen/TDRA/food-safety terms in active app routes.
+
+## Homepage Geography-Neutral Positioning
+
+- Removed the UAE suffix from the homepage hero slogan in EN/RU.
+- Replaced the "UAE-ready practice data" capability pill with a geography-neutral structured-data benefit.
+- Updated homepage metadata and structured data so the main landing page positions VisionDrive as accessible from anywhere, while legal/compliance pages can still mention UAE-specific company and data-residency details where relevant.
+- Mirrored the concise "professional system for solo practitioners" footer positioning and dark CTA body in both EN and RU.
+- Validation passed: `npm run type-check` and `npm run lint`.

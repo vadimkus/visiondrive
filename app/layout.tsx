@@ -24,13 +24,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://visiondrive.ae'),
   title: {
-    default: 'VisionDrive — Practice software for solo practitioners | Dubai, UAE',
+    default: 'VisionDrive — Practice software for solo practitioners',
     template: '%s | VisionDrive',
   },
   description:
-    'Practice operations, made clear. VisionDrive builds professional practice software for solo practitioners in the UAE — bookings, records, treatment notes, inventory, payments, and reporting.',
+    'Practice operations, made clear. VisionDrive builds professional practice software for solo practitioners — bookings, records, treatment notes, inventory, payments, and reporting from anywhere.',
   keywords:
-    'solo practitioner software UAE, practice management UAE, clinic software Dubai, professional practice software, VisionDrive, appointment software Dubai',
+    'solo practitioner software, practice management software, professional practice software, VisionDrive, appointment software, private practice operations',
   authors: [{ name: 'Vision Drive Technologies FZ-LLC' }],
   creator: 'Vision Drive Technologies FZ-LLC',
   publisher: 'Vision Drive Technologies FZ-LLC',
@@ -65,13 +65,13 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'VisionDrive — Practice software for solo practitioners (UAE)',
+    title: 'VisionDrive — Practice software for solo practitioners',
     description:
-      'Practice operations, made clear. Commercial-grade tools for UAE solo practitioners — bookings to payments.',
+      'Practice operations, made clear. Commercial-grade tools for solo practitioners — bookings to payments.',
     type: 'website',
     url: 'https://visiondrive.ae',
     siteName: 'VisionDrive',
-    locale: 'en_AE',
+    locale: 'en',
     images: [
       {
         url: '/favicon/android-chrome-512x512.png',
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     card: 'summary',
     title: 'VisionDrive — Practice software for solo practitioners',
     description:
-      'Practice operations, made clear. UAE-built software for solo practitioners — bookings, records, inventory, payments, and reporting.',
+      'Practice operations, made clear. Software for solo practitioners — bookings, records, inventory, payments, and reporting.',
     images: ['/favicon/android-chrome-512x512.png'],
   },
   other: {

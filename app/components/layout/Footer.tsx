@@ -13,7 +13,7 @@ const footerTranslations = {
     company: 'Company',
     contact: 'Contact',
     description:
-      'Practice operations, made clear. Software for solo practitioners in the UAE.',
+      'A professional system for solo practitioners',
     copyright: 'All rights reserved.',
     solutionsLinks: {
       restaurants: 'Product overview',
@@ -41,7 +41,7 @@ const footerTranslations = {
     company: 'Компания',
     contact: 'Контакты',
     description:
-      'Операции практики — ясно и просто. ПО для частных специалистов в ОАЭ.',
+      'Профессиональная система для частных специалистов',
     copyright: 'Все права защищены.',
     solutionsLinks: {
       restaurants: 'Обзор продукта',

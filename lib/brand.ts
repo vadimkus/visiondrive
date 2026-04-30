@@ -8,6 +8,6 @@ export const visiondriveSlogan = {
 } as const
 
 export const visiondriveSloganWithRegion = {
-  en: 'Solo practice, under control · UAE',
-  ru: 'Частная практика под контролем · ОАЭ',
+  en: visiondriveSlogan.en,
+  ru: visiondriveSlogan.ru,
 } as const

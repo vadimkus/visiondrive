@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from './contexts/LanguageContext'
 import Link from 'next/link'
-import { visiondriveSloganWithRegion } from '@/lib/brand'
+import { visiondriveSlogan } from '@/lib/brand'
 import { usePublicDocumentTitle } from './hooks/usePublicDocumentTitle'
 
 const homeCopy = {
@@ -25,14 +25,14 @@ const homeCopy = {
     ctaPrimary: 'Request product walkthrough',
     capabilities: [
       { icon: Lock, label: 'Client records & privacy' },
-      { icon: Shield, label: 'UAE-ready practice data' },
+      { icon: Shield, label: 'Structured practice data' },
       { icon: BarChart3, label: 'Revenue & follow-up insight' },
       { icon: Layers, label: 'Bookings to payments' },
     ],
     darkKicker: 'Practice workspace',
     darkTitle: 'Run the whole practice from one workspace',
     darkBody:
-      'Access is currently private while the product is prepared for selective onboarding. VisionDrive helps solo practitioners keep appointments, treatment history, follow-ups, stock, and finances organized in one professional operating system.',
+      'VisionDrive helps solo practitioners keep appointments, treatment history, follow-ups, stock, and finances organized in one professional operating system.',
     darkPrimary: 'Open workspace',
     darkSecondary: 'Request access',
     documentTitle: 'VisionDrive - Practice software for solo practitioners',
@@ -47,14 +47,14 @@ const homeCopy = {
     ctaPrimary: 'Запросить демонстрацию',
     capabilities: [
       { icon: Lock, label: 'Клиентские карты и приватность' },
-      { icon: Shield, label: 'Данные практики в ОАЭ' },
+      { icon: Shield, label: 'Структура данных практики' },
       { icon: BarChart3, label: 'Доходы и повторные визиты' },
       { icon: Layers, label: 'От записи до оплаты' },
     ],
     darkKicker: 'Рабочее пространство',
     darkTitle: 'Управляйте всей практикой из одного кабинета',
     darkBody:
-      'Доступ сейчас закрытый, пока продукт готовится к выборочному подключению. VisionDrive помогает частным специалистам держать в порядке расписание, историю процедур, повторные визиты, склад и финансы в одной профессиональной операционной системе.',
+      'VisionDrive помогает частным специалистам держать в порядке расписание, историю процедур, повторные визиты, склад и финансы в одной профессиональной операционной системе.',
     darkPrimary: 'Открыть кабинет',
     darkSecondary: 'Запросить доступ',
     documentTitle: 'VisionDrive - ПО для частных специалистов',
@@ -77,7 +77,7 @@ export default function HomeClient() {
             className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 md:mb-4 md:text-sm md:normal-case md:tracking-normal"
             dir="ltr"
           >
-            {visiondriveSloganWithRegion[publicLanguage]}
+            {visiondriveSlogan[publicLanguage]}
           </p>
 
           {/* Main Heading */}

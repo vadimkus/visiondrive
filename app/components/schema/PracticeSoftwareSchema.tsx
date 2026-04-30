@@ -8,24 +8,20 @@ export default function PracticeSoftwareSchema() {
     operatingSystem: 'Web, iOS Safari, iPadOS Safari, Android Chrome',
     url: 'https://visiondrive.ae',
     description:
-      'Practice management software for solo practitioners and independent clinics in the UAE: bookings, patient records, treatment notes, photos, inventory, payments, reminders, packages, and profitability reporting.',
+      'Practice management software for solo practitioners and independent private practices: bookings, patient records, treatment notes, photos, inventory, payments, reminders, packages, and profitability reporting.',
     creator: {
       '@type': 'Organization',
       name: 'VisionDrive Technologies FZ-LLC',
       url: 'https://visiondrive.ae',
     },
-    areaServed: {
-      '@type': 'Country',
-      name: 'United Arab Emirates',
-    },
+    areaServed: 'Global',
     audience: {
       '@type': 'Audience',
-      audienceType: 'Solo practitioners, home-visit practitioners, independent clinics',
+      audienceType: 'Solo practitioners, home-visit practitioners, independent private practices',
     },
     offers: {
       '@type': 'Offer',
       availability: 'https://schema.org/LimitedAvailability',
-      priceCurrency: 'AED',
       category: 'Private onboarding',
       url: 'https://visiondrive.ae/contact',
     },

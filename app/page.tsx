@@ -2,18 +2,18 @@ import type { Metadata } from 'next'
 import HomeClient from './HomeClient'
 
 export const metadata: Metadata = {
-  title: 'VisionDrive — Practice software for solo practitioners | Dubai, UAE',
+  title: 'VisionDrive — Practice software for solo practitioners',
   description:
-    'Practice operations, made clear. Professional practice management software for solo practitioners in the UAE — bookings, records, treatment notes, inventory, payments, and reporting.',
+    'Practice operations, made clear. Professional practice management software for solo practitioners — bookings, records, treatment notes, inventory, payments, and reporting from anywhere.',
   keywords:
-    'solo practitioner software UAE, practice management UAE, clinic software Dubai, VisionDrive, professional practice software UAE, appointment software Dubai',
+    'solo practitioner software, practice management software, VisionDrive, professional practice software, appointment software, private practice operations',
   alternates: { canonical: '/' },
   openGraph: {
     title: 'VisionDrive — Practice software for solo practitioners',
     description:
-      'Practice operations, made clear. A professional operating system for independent clinics and solo service providers in the UAE.',
+      'Practice operations, made clear. A professional operating system for solo practitioners and independent service providers.',
     type: 'website',
-    locale: 'en_AE',
+    locale: 'en',
     siteName: 'VisionDrive',
   },
   twitter: {
