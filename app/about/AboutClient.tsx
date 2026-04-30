@@ -12,7 +12,7 @@ const copy = {
     headline: 'Professional system for',
     accent: 'solo practitioners',
     intro:
-      'VisionDrive Technologies FZ-LLC is a UAE-based software company building Practice OS: a focused workspace for independent practitioners to manage bookings, patients, treatments, payments, inventory, and follow-up without enterprise complexity.',
+      'Vision Drive Technologies FZ-LLC is a UAE-based software company building Practice OS: a focused workspace for independent practitioners to manage bookings, patients, treatments, payments, inventory, and follow-up without enterprise complexity.',
     productAreas: [
       {
         icon: CalendarCheck,
@@ -52,7 +52,7 @@ const copy = {
     ],
     companyTitle: 'Company information',
     companyIntro:
-      'VisionDrive Technologies FZ-LLC is incorporated in the UAE and is currently focused on Practice OS for solo practitioners and small private practices.',
+      'Vision Drive Technologies FZ-LLC is incorporated in the UAE and is currently focused on Practice OS for solo practitioners and small private practices.',
     legalEntity: 'Legal entity',
     companyName: 'Company Name',
     jurisdiction: 'Jurisdiction',
@@ -69,7 +69,7 @@ const copy = {
     address: 'Address',
     addressValue: 'Compass Coworking Centre,\nRas Al Khaimah, UAE',
     productFocus: 'Product focus',
-    productFocusValue: 'Practice operations software for the UAE',
+    productFocusValue: 'Software for private practices',
   },
   ru: {
     documentTitle: 'О VisionDrive - Practice OS для частных специалистов в ОАЭ',
@@ -77,7 +77,7 @@ const copy = {
     headline: 'Профессиональная система для',
     accent: 'частных специалистов',
     intro:
-      'VisionDrive Technologies FZ-LLC - компания из ОАЭ, которая создает Practice OS: рабочее пространство для частных специалистов, где можно управлять записями, пациентами, процедурами, оплатами, складом и повторными визитами без сложности корпоративных систем.',
+      'Vision Drive Technologies FZ-LLC - компания из ОАЭ, которая создает Practice OS: рабочее пространство для частных специалистов, где можно управлять записями, пациентами, процедурами, оплатами, складом и повторными визитами без сложности корпоративных систем.',
     productAreas: [
       {
         icon: CalendarCheck,
@@ -118,7 +118,7 @@ const copy = {
     ],
     companyTitle: 'Информация о компании',
     companyIntro:
-      'VisionDrive Technologies FZ-LLC зарегистрирована в ОАЭ и сейчас сфокусирована на Practice OS для частных специалистов и небольших частных практик.',
+      'Vision Drive Technologies FZ-LLC зарегистрирована в ОАЭ и сейчас сфокусирована на Practice OS для частных специалистов и небольших частных практик.',
     legalEntity: 'Юридическое лицо',
     companyName: 'Название компании',
     jurisdiction: 'Юрисдикция',
@@ -135,7 +135,7 @@ const copy = {
     address: 'Адрес',
     addressValue: 'Compass Coworking Centre,\nРас-эль-Хайма, ОАЭ',
     productFocus: 'Фокус продукта',
-    productFocusValue: 'ПО для управления частной практикой в ОАЭ',
+    productFocusValue: 'ПО для управления частной практикой',
   },
 } as const
 
@@ -206,7 +206,7 @@ export default function AboutClient() {
                 <dl className="space-y-3 text-sm">
                   <div>
                     <dt className="text-gray-500">{t.companyName}</dt>
-                    <dd className="font-medium text-gray-900">VisionDrive Technologies FZ-LLC</dd>
+                    <dd className="font-medium text-gray-900">Vision Drive Technologies FZ-LLC</dd>
                   </div>
                   <div>
                     <dt className="text-gray-500">{t.jurisdiction}</dt>
