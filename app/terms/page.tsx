@@ -21,12 +21,12 @@ const copy = {
     kicker: 'Terms of Service',
     title: 'VisionDrive Practice OS Terms of Service',
     intro:
-      'Effective date: 30 Apr 2026 - governed by UAE law. These terms cover VisionDrive Practice OS, practitioner workspaces, patient portals, booking links, public profiles, payments, automations, and related software services.',
+      'Effective date: 30 Apr 2026 - governed by UAE law. These terms cover VisionDrive Practice OS, practitioner workspaces, patient portals, booking links, payments, automations, and related software services.',
     cards: [
       {
         icon: ShieldCheck,
         title: 'Practitioner controlled',
-        description: 'You control your patient records, policies, pricing, public profile content, and consent decisions.',
+        description: 'You control your patient records, policies, pricing, patient communications, and consent decisions.',
       },
       {
         icon: Lock,
@@ -52,7 +52,7 @@ const copy = {
       },
       {
         title: '2. Service Description',
-        body: 'VisionDrive Technologies FZ-LLC provides Practice OS: practice operations software for solo practitioners and small clinics in the UAE. Features may include scheduling, patient records, treatment notes, photos, consent forms, patient portal links, reminders, payments, inventory, packages, memberships, loyalty, public profile pages, analytics, and workflow automation.',
+        body: 'VisionDrive Technologies FZ-LLC provides Practice OS: practice operations software for solo practitioners and small clinics in the UAE. Features may include scheduling, patient records, treatment notes, photos, consent forms, patient portal links, reminders, payments, inventory, packages, memberships, loyalty, analytics, and workflow automation.',
         details: ['We may add, modify, limit, or discontinue features as the product evolves.', 'Some features may be marked beta, preview, manual, or approval-required.'],
       },
       {
@@ -76,9 +76,9 @@ const copy = {
         details: ['Patient records, notes, photos, payments, forms, portal links, and messages must be handled as confidential.', 'Patient-safe exports and public links are designed to limit exposure, but you remain responsible for reviewing what you share.', 'We may access workspace data only as needed for support, security, legal compliance, or service operation.'],
       },
       {
-        title: '7. Patient Portal, Booking Links, and Public Profile',
-        body: 'Practice OS may generate patient portal links, booking links, Google/Instagram campaign links, WhatsApp messages, public practitioner profiles, and marketing-consented media galleries. These links are convenience features and must be configured and reviewed by the practitioner.',
-        details: ['You are responsible for revoking or expiring links when access should end.', 'You must not publish patient photos or reviews unless you have the required consent.', 'Public profile content, services, pricing, and policies are your responsibility.'],
+        title: '7. Patient Portal, Booking Links, and Patient Messages',
+        body: 'Practice OS may generate patient portal links, booking links, Google/Instagram campaign links, WhatsApp messages, and patient-facing documents. These links and messages are convenience features and must be configured and reviewed by the practitioner.',
+        details: ['You are responsible for revoking or expiring links when access should end.', 'You must not publish patient photos or reviews unless you have the required consent.', 'Private practitioner identity fields personalize the workspace and sent messages; they do not create a public profile or domain.'],
       },
       {
         title: '8. Payments, Wallets, Packages, and Subscriptions',

@@ -325,6 +325,8 @@
 
 ## Chunk 84 — 2026-04-29 (public practitioner profile)
 
+**Superseded 2026-04-30:** public practitioner profiles are disabled. Solo-practitioner identity is now private workspace personalization, not a public profile/domain/gallery surface.
+
 **Shipped**
 
 - **Public route:** `/profile/[tenant-slug]` shows a lightweight practitioner profile with services, booking CTA, public reviews, consent-approved before/after pairs, and policies.

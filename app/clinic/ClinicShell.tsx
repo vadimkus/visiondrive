@@ -44,6 +44,7 @@ import clsx from 'clsx'
 import Logo from '@/app/components/common/Logo'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import type { ClinicLocale } from '@/lib/clinic/strings'
+import type { ClinicPractitionerIdentity } from '@/lib/clinic/practitioner-identity'
 
 type PracticeNavTone = 'amber' | 'blue' | 'cyan' | 'emerald' | 'fuchsia' | 'indigo' | 'orange' | 'pink' | 'rose' | 'sky' | 'teal' | 'violet'
 const CLINIC_LITE_MODE_STORAGE = 'visiondrive-clinic-lite-mode'
@@ -235,6 +236,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
   const router = useRouter()
   const { locale, setLocale, t } = useClinicLocale()
   const [liteMode, setLiteMode] = useState(false)
+  const [practitionerIdentity, setPractitionerIdentity] = useState<ClinicPractitionerIdentity | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -246,6 +248,9 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         const preferred = data?.preferences?.locale
         if (!cancelled && (preferred === 'en' || preferred === 'ru')) {
           setLocale(preferred)
+        }
+        if (!cancelled && data?.practitionerIdentity) {
+          setPractitionerIdentity(data.practitionerIdentity)
         }
       } catch {
         // Local storage remains the fallback when the preference endpoint is unavailable.
@@ -277,6 +282,14 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
   const litePathVisible = Array.from(liteNavHrefs).some(
     (href) => pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
   )
+  const practitionerName = practitionerIdentity?.displayName?.trim() || ''
+  const workspaceTitle = practitionerName
+    ? t.workspacePersonalTitle.replace('{name}', practitionerName)
+    : t.practiceOsTitle
+  const workspaceSubtitle =
+    [practitionerIdentity?.professionalTitle, practitionerIdentity?.specialty]
+      .filter(Boolean)
+      .join(' · ') || t.practiceOsBrand
 
   const renderNavGroup = (items: typeof nav, title: string) => (
     <div className="space-y-1">
@@ -355,9 +368,9 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
             </span>
             <span className="min-w-0">
               <span className="block truncate text-[15px] font-semibold leading-tight text-slate-950">
-                {t.practiceOsTitle}
+                {workspaceTitle}
               </span>
-              <span className="block truncate text-xs text-slate-500">{t.practiceOsBrand}</span>
+              <span className="block truncate text-xs text-slate-500">{workspaceSubtitle}</span>
             </span>
           </Link>
           <div className="flex shrink-0 items-center gap-2">
@@ -400,8 +413,8 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
             <Logo className="h-10 w-10" priority />
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold text-slate-950">{t.practiceOsTitle}</span>
-            <span className="block text-xs text-slate-500">{t.practiceOsBrand}</span>
+            <span className="block truncate text-sm font-semibold text-slate-950">{workspaceTitle}</span>
+            <span className="block truncate text-xs text-slate-500">{workspaceSubtitle}</span>
           </span>
         </Link>
 

@@ -12,11 +12,13 @@ import {
   DEFAULT_CLINIC_ACCOUNT_PREFERENCES,
   type ClinicAccountPreferences,
 } from '@/lib/clinic/account-preferences'
+import type { ClinicPractitionerIdentity } from '@/lib/clinic/practitioner-identity'
 import type { ClinicLocale } from '@/lib/clinic/strings'
 
 type MeResponse = {
   user: { id: string; email: string; name: string | null; role: string }
   tenant: { id: string; name: string; slug: string }
+  practitionerIdentity: ClinicPractitionerIdentity
   preferences: ClinicAccountPreferences
 }
 
@@ -28,7 +30,12 @@ export default function ClinicAccountPage() {
   const [me, setMe] = useState<MeResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [name, setName] = useState('')
+  const [identity, setIdentity] = useState<ClinicPractitionerIdentity>({
+    displayName: '',
+    professionalTitle: '',
+    specialty: '',
+    messageSignature: '',
+  })
   const [preferredLocale, setPreferredLocale] = useState<ClinicLocale>(locale)
   const [preferences, setPreferences] = useState<ClinicAccountPreferences>(
     DEFAULT_CLINIC_ACCOUNT_PREFERENCES
@@ -62,7 +69,12 @@ export default function ClinicAccountPage() {
         }
         if (!cancelled) {
           setMe(data)
-          setName(data.user?.name ?? '')
+          setIdentity({
+            displayName: data.practitionerIdentity?.displayName ?? data.user?.name ?? '',
+            professionalTitle: data.practitionerIdentity?.professionalTitle ?? '',
+            specialty: data.practitionerIdentity?.specialty ?? '',
+            messageSignature: data.practitionerIdentity?.messageSignature ?? '',
+          })
           const nextPrefs = data.preferences ?? DEFAULT_CLINIC_ACCOUNT_PREFERENCES
           setPreferences(nextPrefs)
           setPreferredLocale(nextPrefs.locale)
@@ -209,6 +221,10 @@ export default function ClinicAccountPage() {
     setPreferences((current) => ({ ...current, [key]: value }))
   }
 
+  const updateIdentity = (key: keyof ClinicPractitionerIdentity, value: string) => {
+    setIdentity((current) => ({ ...current, [key]: value }))
+  }
+
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage('')
@@ -218,7 +234,7 @@ export default function ClinicAccountPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ name, locale: preferredLocale }),
+        body: JSON.stringify({ practitionerIdentity: identity, locale: preferredLocale }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -228,6 +244,15 @@ export default function ClinicAccountPage() {
       setMessage(t.profileUpdated)
       setError('')
       setLocale(preferredLocale)
+      setMe((current) =>
+        current
+          ? {
+              ...current,
+              user: { ...current.user, name: identity.displayName.trim() || null },
+              practitionerIdentity: identity,
+            }
+          : current
+      )
     } catch {
       setError(t.networkError)
     } finally {
@@ -347,7 +372,16 @@ export default function ClinicAccountPage() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl bg-white p-4 border border-orange-100">
             <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{t.practitioner}</p>
-            <p className="mt-1 text-sm font-medium text-gray-900">{me?.user.name || me?.user.email}</p>
+            <p className="mt-1 text-sm font-medium text-gray-900">
+              {me?.practitionerIdentity.displayName || me?.user.name || me?.user.email}
+            </p>
+            {(me?.practitionerIdentity.professionalTitle || me?.practitionerIdentity.specialty) && (
+              <p className="mt-1 text-xs text-gray-500">
+                {[me?.practitionerIdentity.professionalTitle, me?.practitionerIdentity.specialty]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            )}
           </div>
           <div className="rounded-xl bg-white p-4 border border-orange-100">
             <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{t.assignmentMode}</p>
@@ -485,18 +519,63 @@ export default function ClinicAccountPage() {
       </form>
 
       <form onSubmit={saveProfile} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">{t.profileHeading}</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">{t.privateWorkspaceIdentity}</h2>
+          <p className="mt-1 text-sm leading-6 text-gray-600">{t.privateWorkspaceIdentityHint}</p>
+          <p className="mt-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-800">
+            {t.privateIdentityNotPublic}
+          </p>
+        </div>
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             {t.displayName}
           </label>
           <input
             id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={identity.displayName}
+            onChange={(e) => updateIdentity('displayName', e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 outline-none text-base"
             autoComplete="name"
           />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="professionalTitle" className="block text-sm font-medium text-gray-700 mb-1">
+              {t.professionalTitle}
+            </label>
+            <input
+              id="professionalTitle"
+              value={identity.professionalTitle}
+              onChange={(e) => updateIdentity('professionalTitle', e.target.value)}
+              placeholder={t.professionalTitlePlaceholder}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 outline-none text-base"
+            />
+          </div>
+          <div>
+            <label htmlFor="specialty" className="block text-sm font-medium text-gray-700 mb-1">
+              {t.specialty}
+            </label>
+            <input
+              id="specialty"
+              value={identity.specialty}
+              onChange={(e) => updateIdentity('specialty', e.target.value)}
+              placeholder={t.specialtyPlaceholder}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 outline-none text-base"
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="messageSignature" className="block text-sm font-medium text-gray-700 mb-1">
+            {t.messageSignature}
+          </label>
+          <input
+            id="messageSignature"
+            value={identity.messageSignature}
+            onChange={(e) => updateIdentity('messageSignature', e.target.value)}
+            placeholder={t.messageSignaturePlaceholder}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 outline-none text-base"
+          />
+          <p className="text-xs text-gray-500 mt-1">{t.messageSignatureHint}</p>
         </div>
         <div>
           <label htmlFor="preferredLocale" className="block text-sm font-medium text-gray-700 mb-1">

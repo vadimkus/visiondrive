@@ -12,7 +12,7 @@ app/
 ├── clinic/                 # Authenticated practitioner workspace
 ├── book/                   # Public booking pages
 ├── patient-portal/         # Token-based patient portal
-├── profile/                # Public practitioner profiles
+├── profile/                # Disabled public profile route
 ├── components/             # Public site components
 ├── contexts/               # Public language context
 ├── translations/           # Public website copy

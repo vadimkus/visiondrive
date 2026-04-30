@@ -53,7 +53,7 @@ VisionDrive/
 - Practitioner workspace: `/clinic`
 - Public booking: `/book/[slug]`
 - Patient portal: `/patient-portal/[token]`
-- Public practitioner profile: `/profile/[slug]`
+- Disabled public profile route: `/profile/[slug]`
 
 ## Main API Areas
 

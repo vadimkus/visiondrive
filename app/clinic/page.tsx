@@ -37,6 +37,7 @@ import {
 } from '@/lib/clinic/booking-channel-links'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicPwaPractitionerCard } from '@/components/clinic/ClinicPwaPractitionerCard'
+import type { ClinicPractitionerIdentity } from '@/lib/clinic/practitioner-identity'
 import clsx from 'clsx'
 
 const CLINIC_ONBOARDING_DISMISSED_STORAGE = 'visiondrive-clinic-onboarding-dismissed'
@@ -50,8 +51,8 @@ type Stats = {
   availabilityRuleCount: number
   whatsappTemplateCount: number
   bookingUrl: string | null
-  profileUrl: string | null
   practiceName: string | null
+  practitionerIdentity: ClinicPractitionerIdentity
   bookingProcedures: Array<{ id: string; name: string }>
   publicBookingEnabled: boolean
   publicBookingConfirmationMode: 'REQUEST' | 'INSTANT'
@@ -289,9 +290,15 @@ export default function ClinicDashboardPage() {
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
               {t.dashboardSoloCockpit}
             </p>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight">{t.dashboard}</h1>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight">
+              {stats?.practitionerIdentity.displayName
+                ? t.workspacePersonalGreeting.replace('{name}', stats.practitionerIdentity.displayName)
+                : t.dashboard}
+            </h1>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-300">
-              {t.dashboardSoloCockpitHint}
+              {stats?.practitionerIdentity.displayName
+                ? t.workspacePersonalGreetingHint
+                : t.dashboardSoloCockpitHint}
             </p>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <Link
@@ -332,11 +339,10 @@ export default function ClinicDashboardPage() {
         {stats?.bookingUrl && (
           <BookingChannelLinksCard
             bookingEnabled={stats.publicBookingEnabled}
-            profileUrl={stats.profileUrl}
             copiedLink={copiedLink}
             channelUrl={channelUrl}
             copyText={copyText}
-            practiceName={stats.practiceName}
+            practiceName={stats.practitionerIdentity.displayName || stats.practiceName}
             procedures={stats.bookingProcedures}
             confirmationMode={stats.publicBookingConfirmationMode}
             updateMode={updatePublicBookingMode}
@@ -388,8 +394,16 @@ export default function ClinicDashboardPage() {
               <span>/</span>
               <span className="font-medium text-slate-900">{t.dashboard}</span>
             </div>
-            <h1 className="text-5xl font-semibold tracking-[-0.04em] text-slate-950">{t.dashboard}</h1>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">{t.dashboardIntro}</p>
+            <h1 className="text-5xl font-semibold tracking-[-0.04em] text-slate-950">
+              {stats?.practitionerIdentity.displayName
+                ? t.workspacePersonalGreeting.replace('{name}', stats.practitionerIdentity.displayName)
+                : t.dashboard}
+            </h1>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
+              {stats?.practitionerIdentity.displayName
+                ? t.workspacePersonalGreetingHint
+                : t.dashboardIntro}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             {stats?.bookingUrl && (
@@ -504,11 +518,10 @@ export default function ClinicDashboardPage() {
         {stats?.bookingUrl && (
           <BookingChannelLinksCard
             bookingEnabled={stats.publicBookingEnabled}
-            profileUrl={stats.profileUrl}
             copiedLink={copiedLink}
             channelUrl={channelUrl}
             copyText={copyText}
-            practiceName={stats.practiceName}
+            practiceName={stats.practitionerIdentity.displayName || stats.practiceName}
             procedures={stats.bookingProcedures}
             confirmationMode={stats.publicBookingConfirmationMode}
             updateMode={updatePublicBookingMode}
@@ -668,7 +681,6 @@ function SetupReopenButton({ onClick, t }: { onClick: () => void; t: ClinicStrin
 
 function BookingChannelLinksCard({
   bookingEnabled,
-  profileUrl,
   copiedLink,
   channelUrl,
   copyText,
@@ -681,7 +693,6 @@ function BookingChannelLinksCard({
   desktop = false,
 }: {
   bookingEnabled: boolean
-  profileUrl: string | null
   copiedLink: string
   channelUrl: (channel: BookingChannel, procedureId?: string | null) => string
   copyText: (value: string, label: string) => Promise<void>
@@ -736,17 +747,7 @@ function BookingChannelLinksCard({
         </div>
       </div>
 
-      <div className="mt-4 grid min-w-0 gap-2 md:grid-cols-4">
-        {profileUrl && (
-          <button
-            type="button"
-            onClick={() => void copyText(new URL(profileUrl, window.location.origin).toString(), t.publicProfileLink)}
-            className="min-w-0 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-left text-sm transition hover:border-orange-300 hover:shadow-sm"
-          >
-            <span className="block truncate font-semibold text-orange-800">{t.publicProfileLink}</span>
-            <span className="mt-1 block min-w-0 truncate text-xs text-orange-700">{profileUrl}</span>
-          </button>
-        )}
+      <div className="mt-4 grid min-w-0 gap-2 md:grid-cols-3">
         {channels.map((channel) => {
           const label = bookingChannelLabel(channel)
           const url = channelUrl(channel)

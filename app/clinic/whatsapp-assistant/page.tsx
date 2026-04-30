@@ -10,6 +10,7 @@ import {
 } from '@/lib/clinic/whatsapp-receptionist'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
+import type { ClinicPractitionerIdentity } from '@/lib/clinic/practitioner-identity'
 
 type AssistantMode = WhatsAppReceptionistMode
 
@@ -55,6 +56,7 @@ type PatientDetail = PatientOption & {
 type Stats = {
   bookingUrl: string | null
   publicBookingEnabled: boolean
+  practitionerIdentity: ClinicPractitionerIdentity
 }
 
 const modes: Array<{ id: AssistantMode; icon: typeof Send }> = [
@@ -161,7 +163,20 @@ export default function WhatsAppAssistantPage() {
         if (cancelled) return
         setPatients(patientsData.patients || [])
         setProcedures(((proceduresData.procedures || []) as ProcedureOption[]).filter((item) => item.active))
-        setStats(statsData ? { bookingUrl: statsData.bookingUrl ?? null, publicBookingEnabled: statsData.publicBookingEnabled === true } : null)
+        setStats(
+          statsData
+            ? {
+                bookingUrl: statsData.bookingUrl ?? null,
+                publicBookingEnabled: statsData.publicBookingEnabled === true,
+                practitionerIdentity: statsData.practitionerIdentity ?? {
+                  displayName: '',
+                  professionalTitle: '',
+                  specialty: '',
+                  messageSignature: '',
+                },
+              }
+            : null
+        )
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -227,7 +242,7 @@ export default function WhatsAppAssistantPage() {
   )
 
   const message = useMemo(() => {
-    return buildWhatsAppReceptionistMessage({
+    const baseMessage = buildWhatsAppReceptionistMessage({
       mode,
       locale,
       patientFirstName: selectedPatientOption?.firstName,
@@ -244,6 +259,8 @@ export default function WhatsAppAssistantPage() {
       customText: customQuestion,
       waitlistSlotStart: waitlistSlotStart || null,
     })
+    const signature = stats?.practitionerIdentity.messageSignature?.trim()
+    return signature ? `${baseMessage}\n\n${signature}` : baseMessage
   }, [
     customQuestion,
     locale,
@@ -253,6 +270,7 @@ export default function WhatsAppAssistantPage() {
     selectedProcedures,
     selectedQuote,
     stats?.bookingUrl,
+    stats?.practitionerIdentity.messageSignature,
     t,
     waitlistSlotStart,
   ])

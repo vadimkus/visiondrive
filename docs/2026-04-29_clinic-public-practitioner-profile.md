@@ -6,6 +6,12 @@ Date: 2026-04-29
 
 The backlog item was a lightweight website/profile builder for a solo practitioner: services, booking link, reviews, before/after gallery, and policies.
 
+## Superseded Decision - 2026-04-30
+
+This public-profile direction is now disabled. The product decision is to keep solo-practitioner identity private inside the authenticated workspace, patient portal links, booking links, and practitioner-controlled messages. We should not expose doctors through a public profile page, custom domain, or public media gallery by default.
+
+The `/profile/[tenant-slug]`, public profile API, and public media endpoint now return not found.
+
 ## Shipped
 
 - Added public profile route: `/profile/[tenant-slug]`.

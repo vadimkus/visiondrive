@@ -7,6 +7,11 @@ import {
   normalizeClinicAccountPreferences,
   normalizeClinicLocale,
 } from '@/lib/clinic/account-preferences'
+import {
+  mergePractitionerIdentityIntoThresholds,
+  normalizeClinicPractitionerIdentity,
+  practitionerIdentityFromThresholds,
+} from '@/lib/clinic/practitioner-identity'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -43,7 +48,7 @@ export async function GET(request: NextRequest) {
     }),
     prisma.tenant.findFirst({
       where: { id: session.tenantId },
-      select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, slug: true, settings: { select: { thresholds: true } } },
     }),
   ])
 
@@ -62,6 +67,7 @@ export async function GET(request: NextRequest) {
       role: session.role,
     },
     tenant: { id: tenant.id, name: tenant.name, slug: tenant.slug },
+    practitionerIdentity: practitionerIdentityFromThresholds(tenant.settings?.thresholds, user.name),
     preferences: user.clinicUserPreferences[0] ?? DEFAULT_CLINIC_ACCOUNT_PREFERENCES,
   })
 }
@@ -84,12 +90,22 @@ export async function PATCH(request: NextRequest) {
   const currentPassword = body.currentPassword != null ? String(body.currentPassword) : ''
   const localeRaw = body.locale
   const preferencesRaw = body.preferences
+  const identityRaw = body.practitionerIdentity
 
   const data: { name?: string | null; passwordHash?: string } = {}
   let preferencesData: ReturnType<typeof normalizeClinicAccountPreferences> | null = null
+  let practitionerIdentityData: ReturnType<typeof normalizeClinicPractitionerIdentity> | null = null
 
   if (nameRaw !== undefined) {
     data.name = String(nameRaw).trim() || null
+  }
+
+  if (identityRaw !== undefined) {
+    practitionerIdentityData = normalizeClinicPractitionerIdentity(
+      identityRaw,
+      typeof nameRaw === 'string' ? nameRaw : undefined
+    )
+    data.name = practitionerIdentityData.displayName || null
   }
 
   if (localeRaw !== undefined || preferencesRaw !== undefined) {
@@ -127,9 +143,16 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  if (Object.keys(data).length === 0 && !preferencesData) {
+  if (Object.keys(data).length === 0 && !preferencesData && !practitionerIdentityData) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
+
+  const currentSettings = practitionerIdentityData
+    ? await prisma.tenantSetting.findUnique({
+        where: { tenantId: session.tenantId },
+        select: { thresholds: true },
+      })
+    : null
 
   await prisma.$transaction([
     ...(Object.keys(data).length > 0
@@ -138,6 +161,23 @@ export async function PATCH(request: NextRequest) {
             where: { id: session.userId },
             data,
             select: { id: true, email: true, name: true },
+          }),
+        ]
+      : []),
+    ...(practitionerIdentityData
+      ? [
+          prisma.tenantSetting.upsert({
+            where: { tenantId: session.tenantId },
+            create: {
+              tenantId: session.tenantId,
+              thresholds: mergePractitionerIdentityIntoThresholds(null, practitionerIdentityData),
+            },
+            update: {
+              thresholds: mergePractitionerIdentityIntoThresholds(
+                currentSettings?.thresholds,
+                practitionerIdentityData
+              ),
+            },
           }),
         ]
       : []),

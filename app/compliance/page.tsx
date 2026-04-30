@@ -50,7 +50,7 @@ const copy = {
         title: 'Tenant Isolation',
         description:
           'Every practitioner workspace is scoped by tenant so one practice cannot access another practice’s patients, notes, photos, payments, or settings.',
-        details: ['Tenant-scoped APIs', 'Workspace-level permissions', 'Isolated patient records', 'Safer public media endpoints'],
+        details: ['Tenant-scoped APIs', 'Workspace-level permissions', 'Isolated patient records', 'Private media access'],
       },
       {
         icon: ClipboardCheck,
@@ -70,12 +70,12 @@ const copy = {
       {
         icon: KeyRound,
         title: 'Authenticated workspace access',
-        description: 'Practitioner workspaces require authenticated access and keep internal records away from public profile pages.',
+        description: 'Practitioner workspaces require authenticated access and keep internal records away from public pages.',
       },
       {
         icon: Shield,
         title: 'Patient-safe public links',
-        description: 'Portal links, public profiles, and media endpoints expose only the information explicitly intended for patients.',
+        description: 'Portal links and patient-facing documents expose only the information explicitly intended for patients.',
       },
       {
         icon: FileClock,
@@ -96,7 +96,7 @@ const copy = {
       { type: 'Patient records', retention: 'Practice-controlled', purpose: 'Treatment continuity and client support' },
       { type: 'Consent and forms', retention: 'Linked to visits', purpose: 'Procedure context and patient acknowledgment' },
       { type: 'Payments and receipts', retention: 'Business record period', purpose: 'Accounting, balances, refunds, and disputes' },
-      { type: 'Public profile media', retention: 'Until unpublished or consent removed', purpose: 'Marketing-consented before/after gallery' },
+      { type: 'Patient media', retention: 'Practice-controlled', purpose: 'Clinical history and consent-controlled sharing' },
       { type: 'Portal links', retention: 'Token expiry / manual revoke', purpose: 'Limited patient access without exposing the full workspace' },
     ],
     responsibilitiesTitle: 'Practitioner Responsibilities',
@@ -104,7 +104,7 @@ const copy = {
       'Use strong passwords and keep workspace access limited to authorized staff.',
       'Collect patient consent before uploading or sharing clinical photos.',
       'Do not place sensitive internal notes in patient-visible fields.',
-      'Review public profile content before sharing it in Instagram, Google, or WhatsApp.',
+      'Review patient-facing links, messages, and documents before sharing them.',
       'Respond to patient data requests through the documented support workflow.',
     ],
     statementTitle: 'Compliance Statement',

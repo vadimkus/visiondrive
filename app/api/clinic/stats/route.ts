@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { isClinicStockLow } from '@/lib/clinic/inventory'
 import { getClinicSession } from '@/lib/clinic/session'
 import { publicBookingSettingsFromThresholds } from '@/lib/clinic/public-booking-settings'
+import { practitionerIdentityFromThresholds } from '@/lib/clinic/practitioner-identity'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
       stockItems,
       availabilityRuleCount,
       whatsappTemplateCount,
+      user,
     ] =
       await Promise.all([
         prisma.tenant.findFirst({
@@ -61,6 +63,10 @@ export async function GET(request: NextRequest) {
         }),
         prisma.clinicAvailabilityRule.count({ where: { tenantId, active: true } }),
         prisma.clinicReminderTemplate.count({ where: { tenantId, active: true, channel: 'WHATSAPP' } }),
+        prisma.user.findFirst({
+          where: { id: session.userId },
+          select: { name: true },
+        }),
       ])
 
     const lowStockCount = stockItems.filter((i) => isClinicStockLow(i)).length
@@ -73,8 +79,8 @@ export async function GET(request: NextRequest) {
       appointmentUpcoming,
       lowStockCount,
       bookingUrl: tenant?.slug ? `/book/${tenant.slug}` : null,
-      profileUrl: tenant?.slug ? `/profile/${tenant.slug}` : null,
       practiceName: tenant?.name ?? null,
+      practitionerIdentity: practitionerIdentityFromThresholds(tenant?.settings?.thresholds, user?.name),
       bookingProcedures: procedures,
       publicBookingEnabled: publicBooking.enabled,
       publicBookingConfirmationMode: publicBooking.confirmationMode,
