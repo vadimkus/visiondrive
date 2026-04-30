@@ -24,6 +24,7 @@ import {
   MapPinned,
   Megaphone,
   MessageCircleHeart,
+  Repeat,
   Share2,
   Send,
   ShieldPlus,
@@ -71,6 +72,7 @@ const nav: PracticeNavItem[] = [
   { href: '/clinic/retention', labelKey: 'retentionAnalytics', icon: Repeat2, tone: 'emerald' },
   { href: '/clinic/booking-funnel', labelKey: 'bookingFunnelAnalytics', icon: BarChart3, tone: 'violet' },
   { href: '/clinic/marketing', labelKey: 'marketingAutomation', icon: Megaphone, tone: 'fuchsia' },
+  { href: '/clinic/memberships', labelKey: 'memberships', icon: Repeat, tone: 'violet' },
   { href: '/clinic/occasions', labelKey: 'occasions', icon: Gift, tone: 'fuchsia' },
   { href: '/clinic/referrals', labelKey: 'referrals', icon: Share2, tone: 'cyan' },
   { href: '/clinic/whatsapp-assistant', labelKey: 'whatsappAssistant', icon: Bot, tone: 'emerald' },
@@ -90,8 +92,8 @@ const mobileTabs: PracticeNavItem[] = [
 ]
 
 const commandNav = nav.slice(0, 15)
-const growthNav = nav.slice(15, 22)
-const systemNav = nav.slice(22)
+const growthNav = nav.slice(15, 23)
+const systemNav = nav.slice(23)
 
 const iconToneClasses: Record<PracticeNavTone, { active: string; idle: string; glow: string }> = {
   amber: {

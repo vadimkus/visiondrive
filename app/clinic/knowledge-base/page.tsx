@@ -321,6 +321,20 @@ const articlesEn: Article[] = [
     link: '/clinic/marketing',
   },
   {
+    id: 'memberships-subscriptions-autopay',
+    category: 'Finance',
+    title: 'Run memberships and monthly plans',
+    summary: 'Create recurring maintenance plans, subscribe patients, and prepare due monthly charges without automatic card charging.',
+    steps: [
+      'Open Memberships from the Growth navigation.',
+      'Create plans with monthly price, included sessions, and simple terms.',
+      'Subscribe a patient and set the next billing date plus autopay-consent flag.',
+      'Review Due charges each day and prepare pending membership payments.',
+      'Confirm collection manually until a real payment provider is connected.',
+    ],
+    link: '/clinic/memberships',
+  },
+  {
     id: 'message-history',
     category: 'Messages',
     title: 'Keep message history on the patient card',
@@ -1231,6 +1245,20 @@ const articlesRu: Article[] = [
       'Откройте карту пациента, если перед отправкой нужен контекст.',
     ],
     link: '/clinic/marketing',
+  },
+  {
+    id: 'memberships-subscriptions-autopay',
+    category: 'Финансы',
+    title: 'Ведите абонементы и ежемесячные планы',
+    summary: 'Создавайте регулярные планы ухода, подписывайте пациентов и готовьте ежемесячные платежи без автоматического списания карты.',
+    steps: [
+      'Откройте Абонементы в группе Рост.',
+      'Создайте планы с ценой в месяц, включёнными сеансами и простыми условиями.',
+      'Подпишите пациента, укажите следующую дату списания и флаг согласия на автосписание.',
+      'Каждый день проверяйте платежи к подготовке и создавайте pending-платежи по абонементам.',
+      'Подтверждайте сбор оплаты вручную, пока не подключён реальный платёжный провайдер.',
+    ],
+    link: '/clinic/memberships',
   },
   {
     id: 'message-history',
