@@ -14,8 +14,10 @@ const copy = {
     home: 'VisionDrive home',
     access: 'Access',
     workspace: 'Workspace',
+    productLabel: 'Practice OS',
     signIn: 'Sign in',
     email: 'Email',
+    emailPlaceholder: 'name@example.com',
     password: 'Password',
     passwordPlaceholder: 'Enter your password',
     showPassword: 'Show password',
@@ -34,8 +36,10 @@ const copy = {
     home: 'На главную VisionDrive',
     access: 'Доступ',
     workspace: 'Кабинет',
+    productLabel: 'Кабинет практики',
     signIn: 'Вход',
     email: 'Почта',
+    emailPlaceholder: 'name@example.com',
     password: 'Пароль',
     passwordPlaceholder: 'Введите пароль',
     showPassword: 'Показать пароль',
@@ -93,7 +97,7 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        setError(data.error || t.invalidCredentials)
+        setError(publicLanguage === 'ru' ? t.invalidCredentials : data.error || t.invalidCredentials)
         setLoading(false)
         return
       }
@@ -120,7 +124,7 @@ export default function LoginPage() {
               <span className="block text-base font-semibold tracking-tight">
                 Vision<span className="text-orange-500">Drive</span>
               </span>
-              <span className="block text-xs text-slate-500">Practice OS</span>
+              <span className="block text-xs text-slate-500">{t.productLabel}</span>
             </span>
           </Link>
           <Link href="/contact" className="rounded-full px-3 py-2 text-sm font-medium text-slate-500 active:bg-slate-100">
@@ -169,7 +173,7 @@ export default function LoginPage() {
                     transition-all duration-200
                     outline-none
                   "
-                  placeholder="name@company.com"
+                  placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />

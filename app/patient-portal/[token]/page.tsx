@@ -229,6 +229,7 @@ const copy = {
     requestCancel: 'Request cancellation',
     requestReschedule: 'Request reschedule',
     preferredTime: 'Preferred time',
+    preferredTimePlaceholder: 'Tomorrow after 15:00',
     message: 'Message',
     sendRequest: 'Send request',
     sending: 'Sending...',
@@ -304,6 +305,7 @@ const copy = {
     requestCancel: 'Запросить отмену',
     requestReschedule: 'Запросить перенос',
     preferredTime: 'Желаемое время',
+    preferredTimePlaceholder: 'Завтра после 15:00',
     message: 'Сообщение',
     sendRequest: 'Отправить запрос',
     sending: 'Отправляем...',
@@ -464,7 +466,7 @@ export default function PatientPortalPage() {
       })
       const json = await res.json()
       if (!res.ok) {
-        setError(json.error || c.loadFailed)
+        setError(locale === 'ru' ? c.loadFailed : json.error || c.loadFailed)
         return
       }
       setRequestSent(true)
@@ -498,7 +500,7 @@ export default function PatientPortalPage() {
       })
       const json = await res.json()
       if (!res.ok) {
-        setError(json.error || c.loadFailed)
+        setError(locale === 'ru' ? c.loadFailed : json.error || c.loadFailed)
         return
       }
       setData((current) =>
@@ -880,7 +882,7 @@ export default function PatientPortalPage() {
                     value={preferredTime}
                     onChange={(event) => setPreferredTime(event.target.value)}
                     className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 px-3"
-                    placeholder="Tomorrow after 15:00"
+                    placeholder={c.preferredTimePlaceholder}
                   />
                 </label>
               )}

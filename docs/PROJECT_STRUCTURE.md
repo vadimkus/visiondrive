@@ -1,6 +1,6 @@
 # Project Structure Guide
 
-VisionDrive is focused on **Practice OS** for UAE solo practitioners and independent clinics.
+VisionDrive is focused on **Practice OS** for solo practitioners and independent clinics.
 
 ## Application
 

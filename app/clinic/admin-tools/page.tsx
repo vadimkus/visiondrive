@@ -100,6 +100,18 @@ type Copy = {
   auditEvents: string
   updated: string
   userCreated: string
+  userUpdated: string
+  passwordUpdated: string
+  userAccessRemoved: string
+  loadFailed: string
+  createFailed: string
+  updateFailed: string
+  resetFailed: string
+  removeFailed: string
+  practiceFallback: string
+  emailPlaceholder: string
+  namePlaceholder: string
+  newPasswordPlaceholder: string
   you: string
   roles: Record<RoleOption, string>
 }
@@ -143,6 +155,18 @@ const copyByLocale: Record<'en' | 'ru', Copy> = {
     auditEvents: 'Audit events',
     updated: 'Updated',
     userCreated: 'User created.',
+    userUpdated: 'User updated.',
+    passwordUpdated: 'Password updated.',
+    userAccessRemoved: 'User access removed.',
+    loadFailed: 'Could not load admin tools',
+    createFailed: 'Could not create user',
+    updateFailed: 'Could not update user',
+    resetFailed: 'Could not reset password',
+    removeFailed: 'Could not remove user',
+    practiceFallback: 'Practice',
+    emailPlaceholder: 'doctor@example.com',
+    namePlaceholder: 'Dr. Anna',
+    newPasswordPlaceholder: 'New strong password',
     you: 'You',
     roles: {
       CUSTOMER_ADMIN: 'Admin',
@@ -190,6 +214,18 @@ const copyByLocale: Record<'en' | 'ru', Copy> = {
     auditEvents: 'События аудита',
     updated: 'Обновлено',
     userCreated: 'Пользователь создан.',
+    userUpdated: 'Пользователь обновлен.',
+    passwordUpdated: 'Пароль обновлен.',
+    userAccessRemoved: 'Доступ пользователя закрыт.',
+    loadFailed: 'Не удалось загрузить инструменты администратора',
+    createFailed: 'Не удалось создать пользователя',
+    updateFailed: 'Не удалось обновить пользователя',
+    resetFailed: 'Не удалось сменить пароль',
+    removeFailed: 'Не удалось удалить пользователя',
+    practiceFallback: 'Практика',
+    emailPlaceholder: 'doctor@example.com',
+    namePlaceholder: 'Доктор Анна',
+    newPasswordPlaceholder: 'Новый надежный пароль',
     you: 'Вы',
     roles: {
       CUSTOMER_ADMIN: 'Администратор',
@@ -218,6 +254,11 @@ export default function ClinicAdminToolsPage() {
   const router = useRouter()
   const { locale } = useClinicLocale()
   const c = copyByLocale[locale]
+  const apiError = useCallback(
+    (message: unknown, fallback: string) =>
+      locale === 'ru' ? fallback : typeof message === 'string' && message ? message : fallback,
+    [locale]
+  )
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
@@ -264,7 +305,7 @@ export default function ClinicAdminToolsPage() {
       return
     }
     if (!res.ok || !json.success) {
-      setError(json.error || 'Could not load admin tools')
+      setError(apiError(json.error, c.loadFailed))
       return
     }
 
@@ -283,7 +324,7 @@ export default function ClinicAdminToolsPage() {
         return acc
       }, {})
     )
-  }, [router])
+  }, [apiError, c.loadFailed, router])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -321,7 +362,7 @@ export default function ClinicAdminToolsPage() {
     setSaving(null)
 
     if (!res.ok || !json.success) {
-      setError(json.error || 'Could not create user')
+      setError(apiError(json.error, c.createFailed))
       return
     }
 
@@ -354,11 +395,11 @@ export default function ClinicAdminToolsPage() {
     setSaving(null)
 
     if (!res.ok || !json.success) {
-      setError(json.error || 'Could not update user')
+      setError(apiError(json.error, c.updateFailed))
       return
     }
 
-    setNotice('User updated.')
+    setNotice(c.userUpdated)
     await load()
   }
 
@@ -382,13 +423,13 @@ export default function ClinicAdminToolsPage() {
     setSaving(null)
 
     if (!res.ok || !json.success) {
-      setError(json.error || 'Could not reset password')
+      setError(apiError(json.error, c.resetFailed))
       return
     }
 
     setDraft(user.id, { password: '' })
     setResetPassword(json.generatedPassword || null)
-    setNotice('Password updated.')
+    setNotice(c.passwordUpdated)
   }
 
   const removeUser = async (user: AdminUser) => {
@@ -407,11 +448,11 @@ export default function ClinicAdminToolsPage() {
     setSaving(null)
 
     if (!res.ok || !json.success) {
-      setError(json.error || 'Could not remove user')
+      setError(apiError(json.error, c.removeFailed))
       return
     }
 
-    setNotice('User access removed.')
+    setNotice(c.userAccessRemoved)
     await load()
   }
 
@@ -443,7 +484,7 @@ export default function ClinicAdminToolsPage() {
           </div>
           <div className="rounded-3xl border border-white/10 bg-white/8 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-              {tenantName || 'Practice'}
+              {tenantName || c.practiceFallback}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               {statCards.slice(0, 4).map((card) => (
@@ -500,7 +541,7 @@ export default function ClinicAdminToolsPage() {
               <input
                 value={createForm.email}
                 onChange={(event) => setCreateForm((form) => ({ ...form, email: event.target.value }))}
-                placeholder="doctor@example.com"
+                placeholder={c.emailPlaceholder}
                 className="mt-2 min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
               />
             </label>
@@ -509,7 +550,7 @@ export default function ClinicAdminToolsPage() {
               <input
                 value={createForm.name}
                 onChange={(event) => setCreateForm((form) => ({ ...form, name: event.target.value }))}
-                placeholder="Dr. Anna"
+                placeholder={c.namePlaceholder}
                 className="mt-2 min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
               />
             </label>
@@ -653,7 +694,7 @@ export default function ClinicAdminToolsPage() {
                           type="password"
                           value={draft.password}
                           onChange={(event) => setDraft(user.id, { password: event.target.value })}
-                          placeholder="New strong password"
+                          placeholder={c.newPasswordPlaceholder}
                           className="mt-2 min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
                           disabled={!isActive}
                         />

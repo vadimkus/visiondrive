@@ -6,6 +6,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
+  themeColor: '#f5f5f7',
 }
 
 export const metadata: Metadata = {
@@ -13,7 +14,6 @@ export const metadata: Metadata = {
   description:
     'VisionDrive workspace — practice operations, made clear. Secure sign-in for authorized team members.',
   robots: { index: false, follow: false },
-  themeColor: '#f5f5f7',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

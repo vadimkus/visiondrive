@@ -36,8 +36,8 @@ function todayRange() {
   return { from, to }
 }
 
-function appointmentLabel(item: TodayAppointment) {
-  return item.procedure?.name ?? item.titleOverride ?? 'Appointment'
+function appointmentLabel(item: TodayAppointment, fallback: string) {
+  return item.procedure?.name ?? item.titleOverride ?? fallback
 }
 
 const DRAFT_KEY = 'clinic:pwa-offline-note-draft'
@@ -213,7 +213,7 @@ export function ClinicPwaPractitionerCard() {
                       · {item.patient.lastName}, {item.patient.firstName}
                     </p>
                     <p className="mt-0.5 text-xs text-gray-500">
-                      {appointmentLabel(item)} · {item.status}
+                      {appointmentLabel(item, t.appointmentDefault)} · {item.status}
                     </p>
                   </Link>
                 ))

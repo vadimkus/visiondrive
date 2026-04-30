@@ -350,7 +350,7 @@
 - **Public route:** `/profile/[tenant-slug]` shows a lightweight practitioner profile with services, booking CTA, public reviews, consent-approved before/after pairs, and policies.
 - **API:** `GET /api/clinic/public-profile/[slug]` returns public-safe profile data.
 - **Media safety:** `GET /api/public/clinic/media/[id]` serves only image media with `marketingConsent=true`.
-- **Dashboard:** booking-links card now includes a copy-ready public profile URL alongside Google/Instagram/WhatsApp booking links.
+- **Superseded dashboard behavior:** the copy-ready public profile URL was removed when identity shifted to private workspace personalization.
 - **Privacy:** review names are anonymized as first name plus last initial; private notes, internal photos, and non-consented media are never exposed.
 - **i18n/docs/tests:** public page has EN/RU copy, Knowledge Base entry, docs note, and helper tests.
 

@@ -256,7 +256,7 @@ const copy = {
 function localizedError(message: unknown, locale: ClinicLocale) {
   if (typeof message !== 'string') return ''
   if (locale === 'en') return message
-  return copy.ru.errors[message as keyof typeof copy.ru.errors] ?? message
+  return copy.ru.errors[message as keyof typeof copy.ru.errors] ?? ''
 }
 
 export default function PublicBookingPage() {

@@ -58,6 +58,8 @@ const copy = {
     openPatient: 'Open patient',
     noPhone: 'No WhatsApp phone',
     reason: 'Reason',
+    loading: 'Marketing...',
+    loadFailed: 'Could not load marketing segment',
     segment_tag: 'By tag',
     segment_service: 'By service',
     segment_last_visit: 'Last visit',
@@ -89,6 +91,8 @@ const copy = {
     openPatient: 'Открыть пациента',
     noPhone: 'Нет телефона WhatsApp',
     reason: 'Причина',
+    loading: 'Маркетинг...',
+    loadFailed: 'Не удалось загрузить маркетинговый сегмент',
     segment_tag: 'По тегу',
     segment_service: 'По услуге',
     segment_last_visit: 'Последний визит',
@@ -130,16 +134,16 @@ export default function MarketingAutomationPage() {
       const res = await fetch(`/api/clinic/marketing/segments?${params.toString()}`, { credentials: 'include' })
       const json = await res.json()
       if (!res.ok) {
-        setError(json.error || 'Could not load marketing segment')
+        setError(locale === 'ru' ? c.loadFailed : json.error || c.loadFailed)
         return
       }
       setData(json)
     } catch {
-      setError('Could not load marketing segment')
+      setError(c.loadFailed)
     } finally {
       setLoading(false)
     }
-  }, [params])
+  }, [c.loadFailed, locale, params])
 
   useEffect(() => {
     void load()
@@ -151,7 +155,7 @@ export default function MarketingAutomationPage() {
     window.setTimeout(() => setCopiedId(''), 1600)
   }
 
-  if (loading && !data) return <ClinicSpinner label="Marketing..." />
+  if (loading && !data) return <ClinicSpinner label={c.loading} />
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-24">

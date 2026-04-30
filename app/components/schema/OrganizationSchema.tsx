@@ -6,7 +6,7 @@ export default function OrganizationSchema() {
     url: 'https://visiondrive.ae',
     logo: 'https://visiondrive.ae/favicon/android-chrome-512x512.png',
     description:
-      'VisionDrive — practice operations, made clear. UAE software for solo practitioners: bookings, records, inventory, payments, and reporting.',
+      'VisionDrive — practice operations, made clear. Professional software for solo practitioners: bookings, records, inventory, payments, and reporting.',
     email: 'tech@visiondrive.ae',
     telephone: '+971559152985',
     address: {

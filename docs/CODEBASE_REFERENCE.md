@@ -2,7 +2,7 @@
 
 Last updated: 2026-04-30
 
-VisionDrive is now focused on **Practice OS**: practice operations software for UAE solo practitioners and independent clinics.
+VisionDrive is now focused on **Practice OS**: practice operations software for solo practitioners and independent clinics.
 
 ## Repository Structure
 
@@ -15,7 +15,7 @@ VisionDrive/
 │   ├── clinic/               # Authenticated practitioner workspace
 │   ├── book/                 # Public booking links
 │   ├── patient-portal/       # Token-based patient portal
-│   ├── profile/              # Public practitioner profiles
+│   ├── profile/              # Disabled public profile route
 │   ├── components/           # Public site and shared UI
 │   ├── contexts/             # Public language context
 │   └── translations/         # Public website copy
@@ -32,7 +32,7 @@ VisionDrive/
 ├── docs/
 │   └── clinic/               # Current product documentation
 ├── public/                   # Static assets
-└── middleware.ts             # Route protection
+└── middleware.ts             # Route protection (Next proxy migration pending)
 ```
 
 ## Technology Stack
@@ -45,7 +45,7 @@ VisionDrive/
 | Database | PostgreSQL + Prisma |
 | Auth | JWT, bcrypt |
 | Hosting | Vercel |
-| Data residency | UAE-capable hosting target |
+| Data residency | UAE-capable hosting target when required by customer/regulatory scope |
 
 ## Primary Product Areas
 
@@ -59,15 +59,15 @@ VisionDrive/
 
 | Area | Routes |
 |------|--------|
-| Auth | `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`, `/api/auth/register` |
-| Clinic dashboard | `/api/clinic/stats`, `/api/dashboard` |
+| Auth | `/api/auth/login`, `/api/auth/logout`, `/api/auth/me` |
+| Clinic dashboard | `/api/clinic/stats` |
 | Patients | `/api/clinic/patients/*` |
 | Appointments | `/api/clinic/appointments/*` |
 | Procedures | `/api/clinic/procedures/*` |
-| Booking | `/api/clinic/booking/*`, `/api/clinic/public-booking/*` |
-| Payments and finance | `/api/clinic/payments/*`, `/api/clinic/finance/*` |
+| Booking | `/api/clinic/public-booking/*`, `/book/[slug]` |
+| Payments and finance | `/api/clinic/patients/[id]/payments/*`, `/api/clinic/finance/*` |
 | Marketing and loyalty | `/api/clinic/marketing/*`, `/api/clinic/loyalty/*` |
-| Portal links | `/api/clinic/patient-portal/*` |
+| Portal links | `/api/clinic/patients/[id]/portal-link`, `/api/patient-portal/[token]` |
 | Admin tools | `/api/clinic/admin/users`, `/api/clinic/admin/users/[id]` |
 
 ## Related Documentation

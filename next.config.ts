@@ -61,6 +61,16 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+
+  async redirects() {
+    return [
+      {
+        source: '/profile/:slug',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig

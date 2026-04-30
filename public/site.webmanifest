@@ -1,7 +1,7 @@
 {
   "name": "VisionDrive — Practice OS",
   "short_name": "VisionDrive",
-  "description": "VisionDrive Practice OS for UAE solo practitioners.",
+  "description": "VisionDrive Practice OS / кабинет практики для частных специалистов.",
   "icons": [
     {
       "src": "/clinic-app-icon.svg",
@@ -19,23 +19,23 @@
   "categories": ["productivity", "business", "medical"],
   "shortcuts": [
     {
-      "name": "Today",
-      "short_name": "Today",
-      "description": "Open today's practitioner dashboard",
+      "name": "Сегодня",
+      "short_name": "Сегодня",
+      "description": "Открыть рабочий экран на сегодня",
       "url": "/clinic",
       "icons": [{ "src": "/clinic-app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
-      "name": "New appointment",
-      "short_name": "New appt",
-      "description": "Create a new appointment",
+      "name": "Новая запись",
+      "short_name": "Запись",
+      "description": "Создать новую запись",
       "url": "/clinic/appointments/new",
       "icons": [{ "src": "/clinic-app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
-      "name": "Patients",
-      "short_name": "Patients",
-      "description": "Open patient cards",
+      "name": "Пациенты",
+      "short_name": "Пациенты",
+      "description": "Открыть карты пациентов",
       "url": "/clinic/patients",
       "icons": [{ "src": "/clinic-app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
