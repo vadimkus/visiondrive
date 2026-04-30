@@ -9,7 +9,7 @@ const copy = {
   en: {
     documentTitle: 'About VisionDrive - Practice OS for UAE Solo Practitioners',
     kicker: 'VisionDrive Practice OS',
-    headline: 'Practice operations, made clear for',
+    headline: 'Professional system for',
     accent: 'solo practitioners',
     intro:
       'VisionDrive Technologies FZ-LLC is a UAE-based software company building Practice OS: a focused workspace for independent practitioners to manage bookings, patients, treatments, payments, inventory, and follow-up without enterprise complexity.',
@@ -74,7 +74,7 @@ const copy = {
   ru: {
     documentTitle: 'О VisionDrive - Practice OS для частных специалистов в ОАЭ',
     kicker: 'VisionDrive Practice OS',
-    headline: 'Операции практики без хаоса для',
+    headline: 'Профессиональная система для',
     accent: 'частных специалистов',
     intro:
       'VisionDrive Technologies FZ-LLC - компания из ОАЭ, которая создает Practice OS: рабочее пространство для частных специалистов, где можно управлять записями, пациентами, процедурами, оплатами, складом и повторными визитами без сложности корпоративных систем.',
