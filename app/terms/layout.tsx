@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service - VisionDrive',
-  description: 'VisionDrive terms of service. Legal agreement governing the use of our smart kitchen monitoring platform and IoT services in the UAE.',
-  keywords: 'terms of service, user agreement, VisionDrive terms, smart kitchen terms',
+  title: 'Practice OS Terms of Service - VisionDrive',
+  description: 'VisionDrive Practice OS terms of service for practitioner workspaces, patient portals, booking links, payments, public profiles, AI-assisted workflows, and UAE software services.',
+  keywords: 'Practice OS terms of service, VisionDrive terms, practitioner software terms, patient portal terms, UAE clinic software agreement',
   alternates: { canonical: '/terms' },
   openGraph: {
-    title: 'Terms of Service - VisionDrive',
-    description: 'VisionDrive terms of service. Legal agreement governing the use of our smart kitchen monitoring platform and IoT services in the UAE.',
+    title: 'Practice OS Terms of Service - VisionDrive',
+    description: 'Terms governing VisionDrive Practice OS, practitioner workspaces, patient portals, payments, public profiles, and related UAE software services.',
     type: 'website',
     locale: 'en_AE',
     siteName: 'VisionDrive',

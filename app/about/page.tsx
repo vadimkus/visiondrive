@@ -2,13 +2,13 @@ import type { Metadata } from 'next'
 import AboutClient from './AboutClient'
 
 export const metadata: Metadata = {
-  title: 'About VisionDrive - UAE Smart Kitchen IoT Company',
-  description: 'VisionDrive Technologies FZ-LLC is a UAE-based IoT company specializing in smart kitchen temperature monitoring solutions for food safety compliance.',
-  keywords: 'VisionDrive, UAE technology company, smart kitchen, IoT solutions UAE, temperature monitoring, food safety, Dubai Municipality compliance',
+  title: 'About VisionDrive - Practice OS for UAE Solo Practitioners',
+  description: 'VisionDrive Technologies FZ-LLC builds Practice OS, a UAE-based practice operations platform for solo practitioners and small clinics.',
+  keywords: 'VisionDrive, Practice OS, solo practitioner software UAE, clinic management software, appointment scheduling, patient records',
   alternates: { canonical: '/about' },
   openGraph: {
-    title: 'About VisionDrive - Smart Kitchen IoT',
-    description: 'UAE-based technology company specializing in IoT solutions for commercial kitchen temperature monitoring.',
+    title: 'About VisionDrive - Practice OS',
+    description: 'UAE-based technology company building practice operations software for solo practitioners.',
     type: 'website',
     locale: 'en_AE',
   },

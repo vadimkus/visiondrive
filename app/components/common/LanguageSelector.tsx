@@ -6,6 +6,7 @@ import { useState } from 'react'
 export default function LanguageSelector() {
   const { publicLanguage, setLanguage } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
+  const label = publicLanguage === 'ru' ? 'Выбрать язык' : 'Select language'
 
   const languages = [
     { code: 'en' as const, display: 'EN' },
@@ -19,7 +20,7 @@ export default function LanguageSelector() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors rounded-lg hover:bg-gray-50"
-        aria-label="Select language"
+        aria-label={label}
       >
         <span className={publicLanguage === 'en' ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'}>
           {currentLang.display}

@@ -1,68 +1,188 @@
 'use client'
 
 import Section from '../components/common/Section'
-import { 
-  Shield,
-  Target,
-  Users,
-  Thermometer,
-  Download
-} from 'lucide-react'
+import { ArrowUpRight, CalendarCheck, ClipboardList, CreditCard, FileText, Shield, Sparkles, Target, Users } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import { usePublicDocumentTitle } from '../hooks/usePublicDocumentTitle'
 
-const values = [
-  {
-    icon: Target,
-    title: 'Food Safety First',
-    description: 'We help kitchens maintain the highest standards of food safety compliance.',
+const copy = {
+  en: {
+    documentTitle: 'About VisionDrive - Practice OS for UAE Solo Practitioners',
+    kicker: 'VisionDrive Practice OS',
+    headline: 'Practice operations, made clear for',
+    accent: 'solo practitioners',
+    intro:
+      'VisionDrive Technologies FZ-LLC is a UAE-based software company building Practice OS: a focused workspace for independent practitioners to manage bookings, patients, treatments, payments, inventory, and follow-up without enterprise complexity.',
+    productAreas: [
+      {
+        icon: CalendarCheck,
+        title: 'Bookings and client flow',
+        description: 'Public booking links, patient portal, waitlist, reminders, policies, deposits, and reschedule requests.',
+      },
+      {
+        icon: ClipboardList,
+        title: 'Clinical workspace',
+        description: 'Patient cards, notes, consent records, treatment plans, aftercare, photos, and before/after tracking.',
+      },
+      {
+        icon: CreditCard,
+        title: 'Practice control',
+        description: 'Payments, packages, gift cards, subscriptions, client wallet, inventory, and simple profitability views.',
+      },
+    ],
+    missionTitle: 'Our mission',
+    missionBody:
+      'To give independent practitioners the operational discipline of a clinic system, without forcing them into heavy, multi-branch software. Practice OS is designed for the reality of home visits and small private practices: fast mobile workflows, clean patient context, simple money tracking, and repeat-client growth.',
+    values: [
+      {
+        icon: Target,
+        title: 'Practitioner first',
+        description: 'Built for solo operators who need speed, clarity, and fewer admin loops.',
+      },
+      {
+        icon: Shield,
+        title: 'Private by default',
+        description: 'Patient data stays inside the workspace unless a practitioner explicitly shares a safe link.',
+      },
+      {
+        icon: Users,
+        title: 'Workflow led',
+        description: 'Product decisions come from real booking, treatment, payment, and follow-up workflows.',
+      },
+    ],
+    companyTitle: 'Company information',
+    companyIntro:
+      'VisionDrive is incorporated in the UAE and is currently focused on Practice OS for solo practitioners and small clinics.',
+    legalEntity: 'Legal entity',
+    companyName: 'Company Name',
+    jurisdiction: 'Jurisdiction',
+    jurisdictionValue: 'Ras Al Khaimah, United Arab Emirates',
+    type: 'Type',
+    typeValue: 'Free Zone LLC',
+    tradeLicense: 'Trade License',
+    viewLicense: 'View E-License',
+    compliance: 'Compliance',
+    complianceLink: 'View security and compliance information',
+    contact: 'Contact',
+    email: 'Почта',
+    phone: 'Phone',
+    address: 'Address',
+    addressValue: 'Compass Coworking Centre,\nRas Al Khaimah, UAE',
+    productFocus: 'Product focus',
+    productFocusValue: 'Practice operations software for the UAE',
   },
-  {
-    icon: Shield,
-    title: 'UAE Compliant',
-    description: 'Full compliance with Dubai Municipality, TDRA, and local regulations.',
+  ru: {
+    documentTitle: 'О VisionDrive - Practice OS для частных специалистов в ОАЭ',
+    kicker: 'VisionDrive Practice OS',
+    headline: 'Операции практики без хаоса для',
+    accent: 'частных специалистов',
+    intro:
+      'VisionDrive Technologies FZ-LLC - компания из ОАЭ, которая создает Practice OS: рабочее пространство для частных специалистов, где можно управлять записями, пациентами, процедурами, оплатами, складом и повторными визитами без сложности корпоративных систем.',
+    productAreas: [
+      {
+        icon: CalendarCheck,
+        title: 'Запись и клиентский путь',
+        description: 'Публичные ссылки для записи, портал пациента, лист ожидания, напоминания, правила, депозиты и запросы на перенос.',
+      },
+      {
+        icon: ClipboardList,
+        title: 'Рабочее пространство специалиста',
+        description: 'Карты пациентов, заметки, согласия, планы лечения, рекомендации, фото и сравнение до/после.',
+      },
+      {
+        icon: CreditCard,
+        title: 'Контроль практики',
+        description: 'Оплаты, пакеты, подарочные карты, подписки, кошелек клиента, склад и простая аналитика прибыльности.',
+      },
+    ],
+    missionTitle: 'Наша миссия',
+    missionBody:
+      'Дать частным специалистам дисциплину клинической системы без тяжелого ПО для сетевых клиник. Practice OS учитывает реальность выездов и небольших частных практик: быстрые мобильные процессы, понятный контекст пациента, простой учет денег и рост повторных визитов.',
+    values: [
+      {
+        icon: Target,
+        title: 'Сначала специалист',
+        description: 'Создаем продукт для тех, кому нужны скорость, ясность и меньше административной рутины.',
+      },
+      {
+        icon: Shield,
+        title: 'Приватность по умолчанию',
+        description: 'Данные пациента остаются внутри кабинета, пока специалист явно не поделится безопасной ссылкой.',
+      },
+      {
+        icon: Users,
+        title: 'От реального процесса',
+        description: 'Решения в продукте идут от реальных записей, процедур, оплат и повторных касаний.',
+      },
+    ],
+    companyTitle: 'Информация о компании',
+    companyIntro:
+      'VisionDrive зарегистрирована в ОАЭ и сейчас сфокусирована на Practice OS для частных специалистов и небольших клиник.',
+    legalEntity: 'Юридическое лицо',
+    companyName: 'Название компании',
+    jurisdiction: 'Юрисдикция',
+    jurisdictionValue: 'Рас-эль-Хайма, Объединенные Арабские Эмираты',
+    type: 'Тип',
+    typeValue: 'Free Zone LLC',
+    tradeLicense: 'Торговая лицензия',
+    viewLicense: 'Открыть E-License',
+    compliance: 'Безопасность',
+    complianceLink: 'Открыть информацию о безопасности и соответствии',
+    contact: 'Контакты',
+    email: 'Email',
+    phone: 'Телефон',
+    address: 'Адрес',
+    addressValue: 'Compass Coworking Centre,\nРас-эль-Хайма, ОАЭ',
+    productFocus: 'Фокус продукта',
+    productFocusValue: 'ПО для управления частной практикой в ОАЭ',
   },
-  {
-    icon: Users,
-    title: 'Partnership Driven',
-    description: 'Working closely with restaurants, hotels, and food service operators.',
-  },
-]
+} as const
 
 export default function AboutClient() {
+  const { publicLanguage } = useLanguage()
+  const t = copy[publicLanguage]
+  usePublicDocumentTitle(t.documentTitle)
+
   return (
-    <main className="pt-24 bg-white text-gray-900">
-      {/* Hero Section */}
+    <main className="bg-white pt-24 text-gray-900">
       <Section className="py-12 md:py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-[2rem] leading-[1.1] md:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 mb-6">
-            Smart Kitchen IoT for <br className="hidden sm:block" />
-            <span className="text-orange-600">Food Safety Compliance</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-            VisionDrive Technologies FZ-LLC is a UAE-based technology company specializing in IoT solutions 
-            for commercial kitchen temperature monitoring. We help restaurants, hotels, and food service 
-            operators ensure food safety compliance with Dubai Municipality standards.
-          </p>
+        <div className="mx-auto max-w-5xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-800">
+              <Sparkles className="h-4 w-4" aria-hidden />
+              {t.kicker}
+            </p>
+            <h1 className="mb-6 text-[2.2rem] font-semibold leading-[1.05] tracking-tight text-gray-950 md:text-5xl lg:text-6xl">
+              {t.headline} <span className="text-orange-600">{t.accent}</span>
+            </h1>
+            <p className="mx-auto max-w-3xl text-lg leading-relaxed text-gray-600 sm:text-xl">{t.intro}</p>
+          </div>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {t.productAreas.map((area) => (
+              <div key={area.title} className="rounded-3xl border border-orange-100 bg-orange-50/50 p-5">
+                <area.icon className="mb-4 h-7 w-7 text-orange-600" aria-hidden />
+                <h2 className="text-lg font-semibold text-gray-950">{area.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-gray-600">{area.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </Section>
 
-      {/* Mission Section */}
       <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3 mb-6">
-              <Thermometer className="h-8 w-8 text-orange-600" />
-              <h2 className="text-2xl font-bold text-gray-900">Our Mission</h2>
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm md:p-12">
+            <div className="mb-6 flex items-center gap-3">
+              <FileText className="h-8 w-8 text-orange-600" aria-hidden />
+              <h2 className="text-2xl font-bold text-gray-900">{t.missionTitle}</h2>
             </div>
-            <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              To protect public health and help food service businesses maintain the highest standards 
-              of food safety through intelligent IoT monitoring solutions. We make temperature 
-              compliance simple, automated, and stress-free.
-            </p>
-            <div className="grid sm:grid-cols-3 gap-6 pt-6 border-t border-gray-100">
-              {values.map((value) => (
+            <p className="mb-6 text-lg leading-relaxed text-gray-700">{t.missionBody}</p>
+            <div className="grid gap-6 border-t border-gray-100 pt-6 sm:grid-cols-3">
+              {t.values.map((value) => (
                 <div key={value.title} className="text-center sm:text-left">
-                  <value.icon className="h-6 w-6 text-orange-600 mx-auto sm:mx-0 mb-2" />
-                  <h3 className="font-semibold text-gray-900 mb-1">{value.title}</h3>
+                  <value.icon className="mx-auto mb-2 h-6 w-6 text-orange-600 sm:mx-0" aria-hidden />
+                  <h3 className="mb-1 font-semibold text-gray-900">{value.title}</h3>
                   <p className="text-sm text-gray-600">{value.description}</p>
                 </div>
               ))}
@@ -71,95 +191,60 @@ export default function AboutClient() {
         </div>
       </Section>
 
-      {/* Company Info Section */}
       <Section className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Company Information</h2>
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-8 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900">{t.companyTitle}</h2>
+            <p className="mx-auto max-w-2xl text-gray-600">{t.companyIntro}</p>
           </div>
-          
-          <div className="bg-gray-50 rounded-2xl p-8">
-            <div className="grid sm:grid-cols-2 gap-8">
+
+          <div className="rounded-[2rem] bg-gray-50 p-8">
+            <div className="grid gap-8 sm:grid-cols-2">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Legal Entity</h3>
+                <h3 className="mb-4 text-lg font-semibold text-gray-900">{t.legalEntity}</h3>
                 <dl className="space-y-3 text-sm">
                   <div>
-                    <dt className="text-gray-500">Company Name</dt>
+                    <dt className="text-gray-500">{t.companyName}</dt>
                     <dd className="font-medium text-gray-900">VisionDrive Technologies FZ-LLC</dd>
                   </div>
                   <div>
-                    <dt className="text-gray-500">Jurisdiction</dt>
-                    <dd className="font-medium text-gray-900">Ras Al Khaimah, United Arab Emirates</dd>
+                    <dt className="text-gray-500">{t.jurisdiction}</dt>
+                    <dd className="font-medium text-gray-900">{t.jurisdictionValue}</dd>
                   </div>
                   <div>
-                    <dt className="text-gray-500">Type</dt>
-                    <dd className="font-medium text-gray-900">Free Zone LLC</dd>
+                    <dt className="text-gray-500">{t.type}</dt>
+                    <dd className="font-medium text-gray-900">{t.typeValue}</dd>
                   </div>
                   <div>
-                    <dt className="text-gray-500">Trade License</dt>
+                    <dt className="text-gray-500">{t.tradeLicense}</dt>
                     <dd>
-                      <a 
-                        href="/license/E-License.pdf" 
+                      <a
+                        href="/license/E-License.pdf"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-medium text-orange-600 hover:text-orange-700 inline-flex items-center gap-1"
+                        className="inline-flex items-center gap-1 font-medium text-orange-600 hover:text-orange-700"
                       >
-                        View E-License
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
+                        {t.viewLicense}
+                        <ArrowUpRight className="h-4 w-4" aria-hidden />
                       </a>
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-gray-500">TDRA Type Approval</dt>
+                    <dt className="text-gray-500">{t.compliance}</dt>
                     <dd>
-                      <a 
-                        href="/Certification/TDRA_TYPE_APPROVAL_Certificate.pdf" 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-orange-600 hover:text-orange-700 inline-flex items-center gap-1"
-                      >
-                        View Certificate
-                        <Download className="h-4 w-4" />
-                      </a>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-gray-500">TDRA IoT License</dt>
-                    <dd>
-                      <a 
-                        href="/Certification/IoT_Certificate_IOT-26-100000007.pdf" 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-orange-600 hover:text-orange-700 inline-flex items-center gap-1"
-                      >
-                        View License
-                        <Download className="h-4 w-4" />
-                      </a>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-gray-500">Dealer Certificate</dt>
-                    <dd>
-                      <a 
-                        href="/Certification/Dealer_Certificate.pdf" 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-orange-600 hover:text-orange-700 inline-flex items-center gap-1"
-                      >
-                        View Certificate
-                        <Download className="h-4 w-4" />
+                      <a href="/compliance" className="inline-flex items-center gap-1 font-medium text-orange-600 hover:text-orange-700">
+                        {t.complianceLink}
+                        <ArrowUpRight className="h-4 w-4" aria-hidden />
                       </a>
                     </dd>
                   </div>
                 </dl>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact</h3>
+                <h3 className="mb-4 text-lg font-semibold text-gray-900">{t.contact}</h3>
                 <dl className="space-y-3 text-sm">
                   <div>
-                    <dt className="text-gray-500">Email</dt>
+                    <dt className="text-gray-500">{t.email}</dt>
                     <dd>
                       <a href="mailto:tech@visiondrive.ae" className="font-medium text-orange-600 hover:text-orange-700">
                         tech@visiondrive.ae
@@ -167,7 +252,7 @@ export default function AboutClient() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-gray-500">Phone</dt>
+                    <dt className="text-gray-500">{t.phone}</dt>
                     <dd>
                       <a href="tel:+971559152985" className="font-medium text-gray-900 hover:text-orange-600">
                         +971 55 915 2985
@@ -175,11 +260,12 @@ export default function AboutClient() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-gray-500">Address</dt>
-                    <dd className="font-medium text-gray-900">
-                      Compass Coworking Centre,<br />
-                      Ras Al Khaimah, UAE
-                    </dd>
+                    <dt className="text-gray-500">{t.address}</dt>
+                    <dd className="whitespace-pre-line font-medium text-gray-900">{t.addressValue}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">{t.productFocus}</dt>
+                    <dd className="font-medium text-gray-900">{t.productFocusValue}</dd>
                   </div>
                 </dl>
               </div>
@@ -187,7 +273,6 @@ export default function AboutClient() {
           </div>
         </div>
       </Section>
-
     </main>
   )
 }

@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 type Language = 'en' | 'ar'
 type PublicLanguage = 'en' | 'ru'
+const CLINIC_LOCALE_STORAGE = 'visiondrive-clinic-locale'
 
 interface LanguageContextType {
   /**
@@ -32,17 +33,24 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setIsClient(true)
     // Load language from localStorage or default to 'en'
     const savedLang = localStorage.getItem('language')
+    const savedClinicLang = localStorage.getItem(CLINIC_LOCALE_STORAGE)
     if (savedLang === 'en' || savedLang === 'ru') {
       setPublicLanguage(savedLang)
+      localStorage.setItem(CLINIC_LOCALE_STORAGE, savedLang)
+    } else if (savedClinicLang === 'en' || savedClinicLang === 'ru') {
+      setPublicLanguage(savedClinicLang)
+      localStorage.setItem('language', savedClinicLang)
     } else if (savedLang === 'ar') {
       setPublicLanguage('ru')
       localStorage.setItem('language', 'ru')
+      localStorage.setItem(CLINIC_LOCALE_STORAGE, 'ru')
     }
   }, [])
 
   const setLanguage = (lang: PublicLanguage) => {
     setPublicLanguage(lang)
     localStorage.setItem('language', lang)
+    localStorage.setItem(CLINIC_LOCALE_STORAGE, lang)
     document.documentElement.dir = 'ltr'
     document.documentElement.lang = lang
   }

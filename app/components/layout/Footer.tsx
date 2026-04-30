@@ -30,6 +30,11 @@ const footerTranslations = {
       terms: 'Terms',
       compliance: 'Compliance',
     },
+    labels: {
+      email: 'Email VisionDrive',
+      whatsapp: 'WhatsApp VisionDrive',
+      address: 'Compass Coworking, RAK, UAE',
+    },
   },
   ru: {
     solutions: 'Разделы',
@@ -46,12 +51,17 @@ const footerTranslations = {
     companyLinks: {
       about: 'О нас',
       contact: 'Контакты',
-      faq: 'FAQ',
+      faq: 'Вопросы',
     },
     legalLinks: {
       privacy: 'Конфиденциальность',
       terms: 'Условия',
-      compliance: 'Compliance',
+      compliance: 'Безопасность',
+    },
+    labels: {
+      email: 'Почта VisionDrive',
+      whatsapp: 'Написать в WhatsApp',
+      address: 'Compass Coworking, РАК, ОАЭ',
     },
   },
 }
@@ -60,6 +70,7 @@ export default function Footer() {
   const { publicLanguage } = useLanguage()
   const pathname = usePathname()
   const t = footerTranslations[publicLanguage]
+  const labels = t.labels
   
   const footerNavigation = {
     solutions: [
@@ -103,7 +114,7 @@ export default function Footer() {
             <a
               href="mailto:tech@visiondrive.ae"
               className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-50 text-gray-500"
-              aria-label="Email VisionDrive"
+              aria-label={labels.email}
             >
               <Mail className="h-4 w-4" />
             </a>
@@ -112,7 +123,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
-              aria-label="WhatsApp VisionDrive"
+              aria-label={labels.whatsapp}
             >
               <MessageCircle className="h-4 w-4" />
             </a>
@@ -227,7 +238,7 @@ export default function Footer() {
                 </a>
                 <div className="flex items-start gap-3 text-sm text-gray-600">
                   <MapPin className="h-4 w-4 text-red-500 mt-0.5" />
-                  <span>Compass Coworking, RAK, UAE</span>
+                  <span>{labels.address}</span>
                 </div>
               </div>
             </div>

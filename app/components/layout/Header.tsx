@@ -25,6 +25,23 @@ const navigation = {
   ],
 }
 
+const headerCopy = {
+  en: {
+    goToDashboard: 'Go to workspace',
+    login: 'Login',
+    logout: 'Logout',
+    closeMenu: 'Close menu',
+    openMenu: 'Open menu',
+  },
+  ru: {
+    goToDashboard: 'Открыть кабинет',
+    login: 'Войти',
+    logout: 'Выйти',
+    closeMenu: 'Закрыть меню',
+    openMenu: 'Открыть меню',
+  },
+} as const
+
 export default function Header() {
   const { publicLanguage } = useLanguage()
   const router = useRouter()
@@ -35,6 +52,7 @@ export default function Header() {
   const [loading, setLoading] = useState(true)
   
   const navItems = navigation[publicLanguage]
+  const copy = headerCopy[publicLanguage]
 
   const handleLogout = async () => {
     try {
@@ -146,7 +164,7 @@ export default function Header() {
               <LanguageSelector />
               <Link
                 href={isLoggedIn ? dashboardHref : "/login"}
-                aria-label={isLoggedIn ? "Go to dashboard" : "Login"}
+                aria-label={isLoggedIn ? copy.goToDashboard : copy.login}
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
               >
                 <User className={`h-5 w-5 ${isLoggedIn ? 'text-orange-500' : 'text-gray-600'}`} />
@@ -154,7 +172,7 @@ export default function Header() {
               {isLoggedIn && (
                 <button
                   onClick={handleLogout}
-                  aria-label="Logout"
+                  aria-label={copy.logout}
                   className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-red-50 transition-colors"
                 >
                   <LogOut className="h-5 w-5 text-gray-500 hover:text-red-500" />
@@ -167,7 +185,7 @@ export default function Header() {
               <LanguageSelector />
               <Link
                 href={isLoggedIn ? dashboardHref : "/login"}
-                aria-label={isLoggedIn ? "Go to dashboard" : "Login"}
+                aria-label={isLoggedIn ? copy.goToDashboard : copy.login}
                 className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <User className={`h-5 w-5 ${isLoggedIn ? 'text-orange-500' : 'text-gray-500'}`} />
@@ -175,7 +193,7 @@ export default function Header() {
               {isLoggedIn && (
                 <button
                   onClick={handleLogout}
-                  aria-label="Logout"
+                  aria-label={copy.logout}
                   className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-red-50 transition-colors"
                 >
                   <LogOut className="h-5 w-5 text-gray-500" />
@@ -183,7 +201,7 @@ export default function Header() {
               )}
               <button
                 type="button"
-                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-label={mobileMenuOpen ? copy.closeMenu : copy.openMenu}
                 aria-expanded={mobileMenuOpen}
                 className="flex items-center justify-center w-10 h-10 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

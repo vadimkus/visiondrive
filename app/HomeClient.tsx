@@ -12,6 +12,7 @@ import {
 import { useLanguage } from './contexts/LanguageContext'
 import Link from 'next/link'
 import { visiondriveSloganWithRegion } from '@/lib/brand'
+import { usePublicDocumentTitle } from './hooks/usePublicDocumentTitle'
 
 const homeCopy = {
   en: {
@@ -34,6 +35,7 @@ const homeCopy = {
       'Access is currently private while the product is prepared for selective onboarding. VisionDrive helps solo practitioners keep appointments, treatment history, follow-ups, stock, and finances organized in one professional operating system.',
     darkPrimary: 'Open workspace',
     darkSecondary: 'Request access',
+    documentTitle: 'VisionDrive - Practice software for solo practitioners',
   },
   ru: {
     headlineBefore: 'Профессиональная система для ',
@@ -55,12 +57,14 @@ const homeCopy = {
       'Доступ сейчас закрытый, пока продукт готовится к выборочному подключению. VisionDrive помогает частным специалистам держать в порядке расписание, историю процедур, повторные визиты, склад и финансы в одной профессиональной операционной системе.',
     darkPrimary: 'Открыть кабинет',
     darkSecondary: 'Запросить доступ',
+    documentTitle: 'VisionDrive - ПО для частных специалистов',
   },
 } as const
 
 export default function HomeClient() {
   const { publicLanguage } = useLanguage()
   const t = homeCopy[publicLanguage]
+  usePublicDocumentTitle(t.documentTitle)
 
   const capabilities = t.capabilities
 

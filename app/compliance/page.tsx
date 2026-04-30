@@ -1,351 +1,272 @@
 'use client'
 
-import Image from 'next/image'
 import Section from '../components/common/Section'
-import { 
-  Shield,
-  Server,
-  Lock,
-  FileCheck,
+import {
+  ArrowUpRight,
   CheckCircle2,
-  Globe,
+  ClipboardCheck,
   Database,
-  Eye,
-  Key,
-  Building2,
-  Radio,
-  Thermometer,
-  AlertTriangle,
-  Clock,
+  FileClock,
   FileText,
+  KeyRound,
+  Lock,
   Phone,
-  Download,
-  Award,
-  FileSignature
+  Shield,
+  UserCheck,
+  Users,
 } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import { usePublicDocumentTitle } from '../hooks/usePublicDocumentTitle'
 
-const complianceAreas = [
-  {
-    icon: Thermometer,
-    title: 'Dubai Municipality Food Safety',
-    status: 'Compliant',
-    description: 'Full compliance with Dubai Municipality food safety guidelines (DM-HSD-GU46-KFPA2) for temperature monitoring in commercial kitchens.',
-    details: [
-      'Cold storage monitoring: 0°C to 5°C',
-      'Freezer monitoring: ≤ -18°C',
-      'Hot holding monitoring: ≥ 60°C',
-      'Danger zone alerts: 5°C - 60°C',
-      '2-year data retention for inspections',
+const copy = {
+  en: {
+    documentTitle: 'Practice OS Security & Compliance - UAE Data Residency',
+    kicker: 'Practice OS Security & Compliance',
+    title: 'Compliance built for',
+    accent: 'private practice data',
+    intro:
+      'VisionDrive Practice OS is designed for UAE solo practitioners who handle sensitive patient records, treatment notes, clinical photos, payments, booking policies, and patient-facing links. The priority is simple: keep the workspace private, structured, and explainable.',
+    badges: ['UAE data residency', 'Tenant isolation', 'Patient-safe sharing', 'UAE PDPL aligned'],
+    postureTitle: 'Compliance Posture',
+    postureIntro:
+      'The public compliance page now reflects the current product: practice operations software, not legacy hardware monitoring.',
+    areas: [
+      {
+        icon: Database,
+        title: 'UAE Data Residency',
+        description:
+          'Practice OS is designed so customer data is hosted in the UAE and managed around local data-sovereignty expectations.',
+        details: ['UAE-hosted infrastructure', 'Local processing model', 'No routine cross-border transfer', 'Vendor review before new processors'],
+      },
+      {
+        icon: Lock,
+        title: 'Privacy & UAE PDPL',
+        description:
+          'The platform is structured around data minimization, purpose limitation, and patient rights under UAE Federal Decree-Law No. 45 of 2021.',
+        details: ['Minimal patient fields by default', 'Access/correction/deletion workflows', 'Consent-aware sharing', 'Clear privacy and terms pages'],
+      },
+      {
+        icon: Users,
+        title: 'Tenant Isolation',
+        description:
+          'Every practitioner workspace is scoped by tenant so one practice cannot access another practice’s patients, notes, photos, payments, or settings.',
+        details: ['Tenant-scoped APIs', 'Workspace-level permissions', 'Isolated patient records', 'Safer public media endpoints'],
+      },
+      {
+        icon: ClipboardCheck,
+        title: 'Practice Records Governance',
+        description:
+          'Patient cards, consent records, visit notes, aftercare, wallet history, and exports are organized for professional practice operations.',
+        details: ['Consent linked to visits', 'Patient-safe exports', 'Payment and package history', 'Operational audit trail'],
+      },
     ],
-    color: 'text-orange-600',
-    bg: 'bg-orange-50',
-    borderColor: 'border-orange-200',
-  },
-  {
-    icon: Radio,
-    title: 'TDRA Device Certification',
-    status: 'Compliant',
-    description: 'Dragino S31-NB temperature sensors are TDRA-certified for operation in the UAE via Etisalat NB-IoT network.',
-    details: [
-      'TDRA Reference: EA-2026-1-55656',
-      'NB-IoT frequency bands approved for UAE',
-      'Etisalat network certified connectivity',
-      'Annual recertification maintained',
+    residencyTitle: 'Your Practice Data Stays In The UAE',
+    residencyBody:
+      'Patient records, appointment history, consent context, payments, and internal workspace data are designed to remain in UAE-hosted infrastructure. Any future processor or integration is reviewed before it becomes part of the operational data flow.',
+    residencyPills: ['UAE-hosted data', 'Tenant-scoped records', 'No public internal notes'],
+    securityTitle: 'Security Controls',
+    securityIntro: 'Controls that matter for solo practitioners handling private patient relationships.',
+    controls: [
+      {
+        icon: KeyRound,
+        title: 'Authenticated workspace access',
+        description: 'Practitioner workspaces require authenticated access and keep internal records away from public profile pages.',
+      },
+      {
+        icon: Shield,
+        title: 'Patient-safe public links',
+        description: 'Portal links, public profiles, and media endpoints expose only the information explicitly intended for patients.',
+      },
+      {
+        icon: FileClock,
+        title: 'Audit-friendly history',
+        description: 'Bookings, payments, packages, notes, and patient actions are kept in a traceable operational timeline.',
+      },
+      {
+        icon: FileText,
+        title: 'Plain-language policies',
+        description: 'Booking rules, cancellation fees, receipts, and client-wallet information are written for patient understanding.',
+      },
     ],
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-  },
-  {
-    icon: Server,
-    title: 'UAE Data Residency',
-    status: 'Compliant',
-    description: 'All kitchen sensor data is processed and stored exclusively within the UAE using AWS Middle East (UAE) Region (me-central-1) in Abu Dhabi.',
-    details: [
-      'Data never leaves UAE jurisdiction',
-      'AWS me-central-1 region (Abu Dhabi)',
-      'Local data processing and analytics',
-      'No cross-border data transfers',
+    retentionTitle: 'Data Retention & Patient Visibility',
+    retentionIntro:
+      'The platform separates internal practice records from patient-visible links and public marketing content.',
+    table: { type: 'Data Type', retention: 'Retention', purpose: 'Purpose' },
+    rows: [
+      { type: 'Patient records', retention: 'Practice-controlled', purpose: 'Treatment continuity and client support' },
+      { type: 'Consent and forms', retention: 'Linked to visits', purpose: 'Procedure context and patient acknowledgment' },
+      { type: 'Payments and receipts', retention: 'Business record period', purpose: 'Accounting, balances, refunds, and disputes' },
+      { type: 'Public profile media', retention: 'Until unpublished or consent removed', purpose: 'Marketing-consented before/after gallery' },
+      { type: 'Portal links', retention: 'Token expiry / manual revoke', purpose: 'Limited patient access without exposing the full workspace' },
     ],
-    color: 'text-green-600',
-    bg: 'bg-green-50',
-    borderColor: 'border-green-200',
-  },
-  {
-    icon: Lock,
-    title: 'UAE Personal Data Protection',
-    status: 'Compliant',
-    description: 'Full adherence to UAE Federal Decree-Law No. 45 of 2021 on Personal Data Protection (PDPL).',
-    details: [
-      'Data minimization principles',
-      'Explicit consent for data processing',
-      'Right to access, correct, and delete data',
-      'Privacy impact assessments conducted',
+    responsibilitiesTitle: 'Practitioner Responsibilities',
+    responsibilities: [
+      'Use strong passwords and keep workspace access limited to authorized staff.',
+      'Collect patient consent before uploading or sharing clinical photos.',
+      'Do not place sensitive internal notes in patient-visible fields.',
+      'Review public profile content before sharing it in Instagram, Google, or WhatsApp.',
+      'Respond to patient data requests through the documented support workflow.',
     ],
-    color: 'text-purple-600',
-    bg: 'bg-purple-50',
-    borderColor: 'border-purple-200',
+    statementTitle: 'Compliance Statement',
+    statement:
+      'VisionDrive Practice OS is designed around UAE data residency, private patient records, tenant-scoped access, patient-safe sharing, and privacy-aware operating workflows. The platform supports practitioners with structured records, consent context, payment history, and public links that avoid exposing internal workspace data.',
+    ctaTitle: 'Need Security Or Compliance Details?',
+    ctaBody:
+      'Contact us to discuss onboarding, privacy questions, data residency, patient-safe exports, or the controls used inside Practice OS.',
+    contact: 'Contact VisionDrive',
+    terms: 'View Terms',
   },
-]
-
-const securityFeatures = [
-  {
-    icon: Key,
-    title: 'End-to-End Encryption',
-    description: 'All sensor data encrypted in transit using TLS 1.2/1.3 (MQTTs port 8883) and at rest using AES-256.',
+  ru: {
+    documentTitle: 'Безопасность Practice OS - хранение данных в ОАЭ',
+    kicker: 'Безопасность и соответствие Practice OS',
+    title: 'Соответствие для',
+    accent: 'данных частной практики',
+    intro:
+      'VisionDrive Practice OS создан для частных специалистов в ОАЭ, которые работают с чувствительными картами пациентов, заметками по процедурам, клиническими фото, оплатами, правилами записи и пациентскими ссылками. Главный принцип: рабочий кабинет должен быть приватным, структурированным и понятным.',
+    badges: ['Данные в ОАЭ', 'Изоляция кабинетов', 'Безопасные ссылки для пациентов', 'С учетом UAE PDPL'],
+    postureTitle: 'Позиция по соответствию',
+    postureIntro:
+      'Эта страница отражает текущий продукт: ПО для управления частной практикой, а не прежний аппаратный мониторинг.',
+    areas: [
+      {
+        icon: Database,
+        title: 'Хранение данных в ОАЭ',
+        description:
+          'Practice OS спроектирован так, чтобы данные клиентов размещались в ОАЭ и управлялись с учетом местных требований к суверенности данных.',
+        details: ['Инфраструктура в ОАЭ', 'Локальная модель обработки', 'Без регулярной передачи за границу', 'Проверка новых обработчиков данных'],
+      },
+      {
+        icon: Lock,
+        title: 'Приватность и UAE PDPL',
+        description:
+          'Платформа учитывает минимизацию данных, ограничение целей обработки и права пациентов по Федеральному декрету-закону ОАЭ No. 45 от 2021 года.',
+        details: ['Минимальные поля пациента по умолчанию', 'Запросы на доступ/исправление/удаление', 'Обмен с учетом согласия', 'Понятные страницы политики и условий'],
+      },
+      {
+        icon: Users,
+        title: 'Изоляция кабинетов',
+        description:
+          'Каждое рабочее пространство ограничено своим кабинетом, чтобы одна практика не видела пациентов, заметки, фото, оплаты или настройки другой.',
+        details: ['API в рамках кабинета', 'Права на уровне кабинета', 'Изолированные карты пациентов', 'Более безопасные публичные медиа'],
+      },
+      {
+        icon: ClipboardCheck,
+        title: 'Управление записями практики',
+        description:
+          'Карты пациентов, согласия, визиты, рекомендации, кошелек клиента и экспорты организованы для профессиональной работы.',
+        details: ['Согласия связаны с визитами', 'Экспорты без внутренних заметок', 'История оплат и пакетов', 'Операционная история для аудита'],
+      },
+    ],
+    residencyTitle: 'Данные вашей практики остаются в ОАЭ',
+    residencyBody:
+      'Карты пациентов, история записей, контекст согласий, оплаты и внутренние данные кабинета спроектированы для хранения в инфраструктуре ОАЭ. Каждый будущий обработчик данных или интеграция проверяется до включения в операционный поток.',
+    residencyPills: ['Данные в ОАЭ', 'Записи в рамках кабинета', 'Внутренние заметки не публичны'],
+    securityTitle: 'Контроли безопасности',
+    securityIntro: 'Контроли, которые важны частным специалистам при работе с приватными отношениями с пациентами.',
+    controls: [
+      {
+        icon: KeyRound,
+        title: 'Доступ только после входа',
+        description: 'Рабочие кабинеты требуют авторизации и отделяют внутренние записи от публичных страниц профиля.',
+      },
+      {
+        icon: Shield,
+        title: 'Безопасные публичные ссылки',
+        description: 'Портал, публичные профили и медиа показывают только информацию, предназначенную для пациента или публики.',
+      },
+      {
+        icon: FileClock,
+        title: 'История для аудита',
+        description: 'Записи, оплаты, пакеты, заметки и действия пациента сохраняются в прослеживаемой операционной истории.',
+      },
+      {
+        icon: FileText,
+        title: 'Понятные правила',
+        description: 'Правила записи, штрафы за отмену, квитанции и кошелек клиента написаны понятным для пациента языком.',
+      },
+    ],
+    retentionTitle: 'Хранение данных и видимость для пациента',
+    retentionIntro:
+      'Платформа отделяет внутренние записи практики от ссылок для пациентов и публичного маркетингового контента.',
+    table: { type: 'Тип данных', retention: 'Хранение', purpose: 'Назначение' },
+    rows: [
+      { type: 'Карты пациентов', retention: 'Под контролем практики', purpose: 'Непрерывность лечения и поддержка клиента' },
+      { type: 'Согласия и формы', retention: 'Связаны с визитами', purpose: 'Контекст процедуры и подтверждение пациента' },
+      { type: 'Оплаты и квитанции', retention: 'Срок бизнес-записей', purpose: 'Учет, балансы, возвраты и споры' },
+      { type: 'Медиа публичного профиля', retention: 'До снятия с публикации или отзыва согласия', purpose: 'Галерея до/после с маркетинговым согласием' },
+      { type: 'Ссылки портала', retention: 'Истечение токена / ручной отзыв', purpose: 'Ограниченный доступ пациента без раскрытия кабинета' },
+    ],
+    responsibilitiesTitle: 'Ответственность специалиста',
+    responsibilities: [
+      'Использовать надежные пароли и ограничивать доступ только уполномоченным людям.',
+      'Получать согласие пациента до загрузки или публикации клинических фото.',
+      'Не размещать чувствительные внутренние заметки в полях, видимых пациенту.',
+      'Проверять публичный профиль перед размещением в Instagram, Google или WhatsApp.',
+      'Отвечать на запросы пациентов по данным через документированный процесс поддержки.',
+    ],
+    statementTitle: 'Заявление о соответствии',
+    statement:
+      'VisionDrive Practice OS спроектирован вокруг хранения данных в ОАЭ, приватных карт пациентов, доступа в рамках кабинета, безопасного обмена с пациентами и процессов, учитывающих приватность. Платформа помогает специалистам вести структурированные записи, контекст согласий, историю оплат и публичные ссылки без раскрытия внутренних данных кабинета.',
+    ctaTitle: 'Нужны детали по безопасности или соответствию?',
+    ctaBody:
+      'Свяжитесь с нами, чтобы обсудить подключение, приватность, хранение данных в ОАЭ, безопасные экспорты для пациентов или контроли внутри Practice OS.',
+    contact: 'Связаться с VisionDrive',
+    terms: 'Открыть условия',
   },
-  {
-    icon: Eye,
-    title: 'Access Control',
-    description: 'Role-based access control with JWT authentication. Kitchen owners see only their own data.',
-  },
-  {
-    icon: Database,
-    title: 'Multi-Tenant Isolation',
-    description: 'Complete data isolation between kitchens. Each customer\'s data is logically separated in DynamoDB.',
-  },
-  {
-    icon: FileCheck,
-    title: 'Comprehensive Audit Logging',
-    description: 'AWS CloudTrail logs all data access and system changes. Audit trails retained for compliance.',
-  },
-]
-
-const dataRetention = [
-  { type: 'Temperature Readings', retention: '2 Years', purpose: 'Dubai Municipality inspection requirements' },
-  { type: 'Alert History', retention: '2 Years', purpose: 'Compliance documentation and audit trail' },
-  { type: 'Equipment Records', retention: 'Service Duration', purpose: 'Operational management' },
-  { type: 'Billing Records', retention: '5 Years', purpose: 'UAE Commercial Companies Law compliance' },
-  { type: 'Audit Logs', retention: '2 Years', purpose: 'Security and compliance auditing' },
-]
-
-const temperatureRequirements = [
-  { equipment: 'Walk-in Fridge', arabic: 'غرفة تبريد', temp: '0°C to 5°C', icon: '🧊' },
-  { equipment: 'Freezer', arabic: 'فريزر', temp: '≤ -18°C', icon: '❄️' },
-  { equipment: 'Display Fridge', arabic: 'ثلاجة عرض', temp: '0°C to 5°C', icon: '🥗' },
-  { equipment: 'Hot Holding', arabic: 'حفظ ساخن', temp: '≥ 60°C', icon: '🔥' },
-  { equipment: 'Blast Chiller', arabic: 'مبرد سريع', temp: '-10°C to 3°C', icon: '💨' },
-  { equipment: 'Danger Zone', arabic: 'منطقة الخطر', temp: '5°C - 60°C', icon: '⚠️', isDanger: true },
-]
-
-const certifications = [
-  { name: 'TDRA IoT License', status: 'Active', icon: Shield },
-  { name: 'TDRA Type Approval', status: 'Active', icon: Radio },
-  { name: 'DM Food Safety', status: 'Compliant', icon: Thermometer },
-  { name: 'UAE PDPL', status: 'Compliant', icon: Lock },
-  { name: 'ISO 27001', status: 'Planned 2026', icon: FileCheck },
-]
-
-const downloadableCertificates = [
-  {
-    name: 'TDRA IoT Services License',
-    description: 'TDRA authorization to deliver IoT services in the UAE - our official IoT service provider license',
-    filename: 'IoT_Certificate_IOT-26-100000007.pdf',
-    icon: Shield,
-    color: 'purple',
-  },
-  {
-    name: 'TDRA Type Approval Certificate',
-    description: 'Official UAE telecommunications regulatory authority approval for our IoT devices',
-    filename: 'TDRA_TYPE_APPROVAL_Certificate.pdf',
-    icon: Radio,
-    color: 'blue',
-  },
-  {
-    name: 'Authorized Dealer Certificate',
-    description: 'Official dealer certification for IoT equipment distribution in UAE',
-    filename: 'Dealer_Certificate.pdf',
-    icon: Award,
-    color: 'orange',
-  },
-  {
-    name: 'NOL Compliance Report',
-    description: 'Technical compliance report for network operation and licensing requirements',
-    filename: 'Nol_Report.pdf',
-    icon: FileSignature,
-    color: 'green',
-  },
-]
+} as const
 
 export default function CompliancePage() {
+  const { publicLanguage } = useLanguage()
+  const t = copy[publicLanguage]
+  usePublicDocumentTitle(t.documentTitle)
+
   return (
-    <main className="pt-24 bg-white text-gray-900">
-      {/* Hero Section */}
+    <main className="bg-white pt-24 text-gray-900">
       <Section className="py-12 md:py-20">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 rounded-full text-sm font-medium mb-6">
-            <Thermometer className="h-4 w-4" />
-            Smart Kitchen Compliance
+        <div className="mx-auto max-w-5xl text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-800">
+            <Shield className="h-4 w-4" aria-hidden />
+            {t.kicker}
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
-            Food Safety{' '}
-            <span className="text-orange-600">Compliance</span>
+          <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
+            {t.title} <span className="text-orange-600">{t.accent}</span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto mb-8">
-            VisionDrive Smart Kitchen is designed from the ground up for Dubai Municipality food safety compliance. 
-            All data stays in the UAE, processed on UAE-based infrastructure.
-          </p>
-          
-          {/* Key Compliance Badges */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-lg border border-orange-100">
-              <CheckCircle2 className="h-5 w-5 text-orange-600" />
-              <span className="text-sm font-medium text-orange-900">DM Food Safety</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-100">
-              <CheckCircle2 className="h-5 w-5 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">TDRA Certified</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-100">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium text-green-900">UAE Data Residency</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-lg border border-purple-100">
-              <CheckCircle2 className="h-5 w-5 text-purple-600" />
-              <span className="text-sm font-medium text-purple-900">UAE PDPL Compliant</span>
-            </div>
-          </div>
-        </div>
-      </Section>
+          <p className="mx-auto mb-8 max-w-3xl text-lg leading-relaxed text-gray-600 sm:text-xl">{t.intro}</p>
 
-      {/* Dubai Municipality Requirements */}
-      <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Dubai Municipality Temperature Requirements</h2>
-            <p className="text-lg text-gray-600">
-              Reference: DM-HSD-GU46-KFPA2 (Version 3, May 9, 2024)
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {temperatureRequirements.map((req) => (
-              <div
-                key={req.equipment}
-                className={`bg-white rounded-xl p-5 border ${
-                  req.isDanger ? 'border-red-200 bg-red-50' : 'border-gray-200'
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-3xl">{req.icon}</span>
-                  <div>
-                    <h3 className={`font-semibold ${req.isDanger ? 'text-red-700' : 'text-gray-900'}`}>
-                      {req.equipment}
-                    </h3>
-                    <p className="text-xs text-gray-500">{req.arabic}</p>
-                  </div>
-                </div>
-                <div className={`text-2xl font-bold ${req.isDanger ? 'text-red-600' : 'text-orange-600'}`}>
-                  {req.temp}
-                </div>
-                {req.isDanger && (
-                  <p className="text-xs text-red-600 mt-2">
-                    ⚠️ Food unsafe - max 2 hours exposure
-                  </p>
-                )}
+          <div className="flex flex-wrap justify-center gap-3">
+            {t.badges.map((badge) => (
+              <div key={badge} className="flex items-center gap-2 rounded-xl border border-orange-100 bg-orange-50 px-4 py-2">
+                <CheckCircle2 className="h-5 w-5 text-orange-600" aria-hidden />
+                <span className="text-sm font-medium text-orange-900">{badge}</span>
               </div>
             ))}
           </div>
-
-          <div className="mt-8 bg-white rounded-xl p-6 border border-gray-200">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <FileText className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Official DM Guidelines</h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  VisionDrive Smart Kitchen implements all temperature requirements from the official Dubai Municipality 
-                  Technical Guidelines for Occupational Health and Safety in Kitchen/Food Areas.
-                </p>
-                <a 
-                  href="https://www.dm.gov.ae/wp-content/uploads/2024/07/DM-HSD-GU46-KFPA2_Technical-Guidelines-for-Occupational-Health-and-Safety_Kitchen-Food-Areas_V3.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  Download Official PDF
-                  <span>→</span>
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </Section>
 
-      {/* Data Residency Highlight */}
-      <Section className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 md:p-12 border border-green-200">
-            <div className="flex flex-col md:flex-row gap-8 items-center">
-              <div className="flex-shrink-0">
-                <div className="w-24 h-24 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <Globe className="h-12 w-12 text-green-600" />
-                </div>
-              </div>
-              <div className="text-center md:text-left">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-                  🇦🇪 Your Data Stays in the UAE
-                </h2>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  We exclusively use <strong>AWS Middle East (UAE) Region</strong> located in Abu Dhabi (me-central-1). 
-                  All temperature readings, kitchen data, and personal information is processed and stored within 
-                  UAE borders, ensuring full compliance with UAE data sovereignty requirements.
-                </p>
-                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span>Abu Dhabi Data Center</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span>No Cross-Border Transfer</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span>DynamoDB in UAE</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* Compliance Areas */}
       <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Regulatory Compliance</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Meeting UAE regulatory requirements for food safety, telecommunications, and data protection
-            </p>
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900">{t.postureTitle}</h2>
+            <p className="mx-auto max-w-2xl text-lg text-gray-600">{t.postureIntro}</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {complianceAreas.map((area) => (
-              <div
-                key={area.title}
-                className={`bg-white rounded-xl p-6 border ${area.borderColor} hover:shadow-md transition-shadow`}
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className={`flex-shrink-0 w-12 h-12 ${area.bg} rounded-lg flex items-center justify-center`}>
-                    <area.icon className={`h-6 w-6 ${area.color}`} />
+          <div className="grid gap-6 md:grid-cols-2">
+            {t.areas.map((area) => (
+              <div key={area.title} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+                <div className="mb-4 flex items-start gap-4">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-orange-50">
+                    <area.icon className="h-6 w-6 text-orange-600" aria-hidden />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{area.title}</h3>
-                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                        {area.status}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 leading-relaxed">{area.description}</p>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{area.title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-600">{area.description}</p>
                   </div>
                 </div>
-                <ul className="space-y-2 ml-16">
+                <ul className="ml-16 space-y-2">
                   {area.details.map((detail) => (
-                    <li key={`detail-${detail.slice(0, 25)}`} className="flex items-center gap-2 text-sm text-gray-700">
-                      <CheckCircle2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <li key={detail} className="flex items-center gap-2 text-sm text-gray-700">
+                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-600" aria-hidden />
                       {detail}
                     </li>
                   ))}
@@ -356,272 +277,131 @@ export default function CompliancePage() {
         </div>
       </Section>
 
-      {/* Sensor Technology */}
       <Section className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">TDRA-Certified Sensor Technology</h2>
-            <p className="text-lg text-gray-600">
-              Enterprise-grade NB-IoT temperature sensors approved for UAE deployment
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-200">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Dragino S31-NB Sensor</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <span>Temperature range: -40°C to +80°C</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <span>Accuracy: ±0.3°C</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <span>Battery life: 5+ years</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <span>Connectivity: Etisalat NB-IoT (UAE)</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <span>TDRA certified: EA-2026-1-55656</span>
-                  </li>
-                </ul>
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-[2rem] border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-8 md:p-12">
+            <div className="grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:items-center">
+              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl bg-green-100 md:mx-0">
+                <Database className="h-12 w-12 text-green-700" aria-hidden />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Cloud Infrastructure</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <span>AWS IoT Core (me-central-1)</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <span>Amazon DynamoDB (UAE)</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <span>AWS Lambda (Node.js 22.x)</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <span>AWS WAF protection</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <span>CloudTrail audit logging</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* Security Features */}
-      <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Security Architecture</h2>
-            <p className="text-lg text-gray-600">
-              Enterprise-grade security built into every layer of our platform
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-6">
-            {securityFeatures.map((feature) => (
-              <div
-                key={`security-${feature.title}`}
-                className="bg-white rounded-xl p-6 border border-gray-200"
-              >
-                <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center mb-4">
-                  <feature.icon className="h-5 w-5 text-orange-600" />
+              <div className="text-center md:text-left">
+                <h2 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">{t.residencyTitle}</h2>
+                <p className="mb-5 leading-relaxed text-gray-700">{t.residencyBody}</p>
+                <div className="flex flex-wrap justify-center gap-3 md:justify-start">
+                  {t.residencyPills.map((item) => (
+                    <span key={item} className="rounded-full bg-white px-4 py-2 text-sm font-medium text-green-800 shadow-sm">
+                      {item}
+                    </span>
+                  ))}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
               </div>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* Data Retention */}
-      <Section className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Data Retention Policy</h2>
-            <p className="text-lg text-gray-600">
-              Clear retention periods aligned with Dubai Municipality and UAE legal requirements
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-900">Data Type</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-900">Retention</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-900 hidden sm:table-cell">Purpose</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {dataRetention.map((item) => (
-                  <tr key={`retention-${item.type}`} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">{item.type}</td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                        {item.retention}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 hidden sm:table-cell">{item.purpose}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </Section>
-
-      {/* Certifications */}
-      <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Certifications & Standards</h2>
-            <p className="text-lg text-gray-600">
-              Current certifications for regulatory compliance
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {certifications.map((cert) => (
-              <div
-                key={`cert-${cert.name}`}
-                className="bg-white rounded-xl p-6 border border-gray-200 text-center"
-              >
-                <cert.icon className="h-8 w-8 text-orange-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">{cert.name}</h3>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  cert.status === 'Active' || cert.status === 'Compliant'
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {cert.status}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Downloadable Certificates */}
-          <div className="mt-12">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Download Certificates</h3>
-              <p className="text-gray-600">
-                Access our official certification documents for your records
-              </p>
             </div>
+          </div>
+        </div>
+      </Section>
 
-            <div className="grid sm:grid-cols-2 gap-6">
-              {downloadableCertificates.map((cert) => {
-                const colorClasses = {
-                  purple: { bg: 'bg-purple-50', border: 'border-purple-200', icon: 'text-purple-600', hover: 'hover:border-purple-300 hover:bg-purple-50/50', btn: 'bg-purple-600 hover:bg-purple-700' },
-                  blue: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-600', hover: 'hover:border-blue-300 hover:bg-blue-50/50', btn: 'bg-blue-600 hover:bg-blue-700' },
-                  orange: { bg: 'bg-orange-50', border: 'border-orange-200', icon: 'text-orange-600', hover: 'hover:border-orange-300 hover:bg-orange-50/50', btn: 'bg-orange-600 hover:bg-orange-700' },
-                  green: { bg: 'bg-green-50', border: 'border-green-200', icon: 'text-green-600', hover: 'hover:border-green-300 hover:bg-green-50/50', btn: 'bg-green-600 hover:bg-green-700' },
-                }
-                const colors = colorClasses[cert.color as keyof typeof colorClasses]
+      <Section background="gray" className="py-12 md:py-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900">{t.securityTitle}</h2>
+            <p className="text-lg text-gray-600">{t.securityIntro}</p>
+          </div>
 
-                return (
-                  <div
-                    key={cert.filename}
-                    className={`bg-white rounded-xl p-6 border ${colors.border} ${colors.hover} transition-all`}
-                  >
-                    <div className={`w-12 h-12 ${colors.bg} rounded-lg flex items-center justify-center mb-4`}>
-                      <cert.icon className={`h-6 w-6 ${colors.icon}`} />
-                    </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">{cert.name}</h4>
-                    <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                      {cert.description}
-                    </p>
-                    <a
-                      href={`/Certification/${cert.filename}`}
-                      download
-                      className={`inline-flex items-center gap-2 px-4 py-2 ${colors.btn} text-white text-sm font-medium rounded-lg transition-colors`}
-                    >
-                      <Download className="h-4 w-4" />
-                      Download PDF
-                    </a>
+          <div className="grid gap-6 sm:grid-cols-2">
+            {t.controls.map((control) => (
+              <div key={control.title} className="rounded-2xl border border-gray-200 bg-white p-6">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50">
+                  <control.icon className="h-5 w-5 text-orange-600" aria-hidden />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold text-gray-900">{control.title}</h3>
+                <p className="text-sm leading-relaxed text-gray-600">{control.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <Section className="py-12 md:py-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900">{t.retentionTitle}</h2>
+            <p className="mx-auto max-w-2xl text-lg text-gray-600">{t.retentionIntro}</p>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <div className="grid bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-900 sm:grid-cols-[1fr_1fr_1.4fr]">
+              <span>{t.table.type}</span>
+              <span className="hidden sm:block">{t.table.retention}</span>
+              <span className="hidden sm:block">{t.table.purpose}</span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {t.rows.map((row) => (
+                <div key={row.type} className="grid gap-2 px-6 py-5 sm:grid-cols-[1fr_1fr_1.4fr] sm:gap-4">
+                  <div className="font-medium text-gray-900">{row.type}</div>
+                  <div>
+                    <span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
+                      {row.retention}
+                    </span>
                   </div>
-                )
-              })}
+                  <div className="text-sm leading-6 text-gray-600">{row.purpose}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </Section>
 
-      {/* Compliance Statement */}
-      <Section className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-8 md:p-12 border border-orange-200">
-            <div className="flex items-start gap-4 mb-6">
-              <Shield className="h-8 w-8 text-orange-600 flex-shrink-0" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Compliance Statement</h2>
-                <p className="text-gray-600">For Dubai Municipality inspections and enterprise contracts</p>
-              </div>
+      <Section background="gray" className="py-12 md:py-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="grid gap-8 md:grid-cols-[1fr_1fr]">
+            <div className="rounded-[2rem] border border-gray-200 bg-white p-8">
+              <UserCheck className="mb-5 h-10 w-10 text-orange-600" aria-hidden />
+              <h2 className="mb-4 text-2xl font-bold text-gray-900">{t.responsibilitiesTitle}</h2>
+              <ul className="space-y-3">
+                {t.responsibilities.map((item) => (
+                  <li key={item} className="flex gap-3 text-sm leading-6 text-gray-700">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" aria-hidden />
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="bg-white rounded-xl p-6 border border-gray-200">
-              <p className="text-gray-700 leading-relaxed">
-                <em>
-                  &quot;VisionDrive Smart Kitchen is designed and operated with UAE food safety regulatory compliance 
-                  as a foundational principle. Our Dragino S31-NB temperature sensors hold valid TDRA type approval 
-                  (EA-2026-1-55656) for UAE deployment via Etisalat NB-IoT network. All customer data is processed and stored 
-                  exclusively within the UAE using AWS Middle East (UAE) Region infrastructure in Abu Dhabi (me-central-1). 
-                  Temperature thresholds are configured per Dubai Municipality guidelines (DM-HSD-GU46-KFPA2). 
-                  We maintain full compliance with UAE Federal Decree-Law No. 45 of 2021 on Personal Data Protection. 
-                  Temperature readings are retained for 2 years minimum as required for DM inspections. 
-                  Our platform implements enterprise-grade security controls including TLS encryption, 
-                  role-based access control, and comprehensive audit logging via AWS CloudTrail.&quot;
-                </em>
+
+            <div className="rounded-[2rem] border border-orange-200 bg-gradient-to-br from-orange-50 to-red-50 p-8">
+              <Shield className="mb-5 h-10 w-10 text-orange-600" aria-hidden />
+              <h2 className="mb-4 text-2xl font-bold text-gray-900">{t.statementTitle}</h2>
+              <p className="leading-relaxed text-gray-700">
+                <em>&quot;{t.statement}&quot;</em>
               </p>
             </div>
           </div>
         </div>
       </Section>
 
-      {/* CTA Section */}
-      <Section background="gray" className="py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-8 md:p-12 text-white text-center">
-            <Thermometer className="h-12 w-12 mx-auto mb-6 text-orange-200" />
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              Need Compliance Documentation?
-            </h2>
-            <p className="text-lg text-orange-100 mb-8 max-w-2xl mx-auto">
-              Contact us for detailed compliance documentation, TDRA certificates, 
-              or to discuss Dubai Municipality inspection requirements.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <Section className="py-12 md:py-16">
+        <div className="mx-auto max-w-4xl">
+          <div className="rounded-[2rem] bg-gradient-to-br from-orange-500 to-red-500 p-8 text-center text-white md:p-12">
+            <ClipboardCheck className="mx-auto mb-6 h-12 w-12 text-orange-100" aria-hidden />
+            <h2 className="mb-4 text-2xl font-bold sm:text-3xl">{t.ctaTitle}</h2>
+            <p className="mx-auto mb-8 max-w-2xl text-lg text-orange-100">{t.ctaBody}</p>
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <a
                 href="/contact"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white text-orange-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 font-medium text-orange-600 transition hover:bg-gray-100"
               >
-                Contact Compliance Team
+                {t.contact}
+                <ArrowUpRight className="h-4 w-4" aria-hidden />
               </a>
               <a
-                href="/kitchen-owner/terms"
-                className="inline-flex items-center justify-center px-6 py-3 bg-orange-400 text-white font-medium rounded-lg border border-orange-300 hover:bg-orange-300 transition-colors"
+                href="/terms"
+                className="inline-flex items-center justify-center rounded-xl border border-orange-300 bg-orange-400 px-6 py-3 font-medium text-white transition hover:bg-orange-300"
               >
-                View Terms of Service
+                {t.terms}
               </a>
             </div>
-            <div className="mt-8 pt-6 border-t border-orange-400">
+            <div className="mt-8 border-t border-orange-400 pt-6">
               <p className="text-sm text-orange-100">
-                <Phone className="h-4 w-4 inline mr-2" />
+                <Phone className="mr-2 inline h-4 w-4" aria-hidden />
                 +971 55 915 2985 • tech@visiondrive.ae
               </p>
             </div>
