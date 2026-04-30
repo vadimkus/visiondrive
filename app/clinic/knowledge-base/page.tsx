@@ -335,6 +335,20 @@ const articlesEn: Article[] = [
     link: '/clinic/memberships',
   },
   {
+    id: 'loyalty-client-points',
+    category: 'Finance',
+    title: 'Use loyalty points for repeat clients',
+    summary: 'See derived client points from spend, repeat visits, package purchases, and referrals, then prepare reward messages.',
+    steps: [
+      'Open Loyalty from the Growth navigation.',
+      'Review points, tier, spend, completed visits, package purchases, and referral count.',
+      'Copy the reward message or open WhatsApp for high-value repeat clients.',
+      'Open the patient card before promising a discount, gift, or bonus treatment.',
+      'Use this as a manual reward workflow until a formal redemption ledger is needed.',
+    ],
+    link: '/clinic/loyalty',
+  },
+  {
     id: 'message-history',
     category: 'Messages',
     title: 'Keep message history on the patient card',
@@ -1259,6 +1273,20 @@ const articlesRu: Article[] = [
       'Подтверждайте сбор оплаты вручную, пока не подключён реальный платёжный провайдер.',
     ],
     link: '/clinic/memberships',
+  },
+  {
+    id: 'loyalty-client-points',
+    category: 'Финансы',
+    title: 'Используйте баллы лояльности для постоянных клиентов',
+    summary: 'Смотрите баллы из выручки, повторных визитов, покупок пакетов и рекомендаций, затем готовьте reward-сообщения.',
+    steps: [
+      'Откройте Лояльность в группе Рост.',
+      'Проверьте баллы, уровень, выручку, завершённые визиты, покупки пакетов и рекомендации.',
+      'Скопируйте reward-сообщение или откройте WhatsApp для ценных постоянных клиентов.',
+      'Перед обещанием скидки, подарка или бонусной процедуры откройте карту пациента.',
+      'Используйте это как ручной reward-процесс, пока не понадобится отдельный ledger списания баллов.',
+    ],
+    link: '/clinic/loyalty',
   },
   {
     id: 'message-history',
