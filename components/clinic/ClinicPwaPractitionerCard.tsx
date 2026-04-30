@@ -133,7 +133,7 @@ export function ClinicPwaPractitionerCard() {
   return (
     <section className="overflow-hidden rounded-[2rem] border border-orange-100 bg-gradient-to-br from-gray-950 via-gray-900 to-orange-950 p-4 text-white shadow-xl shadow-orange-200/40 md:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-3 md:space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-orange-100">
@@ -141,7 +141,7 @@ export function ClinicPwaPractitionerCard() {
                 {online ? t.pwaOnline : t.pwaOffline}
               </div>
               <h2 className="mt-3 text-xl font-semibold">{t.pwaPractitionerMode}</h2>
-              <p className="mt-1 max-w-xl text-sm text-orange-50/75">{t.pwaPractitionerModeHint}</p>
+              <p className="mt-1 max-w-xl text-sm leading-6 text-orange-50/75">{t.pwaPractitionerModeHint}</p>
             </div>
             {installPrompt && (
               <button
@@ -155,27 +155,27 @@ export function ClinicPwaPractitionerCard() {
             )}
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2">
             <Link
               href="/clinic/appointments"
-              className="rounded-2xl bg-white/10 p-3 text-sm font-semibold hover:bg-white/15"
+              className="flex min-h-[4.75rem] flex-col justify-between rounded-2xl bg-white/10 p-2.5 text-xs font-semibold leading-tight hover:bg-white/15 sm:p-3 sm:text-sm"
             >
-              <CalendarClock className="mb-2 h-4 w-4 text-orange-200" />
-              {t.pwaOpenToday}
+              <CalendarClock className="h-4 w-4 text-orange-200" />
+              <span>{t.pwaOpenToday}</span>
             </Link>
             <Link
               href="/clinic/appointments/new"
-              className="rounded-2xl bg-white/10 p-3 text-sm font-semibold hover:bg-white/15"
+              className="flex min-h-[4.75rem] flex-col justify-between rounded-2xl bg-white/10 p-2.5 text-xs font-semibold leading-tight hover:bg-white/15 sm:p-3 sm:text-sm"
             >
-              <Plus className="mb-2 h-4 w-4 text-orange-200" />
-              {t.newAppointment}
+              <Plus className="h-4 w-4 text-orange-200" />
+              <span>{t.newAppointment}</span>
             </Link>
             <Link
               href="/clinic/patients"
-              className="rounded-2xl bg-white/10 p-3 text-sm font-semibold hover:bg-white/15"
+              className="flex min-h-[4.75rem] flex-col justify-between rounded-2xl bg-white/10 p-2.5 text-xs font-semibold leading-tight hover:bg-white/15 sm:p-3 sm:text-sm"
             >
-              <FileText className="mb-2 h-4 w-4 text-orange-200" />
-              {t.pwaOpenPatientCard}
+              <FileText className="h-4 w-4 text-orange-200" />
+              <span>{t.pwaOpenPatientCard}</span>
             </Link>
           </div>
         </div>
@@ -228,19 +228,19 @@ export function ClinicPwaPractitionerCard() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={t.pwaOfflineDraftPlaceholder}
-              className="mt-3 min-h-28 w-full resize-none rounded-2xl border border-gray-200 p-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20"
+              className="mt-3 min-h-24 w-full resize-none rounded-2xl border border-gray-200 p-3 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 md:min-h-28"
             />
-            <div className="mt-2 flex flex-wrap items-center gap-3">
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setDraft('')}
-                className="min-h-9 rounded-xl px-2 text-xs font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-gray-200 px-3 text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               >
                 {t.pwaClearDraft}
               </button>
               <Link
                 href="/clinic/patients"
-                className="inline-flex min-h-9 items-center gap-1 rounded-xl px-2 text-xs font-semibold text-orange-700 hover:bg-orange-50 hover:text-orange-800"
+                className="inline-flex min-h-11 items-center justify-center gap-1 rounded-2xl bg-orange-50 px-3 text-xs font-semibold text-orange-800 hover:bg-orange-100"
               >
                 {t.pwaAttachLater}
                 <ArrowRight className="h-3.5 w-3.5" />

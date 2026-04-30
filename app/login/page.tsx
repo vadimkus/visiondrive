@@ -27,7 +27,7 @@ const copy = {
     missingFields: 'Please enter both email and password',
     invalidCredentials: 'Invalid credentials',
     connectionError: 'Connection error. Please try again.',
-    footer: 'Dubai · UAE',
+    footer: 'Practice OS',
   },
   ru: {
     documentTitle: 'Вход - VisionDrive Practice OS',
@@ -47,7 +47,7 @@ const copy = {
     missingFields: 'Введите email и пароль',
     invalidCredentials: 'Неверные данные для входа',
     connectionError: 'Ошибка соединения. Попробуйте снова.',
-    footer: 'Дубай · ОАЭ',
+    footer: 'Practice OS',
   },
 } as const
 

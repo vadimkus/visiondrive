@@ -123,6 +123,7 @@
 | [2026-04-30_public-prelogin-practice-audit.md](2026-04-30_public-prelogin-practice-audit.md) | Public pre-login website audit and Practice OS redirect cleanup |
 | [2026-04-30_clinic-lite-mode.md](2026-04-30_clinic-lite-mode.md) | Clinic Lite Mode toggle and simplified daily navigation |
 | [2026-04-30_clinic-guided-setup-onboarding.md](2026-04-30_clinic-guided-setup-onboarding.md) | Clinic guided setup checklist and smart empty states |
+| [2026-04-30_clinic-mobile-pwa-refinement.md](2026-04-30_clinic-mobile-pwa-refinement.md) | Clinic mobile PWA dashboard and bottom navigation refinement |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Clinic public practitioner profile page |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |

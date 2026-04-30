@@ -34,3 +34,9 @@ Backlog item 40 from the Altegio home-visit adaptation map: installable mobile a
 - iOS install guidance.
 - Dedicated mobile bottom navigation.
 - Patient-linked offline visit drafts with explicit sync/review step.
+
+## Mobile Refinement — 2026-04-30
+
+- Compressed quick actions into a three-column mobile row so the card wastes less vertical space.
+- Shortened the offline note draft on phone widths and made draft actions full-width tap targets.
+- Increased shell bottom padding and hid the floating knowledge-base shortcut on the dashboard to avoid overlap with the fixed mobile nav.

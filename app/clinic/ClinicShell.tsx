@@ -449,7 +449,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-[calc(8.75rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
         {liteMode && !litePathVisible && (
           <div className="mx-auto mb-4 max-w-7xl rounded-3xl border border-orange-100 bg-orange-50/90 p-4 text-sm text-orange-950 shadow-sm">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -467,7 +467,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         {children}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/80 bg-white/88 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl lg:hidden" aria-label={t.practiceConsole}>
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/80 bg-white/88 px-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl lg:hidden" aria-label={t.practiceConsole}>
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           {(liteMode ? liteMobileTabs : mobileTabs).map(({ href, labelKey, icon: Icon, tone }) => {
             const active = pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
@@ -486,13 +486,15 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
             )
           })}
         </div>
-        <Link
-          href="/clinic/knowledge-base"
-          className="absolute right-3 top-[-3.25rem] flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-500 shadow-xl ring-1 ring-slate-200 active:scale-95"
-          aria-label={t.knowledgeBase}
-        >
-          <Sparkles className="h-5 w-5" aria-hidden />
-        </Link>
+        {pathname !== '/clinic' && (
+          <Link
+            href="/clinic/knowledge-base"
+            className="absolute right-3 top-[-3.25rem] flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-500 shadow-xl ring-1 ring-slate-200 active:scale-95"
+            aria-label={t.knowledgeBase}
+          >
+            <Sparkles className="h-5 w-5" aria-hidden />
+          </Link>
+        )}
       </nav>
     </div>
   )
