@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
+  CheckCircle2,
+  Circle,
   Users,
   ListOrdered,
   Calendar,
@@ -22,6 +24,7 @@ import {
   Activity,
   Clock3,
   ShieldCheck,
+  X,
   Zap,
 } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
@@ -36,12 +39,16 @@ import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicPwaPractitionerCard } from '@/components/clinic/ClinicPwaPractitionerCard'
 import clsx from 'clsx'
 
+const CLINIC_ONBOARDING_DISMISSED_STORAGE = 'visiondrive-clinic-onboarding-dismissed'
+
 type Stats = {
   patientCount: number
   procedureCount: number
   appointmentToday: number
   appointmentUpcoming: number
   lowStockCount: number
+  availabilityRuleCount: number
+  whatsappTemplateCount: number
   bookingUrl: string | null
   profileUrl: string | null
   practiceName: string | null
@@ -58,6 +65,19 @@ export default function ClinicDashboardPage() {
   const [error, setError] = useState('')
   const [bookingToggleBusy, setBookingToggleBusy] = useState(false)
   const [copiedLink, setCopiedLink] = useState('')
+  const [setupDismissed, setSetupDismissed] = useState(false)
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setSetupDismissed(window.localStorage.getItem(CLINIC_ONBOARDING_DISMISSED_STORAGE) === '1')
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
+
+  function updateSetupDismissed(next: boolean) {
+    setSetupDismissed(next)
+    window.localStorage.setItem(CLINIC_ONBOARDING_DISMISSED_STORAGE, next ? '1' : '0')
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -79,6 +99,8 @@ export default function ClinicDashboardPage() {
           setStats({
             ...data,
             lowStockCount: typeof data.lowStockCount === 'number' ? data.lowStockCount : 0,
+            availabilityRuleCount: typeof data.availabilityRuleCount === 'number' ? data.availabilityRuleCount : 0,
+            whatsappTemplateCount: typeof data.whatsappTemplateCount === 'number' ? data.whatsappTemplateCount : 0,
           })
       } finally {
         if (!cancelled) setLoading(false)
@@ -207,6 +229,55 @@ export default function ClinicDashboardPage() {
     { href: '/clinic/review-analytics', label: t.reviewAnalytics, icon: MessageCircleReply },
   ]
 
+  const setupSteps = stats
+    ? [
+        {
+          href: '/clinic/account',
+          label: t.setupProfileStep,
+          description: t.setupProfileHint,
+          done: Boolean(stats.practiceName),
+          icon: ShieldCheck,
+        },
+        {
+          href: '/clinic/procedures/new',
+          label: t.setupServicesStep,
+          description: t.setupServicesHint,
+          done: stats.procedureCount > 0,
+          icon: ListOrdered,
+        },
+        {
+          href: '/clinic/appointments/availability',
+          label: t.setupAvailabilityStep,
+          description: t.setupAvailabilityHint,
+          done: stats.availabilityRuleCount > 0,
+          icon: CalendarClock,
+        },
+        {
+          href: stats.bookingUrl || '/clinic',
+          label: t.setupBookingLinkStep,
+          description: t.setupBookingLinkHint,
+          done: stats.publicBookingEnabled && stats.procedureCount > 0,
+          icon: LinkIcon,
+        },
+        {
+          href: '/clinic/reminders',
+          label: t.setupWhatsappStep,
+          description: t.setupWhatsappHint,
+          done: stats.whatsappTemplateCount > 0,
+          icon: Send,
+        },
+        {
+          href: '/clinic/patients/import',
+          label: t.setupImportClientsStep,
+          description: t.setupImportClientsHint,
+          done: stats.patientCount > 0,
+          icon: Users,
+        },
+      ]
+    : []
+  const setupCompleteCount = setupSteps.filter((step) => step.done).length
+  const setupProgress = setupSteps.length ? Math.round((setupCompleteCount / setupSteps.length) * 100) : 0
+
   return (
     <>
       <section className="min-w-0 space-y-5 lg:hidden">
@@ -243,6 +314,20 @@ export default function ClinicDashboardPage() {
         {error && <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
         <ClinicPwaPractitionerCard />
+
+        {stats && !setupDismissed && (
+          <GuidedSetupCard
+            steps={setupSteps}
+            completeCount={setupCompleteCount}
+            progress={setupProgress}
+            onDismiss={() => updateSetupDismissed(true)}
+            t={t}
+          />
+        )}
+
+        {stats && setupDismissed && (
+          <SetupReopenButton onClick={() => updateSetupDismissed(false)} t={t} />
+        )}
 
         {stats?.bookingUrl && (
           <BookingChannelLinksCard
@@ -333,6 +418,21 @@ export default function ClinicDashboardPage() {
         </div>
 
         {error && <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+
+        {stats && !setupDismissed && (
+          <GuidedSetupCard
+            steps={setupSteps}
+            completeCount={setupCompleteCount}
+            progress={setupProgress}
+            onDismiss={() => updateSetupDismissed(true)}
+            t={t}
+            desktop
+          />
+        )}
+
+        {stats && setupDismissed && (
+          <SetupReopenButton onClick={() => updateSetupDismissed(false)} t={t} />
+        )}
 
         {stats && (
           <div className="grid grid-cols-5 gap-4">
@@ -430,6 +530,140 @@ type DashboardAction = {
   icon: typeof CalendarClock
   primary?: boolean
   compact?: boolean
+}
+
+type SetupStep = {
+  href: string
+  label: string
+  description: string
+  done: boolean
+  icon: typeof Users
+}
+
+function GuidedSetupCard({
+  steps,
+  completeCount,
+  progress,
+  onDismiss,
+  t,
+  desktop = false,
+}: {
+  steps: SetupStep[]
+  completeCount: number
+  progress: number
+  onDismiss: () => void
+  t: ClinicStrings
+  desktop?: boolean
+}) {
+  const nextStep = steps.find((step) => !step.done)
+
+  return (
+    <section
+      className={clsx(
+        'relative overflow-hidden rounded-[2rem] border border-orange-100 bg-white/90 p-4 shadow-sm backdrop-blur',
+        desktop && 'p-6'
+      )}
+    >
+      <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-orange-200/60 blur-3xl" aria-hidden />
+      <div className="relative">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden />
+              {t.setupChecklistEyebrow}
+            </p>
+            <h2 className="mt-3 text-xl font-semibold tracking-tight text-slate-950">{t.setupChecklistTitle}</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">{t.setupChecklistIntro}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+            aria-label={t.setupDismiss}
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-2xl bg-slate-50 p-3">
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="font-semibold text-slate-800">
+              {t.setupProgressLabel
+                .replace('{done}', String(completeCount))
+                .replace('{total}', String(steps.length))}
+            </span>
+            <span className="font-semibold tabular-nums text-orange-700">{progress}%</span>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+            <div className="h-full rounded-full bg-orange-500 transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+          {steps.map(({ href, label, description, done, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={clsx(
+                'group rounded-2xl border p-3 transition hover:-translate-y-0.5 hover:shadow-sm',
+                done ? 'border-emerald-100 bg-emerald-50/70' : 'border-slate-200 bg-white'
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <span
+                  className={clsx(
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl',
+                    done ? 'bg-white text-emerald-600' : 'bg-orange-50 text-orange-600'
+                  )}
+                >
+                  <Icon className="h-5 w-5" aria-hidden />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold text-slate-950">{label}</span>
+                    {done ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+                    ) : (
+                      <Circle className="h-4 w-4 shrink-0 text-slate-300" aria-hidden />
+                    )}
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-500">{description}</span>
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {nextStep && (
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-orange-100 bg-orange-50/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-orange-950">
+              {t.setupNextStep}: <span className="font-semibold">{nextStep.label}</span>
+            </p>
+            <Link
+              href={nextStep.href}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition active:scale-[0.98]"
+            >
+              {t.setupContinue}
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function SetupReopenButton({ onClick, t }: { onClick: () => void; t: ClinicStrings }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-orange-100 bg-white/85 px-4 text-sm font-semibold text-orange-700 shadow-sm transition hover:bg-orange-50"
+    >
+      <Sparkles className="h-4 w-4" aria-hidden />
+      {t.setupShowAgain}
+    </button>
+  )
 }
 
 function BookingChannelLinksCard({

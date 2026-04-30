@@ -332,14 +332,23 @@ export default function ClinicPatientsPage() {
 
       {!loading && sorted.length === 0 && !error && (
         <ClinicEmptyState
-          title={debounced ? t.noMatches : t.noPatients}
+          title={debounced ? t.noMatches : t.emptyPatientsTitle}
+          description={debounced ? undefined : t.emptyPatientsHint}
           action={
-            <Link
-              href="/clinic/patients/new"
-              className="inline-flex w-full items-center justify-center min-h-11 rounded-xl bg-orange-500 text-white text-sm font-semibold"
-            >
-              {t.addPatient}
-            </Link>
+            <div className="grid gap-2">
+              <Link
+                href="/clinic/patients/import"
+                className="inline-flex w-full items-center justify-center min-h-11 rounded-xl bg-orange-500 text-white text-sm font-semibold"
+              >
+                {t.importPatients}
+              </Link>
+              <Link
+                href="/clinic/patients/new"
+                className="inline-flex w-full items-center justify-center min-h-11 rounded-xl border border-orange-200 bg-white text-orange-700 text-sm font-semibold"
+              >
+                {t.addPatient}
+              </Link>
+            </div>
           }
         />
       )}

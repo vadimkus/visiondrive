@@ -514,7 +514,7 @@ export default function ClinicAppointmentsPage() {
             <ClinicEmptyState
               icon={Calendar}
               title={t.noAppointmentsWeek}
-              description={t.tapDayToAdd}
+              description={t.emptyAppointmentsHint}
               action={
                 <Link
                   href="/clinic/appointments/new"
@@ -764,7 +764,7 @@ export default function ClinicAppointmentsPage() {
         <ClinicEmptyState
           icon={Calendar}
           title={t.noAppointmentsWeek}
-          description={t.tapDayToAdd}
+          description={t.emptyAppointmentsHint}
           action={
             <Link
               href="/clinic/appointments/new"

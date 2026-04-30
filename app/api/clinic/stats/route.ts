@@ -17,7 +17,17 @@ export async function GET(request: NextRequest) {
   endOfDay.setDate(endOfDay.getDate() + 1)
 
   try {
-    const [tenant, procedures, patientCount, procedureCount, appointmentToday, appointmentUpcoming, stockItems] =
+    const [
+      tenant,
+      procedures,
+      patientCount,
+      procedureCount,
+      appointmentToday,
+      appointmentUpcoming,
+      stockItems,
+      availabilityRuleCount,
+      whatsappTemplateCount,
+    ] =
       await Promise.all([
         prisma.tenant.findFirst({
           where: { id: tenantId },
@@ -49,6 +59,8 @@ export async function GET(request: NextRequest) {
           where: { tenantId, active: true },
           select: { quantityOnHand: true, reorderPoint: true, active: true },
         }),
+        prisma.clinicAvailabilityRule.count({ where: { tenantId, active: true } }),
+        prisma.clinicReminderTemplate.count({ where: { tenantId, active: true, channel: 'WHATSAPP' } }),
       ])
 
     const lowStockCount = stockItems.filter((i) => isClinicStockLow(i)).length
@@ -66,6 +78,8 @@ export async function GET(request: NextRequest) {
       bookingProcedures: procedures,
       publicBookingEnabled: publicBooking.enabled,
       publicBookingConfirmationMode: publicBooking.confirmationMode,
+      availabilityRuleCount,
+      whatsappTemplateCount,
     })
   } catch (e) {
     console.error('GET /api/clinic/stats', e)

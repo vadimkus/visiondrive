@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Plus, Trash2 } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
+import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
 
 type Procedure = {
   id: string
@@ -901,9 +902,18 @@ export default function ClinicProceduresPage() {
             )
           })}
         {procedures.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-sm text-gray-500">
-            {t.noProceduresEmpty}
-          </div>
+          <ClinicEmptyState
+            title={t.emptyProceduresTitle}
+            description={t.emptyProceduresHint}
+            action={
+              <Link
+                href="/clinic/procedures/new"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white hover:bg-orange-600"
+              >
+                {t.addProcedure}
+              </Link>
+            }
+          />
         )}
       </div>
     </div>
