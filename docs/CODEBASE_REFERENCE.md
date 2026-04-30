@@ -32,7 +32,7 @@ VisionDrive/
 ├── docs/
 │   └── clinic/               # Current product documentation
 ├── public/                   # Static assets
-└── middleware.ts             # Route protection (Next proxy migration pending)
+└── proxy.ts                  # Route protection and legacy portal quarantine
 ```
 
 ## Technology Stack
@@ -54,6 +54,7 @@ VisionDrive/
 - Public booking: `/book/[slug]`
 - Patient portal: `/patient-portal/[token]`
 - Disabled public profile route: `/profile/[slug]`
+- Legacy portal route: `/portal/*` redirects to `/clinic`; `/api/portal/*` returns `410`
 
 ## Main API Areas
 

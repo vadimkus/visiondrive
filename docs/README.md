@@ -130,6 +130,7 @@
 | [2026-04-30_clinic-mobile-header-footer-refinement.md](2026-04-30_clinic-mobile-header-footer-refinement.md) | Clinic logged-in mobile header and footer active-state refinement |
 | [2026-04-30_clinic-completion-sweep.md](2026-04-30_clinic-completion-sweep.md) | Practice OS completion sweep and remaining launch cleanup |
 | [2026-04-30_clinic-ru-localization-sweep.md](2026-04-30_clinic-ru-localization-sweep.md) | Practice OS Russian localization sweep and fixes |
+| [2026-04-30_practice-os-runtime-smoke.md](2026-04-30_practice-os-runtime-smoke.md) | Practice OS runtime smoke test results after RU localization |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
