@@ -307,6 +307,20 @@ const articlesEn: Article[] = [
     link: '/clinic/whatsapp-assistant',
   },
   {
+    id: 'marketing-automation-builder',
+    category: 'Messages',
+    title: 'Build manual marketing campaigns',
+    summary: 'Use live patient segments for reactivation, repeat visits, birthdays, package balances, service follow-ups, tags, and no-show recovery.',
+    steps: [
+      'Open Marketing from the sidebar.',
+      'Choose a segment: tag, service, last visit, package balance, birthday, dormant, or no-show recovery.',
+      'Adjust tag/service/day filters to narrow the list.',
+      'Review the generated WhatsApp copy for each patient, then copy or open WhatsApp manually.',
+      'Open the patient card when you need context before sending.',
+    ],
+    link: '/clinic/marketing',
+  },
+  {
     id: 'message-history',
     category: 'Messages',
     title: 'Keep message history on the patient card',
@@ -1203,6 +1217,20 @@ const articlesRu: Article[] = [
       'Проверьте предпросмотр, затем сохраните его в историю пациента и откройте WhatsApp. Финальная отправка остаётся ручной.',
     ],
     link: '/clinic/whatsapp-assistant',
+  },
+  {
+    id: 'marketing-automation-builder',
+    category: 'Сообщения',
+    title: 'Собирайте ручные маркетинг-кампании',
+    summary: 'Используйте живые сегменты пациентов для реактивации, повторных визитов, дней рождения, пакетов, услуг, тегов и no-show.',
+    steps: [
+      'Откройте Маркетинг в боковом меню.',
+      'Выберите сегмент: тег, услуга, последний визит, баланс пакета, день рождения, спящие клиенты или no-show.',
+      'Настройте фильтры тега, услуги и дней, чтобы сузить список.',
+      'Проверьте WhatsApp-текст для каждого пациента, затем скопируйте или откройте WhatsApp вручную.',
+      'Откройте карту пациента, если перед отправкой нужен контекст.',
+    ],
+    link: '/clinic/marketing',
   },
   {
     id: 'message-history',

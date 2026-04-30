@@ -123,6 +123,7 @@
 | [2026-04-29_clinic-workspace-layout-alignment.md](2026-04-29_clinic-workspace-layout-alignment.md) | Clinic workspace centered layout alignment |
 | [2026-04-29_clinic-client-wallet.md](2026-04-29_clinic-client-wallet.md) | Clinic client wallet in the patient portal |
 | [2026-04-29_clinic-whatsapp-ai-receptionist-v2.md](2026-04-29_clinic-whatsapp-ai-receptionist-v2.md) | Clinic WhatsApp AI receptionist v2 |
+| [2026-04-30_clinic-marketing-automation-builder.md](2026-04-30_clinic-marketing-automation-builder.md) | Clinic marketing automation builder |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |
