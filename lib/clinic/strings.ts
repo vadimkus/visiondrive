@@ -93,6 +93,7 @@ const table = {
     copyFailed: 'Could not copy. Please copy the link manually.',
     knowledgeBase: 'Knowledge base',
     account: 'Account',
+    adminTools: 'Admin tools',
     signOut: 'Sign out',
     loading: 'Loading…',
     retry: 'Retry',
@@ -3466,6 +3467,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   patientPortalRequestCancel: 'Запрос на отмену',
   patientPortalRequestMessage: 'Сообщение пациента',
   patientPortalPreferredTime: 'Желаемое время',
+  adminTools: 'Админ',
 }
 
 export function clinicStrings(locale: ClinicLocale): ClinicStrings {

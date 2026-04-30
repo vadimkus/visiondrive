@@ -1,5 +1,23 @@
 # Implementation log (clinic)
 
+## Chunk 48 — 2026-04-30 (admin tools)
+
+**Shipped**
+
+- `/clinic/admin-tools` admin-only workspace tab.
+- `GET/POST /api/clinic/admin/users` for tenant-scoped user listing, creation/linking, and admin stats.
+- `PATCH/DELETE /api/clinic/admin/users/[id]` for name/role updates, password resets, reactivation, and safe access removal.
+- Server guard in `lib/clinic/admin.ts` verifies active tenant membership and limits access to `MASTER_ADMIN`, `ADMIN`, or `CUSTOMER_ADMIN`.
+- Uses existing `users`, `tenant_memberships`, and `audit_logs`; no duplicate user-management tables.
+
+**Safety**
+
+- Delete is soft removal from the practice, not destructive user/history deletion.
+- Admins cannot remove themselves or remove/demote the last active admin.
+- Non-master admins cannot manage `MASTER_ADMIN` accounts.
+
+---
+
 ## Chunk 1 — 2026-04-23
 
 **Shipped**

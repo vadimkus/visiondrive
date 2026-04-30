@@ -27,6 +27,7 @@ import {
   Repeat,
   Share2,
   Send,
+  ShieldAlert,
   ShieldPlus,
   Sparkles,
   Star,
@@ -35,9 +36,11 @@ import {
   Bot,
   Trophy,
   LogOut,
+  Menu,
   Target,
   UserCircle,
   ChevronDown,
+  X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import clsx from 'clsx'
@@ -85,6 +88,7 @@ const nav: PracticeNavItem[] = [
   { href: '/clinic/review-analytics', labelKey: 'reviewAnalytics', icon: MessageCircleHeart, tone: 'pink' },
   { href: '/clinic/knowledge-base', labelKey: 'knowledgeBase', icon: BookOpen, tone: 'blue' },
   { href: '/clinic/account', labelKey: 'account', icon: ShieldPlus, tone: 'indigo' },
+  { href: '/clinic/admin-tools', labelKey: 'adminTools', icon: ShieldAlert, tone: 'violet' },
 ]
 
 const mobileTabs: PracticeNavItem[] = [
@@ -236,7 +240,9 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
   const router = useRouter()
   const { locale, setLocale, t } = useClinicLocale()
   const [liteMode, setLiteMode] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [practitionerIdentity, setPractitionerIdentity] = useState<ClinicPractitionerIdentity | null>(null)
+  const [currentRole, setCurrentRole] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -251,6 +257,9 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         }
         if (!cancelled && data?.practitionerIdentity) {
           setPractitionerIdentity(data.practitionerIdentity)
+        }
+        if (!cancelled && data?.user?.role) {
+          setCurrentRole(String(data.user.role))
         }
       } catch {
         // Local storage remains the fallback when the preference endpoint is unavailable.
@@ -275,13 +284,29 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
 
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    setMobileMenuOpen(false)
     router.push('/login')
     router.refresh()
   }
 
-  const litePathVisible = Array.from(liteNavHrefs).some(
-    (href) => pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
-  )
+  const isAdmin = ['MASTER_ADMIN', 'ADMIN', 'CUSTOMER_ADMIN'].includes(currentRole || '')
+  const adminNavItem = navByHref.get('/clinic/admin-tools')
+  const visibleSystemNav = isAdmin
+    ? systemNav
+    : systemNav.filter((item) => item.href !== '/clinic/admin-tools')
+  const visibleMobileTabs =
+    isAdmin && adminNavItem
+      ? [mobileTabs[0]!, mobileTabs[1]!, mobileTabs[2]!, mobileTabs[4]!, adminNavItem]
+      : mobileTabs
+  const visibleLiteMobileTabs =
+    isAdmin && adminNavItem
+      ? [liteMobileTabs[0]!, liteMobileTabs[1]!, liteMobileTabs[2]!, liteMobileTabs[3]!, adminNavItem]
+      : liteMobileTabs
+  const litePathVisible =
+    Array.from(liteNavHrefs).some(
+      (href) => pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
+    ) ||
+    (isAdmin && (pathname === '/clinic/admin-tools' || pathname.startsWith('/clinic/admin-tools/')))
   const practitionerName = practitionerIdentity?.displayName?.trim() || ''
   const workspaceTitle = practitionerName
     ? t.workspacePersonalTitle.replace('{name}', practitionerName)
@@ -290,6 +315,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
     [practitionerIdentity?.professionalTitle, practitionerIdentity?.specialty]
       .filter(Boolean)
       .join(' · ') || t.practiceOsBrand
+  const mobileMenuNav = liteMode ? liteCommandNav : [...commandNav, ...growthNav, ...visibleSystemNav]
 
   const renderNavGroup = (items: typeof nav, title: string) => (
     <div className="space-y-1">
@@ -360,23 +386,24 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       dir="ltr"
       lang={locale}
     >
-      <header className="sticky top-0 z-40 border-b border-white/70 bg-white/80 px-4 py-3 backdrop-blur-2xl safe-area-top lg:hidden">
+      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 px-5 backdrop-blur-xl safe-area-top lg:hidden">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/clinic" className="flex min-h-11 min-w-0 items-center gap-3" aria-label={t.dashboard}>
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-orange-100">
+          <Link
+            href="/clinic"
+            className="flex h-16 min-w-0 items-center gap-2.5"
+            aria-label={t.dashboard}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden">
               <Logo className="h-9 w-9" priority />
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-[15px] font-semibold leading-tight text-slate-950">
-                {workspaceTitle}
+              <span className="block truncate text-[17px] font-semibold leading-tight text-slate-950">
+                Vision<span className="text-orange-500">Drive</span>
               </span>
-              <span className="block truncate text-xs text-slate-500">{workspaceSubtitle}</span>
             </span>
           </Link>
-          <div className="flex shrink-0 items-center gap-2">
-            <div className="w-[5.75rem] sm:w-[8.5rem]">
-              {modeToggle(true)}
-            </div>
+          <div className="flex shrink-0 items-center gap-1">
             <label className="sr-only" htmlFor="clinic-mobile-language">
               {t.language}
             </label>
@@ -385,27 +412,74 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
                 id="clinic-mobile-language"
                 value={locale}
                 onChange={(event) => setLocale(event.target.value === 'ru' ? 'ru' : 'en')}
-                className="min-h-11 appearance-none rounded-2xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-xs font-semibold text-slate-700 shadow-sm outline-none transition focus:ring-2 focus:ring-orange-500/30"
+                className="h-10 appearance-none rounded-full border-0 bg-transparent py-2 pl-2 pr-6 text-[15px] font-semibold text-sky-600 outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-orange-500/20"
                 aria-label={t.language}
               >
                 <option value="en">EN</option>
                 <option value="ru">RU</option>
               </select>
               <ChevronDown
-                className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sky-500"
                 aria-hidden
               />
             </div>
             <Link
               href="/clinic/account"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-sm transition active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-orange-500 transition hover:bg-orange-50 active:scale-95"
               aria-label={t.yourAccount}
+              onClick={() => setMobileMenuOpen(false)}
             >
-              <UserCircle className="h-5 w-5" aria-hidden />
+              <UserCircle className="h-6 w-6" aria-hidden />
             </Link>
+            <button
+              type="button"
+              onClick={logout}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-red-50 hover:text-red-500 active:scale-95"
+              aria-label={t.signOut}
+            >
+              <LogOut className="h-6 w-6" aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-label={mobileMenuOpen ? t.close : t.practiceConsole}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 active:scale-95"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden /> : <Menu className="h-6 w-6" aria-hidden />}
+            </button>
           </div>
         </div>
       </header>
+
+      {mobileMenuOpen && (
+        <div className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-slate-100 bg-white/96 px-5 pb-6 pt-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl lg:hidden">
+          <div className="mx-auto max-w-md space-y-4">
+            {modeToggle()}
+            <nav className="grid grid-cols-2 gap-2" aria-label={t.practiceConsole}>
+              {mobileMenuNav.map(({ href, labelKey, icon: Icon, tone }) => {
+                const active = pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={clsx(
+                      'group flex min-h-12 items-center gap-3 rounded-2xl border px-3 text-sm font-semibold transition active:scale-[0.98]',
+                      active
+                        ? 'border-orange-200 bg-orange-50 text-orange-700'
+                        : 'border-slate-100 bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50'
+                    )}
+                  >
+                    <PracticeNavIcon Icon={Icon} active={active} tone={tone} />
+                    <span className="min-w-0 truncate">{t[labelKey]}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
+        </div>
+      )}
 
       <aside className="sticky top-0 hidden h-[100dvh] w-[18rem] shrink-0 border-r border-white/70 bg-white/72 p-4 shadow-[inset_-1px_0_0_rgba(255,255,255,0.7)] backdrop-blur-2xl lg:flex lg:flex-col">
         <Link href="/clinic" className="flex min-h-12 items-center gap-3 rounded-3xl px-2" aria-label={t.dashboard}>
@@ -429,7 +503,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
             <>
               {renderNavGroup(commandNav, t.navGroupCommand)}
               {renderNavGroup(growthNav, t.navGroupGrowth)}
-              {renderNavGroup(systemNav, t.navGroupSystem)}
+              {renderNavGroup(visibleSystemNav, t.navGroupSystem)}
             </>
           )}
         </nav>
@@ -482,7 +556,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/80 bg-white/88 px-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl lg:hidden" aria-label={t.practiceConsole}>
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
-          {(liteMode ? liteMobileTabs : mobileTabs).map(({ href, labelKey, icon: Icon, tone }) => {
+          {(liteMode ? visibleLiteMobileTabs : visibleMobileTabs).map(({ href, labelKey, icon: Icon, tone }) => {
             const active = pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
             return (
               <Link
@@ -490,10 +564,20 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
                 href={href}
                 className={clsx(
                   'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-semibold transition active:scale-95',
-                  active ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/15' : 'text-slate-500 active:bg-slate-100'
+                  active
+                    ? 'bg-orange-50 text-orange-700 ring-1 ring-orange-100 shadow-sm'
+                    : 'text-slate-500 active:bg-slate-100'
                 )}
               >
-                <PracticeNavIcon Icon={Icon} active={active} tone={tone} compact />
+                <span
+                  className={clsx(
+                    'flex h-8 w-8 items-center justify-center rounded-2xl transition-colors',
+                    active ? 'bg-white text-orange-600 shadow-sm' : 'bg-slate-50 text-slate-500'
+                  )}
+                  aria-hidden
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
                 <span className="max-w-full truncate">{t[labelKey]}</span>
               </Link>
             )

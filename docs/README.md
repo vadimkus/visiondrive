@@ -111,6 +111,7 @@
 | [2026-04-29_altegio-support-cross-check.md](2026-04-29_altegio-support-cross-check.md) | Altegio support scope cross-check and Practice OS completion status |
 | [2026-04-30_altegio-support-hard-audit.md](2026-04-30_altegio-support-hard-audit.md) | Altegio support hard audit and solo-practitioner feature recommendations |
 | [2026-04-30_clinic-private-practitioner-identity.md](2026-04-30_clinic-private-practitioner-identity.md) | Clinic private practitioner identity and workspace personalization |
+| [2026-04-30_clinic-admin-tools.md](2026-04-30_clinic-admin-tools.md) | Clinic admin-only user management tools |
 | [2026-04-29_clinic-patient-list-identity-ui.md](2026-04-29_clinic-patient-list-identity-ui.md) | Clinic patient list identity-first card UI |
 | [2026-04-29_clinic-workspace-layout-alignment.md](2026-04-29_clinic-workspace-layout-alignment.md) | Clinic workspace centered layout alignment |
 | [2026-04-29_clinic-client-wallet.md](2026-04-29_clinic-client-wallet.md) | Clinic client wallet in the patient portal |
@@ -126,6 +127,7 @@
 | [2026-04-30_clinic-lite-mode.md](2026-04-30_clinic-lite-mode.md) | Clinic Lite Mode toggle and simplified daily navigation |
 | [2026-04-30_clinic-guided-setup-onboarding.md](2026-04-30_clinic-guided-setup-onboarding.md) | Clinic guided setup checklist and smart empty states |
 | [2026-04-30_clinic-mobile-pwa-refinement.md](2026-04-30_clinic-mobile-pwa-refinement.md) | Clinic mobile PWA dashboard and bottom navigation refinement |
+| [2026-04-30_clinic-mobile-header-footer-refinement.md](2026-04-30_clinic-mobile-header-footer-refinement.md) | Clinic logged-in mobile header and footer active-state refinement |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |

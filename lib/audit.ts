@@ -1,7 +1,14 @@
 import { NextRequest } from 'next/server'
 import { sql } from '@/lib/sql'
-import type { PortalSession } from '@/lib/portal/session'
 import { randomUUID } from 'crypto'
+
+type AuditSession = {
+  userId: string
+  email?: string
+  name?: string | null
+  role?: string
+  tenantId: string
+}
 
 function getIp(request: NextRequest) {
   const xf = request.headers.get('x-forwarded-for') || ''
@@ -11,7 +18,7 @@ function getIp(request: NextRequest) {
 
 export async function writeAuditLog(params: {
   request: NextRequest
-  session?: PortalSession | null
+  session?: AuditSession | null
   tenantId?: string | null
   action: string
   entityType: string

@@ -68,6 +68,7 @@ VisionDrive/
 | Payments and finance | `/api/clinic/payments/*`, `/api/clinic/finance/*` |
 | Marketing and loyalty | `/api/clinic/marketing/*`, `/api/clinic/loyalty/*` |
 | Portal links | `/api/clinic/patient-portal/*` |
+| Admin tools | `/api/clinic/admin/users`, `/api/clinic/admin/users/[id]` |
 
 ## Related Documentation
 
