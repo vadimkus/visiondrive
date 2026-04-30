@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
       appointmentUpcoming,
       lowStockCount,
       bookingUrl: tenant?.slug ? `/book/${tenant.slug}` : null,
+      profileUrl: tenant?.slug ? `/profile/${tenant.slug}` : null,
       practiceName: tenant?.name ?? null,
       bookingProcedures: procedures,
       publicBookingEnabled: publicBooking.enabled,

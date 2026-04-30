@@ -43,6 +43,7 @@ type Stats = {
   appointmentUpcoming: number
   lowStockCount: number
   bookingUrl: string | null
+  profileUrl: string | null
   practiceName: string | null
   bookingProcedures: Array<{ id: string; name: string }>
   publicBookingEnabled: boolean
@@ -246,6 +247,7 @@ export default function ClinicDashboardPage() {
         {stats?.bookingUrl && (
           <BookingChannelLinksCard
             bookingEnabled={stats.publicBookingEnabled}
+            profileUrl={stats.profileUrl}
             copiedLink={copiedLink}
             channelUrl={channelUrl}
             copyText={copyText}
@@ -402,6 +404,7 @@ export default function ClinicDashboardPage() {
         {stats?.bookingUrl && (
           <BookingChannelLinksCard
             bookingEnabled={stats.publicBookingEnabled}
+            profileUrl={stats.profileUrl}
             copiedLink={copiedLink}
             channelUrl={channelUrl}
             copyText={copyText}
@@ -431,6 +434,7 @@ type DashboardAction = {
 
 function BookingChannelLinksCard({
   bookingEnabled,
+  profileUrl,
   copiedLink,
   channelUrl,
   copyText,
@@ -443,6 +447,7 @@ function BookingChannelLinksCard({
   desktop = false,
 }: {
   bookingEnabled: boolean
+  profileUrl: string | null
   copiedLink: string
   channelUrl: (channel: BookingChannel, procedureId?: string | null) => string
   copyText: (value: string, label: string) => Promise<void>
@@ -497,7 +502,17 @@ function BookingChannelLinksCard({
         </div>
       </div>
 
-      <div className="mt-4 grid min-w-0 gap-2 md:grid-cols-3">
+      <div className="mt-4 grid min-w-0 gap-2 md:grid-cols-4">
+        {profileUrl && (
+          <button
+            type="button"
+            onClick={() => void copyText(new URL(profileUrl, window.location.origin).toString(), t.publicProfileLink)}
+            className="min-w-0 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-left text-sm transition hover:border-orange-300 hover:shadow-sm"
+          >
+            <span className="block truncate font-semibold text-orange-800">{t.publicProfileLink}</span>
+            <span className="mt-1 block min-w-0 truncate text-xs text-orange-700">{profileUrl}</span>
+          </button>
+        )}
         {channels.map((channel) => {
           const label = bookingChannelLabel(channel)
           const url = channelUrl(channel)

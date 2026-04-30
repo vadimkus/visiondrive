@@ -126,6 +126,7 @@
 | [2026-04-30_clinic-marketing-automation-builder.md](2026-04-30_clinic-marketing-automation-builder.md) | Clinic marketing automation builder |
 | [2026-04-30_clinic-memberships-subscriptions-autopay.md](2026-04-30_clinic-memberships-subscriptions-autopay.md) | Clinic memberships, subscriptions, and autopay |
 | [2026-04-30_clinic-loyalty-client-points.md](2026-04-30_clinic-loyalty-client-points.md) | Clinic loyalty and client points |
+| [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Clinic public practitioner profile page |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
 | [2026-04-27_clinic-service-intake-fields.md](2026-04-27_clinic-service-intake-fields.md) | Clinic service-specific public intake fields note |
