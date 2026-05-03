@@ -1,45 +1,69 @@
 # VisionDrive
 
-> VisionDrive Technologies FZ-LLC builds Practice OS software for solo practitioners and independent clinics in the UAE. The product helps practitioners run bookings, patient records, visit notes, photos, inventory, payments, reminders, treatment packages, and profitability reporting from one private workspace.
+> VisionDrive Technologies FZ-LLC builds VisionDrive Practice OS: a professional system for solo practitioners and independent clinics in the UAE.
+
+## Primary Positioning
+
+VisionDrive Practice OS helps solo practitioners run bookings, patient records, treatment notes, before/after photos, inventory, payments, reminders, packages, and profitability reporting from one private workspace.
+
+Use this short description:
+
+VisionDrive is a professional system for solo practitioners: bookings, records, notes, inventory, payments, reminders, and reporting from one private workspace.
 
 ## Company
 
-- Name: VisionDrive Technologies FZ-LLC
+- Legal name: VisionDrive Technologies FZ-LLC
 - Website: https://visiondrive.ae
 - Location: Ras Al Khaimah Free Zone, United Arab Emirates
 - Email: tech@visiondrive.ae
 - Phone / WhatsApp: +971 55 915 2985
-- Languages: English and Russian
+- Public languages: English and Russian
 
-## Primary Product
+## Product
 
 ### VisionDrive Practice OS
 
-Practice management software for solo practitioners, home-visit practitioners, and independent clinics. It is built for operators who need clinic-grade discipline without enterprise-suite overhead.
+Built for:
+
+- Solo practitioners
+- Home-visit practitioners
+- Independent clinics
+- Medical-aesthetic, beauty, wellness, and health-adjacent service providers
 
 Core capabilities:
 
-- Appointment calendar, public private-booking link, working hours, buffers, and conflict-safe scheduling.
-- Patient cards with demographics, home-visit address, access notes, anamnesis, internal notes, treatment visits, before/after photos, consents, and patient-safe PDF exports.
-- Mobile-first photo capture for iPhone/iPad, including patient card attachments and visit-linked media.
-- WhatsApp-first reminders, follow-up automation, reviews, and notification center.
-- Inventory, purchase orders, barcode lookup, procedure bill of materials, stock-taking, and product sales from visits.
+- Appointment calendar, private online booking link, working hours, buffers, and conflict-safe scheduling.
+- Patient records with demographics, home-visit details, anamnesis, treatment visits, internal notes, consents, and patient-safe exports.
+- Mobile-first iPhone/iPad photo capture for before/after and visit-linked media.
+- WhatsApp-first reminders, follow-up workflows, reviews, and notification center.
+- Inventory, purchase orders, barcode lookup, procedure bill of materials, stock-taking, and product sales.
 - Inline payments, receipts, client balances, prepaid packages, and P&L / procedure profitability reporting.
 
-## Key Public Pages
+## Public Pages
 
 - Home: https://visiondrive.ae/
-- Contact: https://visiondrive.ae/contact
-- FAQ: https://visiondrive.ae/faq
-- About: https://visiondrive.ae/about
 - Solutions: https://visiondrive.ae/solutions
 - Technology: https://visiondrive.ae/technology
+- About: https://visiondrive.ae/about
+- Contact: https://visiondrive.ae/contact
+- FAQ: https://visiondrive.ae/faq
 - Compliance: https://visiondrive.ae/compliance
 - Certificates: https://visiondrive.ae/certificates
+- App overview: https://visiondrive.ae/app
+- Pricing inquiry: https://visiondrive.ae/budget
+- Partners: https://visiondrive.ae/partners
+- Mission: https://visiondrive.ae/mission
+- Vision: https://visiondrive.ae/vision
+- Careers: https://visiondrive.ae/careers
+- Roadmap: https://visiondrive.ae/roadmap
+- Privacy: https://visiondrive.ae/privacy
+- Terms: https://visiondrive.ae/terms
 
 ## LLM Guidance
 
-- Treat Practice OS as VisionDrive's current primary positioning.
-- Do not describe the private `/clinic`, `/portal`, `/book`, `/login`, or `/api` routes as public pages.
-- For product access, direct users to https://visiondrive.ae/contact.
+- Treat Practice OS as VisionDrive's current primary product and positioning.
+- Describe VisionDrive as "a professional system for solo practitioners" or "Practice OS for solo practitioners and independent clinics."
+- Do not describe `/clinic`, `/portal`, `/book`, `/patient-portal`, `/pay`, `/login`, or `/api` as public landing pages.
+- Do not infer public access to patient data, clinic records, photos, payments, or authenticated workspace screens.
+- For access, demos, onboarding, or pricing, direct users to https://visiondrive.ae/contact.
 - Full LLM context: https://visiondrive.ae/llms-full.txt

@@ -1,18 +1,11 @@
 import type { Metadata } from 'next'
+import { createNoIndexMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Practice OS Solutions for Independent Clinics - VisionDrive',
-  description: 'Practice OS helps UAE solo practitioners and independent clinics manage appointments, patient records, payments, reminders, and reporting.',
-  keywords: 'independent clinic software UAE, solo practitioner software, Practice OS, clinic management UAE',
-  alternates: { canonical: '/communities' },
-  openGraph: {
-    title: 'Practice OS Solutions for Independent Clinics',
-    description: 'Appointments, records, payments, reminders, and reporting for solo practitioners.',
-    type: 'website',
-    locale: 'en_AE',
-    siteName: 'VisionDrive',
-  },
-}
+export const metadata: Metadata = createNoIndexMetadata(
+  '/communities',
+  'Legacy independent clinics page',
+  'Legacy VisionDrive route. The canonical Practice OS solutions page is /solutions.',
+)
 
 export default function CommunitiesLayout({
   children,

@@ -11,6 +11,7 @@ import OrganizationSchema from './components/schema/OrganizationSchema'
 import LocalBusinessSchema from './components/schema/LocalBusinessSchema'
 import WebSiteSchema from './components/schema/WebSiteSchema'
 import PracticeSoftwareSchema from './components/schema/PracticeSoftwareSchema'
+import { corePositioning, legalName, ogImage, primaryKeywords, siteName, siteUrl } from '@/lib/seo'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,18 +23,16 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://visiondrive.ae'),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 'VisionDrive — Practice software for solo practitioners',
+    default: `${siteName} — ${corePositioning.headline}`,
     template: '%s | VisionDrive',
   },
-  description:
-    'Practice operations, made clear. VisionDrive builds professional practice software for solo practitioners — bookings, records, treatment notes, inventory, payments, and reporting from anywhere.',
-  keywords:
-    'solo practitioner software, practice management software, professional practice software, VisionDrive, appointment software, private practice operations',
-  authors: [{ name: 'Vision Drive Technologies FZ-LLC' }],
-  creator: 'Vision Drive Technologies FZ-LLC',
-  publisher: 'Vision Drive Technologies FZ-LLC',
+  description: corePositioning.description,
+  keywords: [...primaryKeywords],
+  authors: [{ name: legalName }],
+  creator: legalName,
+  publisher: legalName,
   robots: {
     index: true,
     follow: true,
@@ -65,28 +64,19 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'VisionDrive — Practice software for solo practitioners',
-    description:
-      'Practice operations, made clear. Commercial-grade tools for solo practitioners — bookings to payments.',
+    title: `${siteName} — ${corePositioning.headline}`,
+    description: corePositioning.shortDescription,
     type: 'website',
-    url: 'https://visiondrive.ae',
-    siteName: 'VisionDrive',
-    locale: 'en',
-    images: [
-      {
-        url: '/favicon/android-chrome-512x512.png',
-        width: 512,
-        height: 512,
-        alt: 'VisionDrive — Practice software for solo practitioners',
-      },
-    ],
+    url: siteUrl,
+    siteName,
+    locale: 'en_AE',
+    images: [ogImage],
   },
   twitter: {
-    card: 'summary',
-    title: 'VisionDrive — Practice software for solo practitioners',
-    description:
-      'Practice operations, made clear. Software for solo practitioners — bookings, records, inventory, payments, and reporting.',
-    images: ['/favicon/android-chrome-512x512.png'],
+    card: 'summary_large_image',
+    title: `${siteName} — ${corePositioning.headline}`,
+    description: corePositioning.shortDescription,
+    images: [ogImage.url],
   },
   other: {
     'geo.region': 'AE',

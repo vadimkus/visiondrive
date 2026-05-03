@@ -1,40 +1,50 @@
+import { absoluteUrl, corePositioning, legalName, publicLanguages, siteUrl } from '@/lib/seo'
+
 export default function PracticeSoftwareSchema() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    '@id': 'https://visiondrive.ae/#practice-software',
-    name: 'VisionDrive Practice OS',
+    '@id': `${siteUrl}/#practice-software`,
+    name: corePositioning.productName,
+    alternateName: corePositioning.headline,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web, iOS Safari, iPadOS Safari, Android Chrome',
-    url: 'https://visiondrive.ae',
-    description:
-      'Practice management software for solo practitioners and independent private practices: bookings, patient records, treatment notes, photos, inventory, payments, reminders, packages, and profitability reporting.',
+    url: siteUrl,
+    description: corePositioning.description,
     creator: {
       '@type': 'Organization',
-      name: 'VisionDrive Technologies FZ-LLC',
-      url: 'https://visiondrive.ae',
+      name: legalName,
+      url: siteUrl,
     },
-    areaServed: 'Global',
+    areaServed: {
+      '@type': 'Country',
+      name: 'United Arab Emirates',
+    },
     audience: {
       '@type': 'Audience',
-      audienceType: 'Solo practitioners, home-visit practitioners, independent private practices',
+      audienceType: 'Solo practitioners, home-visit practitioners, independent clinics',
+      geographicArea: {
+        '@type': 'Country',
+        name: 'United Arab Emirates',
+      },
     },
     offers: {
       '@type': 'Offer',
       availability: 'https://schema.org/LimitedAvailability',
       category: 'Private onboarding',
-      url: 'https://visiondrive.ae/contact',
+      url: absoluteUrl('/contact'),
     },
     featureList: [
-      'Appointments and online booking',
-      'Patient records and visit notes',
+      'Appointment calendar and private online booking link',
+      'Patient records, anamnesis, and visit notes',
       'Before and after photo attachments',
       'Inventory and procedure bill of materials',
       'Inline payments, receipts, packages, and client balances',
       'Reminders, reviews, and follow-up workflows',
       'P&L and procedure profitability reporting',
+      'Patient-safe exports and private patient portal links',
     ],
-    inLanguage: ['en', 'ru'],
+    inLanguage: publicLanguages,
   }
 
   return (

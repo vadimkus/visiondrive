@@ -1,13 +1,14 @@
+import { absoluteUrl, corePositioning, legalName, siteUrl } from '@/lib/seo'
+
 export default function LocalBusinessSchema() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
-    '@id': 'https://visiondrive.ae/#localbusiness',
-    name: 'VisionDrive Technologies FZ-LLC',
-    url: 'https://visiondrive.ae',
-    image: 'https://visiondrive.ae/favicon/android-chrome-512x512.png',
-    description:
-      'VisionDrive — practice operations, made clear. Business software for solo practitioners and independent service providers.',
+    '@id': `${siteUrl}/#localbusiness`,
+    name: legalName,
+    url: siteUrl,
+    image: absoluteUrl('/opengraph-image'),
+    description: corePositioning.description,
     telephone: '+971559152985',
     email: 'tech@visiondrive.ae',
     address: {

@@ -1,12 +1,15 @@
+import { absoluteUrl, corePositioning, legalName, publicLanguages, siteName, siteUrl } from '@/lib/seo'
+
 export default function OrganizationSchema() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'VisionDrive Technologies FZ-LLC',
-    url: 'https://visiondrive.ae',
-    logo: 'https://visiondrive.ae/favicon/android-chrome-512x512.png',
-    description:
-      'VisionDrive — practice operations, made clear. Professional software for solo practitioners: bookings, records, inventory, payments, and reporting.',
+    '@id': `${siteUrl}/#organization`,
+    name: legalName,
+    alternateName: siteName,
+    url: siteUrl,
+    logo: absoluteUrl('/favicon/android-chrome-512x512.png'),
+    description: corePositioning.description,
     email: 'tech@visiondrive.ae',
     telephone: '+971559152985',
     address: {
@@ -18,9 +21,20 @@ export default function OrganizationSchema() {
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+971559152985',
-      contactType: 'sales',
+      contactType: 'sales and product onboarding',
       availableLanguage: ['English', 'Russian'],
       areaServed: 'AE',
+    },
+    knowsLanguage: publicLanguages,
+    makesOffer: {
+      '@type': 'Offer',
+      itemOffered: {
+        '@type': 'SoftwareApplication',
+        name: corePositioning.productName,
+        applicationCategory: 'BusinessApplication',
+      },
+      availability: 'https://schema.org/LimitedAvailability',
+      url: absoluteUrl('/contact'),
     },
   }
 
