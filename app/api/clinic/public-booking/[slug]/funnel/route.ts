@@ -33,6 +33,7 @@ function cleanMetadata(body: Record<string, unknown>): Prisma.JsonObject | undef
     'lastName',
     'phone',
     'email',
+    'lead',
   ] as const
   for (const field of textFields) {
     const value = cleanText(body[field], field === 'email' || field === 'phone' ? 180 : 120)

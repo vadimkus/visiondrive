@@ -3,6 +3,8 @@ import {
   ClinicAppointmentEventType,
   ClinicAppointmentSource,
   ClinicAppointmentStatus,
+  ClinicLeadActivityType,
+  ClinicLeadStage,
   ClinicReminderChannel,
   ClinicReminderKind,
   ClinicReminderStatus,
@@ -43,6 +45,12 @@ const ACTIVE_PUBLIC_STATUSES = [
   ClinicAppointmentStatus.ARRIVED,
   ClinicAppointmentStatus.COMPLETED,
 ]
+
+function cleanTrackingText(value: unknown, max = 160) {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed ? trimmed.slice(0, max) : null
+}
 
 async function getTenant(slug: string) {
   return prisma.tenant.findFirst({
@@ -191,6 +199,7 @@ export async function POST(
 
   const procedureId = String(body.procedureId ?? '').trim()
   const startsAt = body.startsAt != null ? new Date(String(body.startsAt)) : null
+  const leadTrackingCode = cleanTrackingText(body.lead) ?? cleanTrackingText(body.ref)
   const client = normalizePublicBookingInput(body)
   const validationError = validatePublicBookingInput(client)
   if (validationError) return NextResponse.json({ error: validationError }, { status: 400 })
@@ -263,6 +272,21 @@ export async function POST(
     })
     if (conflict) return { conflict }
 
+    const lead = leadTrackingCode
+      ? await tx.clinicLead.findFirst({
+          where: { tenantId: tenant.id, trackingCode: leadTrackingCode },
+          select: {
+            id: true,
+            stage: true,
+            displayName: true,
+            instagramHandle: true,
+            convertedPatientId: true,
+            convertedAppointmentId: true,
+            convertedAt: true,
+          },
+        })
+      : null
+
     const patient =
       (await tx.clinicPatient.findFirst({
         where: {
@@ -281,6 +305,10 @@ export async function POST(
           dateOfBirth: client.dateOfBirth,
           phone: client.phone || null,
           email: client.email,
+          referredByName: lead ? 'Instagram' : null,
+          referralNote: lead
+            ? `Booked from Instagram lead ${lead.instagramHandle ? `@${lead.instagramHandle}` : lead.displayName}`
+            : null,
         },
       }))
 
@@ -307,6 +335,18 @@ export async function POST(
       },
     })
 
+    if (lead && !patient.referredByName) {
+      await tx.clinicPatient.update({
+        where: { id: patient.id },
+        data: {
+          referredByName: 'Instagram',
+          referralNote:
+            patient.referralNote ||
+            `Booked from Instagram lead ${lead.instagramHandle ? `@${lead.instagramHandle}` : lead.displayName}`,
+        },
+      })
+    }
+
     if (intake.responses.length > 0) {
       await tx.clinicIntakeResponse.createMany({
         data: intake.responses.map((response: NormalizedIntakeAnswer) => ({
@@ -329,6 +369,8 @@ export async function POST(
       message: 'Online booking created',
       after: {
         source: ClinicAppointmentSource.ONLINE,
+          leadId: lead?.id ?? null,
+          leadTrackingCode: leadTrackingCode ?? null,
         confirmationMode: bookingSettings.confirmationMode,
         consentAccepted: client.consentAccepted,
         notes: client.notes,
@@ -356,6 +398,28 @@ export async function POST(
           status: ClinicReminderStatus.SCHEDULED,
           scheduledFor: reminderScheduledFor(startsAt),
           body: reminderBody,
+        },
+      })
+    }
+
+    if (lead) {
+      await tx.clinicLead.update({
+        where: { id: lead.id },
+        data: {
+          stage: ClinicLeadStage.BOOKED,
+          convertedPatientId: lead.convertedPatientId ?? patient.id,
+          convertedAppointmentId: appointment.id,
+          convertedAt: lead.convertedAt ?? new Date(),
+        },
+      })
+      await tx.clinicLeadActivity.create({
+        data: {
+          tenantId: tenant.id,
+          leadId: lead.id,
+          type: ClinicLeadActivityType.CONVERSION,
+          direction: 'INTERNAL',
+          body: `Public booking completed for ${client.firstName} ${client.lastName}`,
+          metadata: { appointmentId: appointment.id, patientId: patient.id },
         },
       })
     }

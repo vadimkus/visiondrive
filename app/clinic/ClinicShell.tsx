@@ -16,6 +16,7 @@ import {
   CalendarCheck,
   CalendarClock,
   Inbox,
+  Instagram,
   ClipboardList,
   Repeat2,
   BarChart3,
@@ -77,6 +78,7 @@ const nav: PracticeNavItem[] = [
   { href: '/clinic/inbox', labelKey: 'inbox', icon: Inbox, tone: 'sky' },
   { href: '/clinic/retention', labelKey: 'retentionAnalytics', icon: Repeat2, tone: 'emerald' },
   { href: '/clinic/booking-funnel', labelKey: 'bookingFunnelAnalytics', icon: BarChart3, tone: 'violet' },
+  { href: '/clinic/growth', labelKey: 'instagramGrowth', icon: Instagram, tone: 'pink' },
   { href: '/clinic/marketing', labelKey: 'marketingAutomation', icon: Megaphone, tone: 'fuchsia' },
   { href: '/clinic/memberships', labelKey: 'memberships', icon: Repeat, tone: 'violet' },
   { href: '/clinic/loyalty', labelKey: 'loyalty', icon: Trophy, tone: 'amber' },
@@ -100,8 +102,8 @@ const mobileTabs: PracticeNavItem[] = [
 ]
 
 const commandNav = nav.slice(0, 15)
-const growthNav = nav.slice(15, 24)
-const systemNav = nav.slice(24)
+const growthNav = nav.slice(15, 25)
+const systemNav = nav.slice(25)
 const navByHref = new Map(nav.map((item) => [item.href, item]))
 const liteNavOrder = [
   '/clinic',

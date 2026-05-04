@@ -15,6 +15,7 @@ import {
   Send,
   Sparkles,
   Link as LinkIcon,
+  Instagram,
   BarChart3,
   Target,
   Gauge,
@@ -219,6 +220,7 @@ export default function ClinicDashboardPage() {
     { href: '/clinic/appointments/new', label: t.newAppointment, icon: CalendarClock, primary: true },
     { href: '/clinic/patients/new', label: t.addPatient, icon: Users },
     { href: '/clinic/waitlist', label: t.smartWaitlist, icon: ClipboardList },
+    { href: '/clinic/growth', label: t.instagramGrowth, icon: Instagram },
     { href: '/clinic/whatsapp-assistant', label: t.whatsappAssistant, icon: Zap },
   ]
 

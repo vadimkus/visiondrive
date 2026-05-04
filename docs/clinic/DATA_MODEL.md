@@ -19,6 +19,8 @@ Authoritative detail lives in **`prisma/schema.prisma`** and [ARCHITECTURE.md](.
 | `clinic_reminder_templates` | Tenant WhatsApp/email/SMS templates for appointment reminders, no-show follow-up, rebooking follow-up, and review requests. |
 | `clinic_reminder_deliveries` | Reminder schedule and preparation log: status, scheduled time, body, WhatsApp URL, errors. |
 | `clinic_booking_funnel_events` | Public booking funnel events: link views, service selection, slot selection, form start/submission, booking completion, source/UTM metadata, and minimal submitted-contact metadata for abandoned booking recovery. |
+| `clinic_leads` | Manual-first Instagram/online lead pipeline: source, stage, display name, Instagram handle, contact details, interested procedure, campaign, tracking code, notes, and optional converted patient/appointment links. |
+| `clinic_lead_activities` | Lead timeline for reviewed DMs, WhatsApp replies, booking-link sends, stage changes, conversion notes, package offers, and membership offers. |
 | `clinic_patient_portal_links` | Hashed private patient portal links with expiry, revocation, last-access metadata, and no stored plaintext token. |
 | `clinic_patient_portal_requests` | Patient-submitted portal requests for reschedule, cancellation, or message; mirrored into CRM notes for staff follow-up. |
 | `clinic_intake_questions` | Service-specific public booking questions configured per procedure: prompt, help text, type, required flag, active flag, and sort order. |
@@ -115,6 +117,7 @@ Deep IP telephony is intentionally not modeled. Calls are device-native, and the
 - `GET /api/clinic/retention/overview` — derived retention analytics for rebook rate, returning clients, no-shows, follow-up conversion, repeat intervals, and 60/90/120-day dormant patient reactivation rows with localized WhatsApp links.
 - `POST /api/clinic/public-booking/[slug]/funnel` — public booking step tracking for enabled tenant booking links, including source/UTM metadata from shared links.
 - `GET /api/clinic/booking-funnel/overview` — staff analytics for public booking conversion by stage, day, procedure, source, and abandoned sessions with localized WhatsApp follow-up messages.
+- `GET/POST /api/clinic/leads`; `GET/PATCH /api/clinic/leads/[id]`; `POST .../activities`; `POST .../actions`; `GET /api/clinic/growth/overview` — manual Instagram growth pipeline from lead capture to tracked booking link, appointment conversion, aftercare/rebooking tasks, and package/membership opportunity logging.
 - `GET /api/clinic/occasions/overview` — derived birthday/occasion workflow from existing patient DOBs, returning 7/30/90-day birthday rows with localized WhatsApp greeting copy.
 - `GET /api/clinic/referrals/overview` — derived referral report from patient `referred_by_name`, grouped by source/person for 30/90/365-day and all-time windows.
 - `GET/POST/PATCH /api/clinic/patients/[id]/portal-link` — staff creates, lists, and revokes private patient portal links.

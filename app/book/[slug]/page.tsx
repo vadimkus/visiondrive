@@ -128,6 +128,7 @@ function bookingFunnelAttribution(slug: string) {
     utm_medium: 'utmMedium',
     utm_campaign: 'utmCampaign',
     ref: 'ref',
+    lead: 'lead',
   } as const
   for (const [queryKey, payloadKey] of Object.entries(fields)) {
     const value = params.get(queryKey)?.trim()
@@ -415,6 +416,7 @@ export default function PublicBookingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          ...bookingFunnelAttribution(slug),
           procedureId,
           startsAt: selectedSlot,
           intakeAnswers: Object.entries(intakeAnswers).map(([questionId, answer]) => ({

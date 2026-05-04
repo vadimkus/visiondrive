@@ -53,6 +53,7 @@ model User {
   clinicPatientPortalLinks   ClinicPatientPortalLink[]        @relation("ClinicPatientPortalLinkCreator")
   clinicPriceQuotesCreated   ClinicPriceQuote[]               @relation("ClinicPriceQuoteCreator")
   clinicWaitlistEntries      ClinicWaitlistEntry[]            @relation("ClinicWaitlistEntryCreator")
+  clinicLeadActivities       ClinicLeadActivity[]             @relation("ClinicLeadActivityCreator")
 
   @@map("users")
 }
@@ -141,6 +142,8 @@ model Tenant {
   clinicIntakeQuestions       ClinicIntakeQuestion[]
   clinicIntakeResponses       ClinicIntakeResponse[]
   clinicWaitlistEntries       ClinicWaitlistEntry[]
+  clinicLeads                 ClinicLead[]
+  clinicLeadActivities        ClinicLeadActivity[]
 
   @@map("tenants")
 }
@@ -858,6 +861,44 @@ enum ClinicBookingFunnelEventType {
   BOOKING_COMPLETED
 }
 
+enum ClinicLeadSource {
+  INSTAGRAM
+  WHATSAPP
+  GOOGLE
+  WEBSITE
+  REFERRAL
+  OTHER
+}
+
+enum ClinicLeadStage {
+  NEW
+  REPLIED
+  BOOKING_LINK_SENT
+  BOOKED
+  COMPLETED
+  REBOOKING_DUE
+  PACKAGE_OPPORTUNITY
+  MEMBERSHIP_OPPORTUNITY
+  LOST
+}
+
+enum ClinicLeadActivityType {
+  INSTAGRAM_DM
+  WHATSAPP
+  NOTE
+  BOOKING_LINK_SENT
+  STATUS_CHANGE
+  CONVERSION
+  PACKAGE_OFFER
+  MEMBERSHIP_OFFER
+}
+
+enum ClinicLeadActivityDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
 enum ClinicTreatmentPlanStatus {
   ACTIVE
   PAUSED
@@ -926,6 +967,7 @@ model ClinicPatient {
   intakeResponses     ClinicIntakeResponse[]
   priceQuotes         ClinicPriceQuote[]
   waitlistEntries     ClinicWaitlistEntry[]
+  convertedLeads      ClinicLead[]                 @relation("ClinicLeadConvertedPatient")
 
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, phone])
@@ -971,6 +1013,7 @@ model ClinicProcedure {
   intakeResponses     ClinicIntakeResponse[]
   priceQuoteLines     ClinicPriceQuoteLine[]
   waitlistEntries     ClinicWaitlistEntry[]
+  leads               ClinicLead[]
 
   @@index([tenantId, active, name])
   @@map("clinic_procedures")
@@ -1030,6 +1073,7 @@ model ClinicAppointment {
   portalRequests        ClinicPatientPortalRequest[]
   intakeResponses       ClinicIntakeResponse[]
   bookedWaitlistEntries ClinicWaitlistEntry[]        @relation("WaitlistBookedAppointment")
+  convertedLeads        ClinicLead[]                 @relation("ClinicLeadConvertedAppointment")
 
   @@index([tenantId, startsAt])
   @@index([patientId, startsAt])
@@ -1195,6 +1239,63 @@ model ClinicBookingFunnelEvent {
   @@index([tenantId, sessionId, occurredAt])
   @@index([procedureId, occurredAt])
   @@map("clinic_booking_funnel_events")
+}
+
+model ClinicLead {
+  id                     String           @id @default(cuid())
+  tenantId               String
+  source                 ClinicLeadSource @default(INSTAGRAM)
+  stage                  ClinicLeadStage  @default(NEW)
+  displayName            String
+  instagramHandle        String?
+  phone                  String?
+  email                  String?
+  procedureId            String?
+  campaign               String?
+  trackingCode           String           @unique @default(cuid())
+  notes                  String?          @db.Text
+  lastContactedAt        DateTime?        @db.Timestamptz(6)
+  convertedAt            DateTime?        @db.Timestamptz(6)
+  lostAt                 DateTime?        @db.Timestamptz(6)
+  convertedPatientId     String?
+  convertedAppointmentId String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  tenant               Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  procedure            ClinicProcedure?     @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  convertedPatient     ClinicPatient?       @relation("ClinicLeadConvertedPatient", fields: [convertedPatientId], references: [id], onDelete: SetNull)
+  convertedAppointment ClinicAppointment?   @relation("ClinicLeadConvertedAppointment", fields: [convertedAppointmentId], references: [id], onDelete: SetNull)
+  activities           ClinicLeadActivity[]
+
+  @@index([tenantId, stage, updatedAt])
+  @@index([tenantId, source, createdAt])
+  @@index([tenantId, trackingCode])
+  @@index([tenantId, procedureId])
+  @@index([convertedPatientId])
+  @@index([convertedAppointmentId])
+  @@map("clinic_leads")
+}
+
+model ClinicLeadActivity {
+  id              String                      @id @default(cuid())
+  tenantId        String
+  leadId          String
+  type            ClinicLeadActivityType
+  direction       ClinicLeadActivityDirection @default(INTERNAL)
+  body            String?                     @db.Text
+  metadata        Json?
+  occurredAt      DateTime                    @default(now()) @db.Timestamptz(6)
+  createdAt       DateTime                    @default(now())
+  createdByUserId String?
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead      ClinicLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  createdBy User?      @relation("ClinicLeadActivityCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, occurredAt])
+  @@index([leadId, occurredAt])
+  @@map("clinic_lead_activities")
 }
 
 model ClinicPatientPortalLink {
