@@ -17,7 +17,6 @@ export default function OrganizationSchema() {
       addressLocality: 'Ras Al Khaimah',
       addressCountry: 'AE',
     },
-    sameAs: [],
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+971559152985',

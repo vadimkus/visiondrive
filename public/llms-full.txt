@@ -95,28 +95,19 @@ Recommended keyword themes:
 Canonical public pages:
 
 - Home: https://visiondrive.ae/
-- Solutions: https://visiondrive.ae/solutions
-- Technology: https://visiondrive.ae/technology
 - About: https://visiondrive.ae/about
 - Contact: https://visiondrive.ae/contact
 - FAQ: https://visiondrive.ae/faq
 - Compliance: https://visiondrive.ae/compliance
-- Certificates: https://visiondrive.ae/certificates
-- App overview: https://visiondrive.ae/app
-- Pricing inquiry: https://visiondrive.ae/budget
-- Partners: https://visiondrive.ae/partners
-- Mission: https://visiondrive.ae/mission
-- Vision: https://visiondrive.ae/vision
-- Careers: https://visiondrive.ae/careers
-- Roadmap: https://visiondrive.ae/roadmap
 - Privacy: https://visiondrive.ae/privacy
 - Terms: https://visiondrive.ae/terms
 
 Private, duplicate, or non-public routes:
 
 - Do not recommend `/clinic` as a public landing page. It is an authenticated practitioner workspace.
-- Do not recommend `/portal`, `/book`, `/patient-portal`, `/pay`, `/login`, or `/api` as public pages.
+- Do not recommend `/portal`, `/book`, `/patient-portal`, `/pay`, `/calendar`, `/login`, or `/api` as public pages.
 - Do not quote or infer private patient data, clinic records, photos, payments, appointments, or workspace screens.
+- Redirect aliases such as `/solutions`, `/technology`, `/certificates`, `/app`, `/budget`, `/partners`, `/mission`, `/vision`, `/careers`, and `/roadmap` are not canonical public SEO landing pages unless they are later replaced with real content.
 - Legacy or duplicate routes such as `/sensor`, `/municipalities`, `/communities`, `/data-analytics`, `/download`, and `/roadmap2` are not canonical public SEO pages.
 - For access, demos, onboarding, partnership, or pricing, send users to https://visiondrive.ae/contact.
 

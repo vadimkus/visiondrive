@@ -82,6 +82,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.9,
+    sitemap: false,
   },
   {
     path: '/technology',
@@ -97,6 +98,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.85,
+    sitemap: false,
   },
   {
     path: '/about',
@@ -172,6 +174,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.65,
+    sitemap: false,
   },
   {
     path: '/app',
@@ -187,6 +190,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.65,
+    sitemap: false,
   },
   {
     path: '/budget',
@@ -201,6 +205,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.55,
+    sitemap: false,
   },
   {
     path: '/partners',
@@ -215,6 +220,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.5,
+    sitemap: false,
   },
   {
     path: '/mission',
@@ -230,6 +236,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.5,
+    sitemap: false,
   },
   {
     path: '/vision',
@@ -244,6 +251,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.45,
+    sitemap: false,
   },
   {
     path: '/careers',
@@ -258,6 +266,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.4,
+    sitemap: false,
   },
   {
     path: '/roadmap',
@@ -272,6 +281,7 @@ export const publicSeoRoutes: readonly PublicSeoRoute[] = [
     ],
     changeFrequency: 'monthly',
     priority: 0.4,
+    sitemap: false,
   },
   {
     path: '/privacy',
@@ -315,6 +325,7 @@ export const privateOrDuplicatePaths = [
   '/book/',
   '/patient-portal/',
   '/pay/',
+  '/calendar/',
   '/login',
   '/notes',
   '/profile/',
