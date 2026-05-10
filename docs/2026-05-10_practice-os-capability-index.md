@@ -8,7 +8,7 @@ Vadim asked for `/clinic/knowledge-base` to show a clear list of what Practice O
 
 ## Implementation
 
-The in-app Knowledge Base now includes a default-visible `What Practice OS can do` / `Что умеет Practice OS` capability section in both EN and RU.
+The in-app Knowledge Base now includes a default-visible `What Practice OS can do` / `Возможности Practice OS` capability section in both EN and RU.
 
 The section summarizes Practice OS across:
 
