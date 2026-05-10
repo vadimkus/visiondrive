@@ -137,6 +137,7 @@
 | [2026-05-04_instagram-growth-validation.md](2026-05-04_instagram-growth-validation.md) | Product validation and positioning for Instagram Growth inside Solo Practitioner OS |
 | [2026-05-10_practice-os-capability-index.md](2026-05-10_practice-os-capability-index.md) | In-app Knowledge Base capability index for Practice OS in EN/RU |
 | [2026-05-10_practice-os-surface-alignment.md](2026-05-10_practice-os-surface-alignment.md) | Desktop, mobile web, iPad/tablet, and future app surface alignment note |
+| [2026-05-10_practice-os-tech-sweep.md](2026-05-10_practice-os-tech-sweep.md) | Practice OS technical sweep validation results |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
