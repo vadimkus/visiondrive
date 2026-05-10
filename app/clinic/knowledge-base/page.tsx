@@ -27,6 +27,296 @@ type Article = {
   link?: string
 }
 
+type CapabilityGroup = {
+  title: string
+  description: string
+  features: string[]
+}
+
+const capabilityGroupsEn: CapabilityGroup[] = [
+  {
+    title: 'Growth and acquisition',
+    description: 'Turn online interest into booked, trackable client revenue.',
+    features: [
+      'Instagram lead pipeline from DM to booking, appointment, aftercare, rebooking, package, or membership',
+      'Manual reviewed Instagram/WhatsApp reply templates with no auto-send risk',
+      'Tracked booking links for Instagram, Google, WhatsApp, campaigns, services, and individual leads',
+      'Booking funnel analytics by source, procedure, day, and abandoned session',
+      'Referral tracking by client, partner, Instagram source, or campaign',
+      'Dormant patient reactivation, birthday/occasion messages, and manual marketing campaign builder',
+      'Loyalty points and reward prompts for valuable repeat clients',
+    ],
+  },
+  {
+    title: 'Booking and calendar',
+    description: 'Run the schedule without exposing the private workspace.',
+    features: [
+      'Private public booking link with request-approval or instant-confirmation modes',
+      'Service-specific online booking with intake questions and preselected procedure links',
+      'Working hours, service-specific availability, dynamic slots, minimum lead time, and hidden buffers',
+      'Blocked time for lunch, leave, training, supplier errands, and private commitments',
+      'Conflict-safe appointment creation and rescheduling with override reason audit',
+      'Week, month, and day views with appointment command drawer',
+      'Home-visit route mode, travel buffers, area snapshots, and “On my way” WhatsApp handoff',
+      'Private ICS calendar feed without patient names or sensitive clinical details',
+      'Smart waitlist and cancellation-fill suggestions with WhatsApp-ready copy',
+    ],
+  },
+  {
+    title: 'Patient CRM and records',
+    description: 'Keep the full patient story in one tenant-safe chart.',
+    features: [
+      'Patient demographics, contacts, address, area, access notes, category, tags, referral fields, and staff-only notes',
+      'Structured anamnesis for allergies, medications, conditions, and social notes',
+      'Timeline across appointments, visits, payments, CRM notes, media, consents, packages, and portal requests',
+      'Manual WhatsApp/email message history and structured call log',
+      'Patient import from Excel or CSV with duplicate detection before commit',
+      'Full internal JSON export and exact-confirmation patient deletion workflow',
+      'Patient-safe treatment PDF and short summary PDF that exclude internal notes and private staff context',
+    ],
+  },
+  {
+    title: 'Clinical and treatment workflow',
+    description: 'Support the treatment visit from intake to aftercare.',
+    features: [
+      'Procedure catalog with duration, price, cleanup/travel buffer, booking policy, materials, intake, and aftercare',
+      'Visit logging with clinical notes, next steps, treatment-plan link, and aftercare snapshot',
+      'Treatment plans with expected sessions, cadence, goals, photo milestones, and progress tracking',
+      'Consent templates and signed contraindication/aftercare acknowledgement records',
+      'Before/after photos, capture protocol checklist, marketing-consent marker, and before/after comparison',
+      'Aesthetic face-map annotations for injection or correction planning',
+      'Voice-dictated patient comments and deterministic AI note assistant drafts for practitioner review',
+      'Offline-safe visit drafts and failed/offline photo upload queue on the device',
+    ],
+  },
+  {
+    title: 'Communication and retention',
+    description: 'Prepare personal follow-up without pretending the browser can auto-send WhatsApp.',
+    features: [
+      'WhatsApp Assistant for booking links, prices, quotes, reschedules, cancellations, intake, waitlist, and follow-up replies',
+      'Reminder templates for appointments, no-shows, rebooking, and review requests',
+      'Reminder preparation log and manual WhatsApp handoff through wa.me links',
+      'Follow-up automation for 2/4/6/8 week rebooking nudges after completed visits',
+      'Reputation workflow with internal review requests, private ratings, replies, and publish status',
+      'Notification center for bookings, reschedules, due reminders, unpaid visits, reviews, and low stock',
+      'Patient portal requests for reschedule, cancellation, message, and pre-visit checklist updates',
+    ],
+  },
+  {
+    title: 'Finance, payments, and revenue',
+    description: 'Understand cash, margin, client balance, and repeat revenue.',
+    features: [
+      'Appointment and patient payments with status, method, discount, fee, reference, note, receipt, refund, and void correction',
+      'Client balance from expected charges, pending payments, paid payments, refunds, deposits, and policy fees',
+      'Deposit, full-prepay, and card-on-file booking policy workflows',
+      'Late-cancel and no-show fee enforcement or waiver with audit trail',
+      'Patient price quotes with service/custom lines, terms, PDF, WhatsApp, and email text',
+      'Prepaid treatment packages with automatic session redemption on completed visits',
+      'Membership/subscription plans with monthly preparation workflow and manual payment confirmation',
+      'Gift cards, discount rules, payment fee rules, daily close, and owner-income view',
+      'Finance dashboard with P&L v2, procedure profitability, service analytics, revenue plan, and occupancy report',
+    ],
+  },
+  {
+    title: 'Inventory, retail, and suppliers',
+    description: 'Protect treatment margin and avoid running out of consumables.',
+    features: [
+      'Stock items with SKU/barcode, on-hand quantity, reorder point, cost, supplier, and low-stock alerts',
+      'Procedure bill of materials with material cost and visit auto-consumption',
+      'Stock movements for receipt, adjustment, consumption, and return with negative-stock protection',
+      'Physical stock-taking sessions with variance reasons and audited adjustment movements',
+      'Product import from Excel or CSV with duplicate and unknown-procedure checks',
+      'Purchase orders, supplier profiles, supplier settlements, received value, and unpaid balance',
+      'Retail product sales from visits with stock deduction and finance revenue capture',
+      'Injectable batch/lot and expiry tracking in inventory notes',
+    ],
+  },
+  {
+    title: 'Mobile, portal, and patient experience',
+    description: 'Designed for iPhone/iPad-first solo practice operations.',
+    features: [
+      'Mobile-first clinic shell with safe-area layout, swipeable navigation, and quick actions',
+      'Installable PWA practitioner mode with Today dashboard and device-local offline scratchpad',
+      'Camera-friendly patient photo upload from iPhone/iPad',
+      'Private patient portal link with expiry, revocation, last-access tracking, and patient-safe data only',
+      'Portal client wallet for balances, pending requests, quotes, packages, gift cards, saved cards, and receipts',
+      'Portal pre-visit checklist and patient requests mirrored into CRM and appointment history',
+      'Patient-safe receipt download through portal token',
+    ],
+  },
+  {
+    title: 'Analytics and management',
+    description: 'Give the solo owner a daily and monthly operating cockpit.',
+    features: [
+      'Dashboard stats, guided setup, smart empty states, and Lite Mode for simpler navigation',
+      'Retention analytics for rebook rate, returning clients, no-shows, follow-up conversion, dormant patients, and repeat interval',
+      'Booking funnel analytics for conversion by stage, source, procedure, and abandoned sessions',
+      'Service analytics for revenue, completed visits, average price, material cost, gross profit, margin, and profit per hour',
+      'Revenue plan with monthly target, achieved revenue, gap, required visits, and daily pace',
+      'Occupancy analytics for booked time, free windows, blocked time, and travel-buffer pressure',
+      'Service areas report for neighborhoods, upcoming clusters, and missing patient areas',
+      'Review analytics for requested, replied, published, average rating, rating mix, and low-rated private feedback',
+      'Monthly business review workflow across revenue, occupancy, service profitability, stock, and reputation',
+    ],
+  },
+  {
+    title: 'Security, admin, and data safety',
+    description: 'Keep the practice tenant-scoped, private, and operationally auditable.',
+    features: [
+      'Clinic session guard on `/api/clinic/*` with tenant-scoped queries',
+      'Admin-only user management with tenant membership, role updates, password reset, reactivation, and safe access removal',
+      'Staff-only internal notes separated from patient-safe exports and portal views',
+      'Private media serving behind clinic authentication',
+      'Hashed patient portal tokens and hashed calendar feed tokens',
+      'No raw card storage; saved payment methods store provider-ready metadata only',
+      'Appointment, payment, portal request, reminder, and lead activity history for auditability',
+      'Legacy non-practice portal surfaces quarantined away from active Practice OS',
+    ],
+  },
+]
+
+const capabilityGroupsRu: CapabilityGroup[] = [
+  {
+    title: 'Рост и привлечение',
+    description: 'Превращайте онлайн-интерес в записанную и отслеживаемую выручку.',
+    features: [
+      'Instagram-воронка от DM до записи, визита, aftercare, повторной записи, пакета или membership',
+      'Ручные проверенные шаблоны ответов для Instagram/WhatsApp без риска автоотправки',
+      'Отслеживаемые ссылки записи для Instagram, Google, WhatsApp, кампаний, услуг и отдельных лидов',
+      'Аналитика воронки записи по источнику, процедуре, дню и незавершенной сессии',
+      'Отслеживание рекомендаций от клиентов, партнеров, Instagram-источников и кампаний',
+      'Реактивация спящих пациентов, сообщения к поводам и ручной конструктор маркетинг-кампаний',
+      'Баллы лояльности и подсказки reward для ценных постоянных клиентов',
+    ],
+  },
+  {
+    title: 'Записи и календарь',
+    description: 'Управляйте расписанием без доступа клиентов к внутренней панели.',
+    features: [
+      'Приватная публичная ссылка записи с режимом заявки или мгновенного подтверждения',
+      'Онлайн-запись по конкретной услуге с анкетой и ссылками с предвыбранной процедурой',
+      'Рабочие часы, доступность по услугам, динамические слоты, минимальное время до записи и скрытые буферы',
+      'Закрытое время для обеда, отпуска, обучения, закупок и личных дел',
+      'Защита от конфликтов при создании/переносе записи с audit-причиной override',
+      'Виды неделя, месяц и день с командной карточкой записи',
+      'Route Mode для выездов, travel buffers, районы, и WhatsApp “Уже выезжаю”',
+      'Приватный ICS-календарь без имен пациентов и чувствительных клинических данных',
+      'Smart waitlist и подсказки для заполнения отмененных окон с WhatsApp-текстом',
+    ],
+  },
+  {
+    title: 'Пациенты и CRM',
+    description: 'Вся история пациента в одной tenant-safe карте.',
+    features: [
+      'Демография, контакты, адрес, район, доступ, категория, теги, рекомендации и staff-only заметки',
+      'Структурированный анамнез: аллергии, лекарства, состояния и социальные заметки',
+      'Таймлайн записей, визитов, оплат, CRM, медиа, согласий, пакетов и запросов из кабинета',
+      'Ручная история WhatsApp/email и структурированный журнал звонков',
+      'Импорт пациентов из Excel/CSV с проверкой дублей до создания карт',
+      'Полный внутренний JSON-экспорт и удаление пациента с точной контрольной фразой',
+      'Patient-safe treatment PDF и короткий summary PDF без внутренних заметок и приватного staff-контекста',
+    ],
+  },
+  {
+    title: 'Клинический процесс',
+    description: 'Поддержка визита от анкеты до рекомендаций после процедуры.',
+    features: [
+      'Каталог процедур: длительность, цена, буфер, политика записи, материалы, анкета и aftercare',
+      'Лог визита с клиническими заметками, next steps, планом лечения и снимком aftercare',
+      'Планы лечения с количеством сеансов, ритмом, целями, фото-этапами и прогрессом',
+      'Шаблоны согласий и подписанные противопоказания/подтверждение aftercare',
+      'Фото до/после, checklist протокола съемки, согласие на маркетинг и сравнение до/после',
+      'Aesthetic face-map annotations для инъекций или планирования коррекции',
+      'Голосовые комментарии пациента и deterministic AI note drafts для проверки врачом',
+      'Offline-safe черновики визитов и очередь неудачных/offline загрузок фото на устройстве',
+    ],
+  },
+  {
+    title: 'Коммуникации и удержание',
+    description: 'Готовьте персональные follow-up без иллюзии автоотправки WhatsApp из браузера.',
+    features: [
+      'WhatsApp Assistant для ссылок записи, цен, смет, переносов, отмен, intake, waitlist и follow-up',
+      'Шаблоны напоминаний для записей, no-show, повторной записи и отзывов',
+      'Журнал подготовленных напоминаний и ручной WhatsApp handoff через wa.me',
+      'Follow-up automation для повторной записи через 2/4/6/8 недель после завершенного визита',
+      'Репутация: внутренние запросы отзывов, приватные оценки, ответы и статус публикации',
+      'Inbox для записей, переносов, напоминаний, неоплаченных визитов, отзывов и низких остатков',
+      'Запросы из кабинета пациента: перенос, отмена, сообщение и pre-visit checklist',
+    ],
+  },
+  {
+    title: 'Финансы, оплаты и выручка',
+    description: 'Контролируйте деньги, маржу, баланс клиента и повторную выручку.',
+    features: [
+      'Оплаты по записи/пациенту со статусом, методом, скидкой, комиссией, reference, заметкой, чеком, возвратом и void',
+      'Баланс клиента из ожидаемых начислений, pending/paid оплат, возвратов, депозитов и policy fees',
+      'Политики записи: депозит, полная предоплата и card-on-file',
+      'Late-cancel/no-show fee enforcement или waiver с audit trail',
+      'Сметы пациенту: услуги/custom lines, условия, PDF, WhatsApp и email-текст',
+      'Предоплаченные пакеты процедур с автоматическим списанием сеанса при завершенном визите',
+      'Membership/subscription планы с ежемесячной подготовкой и ручным подтверждением оплаты',
+      'Подарочные карты, правила скидок, правила комиссий оплат, закрытие дня и owner-income',
+      'Финансы с P&L v2, прибыльностью процедур, аналитикой услуг, планом выручки и occupancy',
+    ],
+  },
+  {
+    title: 'Склад, retail и поставщики',
+    description: 'Защищайте маржу процедур и не оставайтесь без расходников.',
+    features: [
+      'Позиции склада с SKU/штрихкодом, остатком, минимумом, себестоимостью, поставщиком и low-stock alerts',
+      'Bill of materials процедур с материальной себестоимостью и автоматическим списанием на визите',
+      'Движения склада: приход, корректировка, расход и возврат с защитой от отрицательных остатков',
+      'Инвентаризация с причинами расхождений и аудируемыми корректировками',
+      'Импорт товаров из Excel/CSV с проверкой дублей и неизвестных процедур',
+      'Заказы поставщикам, профили поставщиков, взаиморасчеты, received value и unpaid balance',
+      'Продажи домашнего ухода из визита со списанием склада и выручкой в финансах',
+      'Учет injectable batch/lot и expiry в заметках склада',
+    ],
+  },
+  {
+    title: 'Мобильность, портал и опыт пациента',
+    description: 'Система рассчитана на iPhone/iPad-first работу solo практика.',
+    features: [
+      'Mobile-first clinic shell с safe-area layout, swipeable navigation и быстрыми действиями',
+      'Устанавливаемый PWA practitioner mode с Today dashboard и локальным offline scratchpad',
+      'Фото пациента с камеры iPhone/iPad',
+      'Приватная ссылка кабинета пациента с expiry, revoke, last-access tracking и только patient-safe данными',
+      'Portal client wallet для балансов, pending оплат, смет, пакетов, gift cards, saved cards и чеков',
+      'Pre-visit checklist и запросы пациента отражаются в CRM и истории записи',
+      'Patient-safe скачивание чека через portal token',
+    ],
+  },
+  {
+    title: 'Аналитика и управление',
+    description: 'Ежедневная и ежемесячная управленческая панель для solo owner.',
+    features: [
+      'Dashboard stats, guided setup, smart empty states и Lite Mode для упрощенной навигации',
+      'Retention analytics: rebook rate, returning clients, no-shows, follow-up conversion, dormant patients и repeat interval',
+      'Booking funnel analytics по этапам, источникам, процедурам и abandoned sessions',
+      'Service analytics: выручка, визиты, средний чек, материалы, gross profit, margin и profit per hour',
+      'Revenue plan: месячная цель, достигнутая выручка, gap, нужные визиты и дневной темп',
+      'Occupancy analytics: booked time, free windows, blocked time и travel-buffer pressure',
+      'Service areas report по районам, ближайшим кластерам и пациентам без района',
+      'Review analytics: запросы, ответы, публикации, средняя оценка, rating mix и low-rated feedback',
+      'Monthly business review по выручке, загрузке, прибыльности услуг, складу и репутации',
+    ],
+  },
+  {
+    title: 'Безопасность, админка и данные',
+    description: 'Tenant-scoped, приватная и аудируемая операционная система практики.',
+    features: [
+      'Clinic session guard на `/api/clinic/*` и tenant-scoped запросы',
+      'Admin-only управление пользователями: membership, роли, reset пароля, reactivation и safe access removal',
+      'Staff-only internal notes отделены от patient-safe exports и portal views',
+      'Приватная выдача медиа только за clinic authentication',
+      'Хешированные токены patient portal и calendar feed',
+      'Без хранения raw card data; saved payment methods хранят только provider-ready metadata',
+      'История записей, оплат, запросов портала, напоминаний и lead activity для auditability',
+      'Legacy non-practice portal surfaces изолированы от активного Practice OS',
+    ],
+  },
+]
+
 const articlesEn: Article[] = [
   {
     id: 'appointments-command-center',
@@ -2033,8 +2323,10 @@ export default function ClinicKnowledgeBasePage() {
   const { locale, t } = useClinicLocale()
   const isRu = locale === 'ru'
   const articles = isRu ? articlesRu : articlesEn
+  const capabilityGroups = isRu ? capabilityGroupsRu : capabilityGroupsEn
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>('all')
+  const [showCapabilities, setShowCapabilities] = useState(true)
 
   const copy = {
     title: isRu ? 'База знаний' : 'Knowledge base',
@@ -2050,7 +2342,16 @@ export default function ClinicKnowledgeBasePage() {
     categoryOverview: isRu ? 'Разделы помощи' : 'Help sections',
     articleCount: isRu ? 'статей' : 'articles',
     showing: isRu ? 'Показано' : 'Showing',
+    capabilities: isRu ? 'Что умеет Practice OS' : 'What Practice OS can do',
+    capabilitiesSubtitle: isRu
+      ? 'Короткая карта всех возможностей системы: рост, запись, пациент, визит, деньги, склад, аналитика и безопасность.'
+      : 'A compact map of the system capabilities: growth, booking, patient records, visits, money, stock, analytics, and safety.',
+    showCapabilities: isRu ? 'Показать возможности' : 'Show capabilities',
+    hideCapabilities: isRu ? 'Скрыть возможности' : 'Hide capabilities',
+    browseArticles: isRu ? 'Смотреть статьи' : 'Browse articles',
+    featureCount: isRu ? 'возможностей' : 'capabilities',
   }
+  const capabilityCount = capabilityGroups.reduce((total, group) => total + group.features.length, 0)
 
   const categories = useMemo(
     () => Array.from(new Set(articles.map((article) => article.category))),
@@ -2081,6 +2382,32 @@ export default function ClinicKnowledgeBasePage() {
             </div>
             <h1 className="text-3xl font-semibold text-gray-900">{copy.title}</h1>
             <p className="text-sm text-gray-600 mt-2 leading-relaxed">{copy.subtitle}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCapabilities((value) => !value)}
+                className={clsx(
+                  'inline-flex min-h-11 items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition-colors',
+                  showCapabilities
+                    ? 'bg-orange-600 text-white shadow-sm hover:bg-orange-700'
+                    : 'bg-white text-orange-800 ring-1 ring-orange-200 hover:bg-orange-50'
+                )}
+              >
+                <Star className="h-4 w-4" aria-hidden />
+                {showCapabilities ? copy.hideCapabilities : copy.showCapabilities}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCapabilities(false)
+                  setCategory('all')
+                  setQuery('')
+                }}
+                className="inline-flex min-h-11 items-center rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-gray-800 ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
+              >
+                {copy.browseArticles}
+              </button>
+            </div>
           </div>
           <div className="relative w-full lg:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden />
@@ -2093,6 +2420,38 @@ export default function ClinicKnowledgeBasePage() {
           </div>
         </div>
       </div>
+
+      {showCapabilities ? (
+        <section className="rounded-3xl border border-orange-100 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{copy.capabilities}</p>
+              <h2 className="mt-1 text-2xl font-semibold text-gray-950">{copy.capabilities}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600">{copy.capabilitiesSubtitle}</p>
+            </div>
+            <div className="rounded-2xl bg-orange-50 px-4 py-3 text-right">
+              <p className="text-2xl font-semibold text-orange-900">{capabilityCount}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{copy.featureCount}</p>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            {capabilityGroups.map((group) => (
+              <article key={group.title} className="rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
+                <h3 className="text-base font-semibold text-gray-950">{group.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-gray-600">{group.description}</p>
+                <ul className="mt-3 space-y-2">
+                  {group.features.map((feature) => (
+                    <li key={feature} className="flex gap-2 text-sm leading-relaxed text-gray-700">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" aria-hidden />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

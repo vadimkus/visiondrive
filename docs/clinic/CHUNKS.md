@@ -1,5 +1,20 @@
 # Implementation log (clinic)
 
+## Chunk 86 — 2026-05-10 (Knowledge Base capability index)
+
+**Shipped**
+
+- `/clinic/knowledge-base` now has a default-visible Practice OS capability index in EN/RU.
+- Added a hero button to show/hide the capability map and a secondary button to jump back into article browsing.
+- Capability cards summarize growth, booking, patient CRM, clinical workflow, communication, finance, inventory, mobile/portal, analytics, admin, and data safety.
+- Added `docs/2026-05-10_practice-os-capability-index.md` and linked it from the docs index.
+
+**Product decision**
+
+- Keep the capability list inside the authenticated Knowledge Base for this step, because the goal is to help signed-in users understand what the system can do from the page they already open.
+
+---
+
 ## Chunk 85 — 2026-05-04 / 2026-05-09 (Instagram Growth Pipeline)
 
 **Shipped**
