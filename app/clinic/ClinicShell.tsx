@@ -318,6 +318,12 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       .filter(Boolean)
       .join(' · ') || t.practiceOsBrand
   const mobileMenuNav = liteMode ? liteCommandNav : [...commandNav, ...growthNav, ...visibleSystemNav]
+  const activeNavItem =
+    [...nav]
+      .sort((a, b) => b.href.length - a.href.length)
+      .find(({ href }) => pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))) ||
+    navByHref.get('/clinic')!
+  const activeBreadcrumbLabel = t[activeNavItem.labelKey]
 
   const renderNavGroup = (items: typeof nav, title: string) => (
     <div className="space-y-1">
@@ -543,6 +549,16 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       </aside>
 
       <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-[calc(8.75rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
+        <nav
+          className="mx-auto mb-4 hidden w-full max-w-6xl items-center gap-2 text-sm text-slate-500 lg:flex"
+          aria-label={t.breadcrumbs}
+        >
+          <Link href="/clinic" className="transition hover:text-slate-900">
+            {t.practiceConsole}
+          </Link>
+          <span aria-hidden>/</span>
+          <span className="font-medium text-slate-900">{activeBreadcrumbLabel}</span>
+        </nav>
         {liteMode && !litePathVisible && (
           <div className="mx-auto mb-4 max-w-7xl rounded-3xl border border-orange-100 bg-orange-50/90 p-4 text-sm text-orange-950 shadow-sm">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
