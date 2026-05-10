@@ -1896,18 +1896,18 @@ export type ClinicStrings = Record<ClinicStringKey, string>
 const ruOverrides: Partial<ClinicStrings> = {
   practiceConsole: 'Рабочее место',
   breadcrumbs: 'Навигация',
-  dashboard: 'Дашборд',
+  dashboard: 'Панель',
   patients: 'Пациенты',
   procedures: 'Процедуры',
   appointments: 'Записи',
   finance: 'Финансы',
-  availability: 'Доступность',
+  availability: 'Рабочее время',
   reminders: 'Напоминания',
   inbox: 'Входящие',
   reputation: 'Репутация',
   occasions: 'Поводы',
-  referrals: 'Рекомендации',
-  instagramGrowth: 'Instagram growth',
+  referrals: 'Рефералы',
+  instagramGrowth: 'Instagram-лиды',
   marketingAutomation: 'Маркетинг',
   memberships: 'Абонементы',
   loyalty: 'Лояльность',
@@ -2053,9 +2053,9 @@ const ruOverrides: Partial<ClinicStrings> = {
   tagNew: 'Новый',
   tagSensitive: 'Чувствительный',
   tagHighRisk: 'Высокий риск',
-  tagFollowUpDue: 'Нужен follow-up',
+  tagFollowUpDue: 'Нужен повторный контакт',
   tagLatePayer: 'Задержка оплаты',
-  patientTagsHint: 'Используйте теги для follow-up, рисков и платежной дисциплины.',
+  patientTagsHint: 'Используйте теги для повторных контактов, рисков и платежной дисциплины.',
   thisWeek: 'Эта неделя',
   weekOf: 'Неделя от',
   prevWeek: 'Предыдущая неделя',
@@ -2109,13 +2109,13 @@ const ruOverrides: Partial<ClinicStrings> = {
   patientTabTreatmentPlansHint:
     'Планируйте многоэтапное лечение: ритм визитов, контрольные точки, прогресс, цели и связанные визиты.',
   patientTabConsentsHint:
-    'Создавайте шаблоны согласий, подписывайте записи под пациента и храните подтверждение aftercare в аудируемом виде.',
+    'Создавайте шаблоны согласий, подписывайте записи под пациента и храните подтверждение рекомендаций после процедуры в аудируемом виде.',
   patientTabCrmHint:
-    'Фиксируйте звонки, сообщения, follow-up и голосовые заметки, чтобы история общения оставалась в карточке пациента.',
+    'Фиксируйте звонки, сообщения, повторные контакты и голосовые заметки, чтобы история общения оставалась в карточке пациента.',
   scheduled: 'Запланировано:',
   fromLastVisit: 'После последнего визита:',
   staffNotesLabel: 'Заметки персонала:',
-  noUpcoming: 'Нет ближайших записей или заметок по follow-up.',
+  noUpcoming: 'Нет ближайших записей или заметок по повторным контактам.',
   backPatients: '<- Пациенты',
   failedToLoad: 'Не удалось загрузить',
   saveFailed: 'Не удалось сохранить',
@@ -2150,21 +2150,21 @@ const ruOverrides: Partial<ClinicStrings> = {
   setupBookingLinkStep: 'Включить ссылку для записи',
   setupBookingLinkHint: 'Откройте публичную ссылку, чтобы Google, Instagram и WhatsApp приводили клиентов.',
   setupWhatsappStep: 'Подготовить шаблоны WhatsApp',
-  setupWhatsappHint: 'Проверьте тексты напоминаний и follow-up перед отправкой клиентам.',
+  setupWhatsappHint: 'Проверьте тексты напоминаний и повторных сообщений перед отправкой клиентам.',
   setupImportClientsStep: 'Импортировать или добавить клиентов',
   setupImportClientsHint: 'Загрузите текущую клиентскую базу или добавьте первую карту пациента вручную.',
   emptyPatientsTitle: 'Начните с клиентской базы',
   emptyPatientsHint:
-    'Импортируйте клиентов из Excel/CSV или добавьте одного пациента вручную. Это откроет записи, follow-up, баланс и CRM-историю.',
+    'Импортируйте клиентов из Excel/CSV или добавьте одного пациента вручную. Это откроет записи, повторные контакты, баланс и CRM-историю.',
   emptyProceduresTitle: 'Добавьте первую услугу',
   emptyProceduresHint:
-    'Услуги нужны для онлайн-записи, длительности, цен, анкет, aftercare, депозитов и расходников.',
+    'Услуги нужны для онлайн-записи, длительности, цен, анкет, рекомендаций после процедуры, депозитов и расходников.',
   emptyAppointmentsHint:
     'Создайте запись вручную или поделитесь ссылкой для записи после настройки услуг и доступности.',
-  backDashboard: '<- Дашборд',
+  backDashboard: '<- Панель',
   notificationCenter: 'Центр уведомлений',
   notificationCenterIntro:
-    'Единый рабочий inbox для просроченных напоминаний, онлайн-записей, переносов, отзывов, неоплаченных визитов и низких остатков.',
+    'Единый центр входящих для просроченных напоминаний, онлайн-записей, переносов, отзывов, неоплаченных визитов и низких остатков.',
   inboxTotal: 'Всего',
   inboxUrgent: 'Срочно',
   inboxHigh: 'Важно',
@@ -2202,10 +2202,10 @@ const ruOverrides: Partial<ClinicStrings> = {
   messageSignaturePlaceholder: 'Например: доктор Анна',
   workspacePersonalTitle: 'Рабочее место: {name}',
   workspacePersonalGreeting: '{name}',
-  workspacePersonalGreetingHint: 'Ваше рабочее место для записей, пациентов, оплат и follow-up.',
+  workspacePersonalGreetingHint: 'Ваше рабочее место для записей, пациентов, оплат и повторных контактов.',
   soloPractitionerMode: 'Режим соло-практика',
   soloPractitionerModeHint:
-    'Все записи, напоминания, визиты и follow-up закреплены за текущим врачом. В соло-продукте нет маршрутизации “любой специалист”.',
+    'Все записи, напоминания, визиты и повторные контакты закреплены за текущим врачом. В соло-продукте нет маршрутизации “любой специалист”.',
   practitioner: 'Специалист',
   assignmentMode: 'Режим назначения',
   assignmentModeSolo: 'Один специалист',
@@ -2264,11 +2264,11 @@ const ruOverrides: Partial<ClinicStrings> = {
   offlineVisitDraftHint:
     'Заметка визита автоматически сохраняется на этом устройстве до синхронизации. Проверьте её и сохраните визит, когда связь восстановится.',
   offlineVisitDraftSaved: 'Черновик сохранён',
-  offlineVisitImportScratchpad: 'Взять черновик с дашборда',
+  offlineVisitImportScratchpad: 'Взять черновик с панели',
   offlineVisitDiscardDraft: 'Удалить черновик',
   offlineVisitDraftClearConfirm: 'Удалить локальный черновик визита?',
   offlineVisitDraftCleared: 'Локальный черновик удалён.',
-  offlineVisitDraftImported: 'Черновик с дашборда перенесён в этот визит. Проверьте перед сохранением.',
+  offlineVisitDraftImported: 'Черновик с панели перенесён в этот визит. Проверьте перед сохранением.',
   offlineVisitDraftSynced: 'Визит сохранён, локальный черновик очищен.',
   offlineVisitDraftKept:
     'Пока не удалось синхронизировать. Черновик сохранён на этом устройстве; попробуйте снова онлайн.',
@@ -2319,19 +2319,19 @@ const ruOverrides: Partial<ClinicStrings> = {
   shareWhatsApp: 'WhatsApp',
   shareEmail: 'Email',
   whatsappAssistant: 'WhatsApp-ассистент',
-  whatsappAssistantBadge: 'Первый ручной bot-pass',
+  whatsappAssistantBadge: 'Первый ручной проход',
   whatsappAssistantHint:
-    'Быстро генерируйте ответы на вопросы о ценах, ссылки для записи, intake-вопросы, статус записи и follow-up. Копируйте или открывайте WhatsApp; отправка остаётся под контролем специалиста.',
+    'Быстро готовьте ответы на вопросы о ценах, ссылки для записи, вопросы анкеты, статус записи и повторные сообщения. Копируйте или открывайте WhatsApp; отправка остаётся под контролем специалиста.',
   whatsappAssistantBookingDisabled:
-    'Публичная запись сейчас выключена. Включите её на дашборде перед отправкой ссылки.',
+    'Публичная запись сейчас выключена. Включите её на панели перед отправкой ссылки.',
   whatsappAssistantBuildReply: 'Собрать ответ',
   whatsappAssistantPreview: 'Предпросмотр',
   whatsappAssistantPreviewHint: 'Проверьте текст перед отправкой. При необходимости поправьте его в WhatsApp.',
   whatsappAssistantMode_booking: 'Ссылка для записи',
   whatsappAssistantMode_prices: 'Ответ по ценам',
-  whatsappAssistantMode_intake: 'Intake-вопросы',
+  whatsappAssistantMode_intake: 'Вопросы анкеты',
   whatsappAssistantMode_status: 'Статус записи',
-  whatsappAssistantMode_reminder: 'Follow-up / напоминание',
+  whatsappAssistantMode_reminder: 'Повторное сообщение / напоминание',
   whatsappAssistantNoPatient: 'Без пациента / общий ответ',
   whatsappAssistantClientFallback: 'добрый день',
   whatsappAssistantGreeting: 'Здравствуйте, {name},',
@@ -2357,7 +2357,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   whatsappAssistantStatusHelp:
     'Если это время не подходит, ответьте здесь, и я помогу перенести запись.',
   whatsappAssistantReminderIntro:
-    'Напоминание: возможно, пора запланировать следующий визит или follow-up.',
+    'Напоминание: возможно, пора запланировать следующий визит или повторный контакт.',
   whatsappAssistantReminderClose:
     'Ответьте здесь, если хотите, чтобы я предложил ближайшее удобное время.',
   whatsappAssistantChooseServices: 'Выберите услуги для сообщения',
@@ -2511,7 +2511,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   savedCardExpiryYear: 'YYYY',
   savedCardConsentPlaceholder: 'Заметка о согласии (необязательно)',
   savedCardDefaultConsent:
-    'Клиент разрешил хранить эту карту для гарантии записи, штрафов за позднюю отмену и no-show согласно политике клиники.',
+    'Клиент разрешил хранить эту карту для гарантии записи, штрафов за позднюю отмену и неявку согласно политике клиники.',
   savedCardLast4Required: 'Введите ровно последние 4 цифры карты.',
   saveCardOnFile: 'Сохранить карту',
   revokeCardOnFile: 'Отозвать',
@@ -2695,7 +2695,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   callSummary: 'Кратко о звонке',
   callSummaryPlaceholder: 'Что обсудили или что пытались сделать?',
   callNextAction: 'Следующий шаг',
-  callNextActionPlaceholder: 'Например: перезвонить завтра, отправить расчёт, записать на follow-up',
+  callNextActionPlaceholder: 'Например: перезвонить завтра, отправить расчёт, записать на повторный визит',
   callSummaryRequired: 'Добавьте короткое описание звонка.',
   logCall: 'Записать звонок',
   recentCalls: 'Последние звонки',
@@ -3188,7 +3188,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   occupancyBufferHeavy:
     'Поездки занимают много времени относительно процедур. Проверьте, можно ли группировать записи по районам или сократить буферы там, где это безопасно.',
   occupancyBufferHealthy:
-    'Буферы поездок выглядят разумно относительно времени процедур. Используйте свободные окна для follow-up или коротких записей.',
+    'Буферы поездок выглядят разумно относительно времени процедур. Используйте свободные окна для повторных контактов или коротких записей.',
   occupancyCleanupBuffers: 'Буферы уборки',
   occupancyBlockedTime: 'Заблокированное время',
   occupancyByDay: 'Загрузка по дням',
@@ -3200,7 +3200,7 @@ const ruOverrides: Partial<ClinicStrings> = {
     'В этот день буферы поездок высокие. Стоит группировать визиты по районам или сократить буфер, если это безопасно.',
   reviewAnalytics: 'Аналитика отзывов',
   reviewAnalyticsIntro:
-    'Следите за запрошенными, полученными и опубликованными отзывами, средней оценкой и негативной приватной обратной связью для follow-up.',
+    'Следите за запрошенными, полученными и опубликованными отзывами, средней оценкой и негативной приватной обратной связью для повторной работы с пациентом.',
   reviewAnalyticsLast90Days: 'Последние 90 дней',
   reviewAnalyticsAllTime: 'За всё время',
   reviewAnalyticsReplies: 'ответов',
@@ -3212,7 +3212,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   reviewAnalyticsNegativeQueueHint:
     'Оценки 1-3 остаются здесь, чтобы врач мог сначала ответить пациенту лично, а не давить на публичный отзыв.',
   reviewAnalyticsNegativeTotal: 'низких оценок в этом периоде',
-  reviewAnalyticsPrivateQueue: 'Очередь приватного follow-up',
+  reviewAnalyticsPrivateQueue: 'Очередь приватной работы',
   reviewAnalyticsPrivateQueueHint:
     'Низкие оценки с приватными заметками лучше разобрать напрямую с пациентом до публикации.',
   reviewAnalyticsNoNegativeQueue: 'В этом периоде нет низких приватных оценок.',
@@ -3363,7 +3363,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   retentionRebookRate: 'Повторная запись',
   retentionReturningClients: 'Повторные клиенты',
   retentionNoShowRate: 'Неявки',
-  retentionFollowUpConversion: 'Конверсия follow-up',
+  retentionFollowUpConversion: 'Конверсия повторных контактов',
   retentionClients: 'Клиенты',
   retentionNoShows: 'Неявки',
   retentionNudges: 'Напоминания',
@@ -3472,7 +3472,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   patientPortalRequestCancel: 'Запрос на отмену',
   patientPortalRequestMessage: 'Сообщение пациента',
   patientPortalPreferredTime: 'Желаемое время',
-  adminTools: 'Админ',
+  adminTools: 'Администрирование',
 }
 
 export function clinicStrings(locale: ClinicLocale): ClinicStrings {

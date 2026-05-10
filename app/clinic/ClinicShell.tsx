@@ -140,62 +140,62 @@ function readLiteModePreference() {
 
 const iconToneClasses: Record<PracticeNavTone, { active: string; idle: string; glow: string }> = {
   amber: {
-    active: 'bg-amber-400/20 text-amber-200 ring-amber-300/25',
+    active: 'bg-amber-100 text-amber-700 ring-amber-200 shadow-sm',
     idle: 'bg-amber-50 text-amber-600 ring-amber-100 group-hover:bg-amber-100 group-hover:text-amber-700',
     glow: 'from-amber-300/45 to-orange-400/20',
   },
   blue: {
-    active: 'bg-blue-400/20 text-blue-200 ring-blue-300/25',
+    active: 'bg-blue-100 text-blue-700 ring-blue-200 shadow-sm',
     idle: 'bg-blue-50 text-blue-600 ring-blue-100 group-hover:bg-blue-100 group-hover:text-blue-700',
     glow: 'from-blue-300/45 to-indigo-400/20',
   },
   cyan: {
-    active: 'bg-cyan-400/20 text-cyan-200 ring-cyan-300/25',
+    active: 'bg-cyan-100 text-cyan-700 ring-cyan-200 shadow-sm',
     idle: 'bg-cyan-50 text-cyan-600 ring-cyan-100 group-hover:bg-cyan-100 group-hover:text-cyan-700',
     glow: 'from-cyan-300/45 to-sky-400/20',
   },
   emerald: {
-    active: 'bg-emerald-400/20 text-emerald-200 ring-emerald-300/25',
+    active: 'bg-emerald-100 text-emerald-700 ring-emerald-200 shadow-sm',
     idle: 'bg-emerald-50 text-emerald-600 ring-emerald-100 group-hover:bg-emerald-100 group-hover:text-emerald-700',
     glow: 'from-emerald-300/45 to-teal-400/20',
   },
   fuchsia: {
-    active: 'bg-fuchsia-400/20 text-fuchsia-200 ring-fuchsia-300/25',
+    active: 'bg-fuchsia-100 text-fuchsia-700 ring-fuchsia-200 shadow-sm',
     idle: 'bg-fuchsia-50 text-fuchsia-600 ring-fuchsia-100 group-hover:bg-fuchsia-100 group-hover:text-fuchsia-700',
     glow: 'from-fuchsia-300/45 to-pink-400/20',
   },
   indigo: {
-    active: 'bg-indigo-400/20 text-indigo-200 ring-indigo-300/25',
+    active: 'bg-indigo-100 text-indigo-700 ring-indigo-200 shadow-sm',
     idle: 'bg-indigo-50 text-indigo-600 ring-indigo-100 group-hover:bg-indigo-100 group-hover:text-indigo-700',
     glow: 'from-indigo-300/45 to-violet-400/20',
   },
   orange: {
-    active: 'bg-orange-400/20 text-orange-200 ring-orange-300/25',
+    active: 'bg-orange-100 text-orange-700 ring-orange-200 shadow-sm',
     idle: 'bg-orange-50 text-orange-600 ring-orange-100 group-hover:bg-orange-100 group-hover:text-orange-700',
     glow: 'from-orange-300/45 to-rose-400/20',
   },
   pink: {
-    active: 'bg-pink-400/20 text-pink-200 ring-pink-300/25',
+    active: 'bg-pink-100 text-pink-700 ring-pink-200 shadow-sm',
     idle: 'bg-pink-50 text-pink-600 ring-pink-100 group-hover:bg-pink-100 group-hover:text-pink-700',
     glow: 'from-pink-300/45 to-rose-400/20',
   },
   rose: {
-    active: 'bg-rose-400/20 text-rose-200 ring-rose-300/25',
+    active: 'bg-rose-100 text-rose-700 ring-rose-200 shadow-sm',
     idle: 'bg-rose-50 text-rose-600 ring-rose-100 group-hover:bg-rose-100 group-hover:text-rose-700',
     glow: 'from-rose-300/45 to-orange-400/20',
   },
   sky: {
-    active: 'bg-sky-400/20 text-sky-200 ring-sky-300/25',
+    active: 'bg-sky-100 text-sky-700 ring-sky-200 shadow-sm',
     idle: 'bg-sky-50 text-sky-600 ring-sky-100 group-hover:bg-sky-100 group-hover:text-sky-700',
     glow: 'from-sky-300/45 to-cyan-400/20',
   },
   teal: {
-    active: 'bg-teal-400/20 text-teal-200 ring-teal-300/25',
+    active: 'bg-teal-100 text-teal-700 ring-teal-200 shadow-sm',
     idle: 'bg-teal-50 text-teal-600 ring-teal-100 group-hover:bg-teal-100 group-hover:text-teal-700',
     glow: 'from-teal-300/45 to-emerald-400/20',
   },
   violet: {
-    active: 'bg-violet-400/20 text-violet-200 ring-violet-300/25',
+    active: 'bg-violet-100 text-violet-700 ring-violet-200 shadow-sm',
     idle: 'bg-violet-50 text-violet-600 ring-violet-100 group-hover:bg-violet-100 group-hover:text-violet-700',
     glow: 'from-violet-300/45 to-fuchsia-400/20',
   },
@@ -333,10 +333,10 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
             key={href}
             href={href}
             className={clsx(
-              'group flex min-h-11 items-center gap-3 rounded-2xl px-3 text-sm font-medium transition-all',
+              'group flex min-h-11 items-center gap-3 rounded-2xl border px-3 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/60',
               active
-                ? 'bg-slate-950 text-white shadow-xl shadow-slate-950/15'
-                : 'text-slate-600 hover:bg-white hover:text-slate-950 hover:shadow-sm'
+                ? 'border-orange-200 bg-white text-slate-950 shadow-lg shadow-orange-100/70 ring-1 ring-orange-100'
+                : 'border-transparent text-slate-600 hover:border-white/80 hover:bg-white/80 hover:text-slate-950 hover:shadow-sm'
             )}
           >
             <PracticeNavIcon Icon={Icon} active={active} tone={tone} />

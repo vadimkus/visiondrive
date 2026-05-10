@@ -99,7 +99,7 @@ const copy = {
     segment_package_balance: 'Баланс пакета',
     segment_birthday: 'День рождения',
     segment_dormant: 'Спящие клиенты',
-    segment_no_show: 'Возврат no-show',
+    segment_no_show: 'Возврат после неявки',
     guardrail: 'Ничего не отправляется автоматически. Каждый текст нужно проверить перед открытием WhatsApp.',
   },
 } as const

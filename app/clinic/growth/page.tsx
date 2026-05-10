@@ -100,7 +100,7 @@ type GrowthOverview = {
 
 const copy = {
   en: {
-    title: 'Instagram Growth Pipeline',
+    title: 'Воронка Instagram-лидов',
     badge: 'Lead to rebooking',
     intro:
       'Capture Instagram leads, prepare reviewed DM replies, send tracked booking links, and move each client toward aftercare, rebooking, packages, and memberships.',
@@ -147,10 +147,10 @@ const copy = {
     title: 'Instagram Growth Pipeline',
     badge: 'От лида до повторной записи',
     intro:
-      'Фиксируйте Instagram-лиды, готовьте DM-ответы, отправляйте отслеживаемые ссылки записи и ведите клиента к aftercare, повторной записи, пакетам и membership.',
+      'Фиксируйте Instagram-лиды, готовьте ответы в Директ, отправляйте отслеживаемые ссылки записи и ведите клиента к рекомендациям после визита, повторной записи, пакетам и абонементам.',
     refresh: 'Обновить',
     createLead: 'Создать лид',
-    handle: 'Instagram handle',
+    handle: 'Instagram-аккаунт',
     name: 'Имя',
     service: 'Интересующая услуга',
     campaign: 'Кампания',
@@ -164,7 +164,7 @@ const copy = {
     completed: 'Визит завершён',
     rebookingDue: 'Нужна повторная запись',
     packageOpportunity: 'Можно предложить пакет',
-    membershipOpportunity: 'Можно предложить membership',
+    membershipOpportunity: 'Можно предложить абонемент',
     lost: 'Потерян',
     generatedMessage: 'Готовый текст',
     prepareBooking: 'Подготовить ссылку',
@@ -172,7 +172,7 @@ const copy = {
     markReplied: 'Отметить ответ',
     markLost: 'Потерян',
     packageOffer: 'Пакет',
-    membershipOffer: 'Membership',
+    membershipOffer: 'Абонемент',
     openInstagram: 'Открыть Instagram',
     openAppointment: 'Открыть запись',
     openPatient: 'Открыть клиента',
@@ -180,12 +180,12 @@ const copy = {
     copied: 'Скопировано',
     noLeads: 'В этой колонке пока нет лидов.',
     bookingOff:
-      'Публичная запись выключена. Текст можно готовить, но перед отправкой ссылок включите booking на dashboard.',
-    loadFailed: 'Не удалось загрузить growth pipeline.',
+      'Публичная запись выключена. Текст можно готовить, но перед отправкой ссылок включите онлайн-запись на панели.',
+    loadFailed: 'Не удалось загрузить воронку Instagram-лидов.',
     saveFailed: 'Не удалось сохранить лид.',
     actionFailed: 'Действие не выполнено.',
-    tasks: 'Growth-задачи на сегодня',
-    noTasks: 'Сейчас нет growth-задач.',
+    tasks: 'Задачи по росту на сегодня',
+    noTasks: 'Сейчас нет задач по росту.',
   },
 } as const
 
