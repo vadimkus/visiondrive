@@ -133,6 +133,7 @@
 | [2026-04-30_practice-os-runtime-smoke.md](2026-04-30_practice-os-runtime-smoke.md) | Practice OS runtime smoke test results after RU localization |
 | [2026-05-03_visiondrive-seo-ai-rebuild.md](2026-05-03_visiondrive-seo-ai-rebuild.md) | Public SEO and AI discoverability rebuild for Practice OS positioning |
 | [2026-05-04_instagram-growth-pipeline.md](2026-05-04_instagram-growth-pipeline.md) | Instagram lead-to-rebooking growth pipeline MVP for Practice OS |
+| [2026-05-04_instagram-growth-validation.md](2026-05-04_instagram-growth-validation.md) | Product validation and positioning for Instagram Growth inside Solo Practitioner OS |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |

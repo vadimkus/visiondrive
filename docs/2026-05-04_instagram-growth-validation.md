@@ -38,3 +38,13 @@ The first version must stay manual-first. Official Instagram DM automation adds 
 
 This makes the product more sellable at $29-99/month because it moves from admin software to revenue software. That is a better subscription story.
 
+## Knowledge Base Update — 2026-05-09
+
+The implementation is now documented across the permanent product knowledge base:
+
+- `docs/README.md` indexes both the implementation note and validation note.
+- `docs/clinic/CHUNKS.md` records the shipped Instagram Growth chunk, product decision, and operational schema requirement.
+- `docs/clinic/ARCHITECTURE.md` and `docs/clinic/DATA_MODEL.md` describe the lead models, conversion attribution, and API surface.
+- `docs/CODEBASE_REFERENCE.md` lists `/clinic/growth` and the Growth/leads API area.
+- `/clinic/knowledge-base` includes EN/RU user-facing articles for running the Instagram lead-to-rebooking workflow and understanding the positioning.
+

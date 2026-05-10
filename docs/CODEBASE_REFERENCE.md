@@ -1,6 +1,6 @@
 # VisionDrive Codebase Reference
 
-Last updated: 2026-04-30
+Last updated: 2026-05-09
 
 VisionDrive is now focused on **Practice OS**: practice operations software for solo practitioners and independent clinics.
 
@@ -51,6 +51,7 @@ VisionDrive/
 
 - Public website: `/`, `/about`, `/contact`, `/faq`, `/privacy`, `/terms`, `/compliance`, `/solutions`, `/technology`
 - Practitioner workspace: `/clinic`
+- Instagram growth pipeline: `/clinic/growth`
 - Public booking: `/book/[slug]`
 - Patient portal: `/patient-portal/[token]`
 - Disabled public profile route: `/profile/[slug]`
@@ -66,6 +67,7 @@ VisionDrive/
 | Appointments | `/api/clinic/appointments/*` |
 | Procedures | `/api/clinic/procedures/*` |
 | Booking | `/api/clinic/public-booking/*`, `/book/[slug]` |
+| Instagram growth | `/api/clinic/leads/*`, `/api/clinic/growth/overview`, `/clinic/growth` |
 | Payments and finance | `/api/clinic/patients/[id]/payments/*`, `/api/clinic/finance/*` |
 | Marketing and loyalty | `/api/clinic/marketing/*`, `/api/clinic/loyalty/*` |
 | Portal links | `/api/clinic/patients/[id]/portal-link`, `/api/patient-portal/[token]` |

@@ -7,6 +7,7 @@ import {
   CalendarClock,
   CircleDollarSign,
   FileText,
+  Instagram,
   Package,
   Search,
   Send,
@@ -332,6 +333,37 @@ const articlesEn: Article[] = [
       'Open the patient card when you need context before sending.',
     ],
     link: '/clinic/marketing',
+  },
+  {
+    id: 'instagram-growth-pipeline',
+    category: 'Growth',
+    title: 'Turn Instagram DMs into repeat bookings',
+    summary:
+      'Use the Growth workspace to capture Instagram leads, prepare reviewed replies, send tracked booking links, and move clients toward rebooking, packages, and memberships.',
+    steps: [
+      'Open Instagram growth from the Growth section.',
+      'Create a lead with the Instagram handle, name, interested service, campaign, and original DM context.',
+      'Use Prepare booking link or Price reply to generate reviewed DM copy. Copy the text and send it manually in Instagram or WhatsApp.',
+      'The booking link includes a lead tracking code, so a completed public booking links back to the lead, patient, and appointment.',
+      'After the appointment, use the same lead card to log package or membership offers so the acquisition path stays tied to revenue.',
+      'Keep this manual-first: no Instagram message is auto-sent and no inbound DM sync exists in v1.',
+    ],
+    link: '/clinic/growth',
+  },
+  {
+    id: 'instagram-growth-positioning',
+    category: 'Growth',
+    title: 'Use Instagram Growth as the revenue workflow',
+    summary:
+      'Position Practice OS as the system that turns Instagram interest into booked clients, aftercare, repeat visits, and package or membership revenue.',
+    steps: [
+      'Treat Instagram as the front door for solo beauty, wellness, and aesthetic practices.',
+      'Use Growth for pre-booking leads, Booking funnel for channel conversion, and Retention for repeat visit performance.',
+      'Do not use Growth as a generic social scheduler; use it only for real client conversations that can become appointments.',
+      'When a lead books, the patient referral source is marked as Instagram and the lead keeps the conversion trail.',
+      'Review Growth tasks daily: new leads, replied leads needing a booking link, aftercare checks, and package or membership opportunities.',
+    ],
+    link: '/clinic/growth',
   },
   {
     id: 'memberships-subscriptions-autopay',
@@ -1288,6 +1320,37 @@ const articlesRu: Article[] = [
     link: '/clinic/marketing',
   },
   {
+    id: 'instagram-growth-pipeline',
+    category: 'Рост',
+    title: 'Превращайте Instagram DM в повторные записи',
+    summary:
+      'Используйте Growth workspace, чтобы фиксировать Instagram-лиды, готовить проверенные ответы, отправлять отслеживаемые ссылки записи и вести клиента к повтору, пакетам и membership.',
+    steps: [
+      'Откройте Instagram growth в разделе Рост.',
+      'Создайте лид: Instagram handle, имя, интересующая услуга, кампания и контекст исходного DM.',
+      'Используйте Подготовить ссылку или Ответ по цене, чтобы получить текст DM. Скопируйте и отправьте его вручную в Instagram или WhatsApp.',
+      'Ссылка записи содержит lead-код, поэтому завершенная онлайн-запись связывается с лидом, пациентом и записью.',
+      'После визита используйте ту же карточку лида, чтобы зафиксировать предложение пакета или membership.',
+      'Оставляйте процесс manual-first: v1 не отправляет Instagram-сообщения автоматически и не синхронизирует входящие DM.',
+    ],
+    link: '/clinic/growth',
+  },
+  {
+    id: 'instagram-growth-positioning',
+    category: 'Рост',
+    title: 'Используйте Instagram Growth как сценарий выручки',
+    summary:
+      'Позиционируйте Practice OS как систему, которая превращает интерес из Instagram в записи, aftercare, повторные визиты, пакеты и membership.',
+    steps: [
+      'Считайте Instagram входной дверью для solo beauty, wellness и aesthetic практик.',
+      'Используйте Growth для лидов до записи, Booking funnel для конверсии каналов и Retention для повторных визитов.',
+      'Не превращайте Growth в обычный social scheduler; заносите только реальные клиентские диалоги, которые могут стать записью.',
+      'Когда лид записывается, источник пациента отмечается как Instagram, а лид хранит след конверсии.',
+      'Каждый день проверяйте Growth-задачи: новые лиды, ответы без ссылки записи, aftercare, предложения пакета или membership.',
+    ],
+    link: '/clinic/growth',
+  },
+  {
     id: 'memberships-subscriptions-autopay',
     category: 'Финансы',
     title: 'Ведите абонементы и ежемесячные планы',
@@ -1948,6 +2011,8 @@ const categoryIcons = {
   Коммуникации: Send,
   Messages: Send,
   Сообщения: Send,
+  Growth: Instagram,
+  Рост: Instagram,
   Account: Users,
   Аккаунт: Users,
   Clinical: Stethoscope,
@@ -1959,6 +2024,7 @@ const categoryIcons = {
 const workflowArticleIds = [
   'solo-practice-day-one',
   'solo-mobile-daily-workflow',
+  'instagram-growth-pipeline',
   'solo-patient-journey',
   'monthly-business-review',
 ]

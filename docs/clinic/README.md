@@ -1,6 +1,6 @@
 # VisionDrive Practice OS (clinic module)
 
-This folder documents the **practice / clinic operations** product: appointments, patients, procedures, and (in later chunks) visits with media, inventory, finance, and patient-safe exports.
+This folder documents the **practice / clinic operations** product: appointments, patients, procedures, Instagram lead conversion, visits with media, inventory, finance, retention, memberships, and patient-safe exports.
 
 **Brand slogan (EN):** *Practice operations, made clear* — defined in `lib/brand.ts` with Russian counterpart for header/footer.
 
@@ -22,6 +22,7 @@ This folder documents the **practice / clinic operations** product: appointments
 |------|------|
 | App shell | `app/clinic/` |
 | REST API | `app/api/clinic/` |
+| Instagram growth | `app/clinic/growth/`, `app/api/clinic/leads/`, `app/api/clinic/growth/overview/route.ts` |
 | Session helpers | `lib/clinic/session.ts` |
 | i18n (practice UI) | `lib/clinic/strings.ts`, `lib/clinic/clinic-locale.tsx` |
 | Shared UI | `components/clinic/*` |

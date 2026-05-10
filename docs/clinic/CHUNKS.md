@@ -1,5 +1,28 @@
 # Implementation log (clinic)
 
+## Chunk 85 — 2026-05-04 / 2026-05-09 (Instagram Growth Pipeline)
+
+**Shipped**
+
+- `/clinic/growth` manual-first Instagram lead workspace for solo beauty, wellness, and aesthetic practitioners.
+- Prisma: `ClinicLead`, `ClinicLeadActivity`, lead source/stage/activity enums, and conversion links to patient and appointment records.
+- `lib/clinic/instagram-growth.ts` for lead/source/stage normalization, tracked booking URLs, reviewed DM reply copy, and pipeline task derivation.
+- `GET/POST /api/clinic/leads`, `GET/PATCH /api/clinic/leads/[id]`, `POST .../activities`, `POST .../actions`, and `GET /api/clinic/growth/overview`.
+- Public booking now preserves `lead` tracking codes and converts matching leads into booked patient/appointment attribution.
+- Navigation, dashboard quick action, EN/RU string key, helper tests, architecture/data docs, session notes, and Knowledge Base articles.
+
+**Product decision**
+
+- Keep v1 manual-first. The practitioner reviews and sends Instagram/WhatsApp messages manually; the OS stores the business workflow and attribution. No official Instagram DM API, inbound webhook sync, or auto-send behavior is included in this chunk.
+- Positioning: Practice OS helps solo practitioners turn Instagram interest into repeat booked clients, not just manage a calendar.
+
+**Operational**
+
+- Schema change requires `npx prisma generate` and `npx prisma db push` against target databases before use.
+- Use `/clinic/knowledge-base` articles `instagram-growth-pipeline` and `instagram-growth-positioning` for user-facing workflow guidance.
+
+---
+
 ## Chunk 48 — 2026-04-30 (admin tools)
 
 **Shipped**
