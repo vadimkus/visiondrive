@@ -363,7 +363,11 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         <span className={clsx('block truncate font-semibold', compact ? 'text-slate-800' : 'text-slate-950')}>
           {compact ? (liteMode ? t.liteModeShort : t.fullModeShort) : liteMode ? t.liteModeOn : t.liteModeOff}
         </span>
-        {!compact && <span className="mt-0.5 block text-xs leading-5 text-slate-500">{t.liteModeHint}</span>}
+        {!compact && (
+          <span className="mt-0.5 block text-xs leading-5 text-slate-500">
+            {liteMode ? t.liteModeHint : t.fullModeHint}
+          </span>
+        )}
       </span>
       <span
         className={clsx(

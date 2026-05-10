@@ -31,6 +31,7 @@ const table = {
     liteModeShort: 'Lite',
     fullModeShort: 'Full',
     liteModeHint: 'Shows only daily essentials. Switch back anytime.',
+    fullModeHint: 'Shows all workspace tools. You can switch to Lite mode anytime.',
     liteModeSwitchToLite: 'Switch to Lite mode',
     liteModeSwitchToFull: 'Switch to Full mode',
     liteModeHiddenPage: 'This page is hidden from Lite mode navigation, but it is still open. Switch to Full mode to see every tool again.',
@@ -1918,6 +1919,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   liteModeShort: 'Лайт',
   fullModeShort: 'Полный',
   liteModeHint: 'Показывает только ежедневные задачи. Вернуться можно в любой момент.',
+  fullModeHint: 'Показывает все разделы рабочего места. В лёгкий режим можно перейти в любой момент.',
   liteModeSwitchToLite: 'Переключить в лёгкий режим',
   liteModeSwitchToFull: 'Вернуться в полный режим',
   liteModeHiddenPage:
