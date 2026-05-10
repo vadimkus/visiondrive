@@ -310,13 +310,8 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
     ) ||
     (isAdmin && (pathname === '/clinic/admin-tools' || pathname.startsWith('/clinic/admin-tools/')))
   const practitionerName = practitionerIdentity?.displayName?.trim() || ''
-  const workspaceTitle = practitionerName
-    ? t.workspacePersonalTitle.replace('{name}', practitionerName)
-    : t.practiceOsTitle
-  const workspaceSubtitle =
-    [practitionerIdentity?.professionalTitle, practitionerIdentity?.specialty]
-      .filter(Boolean)
-      .join(' · ') || t.practiceOsBrand
+  const workspaceTitle = practitionerName || t.practiceOsTitle
+  const workspaceSubtitle = t.practiceConsole
   const mobileMenuNav = liteMode ? liteCommandNav : [...commandNav, ...growthNav, ...visibleSystemNav]
   const activeNavItem =
     [...nav]
@@ -360,7 +355,9 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         'group flex w-full items-center justify-between rounded-2xl border transition-all active:scale-[0.99]',
         compact
           ? 'min-h-11 border-slate-200 bg-white px-3 text-xs shadow-sm'
-          : 'border-orange-100 bg-orange-50/70 p-3 text-left hover:bg-orange-50'
+          : liteMode
+            ? 'border-orange-100 bg-orange-50/70 p-3 text-left hover:bg-orange-50'
+            : 'border-blue-200 bg-blue-50/70 p-3 text-left shadow-sm shadow-blue-100/50 hover:bg-blue-50'
       )}
       aria-pressed={liteMode}
       aria-label={liteMode ? t.liteModeSwitchToFull : t.liteModeSwitchToLite}
@@ -378,7 +375,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       <span
         className={clsx(
           'ml-3 flex h-6 w-11 shrink-0 items-center rounded-full p-1 transition-colors',
-          liteMode ? 'bg-orange-500' : 'bg-slate-300'
+          liteMode ? 'bg-orange-500' : 'bg-blue-500'
         )}
         aria-hidden
       >
@@ -494,13 +491,26 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       )}
 
       <aside className="sticky top-0 hidden h-[100dvh] w-[18rem] shrink-0 border-r border-white/70 bg-white/72 p-4 shadow-[inset_-1px_0_0_rgba(255,255,255,0.7)] backdrop-blur-2xl lg:flex lg:flex-col">
-        <Link href="/clinic" className="flex min-h-12 items-center gap-3 rounded-3xl px-2" aria-label={t.dashboard}>
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-orange-100">
-            <Logo className="h-10 w-10" priority />
+        <Link
+          href="/clinic"
+          className="group flex min-h-24 items-center gap-4 rounded-[2rem] border border-orange-100/70 bg-white/75 p-3 shadow-lg shadow-orange-100/30 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:shadow-orange-100/50"
+          aria-label={t.dashboard}
+        >
+          <span className="flex w-20 shrink-0 flex-col items-center gap-1.5">
+            <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1.65rem] bg-white shadow-sm ring-1 ring-orange-100 transition group-hover:ring-orange-200">
+              <Logo className="h-12 w-12" priority />
+            </span>
+            <span className="text-[11px] font-semibold leading-none tracking-tight text-slate-600">
+              Vision<span className="text-orange-500">Drive</span>
+            </span>
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold text-slate-950">{workspaceTitle}</span>
-            <span className="block truncate text-xs text-slate-500">{workspaceSubtitle}</span>
+            <span className="block truncate text-[21px] font-semibold leading-tight tracking-[-0.03em] text-slate-950">
+              {workspaceTitle}
+            </span>
+            <span className="mt-1 block truncate text-sm font-medium leading-tight text-slate-500">
+              {workspaceSubtitle}
+            </span>
           </span>
         </Link>
 
