@@ -5,6 +5,7 @@ export const CLINIC_LOCALE_STORAGE = 'visiondrive-clinic-locale'
 const table = {
   en: {
     practiceConsole: 'Workspace',
+    breadcrumbs: 'Breadcrumbs',
     dashboard: 'Dashboard',
     patients: 'Patients',
     procedures: 'Procedures',
@@ -309,8 +310,8 @@ const table = {
     messageSignatureHint: 'Added to WhatsApp Assistant drafts and other practitioner-controlled patient messages.',
     messageSignaturePlaceholder: 'Example: Dr. Anna',
     workspacePersonalTitle: "{name}'s workspace",
-    workspacePersonalGreeting: 'Good to see you, {name}',
-    workspacePersonalGreetingHint: 'Your private operating panel for bookings, patients, payments, and follow-ups.',
+    workspacePersonalGreeting: '{name}',
+    workspacePersonalGreetingHint: 'Your workspace for bookings, patients, payments, and follow-ups.',
     soloPractitionerMode: 'Solo practitioner mode',
     soloPractitionerModeHint:
       'All appointments, reminders, visits, and patient follow-ups are assigned to the signed-in practitioner. There is no “any professional” routing in the solo product.',
@@ -1894,6 +1895,7 @@ export type ClinicStrings = Record<ClinicStringKey, string>
 
 const ruOverrides: Partial<ClinicStrings> = {
   practiceConsole: 'Рабочее место',
+  breadcrumbs: 'Навигация',
   dashboard: 'Дашборд',
   patients: 'Пациенты',
   procedures: 'Процедуры',
@@ -2199,9 +2201,8 @@ const ruOverrides: Partial<ClinicStrings> = {
   messageSignatureHint: 'Добавляется в черновики WhatsApp-ассистента и другие сообщения под контролем специалиста.',
   messageSignaturePlaceholder: 'Например: доктор Анна',
   workspacePersonalTitle: 'Рабочее место: {name}',
-  workspacePersonalGreeting: 'Рады видеть вас, {name}',
-  workspacePersonalGreetingHint:
-    'Ваше приватное рабочее место для записей, пациентов, оплат и follow-up.',
+  workspacePersonalGreeting: '{name}',
+  workspacePersonalGreetingHint: 'Ваше рабочее место для записей, пациентов, оплат и follow-up.',
   soloPractitionerMode: 'Режим соло-практика',
   soloPractitionerModeHint:
     'Все записи, напоминания, визиты и follow-up закреплены за текущим врачом. В соло-продукте нет маршрутизации “любой специалист”.',

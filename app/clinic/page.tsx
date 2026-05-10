@@ -280,6 +280,7 @@ export default function ClinicDashboardPage() {
     : []
   const setupCompleteCount = setupSteps.filter((step) => step.done).length
   const setupProgress = setupSteps.length ? Math.round((setupCompleteCount / setupSteps.length) * 100) : 0
+  const practitionerName = stats?.practitionerIdentity.displayName
 
   return (
     <>
@@ -293,14 +294,19 @@ export default function ClinicDashboardPage() {
               {t.dashboardSoloCockpit}
             </p>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight">
-              {stats?.practitionerIdentity.displayName
-                ? t.workspacePersonalGreeting.replace('{name}', stats.practitionerIdentity.displayName)
-                : t.dashboard}
+              {practitionerName ? (
+                <span className="inline-flex items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
+                    <Users className="h-5 w-5 text-orange-100" aria-hidden />
+                  </span>
+                  <span>{t.workspacePersonalGreeting.replace('{name}', practitionerName)}</span>
+                </span>
+              ) : (
+                t.dashboard
+              )}
             </h1>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-300">
-              {stats?.practitionerIdentity.displayName
-                ? t.workspacePersonalGreetingHint
-                : t.dashboardSoloCockpitHint}
+              {practitionerName ? t.workspacePersonalGreetingHint : t.dashboardSoloCockpitHint}
             </p>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <Link
@@ -391,20 +397,20 @@ export default function ClinicDashboardPage() {
       <section className="mx-auto hidden w-full max-w-6xl space-y-8 lg:block">
         <div className="flex items-center justify-between gap-6">
           <div>
-            <div className="mb-3 flex items-center gap-2 text-sm text-slate-500">
-              <span>{t.practiceConsole}</span>
-              <span>/</span>
-              <span className="font-medium text-slate-900">{t.dashboard}</span>
-            </div>
-            <h1 className="text-5xl font-semibold tracking-[-0.04em] text-slate-950">
-              {stats?.practitionerIdentity.displayName
-                ? t.workspacePersonalGreeting.replace('{name}', stats.practitionerIdentity.displayName)
-                : t.dashboard}
+            <h1 className="flex items-center gap-4 text-5xl font-semibold tracking-[-0.04em] text-slate-950">
+              {practitionerName ? (
+                <>
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-orange-50 ring-1 ring-orange-100">
+                    <Users className="h-7 w-7 text-orange-700" aria-hidden />
+                  </span>
+                  <span>{t.workspacePersonalGreeting.replace('{name}', practitionerName)}</span>
+                </>
+              ) : (
+                t.dashboard
+              )}
             </h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-              {stats?.practitionerIdentity.displayName
-                ? t.workspacePersonalGreetingHint
-                : t.dashboardIntro}
+              {practitionerName ? t.workspacePersonalGreetingHint : t.dashboardIntro}
             </p>
           </div>
           <div className="flex items-center gap-3">
