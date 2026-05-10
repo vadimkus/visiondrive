@@ -133,11 +133,14 @@ const capabilityGroupsEn: CapabilityGroup[] = [
   },
   {
     title: 'Mobile, portal, and patient experience',
-    description: 'Designed for iPhone/iPad-first solo practice operations.',
+    description: 'Aligned across desktop, mobile web, iPad/tablet, and future native app planning.',
     features: [
+      'Desktop command center with persistent sidebar, wide canvas, breadcrumbs, and dense management views',
       'Mobile-first clinic shell with safe-area layout, swipeable navigation, and quick actions',
+      'iPad/tablet web layout with expanded touch navigation; portrait stays touch-first and landscape uses the desktop command shell',
       'Installable PWA practitioner mode with Today dashboard and device-local offline scratchpad',
       'Camera-friendly patient photo upload from iPhone/iPad',
+      'Future native mobile app kept out of v1; current mobile strategy is responsive web plus installable PWA',
       'Private patient portal link with expiry, revocation, last-access tracking, and patient-safe data only',
       'Portal client wallet for balances, pending requests, quotes, packages, gift cards, saved cards, and receipts',
       'Portal pre-visit checklist and patient requests mirrored into CRM and appointment history',
@@ -275,11 +278,14 @@ const capabilityGroupsRu: CapabilityGroup[] = [
   },
   {
     title: 'Мобильность, портал и опыт пациента',
-    description: 'Система рассчитана на работу соло-специалиста с iPhone или iPad.',
+    description: 'Единый интерфейс для десктопа, мобильного веба, iPad/планшета и будущего нативного приложения.',
     features: [
+      'Десктопная командная панель с постоянным сайдбаром, широким рабочим полем, навигационной цепочкой и плотными управленческими экранами',
       'Мобильная рабочая оболочка с безопасными отступами, прокручиваемой навигацией и быстрыми действиями',
+      'Веб-интерфейс для iPad/планшета с расширенной сенсорной навигацией: в портретном режиме он остаётся удобным для касаний, в ландшафтном использует десктопную командную оболочку',
       'Устанавливаемый PWA-режим врача с экраном «Сегодня» и локальным офлайн-черновиком',
       'Фото пациента с камеры iPhone/iPad',
+      'Нативное мобильное приложение оставлено на будущий этап; сейчас мобильная стратегия — адаптивный веб и устанавливаемый PWA',
       'Приватная ссылка кабинета пациента со сроком действия, отзывом доступа, последним входом и только безопасными для пациента данными',
       'Кошелёк клиента в портале: баланс, ожидающие оплаты, сметы, пакеты, подарочные карты, сохранённые карты и чеки',
       'Чеклист перед визитом и запросы пациента сохраняются в CRM и истории записи',

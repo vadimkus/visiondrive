@@ -1,6 +1,8 @@
 # Iryna — iPad-first practice flows
 
-This document describes the intended **staff** workflows on a tablet (Safari / Chrome on iPad). Arabic UI is available via the **language toggle** in the practice sidebar (English / العربية).
+This document describes the intended **staff** workflows on a tablet (Safari / Chrome on iPad). EN/RU UI is available via the language toggle in the Practice OS shell.
+
+For the full desktop, mobile web, iPad/tablet, and future native app layout contract, see [SURFACES.md](./SURFACES.md).
 
 ## Returning patient
 

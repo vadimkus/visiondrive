@@ -1,5 +1,21 @@
 # Implementation log (clinic)
 
+## Chunk 87 — 2026-05-10 (Practice OS surface contract)
+
+**Shipped**
+
+- Added `docs/clinic/SURFACES.md` as the canonical contract for active desktop web, mobile web, and iPad/tablet web surfaces, with native mobile app marked as future scope.
+- Aligned `app/clinic/ClinicShell.tsx` for tablet widths so iPad portrait uses wider mobile/tablet containers, expanded menu grids, and less phone-narrow bottom navigation.
+- Polished the Lite/Full mode card so both states use the same orange visual system, and simplified the RU Lite label to `Легкий режим` without redundant state wording.
+- Updated `/clinic/knowledge-base` capability copy in EN/RU to explicitly state desktop, mobile web, iPad/tablet, PWA, and future native app boundaries.
+- Linked the surface contract from the main docs index, clinic README, architecture notes, and iPad workflow doc.
+
+**Validation**
+
+- Run `npm run type-check`.
+
+---
+
 ## Chunk 86 — 2026-05-10 (Knowledge Base capability index)
 
 **Shipped**

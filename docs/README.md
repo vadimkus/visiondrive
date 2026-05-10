@@ -11,6 +11,7 @@
 | [clinic/README.md](clinic/README.md) | **Clinic / practice system — start here** |
 | [clinic/PLAN.md](clinic/PLAN.md) | Phased delivery plan and chunk scope |
 | [clinic/ARCHITECTURE.md](clinic/ARCHITECTURE.md) | Data model, APIs, tenancy, security |
+| [clinic/SURFACES.md](clinic/SURFACES.md) | Desktop, mobile web, iPad/tablet, and future app surface contract |
 | [clinic/CHUNKS.md](clinic/CHUNKS.md) | Implementation log (what shipped per chunk) |
 
 ### Project Overview
@@ -135,6 +136,7 @@
 | [2026-05-04_instagram-growth-pipeline.md](2026-05-04_instagram-growth-pipeline.md) | Instagram lead-to-rebooking growth pipeline MVP for Practice OS |
 | [2026-05-04_instagram-growth-validation.md](2026-05-04_instagram-growth-validation.md) | Product validation and positioning for Instagram Growth inside Solo Practitioner OS |
 | [2026-05-10_practice-os-capability-index.md](2026-05-10_practice-os-capability-index.md) | In-app Knowledge Base capability index for Practice OS in EN/RU |
+| [2026-05-10_practice-os-surface-alignment.md](2026-05-10_practice-os-surface-alignment.md) | Desktop, mobile web, iPad/tablet, and future app surface alignment note |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |

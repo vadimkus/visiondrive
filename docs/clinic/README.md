@@ -10,6 +10,7 @@ This folder documents the **practice / clinic operations** product: appointments
 |-----|---------|
 | [PLAN.md](./PLAN.md) | Phased roadmap and chunk boundaries |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Schema, tenancy, API conventions, UAE data notes |
+| [SURFACES.md](./SURFACES.md) | Desktop, mobile web, iPad/tablet, and future native app surface contract |
 | [CHUNKS.md](./CHUNKS.md) | What shipped in each chunk (living log) |
 | [SETUP_LOCAL.md](./SETUP_LOCAL.md) | Docker Postgres + local `db push` when cloud DB is unavailable |
 | [RUNBOOK.md](./RUNBOOK.md) | Deploy, schema, incidents, backups |

@@ -378,9 +378,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         'group flex w-full items-center justify-between rounded-2xl border transition-all active:scale-[0.99]',
         compact
           ? 'min-h-11 border-slate-200 bg-white px-3 text-xs shadow-sm'
-          : liteMode
-            ? 'border-orange-100 bg-orange-50/70 p-3 text-left hover:bg-orange-50'
-            : 'border-blue-200 bg-blue-50/70 p-3 text-left shadow-sm shadow-blue-100/50 hover:bg-blue-50'
+          : 'border-orange-100 bg-orange-50/70 p-3 text-left shadow-sm shadow-orange-100/50 hover:bg-orange-50'
       )}
       aria-pressed={liteMode}
       aria-label={liteMode ? t.liteModeSwitchToFull : t.liteModeSwitchToLite}
@@ -398,7 +396,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       <span
         className={clsx(
           'ml-3 flex h-6 w-11 shrink-0 items-center rounded-full p-1 transition-colors',
-          liteMode ? 'bg-orange-500' : 'bg-blue-500'
+          'bg-orange-500'
         )}
         aria-hidden
       >
@@ -418,7 +416,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       dir="ltr"
       lang={locale}
     >
-      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 px-5 backdrop-blur-xl safe-area-top lg:hidden">
+      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 px-5 backdrop-blur-xl safe-area-top md:px-6 lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <Link
             href="/clinic"
@@ -485,10 +483,10 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       </header>
 
       {mobileMenuOpen && (
-        <div className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-slate-100 bg-white/96 px-5 pb-6 pt-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl lg:hidden">
-          <div className="mx-auto max-w-md space-y-4">
+        <div className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-slate-100 bg-white/96 px-5 pb-6 pt-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl md:px-6 lg:hidden">
+          <div className="mx-auto max-w-md space-y-4 sm:max-w-2xl md:max-w-3xl">
             {modeToggle()}
-            <nav className="grid grid-cols-2 gap-2" aria-label={t.practiceConsole}>
+            <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label={t.practiceConsole}>
               {mobileMenuNav.map(({ href, labelKey, icon: Icon, tone }) => {
                 const active = pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
                 return (
@@ -581,7 +579,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-[calc(8.75rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-[calc(8.75rem+env(safe-area-inset-bottom))] pt-4 sm:px-5 md:px-6 lg:h-[100dvh] lg:overflow-y-auto lg:px-8 lg:py-8 xl:px-10">
         <nav
           className="mx-auto mb-4 hidden w-full max-w-6xl items-center gap-2 text-sm text-slate-500 lg:flex"
           aria-label={t.breadcrumbs}
@@ -610,7 +608,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/80 bg-white/88 px-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl lg:hidden" aria-label={t.practiceConsole}>
-        <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
+        <div className="mx-auto grid max-w-md grid-cols-5 gap-1 sm:max-w-2xl md:max-w-3xl md:gap-2">
           {(liteMode ? visibleLiteMobileTabs : visibleMobileTabs).map(({ href, labelKey, icon: Icon, tone }) => {
             const active = pathname === href || (href !== '/clinic' && pathname.startsWith(href + '/'))
             return (
@@ -618,7 +616,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
                 key={href}
                 href={href}
                 className={clsx(
-                  'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-semibold transition active:scale-95',
+                  'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-semibold transition active:scale-95 md:min-h-16 md:text-[11px]',
                   active
                     ? 'bg-orange-50 text-orange-700 ring-1 ring-orange-100 shadow-sm'
                     : 'text-slate-500 active:bg-slate-100'
