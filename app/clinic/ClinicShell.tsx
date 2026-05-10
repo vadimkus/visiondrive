@@ -47,7 +47,7 @@ import type { LucideIcon } from 'lucide-react'
 import clsx from 'clsx'
 import Logo from '@/app/components/common/Logo'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
-import type { ClinicLocale } from '@/lib/clinic/strings'
+import { CLINIC_LOCALE_STORAGE, type ClinicLocale } from '@/lib/clinic/strings'
 import type { ClinicPractitionerIdentity } from '@/lib/clinic/practitioner-identity'
 
 type PracticeNavTone = 'amber' | 'blue' | 'cyan' | 'emerald' | 'fuchsia' | 'indigo' | 'orange' | 'pink' | 'rose' | 'sky' | 'teal' | 'violet'
@@ -246,6 +246,24 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
   const [practitionerIdentity, setPractitionerIdentity] = useState<ClinicPractitionerIdentity | null>(null)
   const [currentRole, setCurrentRole] = useState<string | null>(null)
 
+  async function persistClinicLocale(next: ClinicLocale) {
+    try {
+      await fetch('/api/clinic/me', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locale: next }),
+      })
+    } catch {
+      // The local setting still applies; account persistence can retry on the next explicit change.
+    }
+  }
+
+  function updateClinicLocale(next: ClinicLocale) {
+    setLocale(next)
+    void persistClinicLocale(next)
+  }
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -254,8 +272,13 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
         if (!res.ok) return
         const data = await res.json()
         const preferred = data?.preferences?.locale
+        const stored = window.localStorage.getItem(CLINIC_LOCALE_STORAGE)
         if (!cancelled && (preferred === 'en' || preferred === 'ru')) {
-          setLocale(preferred)
+          if (stored === 'en' || stored === 'ru') {
+            if (stored !== preferred) void persistClinicLocale(stored)
+          } else {
+            setLocale(preferred)
+          }
         }
         if (!cancelled && data?.practitionerIdentity) {
           setPractitionerIdentity(data.practitionerIdentity)
@@ -420,7 +443,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
               <select
                 id="clinic-mobile-language"
                 value={locale}
-                onChange={(event) => setLocale(event.target.value === 'ru' ? 'ru' : 'en')}
+                onChange={(event) => updateClinicLocale(event.target.value === 'ru' ? 'ru' : 'en')}
                 className="h-10 appearance-none rounded-full border-0 bg-transparent py-2 pl-2 pr-6 text-[15px] font-semibold text-sky-600 outline-none transition hover:bg-slate-50 focus:ring-2 focus:ring-orange-500/20"
                 aria-label={t.language}
               >
@@ -536,7 +559,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
               <button
                 key={code}
                 type="button"
-                onClick={() => setLocale(code)}
+                onClick={() => updateClinicLocale(code)}
                 className={clsx(
                   'min-h-10 flex-1 rounded-2xl px-2 text-xs font-semibold transition-colors',
                   locale === code ? 'bg-slate-950 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100'
