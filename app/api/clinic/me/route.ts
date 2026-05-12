@@ -109,12 +109,35 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (localeRaw !== undefined || preferencesRaw !== undefined) {
-    preferencesData = normalizeClinicAccountPreferences({
-      ...(preferencesRaw && typeof preferencesRaw === 'object'
-        ? (preferencesRaw as Record<string, unknown>)
-        : {}),
-      ...(localeRaw !== undefined ? { locale: normalizeClinicLocale(localeRaw) } : {}),
+    const currentPreferences = await prisma.clinicUserPreference.findUnique({
+      where: { userId_tenantId: { userId: session.userId, tenantId: session.tenantId } },
+      select: {
+        locale: true,
+        notifyPush: true,
+        notifyEmail: true,
+        notifyNewBooking: true,
+        notifyCancelled: true,
+        notifyRescheduled: true,
+        notifyReminderDue: true,
+        notifyReviewRequest: true,
+        notifyUnpaidVisit: true,
+        notifyLowStock: true,
+        notifyPackageExpiry: true,
+      },
     })
+    const preferenceFallback = currentPreferences
+      ? normalizeClinicAccountPreferences(currentPreferences)
+      : DEFAULT_CLINIC_ACCOUNT_PREFERENCES
+
+    preferencesData = normalizeClinicAccountPreferences(
+      {
+        ...(preferencesRaw && typeof preferencesRaw === 'object'
+          ? (preferencesRaw as Record<string, unknown>)
+          : {}),
+        ...(localeRaw !== undefined ? { locale: normalizeClinicLocale(localeRaw) } : {}),
+      },
+      preferenceFallback
+    )
   }
 
   if (newPassword.length > 0) {

@@ -187,9 +187,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       return NextResponse.json({ error: 'Lead already converted to a patient' }, { status: 409 })
     }
     const dateOfBirth = parseDate(body.dateOfBirth)
-    if (!dateOfBirth) {
-      return NextResponse.json({ error: 'dateOfBirth is required to create a patient record' }, { status: 400 })
-    }
     const fallbackName = splitName(lead.displayName)
     const firstName = cleanText(body.firstName, 80) || fallbackName.firstName
     const lastName = cleanText(body.lastName, 80) || fallbackName.lastName

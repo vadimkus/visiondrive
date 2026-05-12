@@ -524,7 +524,7 @@ export type PatientRecord = {
   firstName: string
   lastName: string
   middleName: string | null
-  dateOfBirth: string
+  dateOfBirth: string | null
   phone: string | null
   email: string | null
   homeAddress: string | null
@@ -574,7 +574,8 @@ function tagLabel(t: ReturnType<typeof useClinicLocale>['t'], tag: PatientTag) {
   return t.tagLatePayer
 }
 
-function ageFromDob(iso: string) {
+function ageFromDob(iso: string | null) {
+  if (!iso) return null
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return null
   const today = new Date()
@@ -855,14 +856,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const deletePatientRecord = async () => {
     if (!patient) return
     const confirmation = patientDeleteConfirmation(patient)
-    const typed = window.prompt(
-      t.deletePatientConfirmationPrompt.replace('{confirmation}', confirmation)
-    )
-    if (typed == null) return
-    if (typed.trim() !== confirmation) {
-      setError(t.deletePatientFailed)
-      return
-    }
+    const confirmed = window.confirm(t.deletePatientWarning)
+    if (!confirmed) return
 
     setDeletingPatient(true)
     try {
@@ -870,7 +865,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ confirmation: typed }),
+        body: JSON.stringify({ confirmation }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -959,11 +954,13 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
                   </h1>
                   <p className="mt-2 text-sm text-slate-500">
                     {t.dobLabel}{' '}
-                    {new Date(patient.dateOfBirth).toLocaleDateString(dateLocale, {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
+                    {patient.dateOfBirth
+                      ? new Date(patient.dateOfBirth).toLocaleDateString(dateLocale, {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                      : t.emptyValue}
                     {age != null ? ` · ${age} ${t.ageYears}` : ''}
                   </p>
                 </div>

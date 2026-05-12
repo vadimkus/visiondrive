@@ -1,5 +1,85 @@
 # Implementation log (clinic)
 
+## Chunk 92 — 2026-05-12 (inventory unit measure)
+
+**Shipped**
+
+- Added suggested unit-of-measure inputs for stock item create/edit with `ml`, `мл`, `g`, `г`, `pcs`, `шт`, `unit`, `pack`, `vial`, `ampoule`, and `syringe`.
+- Kept units free-text so practitioners can type custom measures.
+- Changed Russian stock unit label to `Мера измерения`.
+- Show selected units in relevant quantity labels and procedure material entry hints.
+- Product import now recognizes `measure`, `volume`, `мера`, `объем`, and `обьем` as unit columns.
+- Updated architecture/docs with unit-of-measure behavior.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for the edited inventory/procedure files.
+
+---
+
+## Chunk 91 — 2026-05-12 (procedure policy chevron)
+
+**Shipped**
+
+- Collapsed the booking policy editor behind a chevron on existing procedure cards in `/clinic/procedures`.
+- Applied the same hidden-by-default booking policy section in `/clinic/procedures/new`.
+- Kept policy form state, save logic, and create payloads unchanged.
+- Added `docs/2026-05-12_clinic-procedure-policy-chevron.md`.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for the edited procedure screens.
+
+---
+
+## Chunk 90 — 2026-05-12 (appointment route chevron)
+
+**Shipped**
+
+- Collapsed the appointment home-visit route fields behind a chevron in `/clinic/appointments/new`.
+- Applied the same hidden-by-default chevron section in `/clinic/appointments/[id]`.
+- Kept the route fields as normal form state/submission values; this is a UI simplification only.
+- Added `docs/2026-05-12_clinic-appointment-route-chevron.md`.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for the edited appointment forms.
+
+---
+
+## Chunk 89 — 2026-05-12 (Knowledge Base search and smart forms cleanup)
+
+**Shipped**
+
+- Removed the Knowledge Base-facing smart questionnaire/intake article and related EN/RU capability wording.
+- Changed `/clinic/knowledge-base` search so typing immediately enters results mode, hides the capabilities/workflow overview, and clears category filtering.
+- Search now normalizes case, trims whitespace, handles `ё`, searches categories, and matches multi-word queries against title, summary, and steps.
+- Added `docs/2026-05-12_clinic-kb-search-smart-forms-cleanup.md`.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for the edited page.
+
+---
+
+## Chunk 88 — 2026-05-12 (patient and stock bugfixes)
+
+**Shipped**
+
+- Patient delete action now shows a clear browser warning and then deletes through the existing tenant-scoped `DELETE /api/clinic/patients/[id]` route.
+- `ClinicPatient.dateOfBirth` is nullable; manual patient creation, public booking, patient import, and Instagram lead conversion no longer require DOB.
+- Patient lists, patient charts, birthday outreach, and patient-safe PDFs handle missing DOB with placeholders/skips.
+- Inventory table now has row checkboxes, select-all, and a selected-items delete action.
+- Stock deletion sets selected items inactive so they disappear from the active inventory list while preserving stock history and audit context.
+- Added `docs/2026-05-12_clinic-patient-stock-bugfixes.md`.
+
+**Validation**
+
+- Run `npx prisma generate`, `npm run type-check`, focused Vitest coverage, and lint diagnostics.
+- Schema change requires `npx prisma db push` or an equivalent migration before use against a database.
+
+---
+
 ## Chunk 87 — 2026-05-10 (Practice OS surface contract)
 
 **Shipped**

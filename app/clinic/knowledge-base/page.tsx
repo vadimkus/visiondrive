@@ -33,6 +33,14 @@ type CapabilityGroup = {
   features: string[]
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .normalize('NFKD')
+}
+
 const capabilityGroupsEn: CapabilityGroup[] = [
   {
     title: 'Growth and acquisition',
@@ -52,7 +60,7 @@ const capabilityGroupsEn: CapabilityGroup[] = [
     description: 'Run the schedule without exposing the private workspace.',
     features: [
       'Private public booking link with request-approval or instant-confirmation modes',
-      'Service-specific online booking with intake questions and preselected procedure links',
+      'Service-specific online booking with preselected procedure links',
       'Working hours, service-specific availability, dynamic slots, minimum lead time, and hidden buffers',
       'Blocked time for lunch, leave, training, supplier errands, and private commitments',
       'Conflict-safe appointment creation and rescheduling with override reason audit',
@@ -77,9 +85,9 @@ const capabilityGroupsEn: CapabilityGroup[] = [
   },
   {
     title: 'Clinical and treatment workflow',
-    description: 'Support the treatment visit from intake to aftercare.',
+    description: 'Support the treatment visit from procedure notes to aftercare.',
     features: [
-      'Procedure catalog with duration, price, cleanup/travel buffer, booking policy, materials, intake, and aftercare',
+      'Procedure catalog with duration, price, cleanup/travel buffer, booking policy, materials, and aftercare',
       'Visit logging with clinical notes, next steps, treatment-plan link, and aftercare snapshot',
       'Treatment plans with expected sessions, cadence, goals, photo milestones, and progress tracking',
       'Consent templates and signed contraindication/aftercare acknowledgement records',
@@ -93,7 +101,7 @@ const capabilityGroupsEn: CapabilityGroup[] = [
     title: 'Communication and retention',
     description: 'Prepare personal follow-up without pretending the browser can auto-send WhatsApp.',
     features: [
-      'WhatsApp Assistant for booking links, prices, quotes, reschedules, cancellations, intake, waitlist, and follow-up replies',
+      'WhatsApp Assistant for booking links, prices, quotes, reschedules, cancellations, waitlist, and follow-up replies',
       'Reminder templates for appointments, no-shows, rebooking, and review requests',
       'Reminder preparation log and manual WhatsApp handoff through wa.me links',
       'Follow-up automation for 2/4/6/8 week rebooking nudges after completed visits',
@@ -197,7 +205,7 @@ const capabilityGroupsRu: CapabilityGroup[] = [
     description: 'Управляйте расписанием без доступа клиентов к внутренней панели.',
     features: [
       'Приватная ссылка онлайн-записи с режимом заявки на подтверждение или мгновенного подтверждения',
-      'Онлайн-запись на конкретную услугу с анкетой и ссылками, где процедура уже выбрана',
+      'Онлайн-запись на конкретную услугу со ссылками, где процедура уже выбрана',
       'Рабочие часы, доступность по услугам, динамические слоты, минимальное время до записи и скрытые буферы между визитами',
       'Закрытые интервалы для обеда, отпуска, обучения, закупок и личных дел',
       'Защита от пересечений при создании и переносе записи с обязательной причиной ручного исключения',
@@ -222,9 +230,9 @@ const capabilityGroupsRu: CapabilityGroup[] = [
   },
   {
     title: 'Клинический процесс',
-    description: 'Поддержка визита от анкеты до рекомендаций после процедуры.',
+    description: 'Поддержка визита от процедуры до рекомендаций после ухода.',
     features: [
-      'Каталог процедур: длительность, цена, буферы, правила записи, материалы, анкеты и рекомендации после процедуры',
+      'Каталог процедур: длительность, цена, буферы, правила записи, материалы и рекомендации после процедуры',
       'Журнал визита с клиническими заметками, следующими шагами, планом лечения и сохранённым текстом рекомендаций',
       'Планы лечения с количеством сеансов, ритмом, целями, фото-этапами и прогрессом',
       'Шаблоны согласий, противопоказания и подтверждение рекомендаций после процедуры',
@@ -238,7 +246,7 @@ const capabilityGroupsRu: CapabilityGroup[] = [
     title: 'Коммуникации и удержание',
     description: 'Готовьте персональные сообщения и возвращайте пациентов без неуправляемой автоотправки.',
     features: [
-      'WhatsApp-ассистент для ссылок записи, цен, смет, переносов, отмен, анкет, листа ожидания и повторных сообщений',
+      'WhatsApp-ассистент для ссылок записи, цен, смет, переносов, отмен, листа ожидания и повторных сообщений',
       'Шаблоны напоминаний для записей, неявок, повторной записи и запроса отзыва',
       'Журнал подготовленных напоминаний и ручная передача сообщения в WhatsApp через wa.me',
       'Автоматизация повторной записи через 2/4/6/8 недель после завершённого визита',
@@ -608,7 +616,7 @@ const articlesEn: Article[] = [
     summary: 'Prepare price answers, quote messages, reschedule/cancel replies, waitlist slot offers, and approval briefs without auto-sending.',
     steps: [
       'Open WhatsApp Assistant from the sidebar.',
-      'Choose the reply type: booking link, prices, quote, reschedule, cancel, waitlist, approval brief, intake, status, or reminder.',
+      'Choose the reply type: booking link, prices, quote, reschedule, cancel, waitlist, approval brief, status, or reminder.',
       'Select a patient when you want the text personalized and routed to their phone.',
       'For price and waitlist replies, choose services from the procedure catalog; for quote replies, pick an existing quote or selected services.',
       'Use the context box to paste the patient question or preferred time so the reply is more specific.',
@@ -1200,20 +1208,6 @@ const articlesEn: Article[] = [
     link: '/clinic/patients',
   },
   {
-    id: 'service-intake-fields',
-    category: 'Appointments',
-    title: 'Add service-specific public intake fields',
-    summary:
-      'Collect the right allergy, contraindication, pregnancy, address, or preparation answers for each service before the booking reaches the calendar.',
-    steps: [
-      'Open Procedures and find the service you want to prepare for.',
-      'Use Public intake questions to add short text, long text, or yes/no questions.',
-      'Mark important questions as required so the public booking form cannot be submitted without them.',
-      'When a client books online, answers are saved to the appointment as a staff-only intake snapshot.',
-    ],
-    link: '/clinic/procedures',
-  },
-  {
     id: 'client-import-excel',
     category: 'Patients',
     title: 'Import clients from Excel',
@@ -1249,11 +1243,11 @@ const articlesEn: Article[] = [
       'A launch checklist for turning the empty console into a working mobile practice system.',
     steps: [
       'Open Account first: set the practitioner name, language, and notification preferences.',
-      'Create core procedures with duration, price, buffers, materials, and any service-specific intake questions.',
+      'Create core procedures with duration, price, buffers, materials, and aftercare.',
       'Set Availability so online booking and manual scheduling use real working hours, private time, and minimum lead time.',
       'Import existing clients or create the first patient cards manually before booking visits.',
       'Add key stock items and suppliers if you need inventory, low-stock alerts, purchase orders, or material costing.',
-      'Enable the private booking link only after services, availability, reminders, and intake questions are reviewed.',
+      'Enable the private booking link only after services, availability, and reminders are reviewed.',
     ],
     link: '/clinic/account',
   },
@@ -1282,7 +1276,7 @@ const articlesEn: Article[] = [
     steps: [
       'Use WhatsApp Assistant or a patient price quote when someone asks about services and prices.',
       'Send the private booking link when the patient is ready, or create the appointment manually from the clinic panel.',
-      'Capture intake answers, contraindications, and consent before treatment.',
+      'Capture contraindications and consent before treatment.',
       'Complete the visit with notes, photos, payment, package usage, and inventory consumption.',
       'Share aftercare and, when appropriate, a patient-safe export or private patient portal link.',
       'Use retention, occasions, referrals, and dormant-patient reactivation reports to bring the patient back.',
@@ -1593,7 +1587,7 @@ const articlesRu: Article[] = [
     summary: 'Готовьте ответы по ценам, расчётам, переносу/отмене, окнам листа ожидания и одобрению специалиста без автоотправки.',
     steps: [
       'Откройте WhatsApp-ассистент в боковом меню.',
-      'Выберите тип ответа: ссылка записи, цены, расчёт, перенос, отмена, лист ожидания, одобрение, анкета, статус или повторное сообщение.',
+      'Выберите тип ответа: ссылка записи, цены, расчёт, перенос, отмена, лист ожидания, одобрение, статус или повторное сообщение.',
       'Выберите пациента, если нужен персональный текст и отправка на его номер.',
       'Для цены и листа ожидания выберите услуги из каталога; для расчёта выберите существующий расчёт или услуги.',
       'В поле контекста вставьте вопрос пациента или желаемое время, чтобы ответ был точнее.',
@@ -2187,20 +2181,6 @@ const articlesRu: Article[] = [
     link: '/clinic/patients',
   },
   {
-    id: 'service-intake-fields',
-    category: 'Записи',
-    title: 'Добавляйте вопросы анкеты под конкретную услугу',
-    summary:
-      'Собирайте ответы по аллергиям, противопоказаниям, беременности, адресу или подготовке до того, как запись попадёт в календарь.',
-    steps: [
-      'Откройте Процедуры и выберите нужную услугу.',
-      'В блоке Вопросы публичной анкеты добавьте короткий текст, длинный текст или вопрос да/нет.',
-      'Отметьте важные вопросы как обязательные, чтобы клиент не мог отправить форму без ответа.',
-      'При онлайн-записи ответы сохраняются в запись как внутренний снимок анкеты для команды.',
-    ],
-    link: '/clinic/procedures',
-  },
-  {
     id: 'client-import-excel',
     category: 'Пациенты',
     title: 'Импортируйте клиентов из Excel',
@@ -2236,11 +2216,11 @@ const articlesRu: Article[] = [
       'Чеклист запуска: как превратить пустой портал в рабочую мобильную систему практики.',
     steps: [
       'Сначала откройте Аккаунт: укажите имя врача, язык и предпочтения уведомлений.',
-      'Создайте основные процедуры с длительностью, ценой, буферами, материалами и вопросами анкеты под услугу.',
+      'Создайте основные процедуры с длительностью, ценой, буферами, материалами и рекомендациями после процедуры.',
       'Настройте Доступность, чтобы онлайн-запись и ручное расписание учитывали реальные часы, личное время и минимальный срок записи.',
       'Импортируйте существующих клиентов или создайте первые карты пациентов вручную до записи визитов.',
       'Добавьте ключевые товары и поставщиков, если нужны склад, минимальные остатки, заказы поставщикам или себестоимость материалов.',
-      'Включайте приватную ссылку записи только после проверки услуг, доступности, напоминаний и вопросов анкеты.',
+      'Включайте приватную ссылку записи только после проверки услуг, доступности и напоминаний.',
     ],
     link: '/clinic/account',
   },
@@ -2269,7 +2249,7 @@ const articlesRu: Article[] = [
     steps: [
       'Используйте WhatsApp Assistant или смету, когда пациент спрашивает об услугах и ценах.',
       'Отправьте приватную ссылку записи, когда пациент готов, или создайте запись вручную в панели.',
-      'Соберите ответы анкеты, противопоказания и согласие до процедуры.',
+      'Соберите противопоказания и согласие до процедуры.',
       'Завершите визит с заметками, фото, оплатой, списанием пакета и расходом материалов.',
       'Отправьте рекомендации, а при необходимости безопасную для пациента выгрузку или приватную ссылку кабинета пациента.',
       'Используйте удержание, события, рефералы и реактивацию спящих пациентов, чтобы вернуть пациента.',
@@ -2333,6 +2313,8 @@ export default function ClinicKnowledgeBasePage() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>('all')
   const [showCapabilities, setShowCapabilities] = useState(true)
+  const normalizedQuery = normalizeSearchText(query)
+  const isSearching = normalizedQuery.length > 0
 
   const copy = {
     title: isRu ? 'База знаний' : 'Knowledge base',
@@ -2364,8 +2346,11 @@ export default function ClinicKnowledgeBasePage() {
     [articles]
   )
   const filtered = articles.filter((article) => {
-    const haystack = `${article.title} ${article.summary} ${article.steps.join(' ')}`.toLowerCase()
-    const matchesSearch = !query || haystack.includes(query.toLowerCase())
+    const haystack = normalizeSearchText(
+      `${article.category} ${article.title} ${article.summary} ${article.steps.join(' ')}`
+    )
+    const matchesSearch =
+      !normalizedQuery || normalizedQuery.split(/\s+/).every((term) => haystack.includes(term))
     const matchesCategory = category === 'all' || article.category === category
     return matchesSearch && matchesCategory
   })
@@ -2419,7 +2404,14 @@ export default function ClinicKnowledgeBasePage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden />
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setQuery(value)
+                if (value.trim()) {
+                  setShowCapabilities(false)
+                  setCategory('all')
+                }
+              }}
               placeholder={copy.search}
               className="w-full min-h-12 rounded-2xl border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 shadow-sm outline-none focus:border-orange-300 focus:ring-4 focus:ring-orange-100"
             />
@@ -2427,7 +2419,7 @@ export default function ClinicKnowledgeBasePage() {
         </div>
       </div>
 
-      {showCapabilities ? (
+      {showCapabilities && !isSearching ? (
         <section className="rounded-3xl border border-orange-100 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-3xl">
@@ -2459,6 +2451,7 @@ export default function ClinicKnowledgeBasePage() {
         </section>
       ) : null}
 
+      {!isSearching ? (
       <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -2484,7 +2477,9 @@ export default function ClinicKnowledgeBasePage() {
           ))}
         </div>
       </section>
+      ) : null}
 
+      {!isSearching ? (
       <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-950">{copy.categoryOverview}</h2>
         <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
@@ -2512,6 +2507,7 @@ export default function ClinicKnowledgeBasePage() {
           ))}
         </div>
       </section>
+      ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
         <aside className="rounded-2xl bg-white border border-gray-200 p-3 shadow-sm h-fit">

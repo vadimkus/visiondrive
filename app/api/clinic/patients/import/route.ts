@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
           firstName: row.firstName,
           lastName: row.lastName,
           middleName: row.middleName,
-          dateOfBirth: new Date(`${row.dateOfBirth}T12:00:00.000Z`),
+          dateOfBirth: row.dateOfBirth ? new Date(`${row.dateOfBirth}T12:00:00.000Z`) : null,
           phone: row.phone,
           email: row.email,
           homeAddress: row.homeAddress,

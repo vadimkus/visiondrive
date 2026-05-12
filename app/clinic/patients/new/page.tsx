@@ -68,7 +68,7 @@ export default function NewPatientPage() {
           firstName: form.firstName,
           lastName: form.lastName,
           middleName: form.middleName || undefined,
-          dateOfBirth: form.dateOfBirth,
+          dateOfBirth: form.dateOfBirth || undefined,
           phone: form.phone || undefined,
           email: form.email || undefined,
           homeAddress: form.homeAddress || undefined,
@@ -138,7 +138,6 @@ export default function NewPatientPage() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t.dateOfBirth}</label>
           <input
-            required
             type="date"
             className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
             value={form.dateOfBirth}

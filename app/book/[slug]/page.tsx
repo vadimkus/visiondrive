@@ -201,7 +201,7 @@ const copy = {
       'Invalid from or to datetime': 'Некорректный период дат.',
       'Invalid JSON': 'Некорректный запрос.',
       'firstName and lastName are required': 'Имя и фамилия обязательны.',
-      'dateOfBirth is required': 'Дата рождения обязательна.',
+      'dateOfBirth must be valid': 'Проверьте дату рождения.',
       'phone or email is required': 'Укажите телефон или email.',
       'Consent is required': 'Необходимо согласие на обработку данных.',
       'Required intake questions are missing': 'Ответьте на обязательные вопросы по услуге.',
@@ -593,7 +593,6 @@ export default function PublicBookingPage() {
                 type="date"
                 value={form.dateOfBirth}
                 onChange={(v) => updateForm({ dateOfBirth: v })}
-                required
               />
               <Field label={c.phone} value={form.phone} onChange={(v) => updateForm({ phone: v })} />
               <Field label={c.email} type="email" value={form.email} onChange={(v) => updateForm({ email: v })} />

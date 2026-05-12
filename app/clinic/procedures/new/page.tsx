@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 
 export default function NewProcedurePage() {
@@ -10,6 +11,7 @@ export default function NewProcedurePage() {
   const { t } = useClinicLocale()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [policyOpen, setPolicyOpen] = useState(false)
   const [form, setForm] = useState({
     name: '',
     defaultDurationMin: '60',
@@ -137,98 +139,113 @@ export default function NewProcedurePage() {
             onChange={(e) => setForm({ ...form, currency: e.target.value.toUpperCase() })}
           />
         </div>
-        <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4 space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold text-orange-950">{t.bookingPolicy}</h2>
-            <p className="mt-1 text-xs text-orange-800">{t.bookingPolicyHint}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t.bookingPolicyType}</label>
-            <select
-              className="w-full rounded-xl border border-orange-100 bg-white px-3 py-2.5 text-gray-900"
-              value={form.bookingPolicyType}
-              onChange={(e) => setForm({ ...form, bookingPolicyType: e.target.value })}
-            >
-              <option value="NONE">{t.bookingPolicyNone}</option>
-              <option value="DEPOSIT">{t.bookingPolicyDeposit}</option>
-              <option value="FULL_PREPAY">{t.bookingPolicyFullPrepay}</option>
-              <option value="CARD_ON_FILE">{t.bookingPolicyCardOnFile}</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <section className="rounded-2xl border border-orange-100 bg-orange-50/60">
+          <button
+            type="button"
+            onClick={() => setPolicyOpen((value) => !value)}
+            className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left"
+            aria-expanded={policyOpen}
+          >
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t.bookingPolicyDepositAmount} ({form.currency})
-              </label>
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
-                value={form.depositAmount}
-                onChange={(e) => setForm({ ...form, depositAmount: e.target.value })}
-              />
+              <h2 className="text-sm font-semibold text-orange-950">{t.bookingPolicy}</h2>
+              <p className="mt-1 text-xs text-orange-800">{t.bookingPolicyHint}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.bookingPolicyDepositPercent}</label>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
-                value={form.depositPercent}
-                onChange={(e) => setForm({ ...form, depositPercent: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.bookingPolicyCancellationWindow}</label>
-              <input
-                type="number"
-                min={0}
-                max={720}
-                className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
-                value={form.cancellationWindowHours}
-                onChange={(e) => setForm({ ...form, cancellationWindowHours: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t.bookingPolicyLateCancelFee} ({form.currency})
-              </label>
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
-                value={form.lateCancelFee}
-                onChange={(e) => setForm({ ...form, lateCancelFee: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t.bookingPolicyNoShowFee} ({form.currency})
-              </label>
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
-                value={form.noShowFee}
-                onChange={(e) => setForm({ ...form, noShowFee: e.target.value })}
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t.bookingPolicyText}</label>
-            <textarea
-              rows={3}
-              className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
-              placeholder={t.bookingPolicyTextPlaceholder}
-              value={form.bookingPolicyText}
-              onChange={(e) => setForm({ ...form, bookingPolicyText: e.target.value })}
+            <ChevronDown
+              className={`h-5 w-5 shrink-0 text-orange-700 transition-transform ${policyOpen ? 'rotate-180' : ''}`}
+              aria-hidden
             />
-          </div>
-        </div>
+          </button>
+          {policyOpen && (
+            <div className="space-y-3 border-t border-orange-100 px-4 pb-4 pt-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.bookingPolicyType}</label>
+                <select
+                  className="w-full rounded-xl border border-orange-100 bg-white px-3 py-2.5 text-gray-900"
+                  value={form.bookingPolicyType}
+                  onChange={(e) => setForm({ ...form, bookingPolicyType: e.target.value })}
+                >
+                  <option value="NONE">{t.bookingPolicyNone}</option>
+                  <option value="DEPOSIT">{t.bookingPolicyDeposit}</option>
+                  <option value="FULL_PREPAY">{t.bookingPolicyFullPrepay}</option>
+                  <option value="CARD_ON_FILE">{t.bookingPolicyCardOnFile}</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t.bookingPolicyDepositAmount} ({form.currency})
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
+                    value={form.depositAmount}
+                    onChange={(e) => setForm({ ...form, depositAmount: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.bookingPolicyDepositPercent}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
+                    value={form.depositPercent}
+                    onChange={(e) => setForm({ ...form, depositPercent: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.bookingPolicyCancellationWindow}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={720}
+                    className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
+                    value={form.cancellationWindowHours}
+                    onChange={(e) => setForm({ ...form, cancellationWindowHours: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t.bookingPolicyLateCancelFee} ({form.currency})
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
+                    value={form.lateCancelFee}
+                    onChange={(e) => setForm({ ...form, lateCancelFee: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t.bookingPolicyNoShowFee} ({form.currency})
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
+                    value={form.noShowFee}
+                    onChange={(e) => setForm({ ...form, noShowFee: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.bookingPolicyText}</label>
+                <textarea
+                  rows={3}
+                  className="w-full rounded-xl border border-orange-100 px-3 py-2.5 text-gray-900"
+                  placeholder={t.bookingPolicyTextPlaceholder}
+                  value={form.bookingPolicyText}
+                  onChange={(e) => setForm({ ...form, bookingPolicyText: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+        </section>
         <button
           type="submit"
           disabled={loading}

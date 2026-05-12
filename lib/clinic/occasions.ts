@@ -10,7 +10,7 @@ export type OccasionPatientLike = {
   lastName: string
   phone?: string | null
   email?: string | null
-  dateOfBirth: Date
+  dateOfBirth: Date | null
 }
 
 export type BirthdayOccasionRow = {
@@ -67,6 +67,9 @@ export function buildBirthdayOccasionRows(
   days = 30
 ): BirthdayOccasionRow[] {
   return patients
+    .filter((patient): patient is OccasionPatientLike & { dateOfBirth: Date } =>
+      Boolean(patient.dateOfBirth)
+    )
     .map((patient) => {
       const birthday = nextBirthday(patient.dateOfBirth, now)
       return {

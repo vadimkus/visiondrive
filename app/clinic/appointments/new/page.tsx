@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 
@@ -78,6 +79,7 @@ export default function NewAppointmentPage() {
   const [loading, setLoading] = useState(false)
   const [loadMeta, setLoadMeta] = useState(true)
   const [error, setError] = useState('')
+  const [routeOpen, setRouteOpen] = useState(false)
   const [form, setForm] = useState({
     patientId: '',
     procedureId: '',
@@ -296,62 +298,79 @@ export default function NewAppointmentPage() {
             />
             <p className="text-xs text-gray-500 mt-1">{t.procedureBufferAfterHint}</p>
           </div>
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-3">
-            <h2 className="text-sm font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
-            <p className="text-xs text-emerald-800">{t.usePatientAddressHint}</p>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.visitLocation}</label>
-              <textarea
-                rows={2}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
-                value={form.locationAddress}
-                onChange={(e) => setForm({ ...form, locationAddress: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.area}</label>
-              <input
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
-                value={form.locationArea}
-                onChange={(e) => setForm({ ...form, locationArea: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <section className="rounded-2xl border border-emerald-100 bg-emerald-50/60">
+            <button
+              type="button"
+              onClick={() => setRouteOpen((value) => !value)}
+              className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left"
+              aria-expanded={routeOpen}
+            >
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelBefore}</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={180}
-                  step={5}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
-                  value={form.travelBufferBeforeMinutes}
-                  onChange={(e) => setForm({ ...form, travelBufferBeforeMinutes: e.target.value })}
-                />
+                <h2 className="text-sm font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
+                <p className="mt-1 text-xs text-emerald-800">{t.usePatientAddressHint}</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelAfter}</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={180}
-                  step={5}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
-                  value={form.travelBufferAfterMinutes}
-                  onChange={(e) => setForm({ ...form, travelBufferAfterMinutes: e.target.value })}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.accessNotes}</label>
-              <textarea
-                rows={2}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
-                value={form.locationNotes}
-                onChange={(e) => setForm({ ...form, locationNotes: e.target.value })}
+              <ChevronDown
+                className={`h-5 w-5 shrink-0 text-emerald-800 transition-transform ${routeOpen ? 'rotate-180' : ''}`}
+                aria-hidden
               />
-            </div>
-          </div>
+            </button>
+            {routeOpen && (
+              <div className="space-y-3 border-t border-emerald-100 px-4 pb-4 pt-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.visitLocation}</label>
+                  <textarea
+                    rows={2}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                    value={form.locationAddress}
+                    onChange={(e) => setForm({ ...form, locationAddress: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.area}</label>
+                  <input
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                    value={form.locationArea}
+                    onChange={(e) => setForm({ ...form, locationArea: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelBefore}</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={180}
+                      step={5}
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                      value={form.travelBufferBeforeMinutes}
+                      onChange={(e) => setForm({ ...form, travelBufferBeforeMinutes: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelAfter}</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={180}
+                      step={5}
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                      value={form.travelBufferAfterMinutes}
+                      onChange={(e) => setForm({ ...form, travelBufferAfterMinutes: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.accessNotes}</label>
+                  <textarea
+                    rows={2}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900"
+                    value={form.locationNotes}
+                    onChange={(e) => setForm({ ...form, locationNotes: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+          </section>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t.startsAt}</label>
             <input

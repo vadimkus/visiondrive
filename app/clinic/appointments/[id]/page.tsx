@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
@@ -107,6 +108,7 @@ export default function EditAppointmentPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [routeOpen, setRouteOpen] = useState(false)
 
   const [startsAt, setStartsAt] = useState('')
   const [status, setStatus] = useState('SCHEDULED')
@@ -377,61 +379,79 @@ export default function EditAppointmentPage() {
             onChange={(e) => setBufferAfterMinutes(e.target.value)}
           />
         </div>
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-3">
-          <h2 className="text-sm font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t.visitLocation}</label>
-            <textarea
-              rows={2}
-              className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900"
-              value={locationAddress}
-              onChange={(e) => setLocationAddress(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t.area}</label>
-            <input
-              className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
-              value={locationArea}
-              onChange={(e) => setLocationArea(e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <section className="rounded-2xl border border-emerald-100 bg-emerald-50/60">
+          <button
+            type="button"
+            onClick={() => setRouteOpen((value) => !value)}
+            className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left"
+            aria-expanded={routeOpen}
+          >
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelBefore}</label>
-              <input
-                type="number"
-                min={0}
-                max={180}
-                step={5}
-                className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
-                value={travelBufferBeforeMinutes}
-                onChange={(e) => setTravelBufferBeforeMinutes(e.target.value)}
-              />
+              <h2 className="text-sm font-semibold text-emerald-950">{t.homeVisitRoute}</h2>
+              <p className="mt-1 text-xs text-emerald-800">{t.usePatientAddressHint}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelAfter}</label>
-              <input
-                type="number"
-                min={0}
-                max={180}
-                step={5}
-                className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
-                value={travelBufferAfterMinutes}
-                onChange={(e) => setTravelBufferAfterMinutes(e.target.value)}
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t.accessNotes}</label>
-            <textarea
-              rows={2}
-              className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900"
-              value={locationNotes}
-              onChange={(e) => setLocationNotes(e.target.value)}
+            <ChevronDown
+              className={`h-5 w-5 shrink-0 text-emerald-800 transition-transform ${routeOpen ? 'rotate-180' : ''}`}
+              aria-hidden
             />
-          </div>
-        </div>
+          </button>
+          {routeOpen && (
+            <div className="space-y-3 border-t border-emerald-100 px-4 pb-4 pt-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.visitLocation}</label>
+                <textarea
+                  rows={2}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900"
+                  value={locationAddress}
+                  onChange={(e) => setLocationAddress(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.area}</label>
+                <input
+                  className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
+                  value={locationArea}
+                  onChange={(e) => setLocationArea(e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelBefore}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={180}
+                    step={5}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
+                    value={travelBufferBeforeMinutes}
+                    onChange={(e) => setTravelBufferBeforeMinutes(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.travelAfter}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={180}
+                    step={5}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900 min-h-11"
+                    value={travelBufferAfterMinutes}
+                    onChange={(e) => setTravelBufferAfterMinutes(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.accessNotes}</label>
+                <textarea
+                  rows={2}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-3 text-gray-900"
+                  value={locationNotes}
+                  onChange={(e) => setLocationNotes(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+        </section>
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-3">
           <label className="flex items-start gap-3 text-sm font-semibold text-amber-950">
             <input

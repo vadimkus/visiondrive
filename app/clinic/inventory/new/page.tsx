@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
+import { CLINIC_STOCK_UNIT_OPTIONS } from '@/lib/clinic/stock-units'
 import { ClinicBarcodeField } from '@/components/clinic/ClinicBarcodeField'
 
 type Procedure = { id: string; name: string }
@@ -18,7 +19,7 @@ export default function NewStockItemPage() {
     name: '',
     sku: '',
     barcode: '',
-    unit: 'unit',
+    unit: 'ml',
     reorderPoint: '0',
     initialQuantity: '0',
     consumePerVisit: '0',
@@ -124,13 +125,22 @@ export default function NewStockItemPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">{t.stockUnit}</label>
           <input
             required
+            list="stock-unit-options"
             className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900 min-h-11"
             value={form.unit}
             onChange={(e) => setForm({ ...form, unit: e.target.value })}
           />
+          <datalist id="stock-unit-options">
+            {CLINIC_STOCK_UNIT_OPTIONS.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
+          <p className="text-xs text-gray-500 mt-1">{t.stockUnitHint}</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t.stockReorderPoint}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t.stockReorderPoint} ({form.unit || t.stockUnit})
+          </label>
           <input
             type="number"
             min={0}
@@ -141,7 +151,9 @@ export default function NewStockItemPage() {
           <p className="text-xs text-gray-500 mt-1">{t.stockReorderHint}</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t.stockInitialQty}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t.stockInitialQty} ({form.unit || t.stockUnit})
+          </label>
           <input
             type="number"
             min={0}
@@ -175,7 +187,9 @@ export default function NewStockItemPage() {
             value={form.consumePerVisit}
             onChange={(e) => setForm({ ...form, consumePerVisit: e.target.value })}
           />
-          <p className="text-xs text-gray-500 mt-1">{t.consumePerVisitHint}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {t.consumePerVisitHint} ({form.unit || t.stockUnit})
+          </p>
         </div>
         <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4">
           <h2 className="text-sm font-semibold text-sky-950">{t.injectableBatchTracking}</h2>

@@ -38,6 +38,8 @@ function ClinicInventoryPageContent() {
   const [showInactive, setShowInactive] = useState(false)
   const [lookupQ, setLookupQ] = useState('')
   const [lookupBusy, setLookupBusy] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [deletingSelected, setDeletingSelected] = useState(false)
 
   const load = useCallback(async () => {
     const q = new URLSearchParams()
@@ -54,7 +56,9 @@ function ClinicInventoryPageContent() {
       setItems([])
       return
     }
-    setItems(data.items || [])
+    const nextItems = (data.items || []) as Item[]
+    setItems(nextItems)
+    setSelectedIds((current) => current.filter((id) => nextItems.some((item) => item.id === id)))
     setError('')
   }, [lowOnly, showInactive, router, t.failedToLoad])
 
@@ -103,6 +107,53 @@ function ClinicInventoryPageContent() {
       setError(t.networkError)
     } finally {
       setLookupBusy(false)
+    }
+  }
+
+  const allVisibleSelected = items.length > 0 && items.every((item) => selectedIds.includes(item.id))
+  const selectedCount = selectedIds.length
+
+  const toggleSelected = (id: string, checked: boolean) => {
+    setSelectedIds((current) =>
+      checked ? Array.from(new Set([...current, id])) : current.filter((value) => value !== id)
+    )
+  }
+
+  const toggleAllVisible = (checked: boolean) => {
+    setSelectedIds(checked ? items.map((item) => item.id) : [])
+  }
+
+  const deleteSelectedItems = async () => {
+    if (selectedIds.length === 0) return
+    const confirmed = window.confirm(
+      t.stockDeleteSelectedConfirm.replace('{count}', String(selectedIds.length))
+    )
+    if (!confirmed) return
+
+    setDeletingSelected(true)
+    setError('')
+    try {
+      const res = await fetch('/api/clinic/inventory', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds }),
+      })
+      if (res.status === 401) {
+        router.replace('/login')
+        return
+      }
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.stockDeleteSelectedFailed)
+        return
+      }
+      setSelectedIds([])
+      await load()
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setDeletingSelected(false)
     }
   }
 
@@ -164,6 +215,18 @@ function ClinicInventoryPageContent() {
           />
           {t.showInactiveStock}
         </label>
+        {selectedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => void deleteSelectedItems()}
+            disabled={deletingSelected}
+            className="inline-flex min-h-11 items-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
+          >
+            {deletingSelected
+              ? t.deletingEllipsis
+              : t.stockDeleteSelected.replace('{count}', String(selectedCount))}
+          </button>
+        )}
         <Link
           href="/clinic/inventory/new"
           className="ms-auto inline-flex items-center min-h-11 px-4 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600"
@@ -192,6 +255,15 @@ function ClinicInventoryPageContent() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left text-gray-600">
               <tr>
+                <th className="w-12 px-4 py-3 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={(event) => toggleAllVisible(event.target.checked)}
+                    className="rounded border-gray-300 text-orange-600"
+                    aria-label={t.stockSelectAll}
+                  />
+                </th>
                 <th className="px-4 py-3 font-medium">{t.stockItemName}</th>
                 <th className="px-4 py-3 font-medium hidden sm:table-cell">{t.stockOnHand}</th>
                 <th className="px-4 py-3 font-medium hidden md:table-cell">{t.stockReorderPoint}</th>
@@ -201,6 +273,15 @@ function ClinicInventoryPageContent() {
             <tbody className="divide-y divide-gray-100">
               {items.map((row) => (
                 <tr key={row.id} className={clsx(!row.active && 'opacity-60')}>
+                  <td className="px-4 py-3 align-top">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(row.id)}
+                      onChange={(event) => toggleSelected(row.id, event.target.checked)}
+                      className="rounded border-gray-300 text-orange-600"
+                      aria-label={t.stockSelectItem.replace('{name}', row.name)}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/clinic/inventory/${row.id}`}

@@ -13,7 +13,7 @@ import {
   type ClinicAccountPreferences,
 } from '@/lib/clinic/account-preferences'
 import type { ClinicPractitionerIdentity } from '@/lib/clinic/practitioner-identity'
-import type { ClinicLocale } from '@/lib/clinic/strings'
+import { CLINIC_LOCALE_STORAGE, type ClinicLocale } from '@/lib/clinic/strings'
 
 type MeResponse = {
   user: { id: string; email: string; name: string | null; role: string }
@@ -76,9 +76,20 @@ export default function ClinicAccountPage() {
             messageSignature: data.practitionerIdentity?.messageSignature ?? '',
           })
           const nextPrefs = data.preferences ?? DEFAULT_CLINIC_ACCOUNT_PREFERENCES
-          setPreferences(nextPrefs)
-          setPreferredLocale(nextPrefs.locale)
-          setLocale(nextPrefs.locale)
+          const storedLocale = window.localStorage.getItem(CLINIC_LOCALE_STORAGE)
+          const resolvedLocale =
+            storedLocale === 'en' || storedLocale === 'ru' ? storedLocale : nextPrefs.locale
+          setPreferences({ ...nextPrefs, locale: resolvedLocale })
+          setPreferredLocale(resolvedLocale)
+          setLocale(resolvedLocale)
+          if (resolvedLocale !== nextPrefs.locale) {
+            void fetch('/api/clinic/me', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ locale: resolvedLocale }),
+            })
+          }
         }
       } catch {
         setError(t.networkError)

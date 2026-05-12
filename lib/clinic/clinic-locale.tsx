@@ -36,6 +36,7 @@ export function ClinicLocaleProvider({ children }: { children: ReactNode }) {
     setLocaleState(l)
     try {
       window.localStorage.setItem(CLINIC_LOCALE_STORAGE, l)
+      window.localStorage.setItem('language', l)
     } catch {
       /* ignore */
     }

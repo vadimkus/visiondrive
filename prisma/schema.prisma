@@ -925,27 +925,27 @@ enum ClinicIntakeQuestionType {
 }
 
 model ClinicPatient {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   tenantId       String
   firstName      String
   lastName       String
   middleName     String?
-  dateOfBirth    DateTime @db.Date
+  dateOfBirth    DateTime? @db.Date
   phone          String?
   email          String?
-  homeAddress    String?  @db.Text
+  homeAddress    String?   @db.Text
   area           String?
-  accessNotes    String?  @db.Text
+  accessNotes    String?   @db.Text
   category       String?
-  tags           String[] @default([])
+  tags           String[]  @default([])
   referredByName String?
-  referralNote   String?  @db.Text
+  referralNote   String?   @db.Text
   /// Staff-only; never expose on patient-facing PDF exports
-  internalNotes  String?  @db.Text
+  internalNotes  String?   @db.Text
   /// Structured intake / history (v1 object: allergies, medications, conditions, social)
   anamnesisJson  Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   tenant              Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   appointments        ClinicAppointment[]

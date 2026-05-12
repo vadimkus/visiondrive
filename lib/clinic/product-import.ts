@@ -33,7 +33,7 @@ const COLUMN_ALIASES = {
   name: ['name', 'product', 'item', 'stockitem', 'material', 'товар', 'продукт', 'материал', 'название'],
   sku: ['sku', 'article', 'articlenumber', 'код', 'артикул'],
   barcode: ['barcode', 'bar code', 'ean', 'qr', 'штрихкод', 'штрихкод'],
-  unit: ['unit', 'uom', 'measure', 'единица', 'единицаизмерения'],
+  unit: ['unit', 'uom', 'measure', 'volume', 'единица', 'единицаизмерения', 'мера', 'объем', 'обьем'],
   initialQuantity: ['quantity', 'qty', 'onhand', 'stock', 'initialquantity', 'остаток', 'количество'],
   reorderPoint: ['reorderpoint', 'minstock', 'minimumstock', 'lowstock', 'минимум', 'точказаказа'],
   consumePerVisit: ['consumepervisit', 'pervisit', 'usage', 'списаниенавизит', 'расходнавизит'],

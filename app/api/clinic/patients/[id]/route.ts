@@ -419,7 +419,7 @@ export async function PATCH(
     firstName?: string
     lastName?: string
     middleName?: string | null
-    dateOfBirth?: Date
+    dateOfBirth?: Date | null
     phone?: string | null
     email?: string | null
     homeAddress?: string | null
@@ -447,8 +447,9 @@ export async function PATCH(
     data.middleName = body.middleName == null ? null : String(body.middleName).trim() || null
   }
   if (body.dateOfBirth !== undefined) {
-    const d = parseDateOnly(String(body.dateOfBirth))
-    if (!d) return NextResponse.json({ error: 'dateOfBirth must be YYYY-MM-DD' }, { status: 400 })
+    const raw = body.dateOfBirth == null ? '' : String(body.dateOfBirth).trim()
+    const d = raw ? parseDateOnly(raw) : null
+    if (raw && !d) return NextResponse.json({ error: 'dateOfBirth must be YYYY-MM-DD' }, { status: 400 })
     data.dateOfBirth = d
   }
   if (body.phone !== undefined) {

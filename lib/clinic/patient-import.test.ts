@@ -45,15 +45,15 @@ describe('patient import', () => {
     ]
 
     const candidates = buildPatientImportCandidates(rows, [{ email: 'existing@example.com' }])
-    expect(candidates[1].errors).toContain('dob_missing')
+    expect(candidates[1].errors).toEqual([])
     expect(candidates[1].duplicateReason).toBe('file_phone')
     expect(candidates[2].duplicateReason).toBe('existing_email')
     expect(patientImportSummary(candidates)).toEqual({
       total: 3,
-      valid: 2,
+      valid: 3,
       importable: 1,
       duplicates: 2,
-      invalid: 1,
+      invalid: 0,
     })
   })
 })

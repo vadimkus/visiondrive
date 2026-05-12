@@ -1,7 +1,7 @@
 export type PublicBookingInput = {
   firstName: string
   lastName: string
-  dateOfBirth: Date
+  dateOfBirth: Date | null
   phone: string
   email: string | null
   notes: string | null
@@ -13,7 +13,8 @@ export function normalizePublicBookingInput(body: Record<string, unknown>): Publ
   const lastName = String(body.lastName ?? '').trim().slice(0, 120)
   const phone = String(body.phone ?? '').trim().slice(0, 80)
   const emailRaw = String(body.email ?? '').trim().toLowerCase()
-  const dateOfBirth = body.dateOfBirth != null ? new Date(String(body.dateOfBirth)) : new Date('')
+  const dateOfBirthRaw = String(body.dateOfBirth ?? '').trim()
+  const dateOfBirth = dateOfBirthRaw ? new Date(dateOfBirthRaw) : null
   const notes = body.notes != null ? String(body.notes).trim().slice(0, 2000) || null : null
   const consentAccepted = body.consentAccepted === true
 
@@ -30,7 +31,7 @@ export function normalizePublicBookingInput(body: Record<string, unknown>): Publ
 
 export function validatePublicBookingInput(input: PublicBookingInput) {
   if (!input.firstName || !input.lastName) return 'firstName and lastName are required'
-  if (Number.isNaN(input.dateOfBirth.getTime())) return 'dateOfBirth is required'
+  if (input.dateOfBirth && Number.isNaN(input.dateOfBirth.getTime())) return 'dateOfBirth must be valid'
   if (!input.phone && !input.email) return 'phone or email is required'
   if (!input.consentAccepted) return 'Consent is required'
   return null

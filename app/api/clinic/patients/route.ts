@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
   const firstName = String(body.firstName ?? '').trim()
   const lastName = String(body.lastName ?? '').trim()
   const middleName = body.middleName != null ? String(body.middleName).trim() || null : null
-  const dateOfBirthRaw = String(body.dateOfBirth ?? '')
+  const dateOfBirthRaw = String(body.dateOfBirth ?? '').trim()
   const phone = body.phone != null ? String(body.phone).trim() || null : null
   const email = body.email != null ? String(body.email).trim() || null : null
   const homeAddress = body.homeAddress != null ? String(body.homeAddress).trim() || null : null
@@ -170,8 +170,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'firstName and lastName are required' }, { status: 400 })
   }
 
-  const dateOfBirth = parseDateOnly(dateOfBirthRaw)
-  if (!dateOfBirth) {
+  const dateOfBirth = dateOfBirthRaw ? parseDateOnly(dateOfBirthRaw) : null
+  if (dateOfBirthRaw && !dateOfBirth) {
     return NextResponse.json({ error: 'dateOfBirth must be YYYY-MM-DD' }, { status: 400 })
   }
 

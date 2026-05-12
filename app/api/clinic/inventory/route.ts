@@ -175,3 +175,41 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create item' }, { status: 500 })
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  const session = getClinicSession(request)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  let body: Record<string, unknown>
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const ids = Array.isArray(body.ids)
+    ? Array.from(
+        new Set(
+          body.ids
+            .map((value) => (typeof value === 'string' ? value.trim() : ''))
+            .filter(Boolean)
+        )
+      ).slice(0, 100)
+    : []
+
+  if (ids.length === 0) {
+    return NextResponse.json({ error: 'ids are required' }, { status: 400 })
+  }
+
+  const result = await prisma.clinicStockItem.updateMany({
+    where: {
+      tenantId: session.tenantId,
+      id: { in: ids },
+    },
+    data: { active: false },
+  })
+
+  return NextResponse.json({ deleted: result.count, requested: ids.length })
+}

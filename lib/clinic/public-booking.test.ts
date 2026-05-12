@@ -27,9 +27,20 @@ describe('public booking input', () => {
     const input = normalizePublicBookingInput({
       firstName: 'Anna',
       lastName: 'Petrova',
-      dateOfBirth: '1990-02-03',
     })
 
     expect(validatePublicBookingInput(input)).toBe('phone or email is required')
+  })
+
+  it('allows booking when date of birth is unknown', () => {
+    const input = normalizePublicBookingInput({
+      firstName: 'Anna',
+      lastName: 'Petrova',
+      phone: '+971 50 000 0000',
+      consentAccepted: true,
+    })
+
+    expect(input.dateOfBirth).toBeNull()
+    expect(validatePublicBookingInput(input)).toBeNull()
   })
 })

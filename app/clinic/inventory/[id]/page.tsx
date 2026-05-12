@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
+import { CLINIC_STOCK_UNIT_OPTIONS } from '@/lib/clinic/stock-units'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 import { ClinicBarcodeField } from '@/components/clinic/ClinicBarcodeField'
@@ -285,7 +286,9 @@ export default function StockItemDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">{t.quantityDelta}</label>
+            <label className="block text-sm text-gray-600 mb-1">
+              {t.quantityDelta} ({item.unit})
+            </label>
             <input
               type="number"
               required
@@ -348,10 +351,17 @@ export default function StockItemDetailPage() {
             <label className="block text-sm text-gray-600 mb-1">{t.stockUnit}</label>
             <input
               required
+              list="stock-unit-options-edit"
               className="w-full rounded-xl border border-gray-200 px-3 py-2.5 min-h-11"
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
             />
+            <datalist id="stock-unit-options-edit">
+              {CLINIC_STOCK_UNIT_OPTIONS.map((option) => (
+                <option key={option} value={option} />
+              ))}
+            </datalist>
+            <p className="text-xs text-gray-500 mt-1">{t.stockUnitHint}</p>
           </div>
         </div>
         <div>
@@ -360,7 +370,9 @@ export default function StockItemDetailPage() {
           <p className="text-xs text-gray-500 mt-1">{t.barcodeHint}</p>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">{t.consumePerVisitLabel}</label>
+          <label className="block text-sm text-gray-600 mb-1">
+            {t.consumePerVisitLabel} ({unit || t.stockUnit})
+          </label>
           <input
             type="number"
             min={0}
@@ -371,7 +383,9 @@ export default function StockItemDetailPage() {
           <p className="text-xs text-gray-500 mt-1">{t.consumePerVisitHint}</p>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">{t.stockReorderPoint}</label>
+          <label className="block text-sm text-gray-600 mb-1">
+            {t.stockReorderPoint} ({unit || t.stockUnit})
+          </label>
           <input
             type="number"
             min={0}
@@ -457,7 +471,7 @@ export default function StockItemDetailPage() {
               <li key={m.id} className="px-5 py-3 text-sm">
                 <p className="font-medium text-gray-900">
                   {m.type} · {m.quantityDelta > 0 ? '+' : ''}
-                  {m.quantityDelta}
+                  {m.quantityDelta} {item.unit}
                 </p>
                 <p className="text-gray-500 text-xs mt-0.5">
                   {new Date(m.createdAt).toLocaleString()}

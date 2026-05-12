@@ -20,7 +20,7 @@ export type BuildClinicPatientSummaryPdfInput = {
     firstName: string
     lastName: string
     middleName: string | null
-    dateOfBirth: Date
+    dateOfBirth: Date | null
     phone: string | null
     email: string | null
   }
@@ -99,7 +99,7 @@ export function buildClinicPatientSummaryPdf(input: BuildClinicPatientSummaryPdf
 
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(50, 50, 50)
-  y = paragraph(doc, `Date of birth: ${fmtDate(patient.dateOfBirth)}`, margin, y, maxW, line)
+  y = paragraph(doc, `Date of birth: ${patient.dateOfBirth ? fmtDate(patient.dateOfBirth) : '—'}`, margin, y, maxW, line)
   y = paragraph(doc, `Phone: ${patient.phone?.trim() || '—'}`, margin, y, maxW, line)
   y = paragraph(doc, `Email: ${patient.email?.trim() || '—'}`, margin, y, maxW, line)
   y += 4

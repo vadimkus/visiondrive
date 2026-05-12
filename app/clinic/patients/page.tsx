@@ -25,7 +25,7 @@ type Patient = {
   firstName: string
   lastName: string
   middleName: string | null
-  dateOfBirth: string
+  dateOfBirth: string | null
   phone: string | null
   email: string | null
   category: PatientCategory | null
@@ -123,13 +123,15 @@ function tagLabel(t: ReturnType<typeof useClinicLocale>['t'], tag: PatientTag) {
   return t.tagLatePayer
 }
 
-function formatDob(iso: string, locale: string) {
+function formatDob(iso: string | null, locale: string, emptyValue: string) {
+  if (!iso) return emptyValue
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function formatAge(iso: string, t: ReturnType<typeof useClinicLocale>['t']) {
+function formatAge(iso: string | null, t: ReturnType<typeof useClinicLocale>['t']) {
+  if (!iso) return null
   const dob = new Date(iso)
   if (Number.isNaN(dob.getTime())) return null
   const now = new Date()
@@ -401,7 +403,7 @@ export default function ClinicPatientsPage() {
                       <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
                         <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-gray-50 px-3 font-medium ring-1 ring-gray-100">
                           <CalendarDays className="h-3.5 w-3.5 text-gray-400" aria-hidden />
-                          {formatDob(p.dateOfBirth, dateLocale)}
+                          {formatDob(p.dateOfBirth, dateLocale, t.emptyValue)}
                           {age ? <span className="text-gray-400">({age})</span> : null}
                         </span>
                         {p.phone && (

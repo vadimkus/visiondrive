@@ -154,7 +154,6 @@ export function buildPatientImportCandidates(
     let duplicateReason: string | null = null
 
     if (!firstName || !lastName) errors.push('name_missing')
-    if (!dateOfBirth) errors.push('dob_missing')
     if (!phone && !email) errors.push('contact_missing')
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('email_invalid')
 

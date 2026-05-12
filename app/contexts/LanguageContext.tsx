@@ -31,15 +31,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsClient(true)
-    // Load language from localStorage or default to 'en'
     const savedLang = localStorage.getItem('language')
     const savedClinicLang = localStorage.getItem(CLINIC_LOCALE_STORAGE)
-    if (savedLang === 'en' || savedLang === 'ru') {
-      setPublicLanguage(savedLang)
-      localStorage.setItem(CLINIC_LOCALE_STORAGE, savedLang)
-    } else if (savedClinicLang === 'en' || savedClinicLang === 'ru') {
+
+    // Practice OS stores its own locale. When present, it must win so older
+    // public-site language values do not flip the clinic workspace back to EN.
+    if (savedClinicLang === 'en' || savedClinicLang === 'ru') {
       setPublicLanguage(savedClinicLang)
       localStorage.setItem('language', savedClinicLang)
+    } else if (savedLang === 'en' || savedLang === 'ru') {
+      setPublicLanguage(savedLang)
+      localStorage.setItem(CLINIC_LOCALE_STORAGE, savedLang)
     } else if (savedLang === 'ar') {
       setPublicLanguage('ru')
       localStorage.setItem('language', 'ru')

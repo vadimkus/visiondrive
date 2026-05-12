@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, Plus, Trash2 } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
@@ -148,6 +148,7 @@ export default function ClinicProceduresPage() {
   const [intakeForms, setIntakeForms] = useState<Record<string, IntakeForm>>({})
   const [aftercareForms, setAftercareForms] = useState<Record<string, AftercareForm>>({})
   const [policyForms, setPolicyForms] = useState<Record<string, PolicyForm>>({})
+  const [openPolicyIds, setOpenPolicyIds] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -488,6 +489,8 @@ export default function ClinicProceduresPage() {
             }
             const aftercareForm = aftercareForms[p.id] ?? { title: '', messageBody: '', documentName: '', documentUrl: '' }
             const policyForm = policyForms[p.id] ?? policyFormFromProcedure(p)
+            const isPolicyOpen = Boolean(openPolicyIds[p.id])
+            const selectedMaterialStockItem = stockItems.find((item) => item.id === form.stockItemId)
             const cost = materialCost(p.materials || [])
             return (
               <article key={p.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -521,92 +524,108 @@ export default function ClinicProceduresPage() {
                   </div>
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-orange-100 bg-orange-50/60 p-4">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <section className="mt-5 rounded-2xl border border-orange-100 bg-orange-50/60">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenPolicyIds((current) => ({
+                        ...current,
+                        [p.id]: !current[p.id],
+                      }))
+                    }
+                    className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                    aria-expanded={isPolicyOpen}
+                  >
                     <div>
                       <h3 className="font-semibold text-gray-900">{t.bookingPolicy}</h3>
                       <p className="text-xs text-gray-500">{t.bookingPolicyHint}</p>
                     </div>
-                  </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <label className="text-xs font-semibold text-gray-600">
-                      {t.bookingPolicyType}
-                      <select
-                        value={policyForm.bookingPolicyType}
-                        onChange={(e) => updatePolicyForm(p, { bookingPolicyType: e.target.value as Procedure['bookingPolicyType'] })}
-                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 bg-white px-3 text-sm text-gray-900"
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 text-orange-700 transition-transform ${isPolicyOpen ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
+                  {isPolicyOpen && (
+                    <div className="grid gap-3 border-t border-orange-100 px-4 pb-4 pt-4 sm:grid-cols-2 xl:grid-cols-4">
+                      <label className="text-xs font-semibold text-gray-600">
+                        {t.bookingPolicyType}
+                        <select
+                          value={policyForm.bookingPolicyType}
+                          onChange={(e) => updatePolicyForm(p, { bookingPolicyType: e.target.value as Procedure['bookingPolicyType'] })}
+                          className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 bg-white px-3 text-sm text-gray-900"
+                        >
+                          <option value="NONE">{t.bookingPolicyNone}</option>
+                          <option value="DEPOSIT">{t.bookingPolicyDeposit}</option>
+                          <option value="FULL_PREPAY">{t.bookingPolicyFullPrepay}</option>
+                          <option value="CARD_ON_FILE">{t.bookingPolicyCardOnFile}</option>
+                        </select>
+                      </label>
+                      <label className="text-xs font-semibold text-gray-600">
+                        {t.bookingPolicyDepositAmount}
+                        <input
+                          value={policyForm.depositAmount}
+                          onChange={(e) => updatePolicyForm(p, { depositAmount: e.target.value })}
+                          inputMode="decimal"
+                          className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                        />
+                      </label>
+                      <label className="text-xs font-semibold text-gray-600">
+                        {t.bookingPolicyDepositPercent}
+                        <input
+                          value={policyForm.depositPercent}
+                          onChange={(e) => updatePolicyForm(p, { depositPercent: e.target.value })}
+                          inputMode="numeric"
+                          className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                        />
+                      </label>
+                      <label className="text-xs font-semibold text-gray-600">
+                        {t.bookingPolicyCancellationWindow}
+                        <input
+                          value={policyForm.cancellationWindowHours}
+                          onChange={(e) => updatePolicyForm(p, { cancellationWindowHours: e.target.value })}
+                          inputMode="numeric"
+                          className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                        />
+                      </label>
+                      <label className="text-xs font-semibold text-gray-600">
+                        {t.bookingPolicyLateCancelFee}
+                        <input
+                          value={policyForm.lateCancelFee}
+                          onChange={(e) => updatePolicyForm(p, { lateCancelFee: e.target.value })}
+                          inputMode="decimal"
+                          className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                        />
+                      </label>
+                      <label className="text-xs font-semibold text-gray-600">
+                        {t.bookingPolicyNoShowFee}
+                        <input
+                          value={policyForm.noShowFee}
+                          onChange={(e) => updatePolicyForm(p, { noShowFee: e.target.value })}
+                          inputMode="decimal"
+                          className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
+                        />
+                      </label>
+                      <label className="text-xs font-semibold text-gray-600 sm:col-span-2">
+                        {t.bookingPolicyText}
+                        <textarea
+                          rows={2}
+                          value={policyForm.bookingPolicyText}
+                          onChange={(e) => updatePolicyForm(p, { bookingPolicyText: e.target.value })}
+                          placeholder={t.bookingPolicyTextPlaceholder}
+                          className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-2 text-sm text-gray-900"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        disabled={busy === `policy-${p.id}`}
+                        onClick={() => void savePolicy(p)}
+                        className="min-h-11 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60 sm:col-span-2 xl:col-span-1"
                       >
-                        <option value="NONE">{t.bookingPolicyNone}</option>
-                        <option value="DEPOSIT">{t.bookingPolicyDeposit}</option>
-                        <option value="FULL_PREPAY">{t.bookingPolicyFullPrepay}</option>
-                        <option value="CARD_ON_FILE">{t.bookingPolicyCardOnFile}</option>
-                      </select>
-                    </label>
-                    <label className="text-xs font-semibold text-gray-600">
-                      {t.bookingPolicyDepositAmount}
-                      <input
-                        value={policyForm.depositAmount}
-                        onChange={(e) => updatePolicyForm(p, { depositAmount: e.target.value })}
-                        inputMode="decimal"
-                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
-                      />
-                    </label>
-                    <label className="text-xs font-semibold text-gray-600">
-                      {t.bookingPolicyDepositPercent}
-                      <input
-                        value={policyForm.depositPercent}
-                        onChange={(e) => updatePolicyForm(p, { depositPercent: e.target.value })}
-                        inputMode="numeric"
-                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
-                      />
-                    </label>
-                    <label className="text-xs font-semibold text-gray-600">
-                      {t.bookingPolicyCancellationWindow}
-                      <input
-                        value={policyForm.cancellationWindowHours}
-                        onChange={(e) => updatePolicyForm(p, { cancellationWindowHours: e.target.value })}
-                        inputMode="numeric"
-                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
-                      />
-                    </label>
-                    <label className="text-xs font-semibold text-gray-600">
-                      {t.bookingPolicyLateCancelFee}
-                      <input
-                        value={policyForm.lateCancelFee}
-                        onChange={(e) => updatePolicyForm(p, { lateCancelFee: e.target.value })}
-                        inputMode="decimal"
-                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
-                      />
-                    </label>
-                    <label className="text-xs font-semibold text-gray-600">
-                      {t.bookingPolicyNoShowFee}
-                      <input
-                        value={policyForm.noShowFee}
-                        onChange={(e) => updatePolicyForm(p, { noShowFee: e.target.value })}
-                        inputMode="decimal"
-                        className="mt-1 min-h-11 w-full rounded-xl border border-orange-100 px-3 text-sm text-gray-900"
-                      />
-                    </label>
-                    <label className="text-xs font-semibold text-gray-600 sm:col-span-2">
-                      {t.bookingPolicyText}
-                      <textarea
-                        rows={2}
-                        value={policyForm.bookingPolicyText}
-                        onChange={(e) => updatePolicyForm(p, { bookingPolicyText: e.target.value })}
-                        placeholder={t.bookingPolicyTextPlaceholder}
-                        className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-2 text-sm text-gray-900"
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      disabled={busy === `policy-${p.id}`}
-                      onClick={() => void savePolicy(p)}
-                      className="min-h-11 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60 sm:col-span-2 xl:col-span-1"
-                    >
-                      {busy === `policy-${p.id}` ? t.savingEllipsis : t.saveBookingPolicy}
-                    </button>
-                  </div>
-                </div>
+                        {busy === `policy-${p.id}` ? t.savingEllipsis : t.saveBookingPolicy}
+                      </button>
+                    </div>
+                  )}
+                </section>
 
                 <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -872,7 +891,11 @@ export default function ClinicProceduresPage() {
                       value={form.quantityPerVisit}
                       onChange={(e) => updateForm(p.id, { quantityPerVisit: e.target.value })}
                       inputMode="numeric"
-                      placeholder={t.quantityPerVisit}
+                      placeholder={
+                        selectedMaterialStockItem
+                          ? `${t.quantityPerVisit} (${selectedMaterialStockItem.unit})`
+                          : t.quantityPerVisit
+                      }
                       className="min-h-11 min-w-0 rounded-xl border border-gray-200 px-3 text-sm text-gray-900"
                     />
                     <input
