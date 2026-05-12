@@ -614,7 +614,7 @@ export default function PatientPortalPage() {
         <div className="flex flex-col gap-3 rounded-[1.5rem] border border-white/80 bg-white/80 px-4 py-3 shadow-sm shadow-orange-100/40 backdrop-blur md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <Image
-              src="/clinic-app-icon.svg"
+              src="/logo/visiondrive-mark.svg"
               alt="VisionDrive"
               width={44}
               height={44}
