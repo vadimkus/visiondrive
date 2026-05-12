@@ -480,7 +480,7 @@ const table = {
     noMessageHistory: 'No message history yet.',
     copied: 'Copied',
     appointmentDefault: 'Appointment',
-    dobLabel: 'DOB',
+    dobLabel: 'Date of birth',
     ageYears: 'years',
     contact: 'Contact',
     close: 'Close',

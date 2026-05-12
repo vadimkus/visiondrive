@@ -146,7 +146,7 @@ export function buildPatientSafeExportPdf(input: BuildPatientSafeExportPdfInput)
   doc.setFontSize(10)
   doc.setTextColor(50, 50, 50)
   y = paragraph(doc, `Patient: ${fullName || 'Patient'}`, margin, y, maxW, line)
-  y = paragraph(doc, `DOB: ${input.patient.dateOfBirth ? fmtDate(input.patient.dateOfBirth) : '-'}`, margin, y, maxW, line)
+  y = paragraph(doc, `Date of birth: ${input.patient.dateOfBirth ? fmtDate(input.patient.dateOfBirth) : '-'}`, margin, y, maxW, line)
   y = paragraph(doc, `Phone: ${input.patient.phone?.trim() || '-'}`, margin, y, maxW, line)
   y = paragraph(doc, `Email: ${input.patient.email?.trim() || '-'}`, margin, y, maxW, line)
   y += 3
