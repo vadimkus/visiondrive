@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
+import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import {
   CalendarClock,
@@ -201,7 +202,6 @@ const copy = {
     greeting: 'Welcome',
     intro: 'A simple view of your next booking, what was done, care notes, receipts, and anything you need to do before the visit.',
     privateNotice: 'This private link is for patient use only. Do not forward it publicly.',
-    careAtGlance: 'Your care at a glance',
     nextBooking: 'Next booking',
     noNextBooking: 'No future booking',
     lastVisit: 'Last visit',
@@ -245,6 +245,8 @@ const copy = {
     recentReceipts: 'Recent receipts',
     loadFailed: 'Could not load portal link.',
     expired: 'This patient portal link is not available or has expired.',
+    unavailableTitle: 'Portal link unavailable',
+    unavailableHint: 'This private link may have expired or been revoked. Please ask the practice to send a new patient portal link.',
     upcoming: 'Upcoming appointments',
     noUpcoming: 'No upcoming appointments are currently scheduled.',
     requestChange: 'Request change',
@@ -300,7 +302,6 @@ const copy = {
     greeting: 'Здравствуйте',
     intro: 'Простой обзор следующей записи, выполненных процедур, рекомендаций, чеков и задач перед визитом.',
     privateNotice: 'Эта приватная ссылка предназначена только для пациента. Не публикуйте её открыто.',
-    careAtGlance: 'Ваш уход: главное',
     nextBooking: 'Следующая запись',
     noNextBooking: 'Будущих записей нет',
     lastVisit: 'Последний визит',
@@ -344,6 +345,8 @@ const copy = {
     recentReceipts: 'Последние чеки',
     loadFailed: 'Не удалось загрузить кабинет.',
     expired: 'Эта ссылка недоступна или истекла.',
+    unavailableTitle: 'Ссылка недоступна',
+    unavailableHint: 'Эта приватная ссылка могла истечь или быть отозвана. Попросите специалиста отправить новую ссылку.',
     upcoming: 'Будущие записи',
     noUpcoming: 'Будущих записей пока нет.',
     requestChange: 'Запросить изменение',
@@ -560,14 +563,33 @@ export default function PatientPortalPage() {
   }
 
   if (loading && !data) {
-    return <main className="min-h-screen bg-orange-50 p-6 text-gray-700">{c.title}...</main>
+    return (
+      <main className="min-h-screen bg-[linear-gradient(135deg,#fff7ed_0%,#f8fafc_48%,#eef2ff_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-xl rounded-[2rem] border border-white/80 bg-white/90 p-6 shadow-xl shadow-orange-100/50">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-700">{c.portalEyebrow}</p>
+          <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{c.title}</h1>
+          <p className="mt-3 text-sm text-slate-600">{c.title}...</p>
+        </section>
+      </main>
+    )
   }
 
   if (error || !data) {
     return (
-      <main className="min-h-screen bg-orange-50 p-6">
-        <section className="mx-auto max-w-xl rounded-3xl border border-red-100 bg-white p-6 text-red-700 shadow-sm">
-          {error || c.expired}
+      <main className="min-h-screen bg-[linear-gradient(135deg,#fff7ed_0%,#f8fafc_48%,#eef2ff_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-xl rounded-[2rem] border border-red-100 bg-white p-6 shadow-xl shadow-red-100/40">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-red-700">{c.portalEyebrow}</p>
+          <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{c.unavailableTitle}</h1>
+          <p className="mt-3 text-sm leading-relaxed text-slate-600">{error || c.expired}</p>
+          <p className="mt-2 text-sm leading-relaxed text-slate-500">{c.unavailableHint}</p>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white sm:w-auto"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden />
+            {c.refresh}
+          </button>
         </section>
       </main>
     )
@@ -591,12 +613,15 @@ export default function PatientPortalPage() {
       <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-6xl flex-col gap-6">
         <div className="flex flex-col gap-3 rounded-[1.5rem] border border-white/80 bg-white/80 px-4 py-3 shadow-sm shadow-orange-100/40 backdrop-blur md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-sm font-bold text-white shadow-lg shadow-orange-200">
-              VD
-            </div>
+            <Image
+              src="/clinic-app-icon.svg"
+              alt="VisionDrive"
+              width={44}
+              height={44}
+              className="h-11 w-11 shrink-0 rounded-2xl shadow-lg shadow-orange-200"
+            />
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-700">{c.portalEyebrow}</p>
-              <p className="truncate text-sm font-semibold text-slate-950">{data.practice.name}</p>
             </div>
           </div>
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">
@@ -609,10 +634,7 @@ export default function PatientPortalPage() {
           <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_21rem]">
             <div className="min-w-0 p-5 md:p-8">
               <p className="text-sm font-semibold text-orange-700">{c.greeting}, {data.patient.firstName}</p>
-              <h1 className="mt-2 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-gray-950 md:text-5xl">
-                {c.careAtGlance}
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">{c.intro}</p>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">{c.intro}</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <WalletMetric
                   label={c.nextBooking}
@@ -688,7 +710,7 @@ export default function PatientPortalPage() {
           </div>
           <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-8">
             <p className="min-w-0 text-sm text-slate-500">
-              {data.patient.firstName} {data.patient.lastName} · {data.practice.name}
+              {data.patient.firstName} {data.patient.lastName}
             </p>
             <button
               type="button"
@@ -1047,7 +1069,7 @@ export default function PatientPortalPage() {
 
         <footer className="mt-auto flex flex-col gap-1 rounded-[1.5rem] border border-white/70 bg-white/70 px-5 py-4 text-xs text-slate-500 shadow-sm backdrop-blur md:flex-row md:items-center md:justify-between">
           <span>VisionDrive Practice OS</span>
-          <span>{data.practice.name}</span>
+          <span>{c.secure}</span>
         </footer>
       </div>
     </main>
