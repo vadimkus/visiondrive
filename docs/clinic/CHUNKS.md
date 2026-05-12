@@ -1,5 +1,20 @@
 # Implementation log (clinic)
 
+## Chunk 96 — 2026-05-12 (procedure product icons)
+
+**Shipped**
+
+- Added automatic small product/brand icons to procedure catalogue cards in `/clinic/procedures`.
+- Current name-based matches cover Belotero, Blanch Balance/Soft as Belotero family, AestheFill, DR. CYJ / Caregen, and ASCE+ / HRLV / ExoCoBio.
+- Icons use official-domain favicon images with an initials fallback so the card remains clean if an image cannot load.
+- Added `docs/2026-05-12_clinic-procedure-product-icons.md`.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for `app/clinic/procedures/page.tsx`.
+
+---
+
 ## Chunk 95 — 2026-05-12 (patient summary PDF second design pass)
 
 **Shipped**

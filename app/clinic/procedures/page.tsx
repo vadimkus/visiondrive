@@ -118,6 +118,79 @@ type ProcedureForm = {
   active: boolean
 }
 
+type ProcedureProductIcon = {
+  label: string
+  initials: string
+  imageUrl: string
+}
+
+const PRODUCT_ICON_MATCHES: Array<{ keywords: string[]; icon: ProcedureProductIcon }> = [
+  {
+    keywords: ['belotero'],
+    icon: {
+      label: 'Belotero',
+      initials: 'BE',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=belotero.co.uk&sz=64',
+    },
+  },
+  {
+    keywords: ['blanch balance'],
+    icon: {
+      label: 'Belotero Balance',
+      initials: 'BE',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=belotero.co.uk&sz=64',
+    },
+  },
+  {
+    keywords: ['blanch soft'],
+    icon: {
+      label: 'Belotero Soft',
+      initials: 'BE',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=belotero.co.uk&sz=64',
+    },
+  },
+  {
+    keywords: ['aesthefill'],
+    icon: {
+      label: 'AestheFill',
+      initials: 'AF',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=aesthefill.eu&sz=64',
+    },
+  },
+  {
+    keywords: ['dr. cyj'],
+    icon: {
+      label: 'DR. CYJ / Caregen',
+      initials: 'CY',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=caregen.co.kr&sz=64',
+    },
+  },
+  {
+    keywords: ['dr cyj'],
+    icon: {
+      label: 'DR. CYJ / Caregen',
+      initials: 'CY',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=caregen.co.kr&sz=64',
+    },
+  },
+  {
+    keywords: ['asce'],
+    icon: {
+      label: 'ASCE+ / ExoCoBio',
+      initials: 'AS',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=exocobio.com&sz=64',
+    },
+  },
+  {
+    keywords: ['hrlv'],
+    icon: {
+      label: 'ASCE+ HRLV / ExoCoBio',
+      initials: 'AS',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=exocobio.com&sz=64',
+    },
+  },
+]
+
 function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
 }
@@ -158,6 +231,32 @@ function materialCost(materials: ProcedureMaterial[]) {
   return materials
     .filter((material) => material.active)
     .reduce((sum, material) => sum + material.quantityPerVisit * material.unitCostCents, 0)
+}
+
+function productIconForProcedureName(name: string): ProcedureProductIcon | null {
+  const normalized = name.toLowerCase()
+  return PRODUCT_ICON_MATCHES.find((match) => match.keywords.every((keyword) => normalized.includes(keyword)))?.icon ?? null
+}
+
+function ProductIconBadge({ icon }: { icon: ProcedureProductIcon }) {
+  return (
+    <span
+      className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-orange-100 bg-orange-50 text-[10px] font-bold text-orange-800 shadow-sm"
+      title={icon.label}
+      aria-label={icon.label}
+    >
+      {icon.initials}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={icon.imageUrl}
+        alt=""
+        className="absolute inset-1 h-7 w-7 rounded-lg bg-white object-contain"
+        onError={(event) => {
+          event.currentTarget.style.display = 'none'
+        }}
+      />
+    </span>
+  )
 }
 
 export default function ClinicProceduresPage() {
@@ -579,6 +678,7 @@ export default function ClinicProceduresPage() {
             const isAftercareOpen = Boolean(openAftercareIds[p.id])
             const selectedMaterialStockItem = stockItems.find((item) => item.id === form.stockItemId)
             const cost = materialCost(p.materials || [])
+            const productIcon = productIconForProcedureName(p.name)
             return (
               <article key={p.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <button
@@ -594,6 +694,7 @@ export default function ClinicProceduresPage() {
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
+                      {productIcon && <ProductIconBadge icon={productIcon} />}
                       <h2 className="text-lg font-semibold text-gray-900">{p.name}</h2>
                       {p.active ? (
                         <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
