@@ -1017,7 +1017,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
             </div>
           </div>
 
-          <aside className="border-t border-white/10 bg-slate-950 p-5 text-white xl:border-l xl:border-t-0 xl:p-6">
+          <aside className="border-t border-white/10 bg-slate-950 py-5 pl-5 pr-9 text-white xl:border-l xl:border-t-0 xl:py-6 xl:pl-6 xl:pr-11">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">{t.quickActions}</p>
             <div className="mt-4 grid gap-2">
               <ActionTile href={`/api/clinic/patients/${patient.id}/summary-pdf`} icon={FileDown} label={t.downloadPatientSummaryPdf} external />
@@ -1027,7 +1027,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
                 type="button"
                 onClick={() => void deletePatientRecord()}
                 disabled={deletingPatient}
-                className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 text-left text-sm font-semibold text-red-100 transition hover:bg-red-500/20 disabled:opacity-60"
+                className="mr-2 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 text-left text-sm font-semibold text-red-100 transition hover:bg-red-500/20 disabled:opacity-60"
               >
                 <span className="inline-flex items-center gap-3">
                   <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
@@ -1351,7 +1351,7 @@ function ActionTile({
   return (
     <a
       href={href}
-      className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15"
+      className="mr-2 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15"
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
     >
