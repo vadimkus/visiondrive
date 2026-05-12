@@ -1534,6 +1534,10 @@ const table = {
     poStatusPartial: 'Partially received',
     poStatusReceived: 'Received',
     poStatusCancelled: 'Cancelled',
+    poEditOrder: 'Edit purchase order',
+    poSaveOrder: 'Save purchase order',
+    poLinesLockedAfterReceipt:
+      'Items are locked after stock is received or the order is cancelled. Edit supplier, reference, expected delivery, or notes here; use stock adjustments to correct received quantities.',
     poMarkOrdered: 'Mark ordered',
     poReceiveStock: 'Receive stock',
     poReceiptNote: 'Receipt note (optional)',
@@ -3130,6 +3134,10 @@ const ruOverrides: Partial<ClinicStrings> = {
   poStatusPartial: 'Частично принято',
   poStatusReceived: 'Принято',
   poStatusCancelled: 'Отменено',
+  poEditOrder: 'Редактировать закупку',
+  poSaveOrder: 'Сохранить закупку',
+  poLinesLockedAfterReceipt:
+    'Позиции блокируются после приемки на склад или отмены закупки. Здесь можно изменить поставщика, номер, ожидаемую поставку или заметки; количество после приемки корректируйте через складские корректировки.',
   poMarkOrdered: 'Отметить заказанным',
   poReceiveStock: 'Принять на склад',
   poReceiptNote: 'Заметка к приемке (опц.)',

@@ -155,6 +155,7 @@
 | [2026-05-12_clinic-patient-header-avatar.md](2026-05-12_clinic-patient-header-avatar.md) | Patient header avatar replacement for initials |
 | [2026-05-12_clinic-patient-portal-layout-rework.md](2026-05-12_clinic-patient-portal-layout-rework.md) | Patient portal standalone layout and overlap fix |
 | [2026-05-12_clinic-procedure-product-icons.md](2026-05-12_clinic-procedure-product-icons.md) | Procedure catalogue product/brand icons |
+| [2026-05-12_clinic-purchase-order-edit-mode.md](2026-05-12_clinic-purchase-order-edit-mode.md) | Purchase order detail edit mode and received-line lock rule |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |

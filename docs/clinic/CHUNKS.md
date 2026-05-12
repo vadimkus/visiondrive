@@ -1,5 +1,20 @@
 # Implementation log (clinic)
 
+## Chunk 98 — 2026-05-12 (purchase order edit mode)
+
+**Shipped**
+
+- Added an edit mode to `/clinic/purchase-orders/[id]` so purchase order supplier, reference, expected delivery, and notes can be updated from the detail page.
+- Draft or ordered purchase orders with zero received stock can now edit line stock item, ordered quantity, and fixed unit cost before stock is received.
+- Received or partially received orders now show an explicit lock message: line quantities/costs stay read-only after receipt to protect stock movements and FIFO costing; corrections should be done with inventory adjustments.
+- Added EN/RU copy for the edit panel and locked-lines guidance.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for `app/clinic/purchase-orders/[id]/page.tsx` and `lib/clinic/strings.ts`.
+
+---
+
 ## Chunk 97 — 2026-05-12 (localized patient summary PDF)
 
 **Shipped**

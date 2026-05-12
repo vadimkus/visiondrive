@@ -143,8 +143,9 @@ export async function PATCH(
     | undefined
 
   if (rawLines !== undefined) {
-    if (existing.status !== ClinicPurchaseOrderStatus.DRAFT) {
-      return NextResponse.json({ error: 'Lines can only be edited while the order is in DRAFT' }, { status: 400 })
+    const anyReceived = existing.lines.some((l) => l.quantityReceived > 0)
+    if (existing.status === ClinicPurchaseOrderStatus.CANCELLED || anyReceived) {
+      return NextResponse.json({ error: 'Lines can only be edited before stock is received' }, { status: 400 })
     }
     if (!Array.isArray(rawLines)) {
       return NextResponse.json({ error: 'lines must be an array' }, { status: 400 })
