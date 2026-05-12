@@ -3320,13 +3320,13 @@ function PhotosTab({
             className="w-full px-3 py-2.5 rounded-xl border border-blue-100 text-sm bg-white"
           />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label className="flex flex-col items-center justify-center gap-2 w-full py-8 border-2 border-dashed border-orange-200 rounded-2xl bg-orange-50/50 cursor-pointer hover:bg-orange-50 transition-colors">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="flex min-h-36 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50/50 px-5 py-7 text-center transition-colors hover:bg-orange-50">
             <Camera className="w-8 h-8 text-orange-500" />
             <span className="text-sm font-semibold text-orange-900">
               {uploading ? t.uploadingEllipsis : t.takePhoto}
             </span>
-            <span className="text-xs text-orange-700">{t.takePhotoHint}</span>
+            <span className="max-w-xs text-xs leading-5 text-orange-700">{t.takePhotoHint}</span>
             <input
               type="file"
               accept="image/*"
@@ -3336,12 +3336,12 @@ function PhotosTab({
               onChange={onFile}
             />
           </label>
-          <label className="flex flex-col items-center justify-center gap-2 w-full py-8 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+          <label className="flex min-h-36 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 px-5 py-7 text-center transition-colors hover:bg-gray-100">
             <ImagePlus className="w-8 h-8 text-gray-500" />
             <span className="text-sm font-semibold text-gray-900">
               {uploading ? t.uploadingEllipsis : t.chooseExistingPhoto}
             </span>
-            <span className="text-xs text-gray-500">{t.chooseExistingPhotoHint}</span>
+            <span className="max-w-xs text-xs leading-5 text-gray-500">{t.chooseExistingPhotoHint}</span>
             <input
               type="file"
               accept="image/*"
