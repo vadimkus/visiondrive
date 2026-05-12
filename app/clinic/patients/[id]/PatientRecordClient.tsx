@@ -1774,6 +1774,11 @@ function OverviewTab({
   const [visitSaveMessage, setVisitSaveMessage] = useState('')
   const [aiNoteInput, setAiNoteInput] = useState('')
   const [aiNoteBusy, setAiNoteBusy] = useState(false)
+  const [aiVoiceSupported, setAiVoiceSupported] = useState(false)
+  const [aiVoiceListening, setAiVoiceListening] = useState(false)
+  const [aiVoiceInterim, setAiVoiceInterim] = useState('')
+  const [aiVoiceError, setAiVoiceError] = useState<string | null>(null)
+  const aiRecognitionRef = useRef<BrowserSpeechRecognition | null>(null)
   const activeTreatmentPlans = patient.treatmentPlans.filter((plan) =>
     ['ACTIVE', 'PAUSED'].includes(plan.status)
   )
@@ -1805,6 +1810,84 @@ function OverviewTab({
       window.removeEventListener('offline', onOffline)
     }
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const speechWindow = window as Window & {
+      SpeechRecognition?: BrowserSpeechRecognitionConstructor
+      webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor
+    }
+    setAiVoiceSupported(Boolean(speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition))
+    return () => {
+      aiRecognitionRef.current?.abort()
+      aiRecognitionRef.current = null
+    }
+  }, [])
+
+  const appendAiTranscript = useCallback((text: string) => {
+    const clean = text.trim()
+    if (!clean) return
+    setAiNoteInput((current) => {
+      const separator = current.trim() ? ' ' : ''
+      return `${current.trim()}${separator}${clean}`
+    })
+  }, [])
+
+  const toggleAiVoiceInput = () => {
+    setAiVoiceError(null)
+    if (aiVoiceListening) {
+      aiRecognitionRef.current?.stop()
+      setAiVoiceListening(false)
+      return
+    }
+
+    if (typeof window === 'undefined') return
+    const speechWindow = window as Window & {
+      SpeechRecognition?: BrowserSpeechRecognitionConstructor
+      webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor
+    }
+    const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition
+    if (!Recognition) {
+      setAiVoiceSupported(false)
+      setAiVoiceError(t.voiceCommentUnsupported)
+      return
+    }
+
+    const recognition = new Recognition()
+    recognition.lang = locale === 'ru' ? 'ru-RU' : 'en-US'
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.onresult = (event) => {
+      let finalText = ''
+      let interimText = ''
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const transcript = event.results[i]?.[0]?.transcript ?? ''
+        if (event.results[i]?.isFinal) finalText += transcript
+        else interimText += transcript
+      }
+      if (finalText) appendAiTranscript(finalText)
+      setAiVoiceInterim(interimText.trim())
+    }
+    recognition.onerror = () => {
+      setAiVoiceError(t.voiceCommentError)
+      setAiVoiceListening(false)
+      setAiVoiceInterim('')
+    }
+    recognition.onend = () => {
+      setAiVoiceListening(false)
+      setAiVoiceInterim('')
+      aiRecognitionRef.current = null
+    }
+    aiRecognitionRef.current = recognition
+    setAiVoiceListening(true)
+    try {
+      recognition.start()
+    } catch {
+      setAiVoiceError(t.voiceCommentError)
+      setAiVoiceListening(false)
+      aiRecognitionRef.current = null
+    }
+  }
 
   useEffect(() => {
     setDraftHydrated(false)
@@ -2427,14 +2510,30 @@ function OverviewTab({
               <p className="font-semibold text-blue-950">{t.aiNoteAssistant}</p>
               <p className="mt-1 text-sm text-blue-800/80">{t.aiNoteAssistantHint}</p>
             </div>
-            <button
-              type="button"
-              onClick={draftVisitNote}
-              disabled={aiNoteBusy}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-            >
-              {aiNoteBusy ? t.aiNoteAssistantDrafting : t.aiNoteAssistantDraft}
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={toggleAiVoiceInput}
+                disabled={!aiVoiceSupported || aiNoteBusy}
+                className={clsx(
+                  'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-60',
+                  aiVoiceListening
+                    ? 'bg-red-50 text-red-700 ring-1 ring-red-100'
+                    : 'bg-white text-blue-700 ring-1 ring-blue-100'
+                )}
+              >
+                {aiVoiceListening ? <MicOff className="h-4 w-4" aria-hidden /> : <Mic className="h-4 w-4" aria-hidden />}
+                {aiVoiceListening ? t.voiceCommentStop : t.voiceCommentStart}
+              </button>
+              <button
+                type="button"
+                onClick={draftVisitNote}
+                disabled={aiNoteBusy}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {aiNoteBusy ? t.aiNoteAssistantDrafting : t.aiNoteAssistantDraft}
+              </button>
+            </div>
           </div>
           <textarea
             value={aiNoteInput}
@@ -2443,6 +2542,15 @@ function OverviewTab({
             placeholder={t.aiNoteAssistantPlaceholder}
             className="mt-3 w-full rounded-xl border border-blue-100 bg-white px-3 py-2.5 text-base"
           />
+          {aiVoiceInterim && (
+            <p className="mt-2 rounded-xl bg-white px-3 py-2 text-sm text-blue-800 ring-1 ring-blue-100">
+              {t.voiceCommentListening}: {aiVoiceInterim}
+            </p>
+          )}
+          {!aiVoiceSupported && (
+            <p className="mt-2 text-xs text-blue-700">{t.voiceCommentUnsupported}</p>
+          )}
+          {aiVoiceError && <p className="mt-2 text-xs text-red-600">{aiVoiceError}</p>}
           <p className="mt-2 text-xs text-blue-700">{t.aiNoteAssistantGuardrail}</p>
         </div>
         <div>
