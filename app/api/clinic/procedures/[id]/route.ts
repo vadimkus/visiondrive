@@ -34,6 +34,11 @@ export async function PATCH(
   }
 
   const data: {
+    name?: string
+    defaultDurationMin?: number
+    bufferAfterMinutes?: number
+    basePriceCents?: number
+    currency?: string
     bookingPolicyType?: ReturnType<typeof normalizeBookingPolicyType>
     depositAmountCents?: number
     depositPercent?: number
@@ -41,8 +46,40 @@ export async function PATCH(
     lateCancelFeeCents?: number
     noShowFeeCents?: number
     bookingPolicyText?: string | null
+    active?: boolean
   } = {}
 
+  if (body.name !== undefined) {
+    const name = String(body.name).trim()
+    if (!name) {
+      return NextResponse.json({ error: 'name is required' }, { status: 400 })
+    }
+    data.name = name
+  }
+  if (body.defaultDurationMin !== undefined) {
+    const defaultDurationMin = Number(body.defaultDurationMin)
+    if (!Number.isFinite(defaultDurationMin) || defaultDurationMin < 5 || defaultDurationMin > 24 * 60) {
+      return NextResponse.json({ error: 'defaultDurationMin must be between 5 and 1440' }, { status: 400 })
+    }
+    data.defaultDurationMin = Math.round(defaultDurationMin)
+  }
+  if (body.bufferAfterMinutes !== undefined) {
+    const bufferAfterMinutes = Number(body.bufferAfterMinutes)
+    if (!Number.isFinite(bufferAfterMinutes) || bufferAfterMinutes < 0 || bufferAfterMinutes > 60) {
+      return NextResponse.json({ error: 'bufferAfterMinutes must be between 0 and 60' }, { status: 400 })
+    }
+    data.bufferAfterMinutes = Math.round(bufferAfterMinutes)
+  }
+  if (body.basePriceCents !== undefined) {
+    const basePriceCents = Number(body.basePriceCents)
+    if (!Number.isFinite(basePriceCents) || basePriceCents < 0) {
+      return NextResponse.json({ error: 'basePriceCents must be a non-negative number' }, { status: 400 })
+    }
+    data.basePriceCents = Math.round(basePriceCents)
+  }
+  if (body.currency !== undefined) {
+    data.currency = String(body.currency).trim().toUpperCase().slice(0, 8) || 'AED'
+  }
   if (body.bookingPolicyType !== undefined) {
     data.bookingPolicyType = normalizeBookingPolicyType(body.bookingPolicyType)
   }
@@ -64,6 +101,9 @@ export async function PATCH(
   if (body.bookingPolicyText !== undefined) {
     data.bookingPolicyText =
       body.bookingPolicyText == null ? null : String(body.bookingPolicyText).trim() || null
+  }
+  if (body.active !== undefined) {
+    data.active = body.active === true
   }
 
   if (Object.keys(data).length === 0) {

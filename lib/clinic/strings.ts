@@ -890,7 +890,7 @@ const table = {
     procedureBufferAfterHint:
       'Hidden cleanup, prep, travel, or rest time. Clients see only the service duration.',
     basePrice: 'Base price',
-    priceHintCents: 'Enter amount in {currency} (stored as cents internally).',
+    priceHintCents: 'Enter amount in {currency}.',
     currency: 'Currency',
     bookingPolicy: 'Booking policy',
     bookingPolicyHint:
@@ -951,6 +951,10 @@ const table = {
     policyFeeReasonPrompt: 'Reason or payment note (optional)',
     policyFeeWaiveReasonPrompt: 'Why waive this fee? (optional)',
     createProcedure: 'Create procedure',
+    procedureCard: 'Procedure card',
+    procedureCardHint: 'Edit the service name, duration, price, currency, and active status.',
+    saveProcedure: 'Save procedure',
+    procedureNameRequired: 'Add the procedure name first.',
     addPatientFirst: 'Add a patient first.',
     patientLabel: 'Patient',
     selectPlaceholder: 'Select…',
@@ -2790,7 +2794,7 @@ const ruOverrides: Partial<ClinicStrings> = {
   procedureBufferAfterHint:
     'Скрытое время на уборку, подготовку, дорогу или отдых. Клиент видит только длительность услуги.',
   basePrice: 'Базовая цена',
-  priceHintCents: 'Введите сумму в {currency} (внутри хранится в филсах).',
+  priceHintCents: 'Введите сумму в {currency}.',
   currency: 'Валюта',
   bookingPolicy: 'Правила записи',
   bookingPolicyHint:
@@ -2851,6 +2855,10 @@ const ruOverrides: Partial<ClinicStrings> = {
   policyFeeReasonPrompt: 'Причина или заметка к оплате (необязательно)',
   policyFeeWaiveReasonPrompt: 'Почему списываем штраф? (необязательно)',
   createProcedure: 'Создать процедуру',
+  procedureCard: 'Карточка процедуры',
+  procedureCardHint: 'Редактируйте название услуги, длительность, цену, валюту и активность.',
+  saveProcedure: 'Сохранить процедуру',
+  procedureNameRequired: 'Сначала укажите название процедуры.',
   addPatientFirst: 'Сначала добавьте пациента.',
   patientLabel: 'Пациент',
   selectPlaceholder: 'Выберите...',

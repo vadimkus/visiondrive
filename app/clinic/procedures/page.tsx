@@ -108,6 +108,15 @@ type PolicyForm = {
   bookingPolicyText: string
 }
 
+type ProcedureForm = {
+  name: string
+  defaultDurationMin: string
+  bufferAfterMinutes: string
+  basePrice: string
+  currency: string
+  active: boolean
+}
+
 function formatMoney(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
 }
@@ -119,6 +128,17 @@ function parseMajorToCents(value: string) {
 
 function centsToMajor(cents: number) {
   return (Math.max(0, cents) / 100).toFixed(2)
+}
+
+function procedureFormFromProcedure(procedure: Procedure): ProcedureForm {
+  return {
+    name: procedure.name,
+    defaultDurationMin: String(procedure.defaultDurationMin || 60),
+    bufferAfterMinutes: String(procedure.bufferAfterMinutes || 0),
+    basePrice: centsToMajor(procedure.basePriceCents),
+    currency: procedure.currency || 'AED',
+    active: procedure.active,
+  }
 }
 
 function policyFormFromProcedure(procedure: Procedure): PolicyForm {
@@ -148,6 +168,8 @@ export default function ClinicProceduresPage() {
   const [intakeForms, setIntakeForms] = useState<Record<string, IntakeForm>>({})
   const [aftercareForms, setAftercareForms] = useState<Record<string, AftercareForm>>({})
   const [policyForms, setPolicyForms] = useState<Record<string, PolicyForm>>({})
+  const [procedureForms, setProcedureForms] = useState<Record<string, ProcedureForm>>({})
+  const [openProcedureIds, setOpenProcedureIds] = useState<Record<string, boolean>>({})
   const [openPolicyIds, setOpenPolicyIds] = useState<Record<string, boolean>>({})
   const [openIntakeIds, setOpenIntakeIds] = useState<Record<string, boolean>>({})
   const [openAftercareIds, setOpenAftercareIds] = useState<Record<string, boolean>>({})
@@ -174,6 +196,13 @@ export default function ClinicProceduresPage() {
       }
       setProcedures(procedureData.procedures || [])
       setStockItems((inventoryData.items || []).filter((item: StockItem) => item.active))
+      setProcedureForms((current) => {
+        const next = { ...current }
+        for (const procedure of (procedureData.procedures || []) as Procedure[]) {
+          if (!next[procedure.id]) next[procedure.id] = procedureFormFromProcedure(procedure)
+        }
+        return next
+      })
       setPolicyForms((current) => {
         const next = { ...current }
         for (const procedure of (procedureData.procedures || []) as Procedure[]) {
@@ -243,6 +272,17 @@ export default function ClinicProceduresPage() {
     }))
   }
 
+  function updateProcedureForm(procedure: Procedure, patch: Partial<ProcedureForm>) {
+    setProcedureForms((current) => ({
+      ...current,
+      [procedure.id]: {
+        ...procedureFormFromProcedure(procedure),
+        ...current[procedure.id],
+        ...patch,
+      },
+    }))
+  }
+
   function updatePolicyForm(procedure: Procedure, patch: Partial<PolicyForm>) {
     setPolicyForms((current) => ({
       ...current,
@@ -252,6 +292,38 @@ export default function ClinicProceduresPage() {
         ...patch,
       },
     }))
+  }
+
+  async function saveProcedureDetails(procedure: Procedure) {
+    const form = procedureForms[procedure.id] ?? procedureFormFromProcedure(procedure)
+    if (!form.name.trim()) {
+      alert(t.procedureNameRequired)
+      return
+    }
+    setBusy(`procedure-${procedure.id}`)
+    try {
+      const res = await fetch(`/api/clinic/procedures/${procedure.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          defaultDurationMin: Number.parseInt(form.defaultDurationMin || '60', 10),
+          bufferAfterMinutes: Number.parseInt(form.bufferAfterMinutes || '0', 10),
+          basePriceCents: parseMajorToCents(form.basePrice),
+          currency: form.currency,
+          active: form.active,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.operationFailed)
+        return
+      }
+      await load()
+    } finally {
+      setBusy(null)
+    }
   }
 
   async function savePolicy(procedure: Procedure) {
@@ -480,6 +552,7 @@ export default function ClinicProceduresPage() {
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((p) => {
             const form = forms[p.id] ?? { stockItemId: '', quantityPerVisit: '1', unitCost: '0', note: '' }
+            const procedureForm = procedureForms[p.id] ?? procedureFormFromProcedure(p)
             const intakeForm = intakeForms[p.id] ?? {
               prompt: '',
               helpText: '',
@@ -491,14 +564,25 @@ export default function ClinicProceduresPage() {
             }
             const aftercareForm = aftercareForms[p.id] ?? { title: '', messageBody: '', documentName: '', documentUrl: '' }
             const policyForm = policyForms[p.id] ?? policyFormFromProcedure(p)
+            const isProcedureOpen = Boolean(openProcedureIds[p.id])
             const isPolicyOpen = Boolean(openPolicyIds[p.id])
             const isIntakeOpen = Boolean(openIntakeIds[p.id])
             const isAftercareOpen = Boolean(openAftercareIds[p.id])
             const selectedMaterialStockItem = stockItems.find((item) => item.id === form.stockItemId)
             const cost = materialCost(p.materials || [])
             return (
-              <article key={p.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <article key={p.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenProcedureIds((current) => ({
+                      ...current,
+                      [p.id]: !current[p.id],
+                    }))
+                  }
+                  className="flex w-full flex-col gap-3 p-5 text-left transition hover:bg-orange-50/30 lg:flex-row lg:items-start lg:justify-between"
+                  aria-expanded={isProcedureOpen}
+                >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-semibold text-gray-900">{p.name}</h2>
@@ -522,11 +606,89 @@ export default function ClinicProceduresPage() {
                       </p>
                     )}
                   </div>
-                  <div className="rounded-2xl bg-purple-50 px-4 py-3 text-purple-950">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-purple-700">{t.materialCost}</p>
-                    <p className="mt-1 text-xl font-semibold">{formatMoney(cost, p.currency)}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-purple-50 px-4 py-3 text-purple-950">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-purple-700">{t.materialCost}</p>
+                      <p className="mt-1 text-xl font-semibold">{formatMoney(cost, p.currency)}</p>
+                    </div>
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 text-orange-700 transition-transform ${isProcedureOpen ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
                   </div>
-                </div>
+                </button>
+
+                {isProcedureOpen && (
+                  <div className="border-t border-gray-100 p-5 pt-0">
+                    <section className="mt-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{t.procedureCard}</h3>
+                        <p className="text-xs text-gray-500">{t.procedureCardHint}</p>
+                      </div>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.3fr_0.65fr_0.65fr_0.7fr_0.45fr_auto]">
+                        <label className="text-xs font-semibold text-gray-600">
+                          {t.procedureName}
+                          <input
+                            value={procedureForm.name}
+                            onChange={(e) => updateProcedureForm(p, { name: e.target.value })}
+                            className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
+                          />
+                        </label>
+                        <label className="text-xs font-semibold text-gray-600">
+                          {t.durationMinutes}
+                          <input
+                            value={procedureForm.defaultDurationMin}
+                            onChange={(e) => updateProcedureForm(p, { defaultDurationMin: e.target.value })}
+                            inputMode="numeric"
+                            className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
+                          />
+                        </label>
+                        <label className="text-xs font-semibold text-gray-600">
+                          {t.procedureBufferAfter}
+                          <input
+                            value={procedureForm.bufferAfterMinutes}
+                            onChange={(e) => updateProcedureForm(p, { bufferAfterMinutes: e.target.value })}
+                            inputMode="numeric"
+                            className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
+                          />
+                        </label>
+                        <label className="text-xs font-semibold text-gray-600">
+                          {t.basePrice}
+                          <input
+                            value={procedureForm.basePrice}
+                            onChange={(e) => updateProcedureForm(p, { basePrice: e.target.value })}
+                            inputMode="decimal"
+                            className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
+                          />
+                        </label>
+                        <label className="text-xs font-semibold text-gray-600">
+                          {t.currency}
+                          <input
+                            value={procedureForm.currency}
+                            onChange={(e) => updateProcedureForm(p, { currency: e.target.value.toUpperCase() })}
+                            maxLength={8}
+                            className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm uppercase text-gray-900"
+                          />
+                        </label>
+                        <label className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 xl:mt-5">
+                          <input
+                            type="checkbox"
+                            checked={procedureForm.active}
+                            onChange={(e) => updateProcedureForm(p, { active: e.target.checked })}
+                            className="h-4 w-4 rounded border-gray-300 text-orange-600"
+                          />
+                          {t.statusActive}
+                        </label>
+                        <button
+                          type="button"
+                          disabled={busy === `procedure-${p.id}`}
+                          onClick={() => void saveProcedureDetails(p)}
+                          className="min-h-11 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60 sm:col-span-2 xl:col-span-1"
+                        >
+                          {busy === `procedure-${p.id}` ? t.savingEllipsis : t.saveProcedure}
+                        </button>
+                      </div>
+                    </section>
 
                 <section className="mt-5 rounded-2xl border border-orange-100 bg-orange-50/60">
                   <button
@@ -961,6 +1123,8 @@ export default function ClinicProceduresPage() {
                     </button>
                   </div>
                 </div>
+                  </div>
+                )}
               </article>
             )
           })}
