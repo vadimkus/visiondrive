@@ -149,6 +149,8 @@ export default function ClinicProceduresPage() {
   const [aftercareForms, setAftercareForms] = useState<Record<string, AftercareForm>>({})
   const [policyForms, setPolicyForms] = useState<Record<string, PolicyForm>>({})
   const [openPolicyIds, setOpenPolicyIds] = useState<Record<string, boolean>>({})
+  const [openIntakeIds, setOpenIntakeIds] = useState<Record<string, boolean>>({})
+  const [openAftercareIds, setOpenAftercareIds] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -490,6 +492,8 @@ export default function ClinicProceduresPage() {
             const aftercareForm = aftercareForms[p.id] ?? { title: '', messageBody: '', documentName: '', documentUrl: '' }
             const policyForm = policyForms[p.id] ?? policyFormFromProcedure(p)
             const isPolicyOpen = Boolean(openPolicyIds[p.id])
+            const isIntakeOpen = Boolean(openIntakeIds[p.id])
+            const isAftercareOpen = Boolean(openAftercareIds[p.id])
             const selectedMaterialStockItem = stockItems.find((item) => item.id === form.stockItemId)
             const cost = materialCost(p.materials || [])
             return (
@@ -627,210 +631,246 @@ export default function ClinicProceduresPage() {
                   )}
                 </section>
 
-                <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <section className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenIntakeIds((current) => ({
+                        ...current,
+                        [p.id]: !current[p.id],
+                      }))
+                    }
+                    className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                    aria-expanded={isIntakeOpen}
+                  >
                     <div>
                       <h3 className="font-semibold text-gray-900">{t.intakeQuestions}</h3>
                       <p className="text-xs text-gray-500">{t.intakeQuestionsHint}</p>
                     </div>
-                  </div>
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 text-blue-700 transition-transform ${isIntakeOpen ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
 
-                  <div className="mt-4 space-y-2">
-                    {p.intakeQuestions?.length ? (
-                      p.intakeQuestions.map((question) => (
-                        <div
-                          key={question.id}
-                          className="flex flex-col gap-2 rounded-xl border border-blue-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                  {isIntakeOpen && (
+                    <div className="border-t border-blue-100 px-4 pb-4">
+                      <div className="mt-4 space-y-2">
+                        {p.intakeQuestions?.length ? (
+                          p.intakeQuestions.map((question) => (
+                            <div
+                              key={question.id}
+                              className="flex flex-col gap-2 rounded-xl border border-blue-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                            >
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">{question.prompt}</p>
+                                <p className="text-xs text-gray-500">
+                                  {question.type === 'YES_NO'
+                                    ? t.intakeTypeYesNo
+                                    : question.type === 'TEXTAREA'
+                                      ? t.intakeTypeTextarea
+                                      : t.intakeTypeText}
+                                  {question.required ? ` · ${t.required}` : ''}
+                                  {question.internalOnly ? ` · ${t.internalOnly}` : ''}
+                                  {question.showWhenQuestionId && question.showWhenAnswer
+                                    ? ` · ${t.conditionalQuestion}`
+                                    : ''}
+                                  {!question.active ? ` · ${t.statusInactive}` : ''}
+                                </p>
+                                {question.helpText && <p className="mt-1 text-xs text-gray-500">{question.helpText}</p>}
+                              </div>
+                              <button
+                                type="button"
+                                disabled={busy === question.id}
+                                onClick={() => void removeIntakeQuestion(p.id, question.id)}
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-red-100 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                              >
+                                <Trash2 className="h-4 w-4" aria-hidden />
+                                {t.removeQuestion}
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="rounded-xl border border-dashed border-blue-100 bg-white p-4 text-sm text-gray-500">
+                            {t.noIntakeQuestionsYet}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.2fr_0.9fr_0.65fr_auto_auto]">
+                        <input
+                          value={intakeForm.prompt}
+                          onChange={(e) => updateIntakeForm(p.id, { prompt: e.target.value })}
+                          placeholder={t.intakeQuestionPrompt}
+                          className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                        />
+                        <input
+                          value={intakeForm.helpText}
+                          onChange={(e) => updateIntakeForm(p.id, { helpText: e.target.value })}
+                          placeholder={t.intakeQuestionHelp}
+                          className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                        />
+                        <select
+                          value={intakeForm.type}
+                          onChange={(e) => updateIntakeForm(p.id, { type: e.target.value as IntakeForm['type'] })}
+                          className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
                         >
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">{question.prompt}</p>
-                            <p className="text-xs text-gray-500">
-                              {question.type === 'YES_NO'
-                                ? t.intakeTypeYesNo
-                                : question.type === 'TEXTAREA'
-                                  ? t.intakeTypeTextarea
-                                  : t.intakeTypeText}
-                              {question.required ? ` · ${t.required}` : ''}
-                              {question.internalOnly ? ` · ${t.internalOnly}` : ''}
-                              {question.showWhenQuestionId && question.showWhenAnswer
-                                ? ` · ${t.conditionalQuestion}`
-                                : ''}
-                              {!question.active ? ` · ${t.statusInactive}` : ''}
-                            </p>
-                            {question.helpText && <p className="mt-1 text-xs text-gray-500">{question.helpText}</p>}
-                          </div>
-                          <button
-                            type="button"
-                            disabled={busy === question.id}
-                            onClick={() => void removeIntakeQuestion(p.id, question.id)}
-                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-red-100 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
-                          >
-                            <Trash2 className="h-4 w-4" aria-hidden />
-                            {t.removeQuestion}
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="rounded-xl border border-dashed border-blue-100 bg-white p-4 text-sm text-gray-500">
-                        {t.noIntakeQuestionsYet}
-                      </p>
-                    )}
-                  </div>
+                          <option value="TEXT">{t.intakeTypeText}</option>
+                          <option value="TEXTAREA">{t.intakeTypeTextarea}</option>
+                          <option value="YES_NO">{t.intakeTypeYesNo}</option>
+                        </select>
+                        <label className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 text-sm font-medium text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={intakeForm.required}
+                            onChange={(e) => updateIntakeForm(p.id, { required: e.target.checked })}
+                            className="h-4 w-4 rounded border-blue-200 text-blue-600"
+                          />
+                          {t.required}
+                        </label>
+                        <label className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 text-sm font-medium text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={intakeForm.internalOnly}
+                            onChange={(e) => updateIntakeForm(p.id, { internalOnly: e.target.checked })}
+                            className="h-4 w-4 rounded border-blue-200 text-blue-600"
+                          />
+                          {t.internalOnly}
+                        </label>
+                        <select
+                          value={intakeForm.showWhenQuestionId}
+                          onChange={(e) => updateIntakeForm(p.id, { showWhenQuestionId: e.target.value })}
+                          className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                        >
+                          <option value="">{t.alwaysShowQuestion}</option>
+                          {p.intakeQuestions
+                            ?.filter((question) => question.type === 'YES_NO')
+                            .map((question) => (
+                              <option key={question.id} value={question.id}>
+                                {t.showWhenAnswerTo}: {question.prompt}
+                              </option>
+                            ))}
+                        </select>
+                        <input
+                          value={intakeForm.showWhenAnswer}
+                          onChange={(e) => updateIntakeForm(p.id, { showWhenAnswer: e.target.value })}
+                          placeholder={t.showWhenAnswerPlaceholder}
+                          className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
+                        />
+                        <button
+                          type="button"
+                          disabled={busy === `intake-${p.id}`}
+                          onClick={() => void saveIntakeQuestion(p.id)}
+                          className="min-h-11 min-w-0 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:col-span-2 xl:col-span-1"
+                        >
+                          {busy === `intake-${p.id}` ? t.savingEllipsis : t.saveQuestion}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </section>
 
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.2fr_0.9fr_0.65fr_auto_auto]">
-                    <input
-                      value={intakeForm.prompt}
-                      onChange={(e) => updateIntakeForm(p.id, { prompt: e.target.value })}
-                      placeholder={t.intakeQuestionPrompt}
-                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
-                    />
-                    <input
-                      value={intakeForm.helpText}
-                      onChange={(e) => updateIntakeForm(p.id, { helpText: e.target.value })}
-                      placeholder={t.intakeQuestionHelp}
-                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
-                    />
-                    <select
-                      value={intakeForm.type}
-                      onChange={(e) => updateIntakeForm(p.id, { type: e.target.value as IntakeForm['type'] })}
-                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
-                    >
-                      <option value="TEXT">{t.intakeTypeText}</option>
-                      <option value="TEXTAREA">{t.intakeTypeTextarea}</option>
-                      <option value="YES_NO">{t.intakeTypeYesNo}</option>
-                    </select>
-                    <label className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 text-sm font-medium text-gray-700">
-                      <input
-                        type="checkbox"
-                        checked={intakeForm.required}
-                        onChange={(e) => updateIntakeForm(p.id, { required: e.target.checked })}
-                        className="h-4 w-4 rounded border-blue-200 text-blue-600"
-                      />
-                      {t.required}
-                    </label>
-                    <label className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-xl border border-blue-100 bg-white px-3 text-sm font-medium text-gray-700">
-                      <input
-                        type="checkbox"
-                        checked={intakeForm.internalOnly}
-                        onChange={(e) => updateIntakeForm(p.id, { internalOnly: e.target.checked })}
-                        className="h-4 w-4 rounded border-blue-200 text-blue-600"
-                      />
-                      {t.internalOnly}
-                    </label>
-                    <select
-                      value={intakeForm.showWhenQuestionId}
-                      onChange={(e) => updateIntakeForm(p.id, { showWhenQuestionId: e.target.value })}
-                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
-                    >
-                      <option value="">{t.alwaysShowQuestion}</option>
-                      {p.intakeQuestions
-                        ?.filter((question) => question.type === 'YES_NO')
-                        .map((question) => (
-                          <option key={question.id} value={question.id}>
-                            {t.showWhenAnswerTo}: {question.prompt}
-                          </option>
-                        ))}
-                    </select>
-                    <input
-                      value={intakeForm.showWhenAnswer}
-                      onChange={(e) => updateIntakeForm(p.id, { showWhenAnswer: e.target.value })}
-                      placeholder={t.showWhenAnswerPlaceholder}
-                      className="min-h-11 min-w-0 rounded-xl border border-blue-100 bg-white px-3 text-sm text-gray-900"
-                    />
-                    <button
-                      type="button"
-                      disabled={busy === `intake-${p.id}`}
-                      onClick={() => void saveIntakeQuestion(p.id)}
-                      className="min-h-11 min-w-0 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:col-span-2 xl:col-span-1"
-                    >
-                      {busy === `intake-${p.id}` ? t.savingEllipsis : t.saveQuestion}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <section className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenAftercareIds((current) => ({
+                        ...current,
+                        [p.id]: !current[p.id],
+                      }))
+                    }
+                    className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                    aria-expanded={isAftercareOpen}
+                  >
                     <div>
                       <h3 className="font-semibold text-gray-900">{t.aftercareLibrary}</h3>
                       <p className="text-xs text-gray-500">{t.aftercareLibraryHint}</p>
                     </div>
-                  </div>
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 text-emerald-700 transition-transform ${isAftercareOpen ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
 
-                  <div className="mt-4 space-y-2">
-                    {p.aftercareTemplates?.length ? (
-                      p.aftercareTemplates.map((template) => (
-                        <div
-                          key={template.id}
-                          className="flex flex-col gap-2 rounded-xl border border-emerald-100 bg-white p-3 sm:flex-row sm:items-start sm:justify-between"
+                  {isAftercareOpen && (
+                    <div className="border-t border-emerald-100 px-4 pb-4">
+                      <div className="mt-4 space-y-2">
+                        {p.aftercareTemplates?.length ? (
+                          p.aftercareTemplates.map((template) => (
+                            <div
+                              key={template.id}
+                              className="flex flex-col gap-2 rounded-xl border border-emerald-100 bg-white p-3 sm:flex-row sm:items-start sm:justify-between"
+                            >
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">{template.title}</p>
+                                {template.messageBody && (
+                                  <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-xs text-gray-500">
+                                    {template.messageBody}
+                                  </p>
+                                )}
+                                {template.documentUrl && (
+                                  <p className="mt-1 text-xs text-emerald-700">
+                                    {template.documentName || t.aftercareDocumentReference}: {template.documentUrl}
+                                  </p>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                disabled={busy === template.id}
+                                onClick={() => void removeAftercareTemplate(template.id)}
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-red-100 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                              >
+                                <Trash2 className="h-4 w-4" aria-hidden />
+                                {t.archiveTemplate}
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="rounded-xl border border-dashed border-emerald-100 bg-white p-4 text-sm text-gray-500">
+                            {t.noAftercareTemplatesYet}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                        <input
+                          value={aftercareForm.title}
+                          onChange={(e) => updateAftercareForm(p.id, { title: e.target.value })}
+                          placeholder={t.aftercareTemplateTitle}
+                          className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
+                        />
+                        <input
+                          value={aftercareForm.documentName}
+                          onChange={(e) => updateAftercareForm(p.id, { documentName: e.target.value })}
+                          placeholder={t.aftercareDocumentName}
+                          className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
+                        />
+                        <textarea
+                          value={aftercareForm.messageBody}
+                          onChange={(e) => updateAftercareForm(p.id, { messageBody: e.target.value })}
+                          placeholder={t.aftercareMessageBody}
+                          rows={3}
+                          className="rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm text-gray-900 lg:col-span-2"
+                        />
+                        <input
+                          value={aftercareForm.documentUrl}
+                          onChange={(e) => updateAftercareForm(p.id, { documentUrl: e.target.value })}
+                          placeholder={t.aftercareDocumentUrl}
+                          className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
+                        />
+                        <button
+                          type="button"
+                          disabled={busy === `aftercare-${p.id}`}
+                          onClick={() => void saveAftercareTemplate(p.id)}
+                          className="min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
                         >
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">{template.title}</p>
-                            {template.messageBody && (
-                              <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-xs text-gray-500">
-                                {template.messageBody}
-                              </p>
-                            )}
-                            {template.documentUrl && (
-                              <p className="mt-1 text-xs text-emerald-700">
-                                {template.documentName || t.aftercareDocumentReference}: {template.documentUrl}
-                              </p>
-                            )}
-                          </div>
-                          <button
-                            type="button"
-                            disabled={busy === template.id}
-                            onClick={() => void removeAftercareTemplate(template.id)}
-                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-red-100 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
-                          >
-                            <Trash2 className="h-4 w-4" aria-hidden />
-                            {t.archiveTemplate}
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="rounded-xl border border-dashed border-emerald-100 bg-white p-4 text-sm text-gray-500">
-                        {t.noAftercareTemplatesYet}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                    <input
-                      value={aftercareForm.title}
-                      onChange={(e) => updateAftercareForm(p.id, { title: e.target.value })}
-                      placeholder={t.aftercareTemplateTitle}
-                      className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
-                    />
-                    <input
-                      value={aftercareForm.documentName}
-                      onChange={(e) => updateAftercareForm(p.id, { documentName: e.target.value })}
-                      placeholder={t.aftercareDocumentName}
-                      className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
-                    />
-                    <textarea
-                      value={aftercareForm.messageBody}
-                      onChange={(e) => updateAftercareForm(p.id, { messageBody: e.target.value })}
-                      placeholder={t.aftercareMessageBody}
-                      rows={3}
-                      className="rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm text-gray-900 lg:col-span-2"
-                    />
-                    <input
-                      value={aftercareForm.documentUrl}
-                      onChange={(e) => updateAftercareForm(p.id, { documentUrl: e.target.value })}
-                      placeholder={t.aftercareDocumentUrl}
-                      className="min-h-11 rounded-xl border border-emerald-100 bg-white px-3 text-sm text-gray-900"
-                    />
-                    <button
-                      type="button"
-                      disabled={busy === `aftercare-${p.id}`}
-                      onClick={() => void saveAftercareTemplate(p.id)}
-                      className="min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-                    >
-                      {busy === `aftercare-${p.id}` ? t.savingEllipsis : t.saveAftercareTemplate}
-                    </button>
-                  </div>
-                  <p className="mt-2 text-xs text-emerald-700">{t.aftercarePlaceholdersHint}</p>
-                </div>
+                          {busy === `aftercare-${p.id}` ? t.savingEllipsis : t.saveAftercareTemplate}
+                        </button>
+                      </div>
+                      <p className="mt-2 text-xs text-emerald-700">{t.aftercarePlaceholdersHint}</p>
+                    </div>
+                  )}
+                </section>
 
                 <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4">
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">

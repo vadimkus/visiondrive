@@ -1,5 +1,21 @@
 # Implementation log (clinic)
 
+## Chunk 93 — 2026-05-12 (procedure section chevrons)
+
+**Shipped**
+
+- Collapsed the public questionnaire section behind a chevron on each procedure card in `/clinic/procedures`.
+- Collapsed the recommendation/aftercare library section behind a chevron on each procedure card.
+- Kept each procedure card's open/closed state independent.
+- Left save/archive behavior unchanged.
+- Added `docs/2026-05-12_clinic-procedure-sections-chevron.md`.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for the edited procedure screen.
+
+---
+
 ## Chunk 92 — 2026-05-12 (inventory unit measure)
 
 **Shipped**

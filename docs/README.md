@@ -144,6 +144,7 @@
 | [2026-05-12_clinic-appointment-route-chevron.md](2026-05-12_clinic-appointment-route-chevron.md) | Appointment route fields collapsed behind a chevron |
 | [2026-05-12_clinic-procedure-policy-chevron.md](2026-05-12_clinic-procedure-policy-chevron.md) | Procedure booking rules collapsed behind a chevron |
 | [2026-05-12_clinic-inventory-unit-measure.md](2026-05-12_clinic-inventory-unit-measure.md) | Inventory unit-of-measure suggestions for ml, grams, and custom units |
+| [2026-05-12_clinic-procedure-sections-chevron.md](2026-05-12_clinic-procedure-sections-chevron.md) | Procedure questionnaire and recommendation sections collapsed behind chevrons |
 | [2026-05-12_clinic-timeline-visit-details.md](2026-05-12_clinic-timeline-visit-details.md) | Patient history visit row expansion and RU status labels |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
