@@ -139,6 +139,7 @@
 | [2026-05-10_practice-os-surface-alignment.md](2026-05-10_practice-os-surface-alignment.md) | Desktop, mobile web, iPad/tablet, and future app surface alignment note |
 | [2026-05-10_practice-os-tech-sweep.md](2026-05-10_practice-os-tech-sweep.md) | Practice OS technical sweep validation results |
 | [2026-05-12_practice-os-iryna-account.md](2026-05-12_practice-os-iryna-account.md) | Practice OS Iryna account and tenant isolation note |
+| [2026-05-12_clinic-timeline-visit-details.md](2026-05-12_clinic-timeline-visit-details.md) | Patient history visit row expansion and RU status labels |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |

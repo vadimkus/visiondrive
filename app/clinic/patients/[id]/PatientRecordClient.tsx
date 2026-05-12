@@ -697,6 +697,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const [editOpen, setEditOpen] = useState(false)
   const [savingPatient, setSavingPatient] = useState(false)
   const [deletingPatient, setDeletingPatient] = useState(false)
+  const [selectedTimelineVisitId, setSelectedTimelineVisitId] = useState<string | null>(null)
 
   const [editFirst, setEditFirst] = useState('')
   const [editLast, setEditLast] = useState('')
@@ -1165,13 +1166,69 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
                 ) : filteredTimeline.length === 0 ? (
                   <p className="p-6 text-sm text-gray-500 text-center">{t.noTimeline}</p>
                 ) : (
-                  filteredTimeline.map((item, i) => (
-                    <div key={`${item.sort}-${item.kind}-${i}`} className="p-4 text-sm">
-                      <p className="font-medium text-gray-900">{item.label}</p>
-                      <p className="text-gray-700 mt-0.5 whitespace-pre-wrap">{item.detail}</p>
-                      <p className="text-gray-400 text-xs mt-1">{item.meta}</p>
-                    </div>
-                  ))
+                  filteredTimeline.map((item, i) => {
+                    const visit =
+                      item.kind === 'visit' && item.refId
+                        ? patient.visits.find((candidate) => candidate.id === item.refId) ?? null
+                        : null
+                    const isOpen = !!visit && selectedTimelineVisitId === visit.id
+                    return (
+                      <div key={`${item.sort}-${item.kind}-${item.refId ?? i}`} className="p-4 text-sm">
+                        {visit ? (
+                          <button
+                            type="button"
+                            aria-expanded={isOpen}
+                            onClick={() => setSelectedTimelineVisitId(isOpen ? null : visit.id)}
+                            className="block w-full rounded-xl text-left transition hover:bg-orange-50/60 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          >
+                            <span className="block p-1">
+                              <span className="font-medium text-gray-900">{item.label}</span>
+                              <span className="mt-0.5 block whitespace-pre-wrap text-gray-700">{item.detail}</span>
+                              <span className="mt-1 block text-xs text-gray-400">{item.meta}</span>
+                            </span>
+                          </button>
+                        ) : (
+                          <>
+                            <p className="font-medium text-gray-900">{item.label}</p>
+                            <p className="text-gray-700 mt-0.5 whitespace-pre-wrap">{item.detail}</p>
+                            <p className="text-gray-400 text-xs mt-1">{item.meta}</p>
+                          </>
+                        )}
+                        {visit && isOpen && (
+                          <div className="mt-3 rounded-2xl border border-orange-100 bg-orange-50/50 p-4 text-sm text-gray-700">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <TimelineVisitField label={t.chiefComplaint} value={visit.chiefComplaint} />
+                              <TimelineVisitField label={t.procedureSummary} value={visit.procedureSummary} />
+                              <TimelineVisitField label={t.nextStepsHint} value={visit.nextSteps} />
+                              <TimelineVisitField label={t.staffNotesVisit} value={visit.staffNotes} />
+                            </div>
+                            {(visit.aftercareTitleSnapshot || visit.aftercareTextSnapshot || visit.media.length > 0) && (
+                              <div className="mt-3 space-y-2 border-t border-orange-100 pt-3">
+                                {visit.aftercareTitleSnapshot && (
+                                  <p>
+                                    <span className="font-semibold text-gray-900">{t.aftercareTemplate}: </span>
+                                    {visit.aftercareTitleSnapshot}
+                                  </p>
+                                )}
+                                {visit.aftercareTextSnapshot && (
+                                  <p className="whitespace-pre-wrap">
+                                    <span className="font-semibold text-gray-900">{t.aftercareText}: </span>
+                                    {visit.aftercareTextSnapshot}
+                                  </p>
+                                )}
+                                {visit.media.length > 0 && (
+                                  <p>
+                                    <span className="font-semibold text-gray-900">{t.photos}: </span>
+                                    {visit.media.length}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })
                 )}
               </div>
             </div>
@@ -1192,6 +1249,16 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           </div>
         </aside>
       </div>
+    </div>
+  )
+}
+
+function TimelineVisitField({ label, value }: { label: string; value: string | null }) {
+  if (!value?.trim()) return null
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+      <p className="mt-1 whitespace-pre-wrap text-gray-900">{value}</p>
     </div>
   )
 }

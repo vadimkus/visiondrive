@@ -8,12 +8,14 @@ export type TimelineFilter = 'all' | 'appointment' | 'visit' | 'payment' | 'crm'
 export type TimelineItem = {
   sort: number
   kind: TimelineFilter
+  refId?: string
   label: string
   detail: string
   meta: string
 }
 
 type AppointmentInput = {
+  id?: string
   startsAt: string
   status: string
   titleOverride: string | null
@@ -21,6 +23,7 @@ type AppointmentInput = {
 }
 
 type VisitInput = {
+  id?: string
   visitAt: string
   status: string
   chiefComplaint: string | null
@@ -28,6 +31,7 @@ type VisitInput = {
 }
 
 type PaymentInput = {
+  id?: string
   paidAt: string
   status: string
   amountCents: number
@@ -36,9 +40,62 @@ type PaymentInput = {
 }
 
 type CrmInput = {
+  id?: string
   occurredAt: string
   type: string
   body: string
+}
+
+function timelineLanguage(locale: string) {
+  return locale.toLowerCase().startsWith('ru') ? 'ru' : 'en'
+}
+
+function formatStatus(status: string, locale: string) {
+  const lang = timelineLanguage(locale)
+  const normalized = status.toUpperCase()
+  const ru: Record<string, string> = {
+    ARRIVED: 'Пришёл',
+    CANCELLED: 'Отменено',
+    COMPLETED: 'Завершён',
+    CONFIRMED: 'Подтверждено',
+    NO_SHOW: 'Неявка',
+    PAID: 'Оплачено',
+    PENDING: 'Ожидает оплаты',
+    REFUNDED: 'Возврат',
+    SCHEDULED: 'Запланировано',
+    VOID: 'Аннулировано',
+  }
+  const en: Record<string, string> = {
+    ARRIVED: 'Arrived',
+    CANCELLED: 'Cancelled',
+    COMPLETED: 'Completed',
+    CONFIRMED: 'Confirmed',
+    NO_SHOW: 'No-show',
+    PAID: 'Paid',
+    PENDING: 'Pending',
+    REFUNDED: 'Refunded',
+    SCHEDULED: 'Scheduled',
+    VOID: 'Void',
+  }
+  return (lang === 'ru' ? ru : en)[normalized] ?? status.replace(/_/g, ' ')
+}
+
+function formatKind(kind: Exclude<TimelineFilter, 'all'>, locale: string) {
+  const lang = timelineLanguage(locale)
+  if (lang === 'ru') {
+    if (kind === 'appointment') return 'Запись'
+    if (kind === 'visit') return 'Визит'
+    if (kind === 'payment') return 'Платёж'
+    return 'CRM'
+  }
+  if (kind === 'appointment') return 'Appointment'
+  if (kind === 'visit') return 'Visit'
+  if (kind === 'payment') return 'Payment'
+  return 'CRM'
+}
+
+function formatTimelineLabel(kind: Exclude<TimelineFilter, 'all'>, status: string, locale: string) {
+  return `${formatKind(kind, locale)} · ${formatStatus(status, locale)}`
 }
 
 export function buildTimelineItems(
@@ -55,8 +112,9 @@ export function buildTimelineItems(
     items.push({
       sort,
       kind: 'appointment',
-      label: `Appointment · ${a.status}`,
-      detail: a.procedure?.name || a.titleOverride || 'Scheduled visit',
+      refId: a.id,
+      label: formatTimelineLabel('appointment', a.status, locale),
+      detail: a.procedure?.name || a.titleOverride || (timelineLanguage(locale) === 'ru' ? 'Запланированный визит' : 'Scheduled visit'),
       meta: new Date(a.startsAt).toLocaleString(locale, {
         weekday: 'short',
         day: 'numeric',
@@ -72,8 +130,9 @@ export function buildTimelineItems(
     items.push({
       sort,
       kind: 'visit',
-      label: `Visit · ${v.status}`,
-      detail: v.procedureSummary || v.chiefComplaint || 'Encounter',
+      refId: v.id,
+      label: formatTimelineLabel('visit', v.status, locale),
+      detail: v.procedureSummary || v.chiefComplaint || (timelineLanguage(locale) === 'ru' ? 'Визит' : 'Encounter'),
       meta: new Date(v.visitAt).toLocaleString(locale, {
         weekday: 'short',
         day: 'numeric',
@@ -90,7 +149,8 @@ export function buildTimelineItems(
     items.push({
       sort,
       kind: 'payment',
-      label: `Payment · ${pmt.status}`,
+      refId: pmt.id,
+      label: formatTimelineLabel('payment', pmt.status, locale),
       detail: `${major} ${pmt.currency} · ${pmt.method}`,
       meta: new Date(pmt.paidAt).toLocaleDateString(locale, {
         day: 'numeric',
@@ -105,6 +165,7 @@ export function buildTimelineItems(
     items.push({
       sort,
       kind: 'crm',
+      refId: c.id,
       label: `CRM · ${c.type}`,
       detail: c.body,
       meta: new Date(c.occurredAt).toLocaleString(locale, {
