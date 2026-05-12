@@ -2251,7 +2251,7 @@ function OverviewTab({
             ) : (
               <span className="text-gray-500">{t.noCategory}</span>
             )}
-            {patient.tags.map((tag) => (
+            {patient.tags.filter((tag) => !isTagDuplicateOfCategory(patient.category, tag)).map((tag) => (
               <span key={tag} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700">
                 {tagLabel(t, tag)}
               </span>
