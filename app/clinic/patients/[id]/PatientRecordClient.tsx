@@ -1466,6 +1466,7 @@ function PatientPortalCard({
   const [portalUrl, setPortalUrl] = useState('')
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
+  const [showHint, setShowHint] = useState(false)
   const now = Date.now()
   const activeLink =
     patient.portalLinks.find((link) => !link.revokedAt && new Date(link.expiresAt).getTime() >= now) ?? null
@@ -1533,8 +1534,23 @@ function PatientPortalCard({
       <div className="flex flex-col gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">{t.patientPortalLite}</p>
-          <h2 className="mt-1 text-lg font-semibold text-gray-950">{t.patientPortalPrivateLink}</h2>
-          <p className="mt-1 text-sm leading-relaxed text-blue-950/80">{t.patientPortalPrivateLinkHint}</p>
+          <div className="mt-1 flex items-start justify-between gap-3">
+            <h2 className="min-w-0 text-lg font-semibold text-gray-950">{t.patientPortalPrivateLink}</h2>
+            <button
+              type="button"
+              onClick={() => setShowHint((value) => !value)}
+              aria-label={t.patientPortalPrivateLinkHint}
+              aria-expanded={showHint}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-white text-sm font-semibold text-blue-800 shadow-sm hover:bg-blue-50"
+            >
+              ?
+            </button>
+          </div>
+          {showHint && (
+            <p className="mt-3 rounded-2xl border border-blue-100 bg-white/80 p-3 text-sm leading-relaxed text-blue-950/80">
+              {t.patientPortalPrivateLinkHint}
+            </p>
+          )}
         </div>
         <button
           type="button"

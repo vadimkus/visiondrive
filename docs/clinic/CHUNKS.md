@@ -1,5 +1,20 @@
 # Implementation log (clinic)
 
+## Chunk 95 — 2026-05-12 (patient summary PDF second design pass)
+
+**Shipped**
+
+- Reworked `lib/clinic/patient-summary-pdf.ts` again after visual review: dark hero header, date badge, patient identity card, initials avatar, metric cards, two-column medical background cards, and cleaner timeline section headers.
+- Kept the PDF patient-safe: no internal notes, payments, photos, CRM history, or clinical narrative.
+- Changed `GET /api/clinic/patients/[id]/summary-pdf` attachment names to start with the generated date: `YYYY-MM-DD-patient-summary-name-id.pdf`.
+- Updated `docs/2026-05-12_clinic-patient-summary-pdf-redesign.md`.
+
+**Validation**
+
+- Run `npm run type-check`, `npx vitest run lib/clinic/patient-summary-pdf.test.ts`, and linter diagnostics for the edited PDF files.
+
+---
+
 ## Chunk 94 — 2026-05-12 (Knowledge Base refresh and gap audit)
 
 **Shipped**

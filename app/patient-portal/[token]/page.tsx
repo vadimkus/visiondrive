@@ -3,17 +3,16 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import { useParams } from 'next/navigation'
 import {
-  BadgePercent,
   CalendarClock,
+  CheckCircle2,
+  ClipboardCheck,
   CreditCard,
   FileText,
-  Gift,
+  MapPin,
   MessageCircle,
   PackageCheck,
   RefreshCw,
-  ReceiptText,
   ShieldCheck,
-  Wallet,
 } from 'lucide-react'
 import { CLINIC_LOCALE_STORAGE, type ClinicLocale } from '@/lib/clinic/strings'
 
@@ -200,8 +199,28 @@ const copy = {
     secure: 'Private patient link',
     portalEyebrow: 'VisionDrive patient portal',
     greeting: 'Welcome',
-    intro: 'Appointments, care instructions, balances, receipts, and requests in one secure place.',
+    intro: 'A simple view of your next booking, what was done, care notes, receipts, and anything you need to do before the visit.',
     privateNotice: 'This private link is for patient use only. Do not forward it publicly.',
+    careAtGlance: 'Your care at a glance',
+    nextBooking: 'Next booking',
+    noNextBooking: 'No future booking',
+    lastVisit: 'Last visit',
+    noLastVisit: 'No visit summary yet',
+    preparation: 'Before your visit',
+    openTasks: 'tasks open',
+    allPrepared: 'Nothing to prepare',
+    contactPractice: 'Contact the practice',
+    contactPracticeHint: 'Send a private note if you need help, have a question, or want the practitioner to know something before the visit.',
+    sendMessage: 'Send message',
+    quickActions: 'Quick actions',
+    whatWasDone: 'What was done',
+    whatWasDoneHint: 'Visit summaries, recommendations, and next steps shared by your practitioner.',
+    visitSummary: 'Visit summary',
+    recommendations: 'Recommendations',
+    nextSteps: 'Next steps',
+    carePlan: 'Care plan and packages',
+    balanceAndReceipts: 'Payments and receipts',
+    documents: 'Documents and consents',
     clientWallet: 'Client wallet',
     walletIntro: 'Balances, unpaid requests, quotes, packages, gift cards, saved payment methods, and receipts.',
     accountBalance: 'Account balance',
@@ -279,8 +298,28 @@ const copy = {
     secure: 'Приватная ссылка пациента',
     portalEyebrow: 'Кабинет пациента VisionDrive',
     greeting: 'Здравствуйте',
-    intro: 'Записи, рекомендации, баланс, чеки и запросы в одном защищённом месте.',
+    intro: 'Простой обзор следующей записи, выполненных процедур, рекомендаций, чеков и задач перед визитом.',
     privateNotice: 'Эта приватная ссылка предназначена только для пациента. Не публикуйте её открыто.',
+    careAtGlance: 'Ваш уход: главное',
+    nextBooking: 'Следующая запись',
+    noNextBooking: 'Будущих записей нет',
+    lastVisit: 'Последний визит',
+    noLastVisit: 'Итогов визита пока нет',
+    preparation: 'Перед визитом',
+    openTasks: 'задач открыто',
+    allPrepared: 'Готовиться не нужно',
+    contactPractice: 'Связаться со специалистом',
+    contactPracticeHint: 'Отправьте приватное сообщение, если нужен перенос, есть вопрос или хотите сообщить что-то до визита.',
+    sendMessage: 'Отправить сообщение',
+    quickActions: 'Быстрые действия',
+    whatWasDone: 'Что было сделано',
+    whatWasDoneHint: 'Итоги визитов, рекомендации и следующие шаги от специалиста.',
+    visitSummary: 'Итог визита',
+    recommendations: 'Рекомендации',
+    nextSteps: 'Следующие шаги',
+    carePlan: 'План ухода и пакеты',
+    balanceAndReceipts: 'Оплаты и чеки',
+    documents: 'Документы и согласия',
     clientWallet: 'Кошелёк клиента',
     walletIntro: 'Баланс, неоплаченные запросы, расчёты, пакеты, подарочные карты, сохранённые способы оплаты и чеки.',
     accountBalance: 'Баланс счёта',
@@ -359,13 +398,6 @@ function money(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency}`
 }
 
-function receiptText(c: (typeof copy)['en'] | (typeof copy)['ru'], kind: PortalData['payments'][number]['receiptKind']) {
-  if (kind === 'DEPOSIT') return c.depositReceiptText
-  if (kind === 'LATE_CANCEL_FEE') return c.lateCancelReceiptText
-  if (kind === 'NO_SHOW_FEE') return c.noShowReceiptText
-  return c.receiptText
-}
-
 function paymentKindText(c: (typeof copy)['en'] | (typeof copy)['ru'], kind: PortalPayment['receiptKind']) {
   if (kind === 'DEPOSIT') return c.depositDue
   if (kind === 'LATE_CANCEL_FEE') return c.lateCancelFee
@@ -391,15 +423,6 @@ function walletBalanceAmount(overview: PortalData['wallet']['overview']) {
   return money(0, overview.currency)
 }
 
-function savedMethodLabel(c: (typeof copy)['en'] | (typeof copy)['ru'], method: PortalData['wallet']['savedPaymentMethods'][number]) {
-  const brand = method.brand || method.provider
-  const expiry =
-    method.expiryMonth && method.expiryYear
-      ? ` · ${String(method.expiryMonth).padStart(2, '0')}/${String(method.expiryYear).slice(-2)}`
-      : ''
-  return `${brand} ${c.cardEnding} ${method.last4}${expiry}`
-}
-
 export default function PatientPortalPage() {
   const params = useParams()
   const token = String(params.token || '')
@@ -410,7 +433,7 @@ export default function PatientPortalPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [requestAppointmentId, setRequestAppointmentId] = useState('')
-  const [requestType, setRequestType] = useState<'RESCHEDULE' | 'CANCEL'>('RESCHEDULE')
+  const [requestType, setRequestType] = useState<'RESCHEDULE' | 'CANCEL' | 'MESSAGE'>('RESCHEDULE')
   const [preferredTime, setPreferredTime] = useState('')
   const [message, setMessage] = useState('')
   const [requesting, setRequesting] = useState(false)
@@ -447,7 +470,7 @@ export default function PatientPortalPage() {
     void load()
   }, [load])
 
-  const openRequest = (appointmentId: string, type: 'RESCHEDULE' | 'CANCEL') => {
+  const openRequest = (appointmentId: string, type: 'RESCHEDULE' | 'CANCEL' | 'MESSAGE') => {
     setRequestAppointmentId(appointmentId)
     setRequestType(type)
     setRequestSent(false)
@@ -477,6 +500,7 @@ export default function PatientPortalPage() {
       }
       setRequestSent(true)
       setRequestAppointmentId('')
+      setRequestType('RESCHEDULE')
     } catch {
       setError(c.loadFailed)
     } finally {
@@ -550,6 +574,17 @@ export default function PatientPortalPage() {
   }
 
   const nextAppointment = data.appointments[0]
+  const latestVisit = data.aftercare[0]
+  const openTaskCount = data.appointments.reduce(
+    (count, appointment) => count + appointment.preVisitTasks.filter((task) => !task.completed).length,
+    0
+  )
+  const hasCarePlan = data.treatmentPlans.length > 0 || data.wallet.packageBalances.length > 0
+  const hasPayments =
+    data.wallet.pendingPayments.length > 0 ||
+    data.wallet.receipts.length > 0 ||
+    data.wallet.overview.dueCents > 0 ||
+    data.wallet.overview.creditCents > 0
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.18),transparent_28rem),radial-gradient(circle_at_top_right,rgba(99,102,241,0.14),transparent_24rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_48%,#eef2ff_100%)] px-4 py-5 text-slate-900 sm:px-6 lg:px-8">
@@ -571,19 +606,46 @@ export default function PatientPortalPage() {
         </div>
 
         <header className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-xl shadow-orange-100/50 backdrop-blur">
-          <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_21rem]">
             <div className="min-w-0 p-5 md:p-8">
               <p className="text-sm font-semibold text-orange-700">{c.greeting}, {data.patient.firstName}</p>
               <h1 className="mt-2 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-gray-950 md:text-5xl">
-                {c.title}
+                {c.careAtGlance}
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">{c.intro}</p>
-              <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-sm leading-relaxed text-blue-950">
-                {c.privateNotice}
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <WalletMetric
+                  label={c.nextBooking}
+                  value={
+                    nextAppointment
+                      ? new Date(nextAppointment.startsAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' })
+                      : c.noNextBooking
+                  }
+                  tone={nextAppointment ? 'amber' : 'gray'}
+                />
+                <WalletMetric
+                  label={c.preparation}
+                  value={openTaskCount > 0 ? `${openTaskCount} ${c.openTasks}` : c.allPrepared}
+                  tone={openTaskCount > 0 ? 'red' : 'emerald'}
+                />
+                <WalletMetric
+                  label={walletBalanceLabel(c, data.wallet.overview)}
+                  value={walletBalanceAmount(data.wallet.overview)}
+                  tone={data.wallet.overview.dueCents > 0 ? 'red' : data.wallet.overview.creditCents > 0 ? 'emerald' : 'gray'}
+                />
+                <WalletMetric
+                  label={c.lastVisit}
+                  value={
+                    latestVisit
+                      ? new Date(latestVisit.visitAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' })
+                      : c.noLastVisit
+                  }
+                  tone={latestVisit ? 'indigo' : 'gray'}
+                />
               </div>
             </div>
             <aside className="border-t border-orange-100 bg-gradient-to-br from-orange-50 to-amber-50 p-5 lg:border-l lg:border-t-0 md:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-700">{c.upcoming}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-700">{c.nextBooking}</p>
               {nextAppointment ? (
                 <div className="mt-3">
                   <p className="text-lg font-semibold text-slate-950">{nextAppointment.label}</p>
@@ -596,18 +658,37 @@ export default function PatientPortalPage() {
                       minute: '2-digit',
                     })}
                   </p>
+                  {(nextAppointment.locationArea || nextAppointment.locationAddress) && (
+                    <p className="mt-3 flex gap-2 text-sm leading-relaxed text-slate-700">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-orange-700" aria-hidden />
+                      <span>{[nextAppointment.locationArea, nextAppointment.locationAddress].filter(Boolean).join(', ')}</span>
+                    </p>
+                  )}
+                  <div className="mt-5 grid gap-2">
+                    <button
+                      type="button"
+                      onClick={() => openRequest(nextAppointment.id, 'RESCHEDULE')}
+                      className="min-h-10 rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-white"
+                    >
+                      {c.requestReschedule}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openRequest(nextAppointment.id, 'CANCEL')}
+                      className="min-h-10 rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-700"
+                    >
+                      {c.requestCancel}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <p className="mt-3 text-sm text-slate-600">{c.noUpcoming}</p>
               )}
-              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.22em] text-orange-700">{c.accountBalance}</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-950">{walletBalanceAmount(data.wallet.overview)}</p>
-              <p className="mt-1 text-sm text-slate-600">{walletBalanceLabel(c, data.wallet.overview)}</p>
             </aside>
           </div>
           <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-8">
             <p className="min-w-0 text-sm text-slate-500">
-              {data.patient.firstName} {data.patient.lastName}
+              {data.patient.firstName} {data.patient.lastName} · {data.practice.name}
             </p>
             <button
               type="button"
@@ -632,37 +713,279 @@ export default function PatientPortalPage() {
           </div>
         )}
 
-        <PortalSection icon={Wallet} title={c.clientWallet}>
-          <p className="mb-4 text-sm leading-relaxed text-gray-600">{c.walletIntro}</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <WalletMetric
-              label={walletBalanceLabel(c, data.wallet.overview)}
-              value={walletBalanceAmount(data.wallet.overview)}
-              tone={data.wallet.overview.dueCents > 0 ? 'red' : data.wallet.overview.creditCents > 0 ? 'emerald' : 'gray'}
-            />
-            <WalletMetric
-              label={c.pendingRequests}
-              value={money(data.wallet.overview.pendingCents, data.wallet.overview.currency)}
-              tone={data.wallet.overview.pendingCents > 0 ? 'amber' : 'gray'}
-            />
-            <WalletMetric
-              label={c.activePackageSessions}
-              value={String(data.wallet.overview.activePackageSessions)}
-              tone={data.wallet.overview.activePackageSessions > 0 ? 'indigo' : 'gray'}
-            />
-            <WalletMetric
-              label={c.giftCardBalance}
-              value={money(data.wallet.overview.activeGiftCardBalanceCents, data.wallet.overview.currency)}
-              tone={data.wallet.overview.activeGiftCardBalanceCents > 0 ? 'emerald' : 'gray'}
-            />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="space-y-6">
+            <PortalSection icon={CalendarClock} title={c.upcoming}>
+              {data.appointments.length === 0 ? (
+                <EmptyState text={c.noUpcoming} />
+              ) : (
+                <div className="space-y-4">
+                  {data.appointments.map((appointment) => (
+                    <div key={appointment.id} className="rounded-[1.5rem] border border-orange-100 bg-orange-50/60 p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-950">{appointment.label}</p>
+                          <p className="mt-1 text-sm text-gray-700">
+                            {new Date(appointment.startsAt).toLocaleString(dateLocale, {
+                              weekday: 'short',
+                              day: '2-digit',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                        <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-800 ring-1 ring-orange-100">
+                          {appointment.status}
+                        </span>
+                      </div>
+                      {(appointment.locationAddress || appointment.locationArea) && (
+                        <p className="mt-3 flex gap-2 text-sm text-gray-600">
+                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-orange-700" aria-hidden />
+                          <span>{[appointment.locationArea, appointment.locationAddress].filter(Boolean).join(', ')}</span>
+                        </p>
+                      )}
+                      {appointment.locationNotes && <p className="mt-1 text-sm text-gray-500">{appointment.locationNotes}</p>}
+                      {appointment.preVisitTasks.length > 0 && (
+                        <div className="mt-4 rounded-2xl border border-emerald-100 bg-white/85 p-3 text-sm">
+                          <p className="flex items-center gap-2 font-semibold text-emerald-950">
+                            <ClipboardCheck className="h-4 w-4" aria-hidden />
+                            {c.preVisitTasks}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-500">{c.preVisitTasksHint}</p>
+                          <div className="mt-3 space-y-2">
+                            {appointment.preVisitTasks.map((task) => (
+                              <label
+                                key={task.id}
+                                className="flex gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={task.completed}
+                                  disabled={taskSavingKey === `${appointment.id}:${task.id}`}
+                                  onChange={(event) =>
+                                    void savePreVisitTask(appointment.id, task.id, event.currentTarget.checked)
+                                  }
+                                  className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600"
+                                />
+                                <span>
+                                  <span className="block font-semibold text-gray-900">{task.title}</span>
+                                  <span className="mt-0.5 block text-xs leading-relaxed text-gray-500">
+                                    {task.description}
+                                  </span>
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {appointment.policy.type !== 'NONE' && (
+                        <div className="mt-4 rounded-2xl border border-orange-100 bg-white/85 p-3 text-sm">
+                          <p className="font-semibold text-orange-950">{c.policy}</p>
+                          {appointment.policy.text && (
+                            <p className="mt-1 whitespace-pre-wrap text-gray-700">{appointment.policy.text}</p>
+                          )}
+                          <div className="mt-2 space-y-1 text-gray-700">
+                            {appointment.policy.acceptedAt && (
+                              <p>
+                                {c.policyAccepted}:{' '}
+                                {new Date(appointment.policy.acceptedAt).toLocaleDateString(dateLocale)}
+                              </p>
+                            )}
+                            {appointment.policy.depositRequiredCents > 0 && (
+                              <p>
+                                {appointment.policy.type === 'FULL_PREPAY' ? c.fullPrepayDue : c.depositDue}:{' '}
+                                {money(appointment.policy.depositRequiredCents, appointment.policy.currency)} ·{' '}
+                                {depositStatusText(c, appointment)}
+                              </p>
+                            )}
+                            {appointment.policy.type === 'CARD_ON_FILE' && <p>{c.cardOnFile}</p>}
+                            <p>
+                              {c.cancellationWindow} {appointment.policy.cancellationWindowHours} {c.hoursBefore}.
+                            </p>
+                            {appointment.policy.lateCancelFeeCents > 0 && (
+                              <p>
+                                {c.lateCancelFee}: {money(appointment.policy.lateCancelFeeCents, appointment.policy.currency)}
+                              </p>
+                            )}
+                            {appointment.policy.noShowFeeCents > 0 && (
+                              <p>
+                                {c.noShowFee}: {money(appointment.policy.noShowFeeCents, appointment.policy.currency)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => openRequest(appointment.id, 'RESCHEDULE')}
+                          className="min-h-10 rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-white"
+                        >
+                          {c.requestReschedule}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openRequest(appointment.id, 'CANCEL')}
+                          className="min-h-10 rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-700"
+                        >
+                          {c.requestCancel}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </PortalSection>
+
+            {(selectedAppointment || requestType === 'MESSAGE') && (
+              <form onSubmit={submitRequest} className="rounded-[1.5rem] border border-gray-100 bg-white/95 p-5 shadow-sm">
+                <h3 className="font-semibold text-gray-950">
+                  {requestType === 'MESSAGE' ? c.contactPractice : c.requestChange}
+                </h3>
+                {selectedAppointment && <p className="mt-1 text-sm text-gray-600">{selectedAppointment.label}</p>}
+                {requestType === 'RESCHEDULE' && (
+                  <label className="mt-3 block text-sm font-medium text-gray-700">
+                    {c.preferredTime}
+                    <input
+                      value={preferredTime}
+                      onChange={(event) => setPreferredTime(event.target.value)}
+                      className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 px-3"
+                      placeholder={c.preferredTimePlaceholder}
+                    />
+                  </label>
+                )}
+                <label className="mt-3 block text-sm font-medium text-gray-700">
+                  {c.message}
+                  <textarea
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    rows={3}
+                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  disabled={requesting}
+                  className="mt-3 min-h-11 w-full rounded-xl bg-gray-950 px-4 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
+                >
+                  {requesting ? c.sending : c.sendRequest}
+                </button>
+              </form>
+            )}
+
+            <PortalSection icon={CheckCircle2} title={c.whatWasDone}>
+              <p className="mb-4 text-sm leading-relaxed text-gray-600">{c.whatWasDoneHint}</p>
+              {data.aftercare.length === 0 ? (
+                <EmptyState text={c.noAftercare} />
+              ) : (
+                <div className="space-y-4">
+                  {data.aftercare.map((item) => (
+                    <article key={item.id} className="rounded-[1.5rem] border border-gray-100 bg-gray-50 p-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-950">{item.label}</p>
+                          {item.treatmentPlanTitle && (
+                            <p className="mt-1 text-sm text-gray-500">{item.treatmentPlanTitle}</p>
+                          )}
+                        </div>
+                        <p className="shrink-0 text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">
+                          {new Date(item.visitAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
+                      {item.procedureSummary && (
+                        <div className="mt-4 rounded-2xl bg-white p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{c.visitSummary}</p>
+                          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{item.procedureSummary}</p>
+                        </div>
+                      )}
+                      {item.aftercareTitle && (
+                        <p className="mt-4 text-sm font-semibold text-orange-900">{item.aftercareTitle}</p>
+                      )}
+                      {item.aftercareText && (
+                        <div className="mt-2 rounded-2xl border border-orange-100 bg-orange-50/70 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">{c.recommendations}</p>
+                          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-orange-950">{item.aftercareText}</p>
+                        </div>
+                      )}
+                      {item.nextSteps && (
+                        <div className="mt-2 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">{c.nextSteps}</p>
+                          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-emerald-950">{item.nextSteps}</p>
+                        </div>
+                      )}
+                      {item.aftercareDocumentUrl && (
+                        <a
+                          href={item.aftercareDocumentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex min-h-10 items-center rounded-xl border border-orange-100 bg-white px-3 text-sm font-semibold text-orange-700"
+                        >
+                          {item.aftercareDocumentName || c.aftercareDocument}
+                        </a>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </PortalSection>
+
+            {hasCarePlan && (
+              <PortalSection icon={PackageCheck} title={c.carePlan}>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {data.treatmentPlans.map((plan) => (
+                    <div key={plan.id} className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+                      <p className="font-semibold text-gray-950">{plan.title}</p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        {plan.completedSessions}/{plan.expectedSessions} · {plan.status}
+                      </p>
+                      {plan.procedure && <p className="mt-1 text-sm text-gray-500">{plan.procedure.name}</p>}
+                      {plan.goals && <p className="mt-3 whitespace-pre-wrap text-sm text-gray-700">{plan.goals}</p>}
+                      {plan.nextSteps && <p className="mt-2 whitespace-pre-wrap text-sm font-medium text-indigo-900">{plan.nextSteps}</p>}
+                    </div>
+                  ))}
+                  {data.wallet.packageBalances.map((pkg) => (
+                    <div key={pkg.id} className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+                      <p className="font-semibold text-gray-950">{pkg.name}</p>
+                      <p className="mt-1 text-sm text-gray-700">
+                        {pkg.remainingSessions}/{pkg.totalSessions} {c.sessionsLeft}
+                      </p>
+                      {pkg.procedure && <p className="text-sm text-gray-500">{pkg.procedure.name}</p>}
+                      {pkg.expiresAt && (
+                        <p className="text-xs text-gray-400">
+                          {c.expires} {new Date(pkg.expiresAt).toLocaleDateString(dateLocale)}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </PortalSection>
+            )}
           </div>
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            <WalletPanel icon={CreditCard} title={c.pendingRequests}>
-              {data.wallet.pendingPayments.length === 0 ? (
-                <p className="text-sm text-gray-500">{c.noPendingPayments}</p>
+          <aside className="space-y-4">
+            <WalletPanel icon={MessageCircle} title={c.contactPractice}>
+              <p className="text-sm leading-relaxed text-gray-600">{c.contactPracticeHint}</p>
+              <button
+                type="button"
+                onClick={() => openRequest('', 'MESSAGE')}
+                className="mt-4 min-h-10 w-full rounded-xl bg-gray-950 px-3 py-2 text-sm font-semibold text-white"
+              >
+                {c.sendMessage}
+              </button>
+            </WalletPanel>
+
+            <WalletPanel icon={CreditCard} title={c.balanceAndReceipts}>
+              {!hasPayments ? (
+                <EmptyState text={c.noPendingPayments} compact />
               ) : (
                 <div className="space-y-3">
+                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
+                      {walletBalanceLabel(c, data.wallet.overview)}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-gray-950">{walletBalanceAmount(data.wallet.overview)}</p>
+                  </div>
                   {data.wallet.pendingPayments.map((payment) => (
                     <div key={payment.id} className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
                       <p className="font-semibold text-gray-950">{payment.label}</p>
@@ -677,120 +1000,10 @@ export default function PatientPortalPage() {
                       </p>
                     </div>
                   ))}
-                </div>
-              )}
-            </WalletPanel>
-
-            <WalletPanel icon={BadgePercent} title={c.quotes}>
-              {data.wallet.quotes.length === 0 ? (
-                <p className="text-sm text-gray-500">{c.noQuotes}</p>
-              ) : (
-                <div className="space-y-3">
-                  {data.wallet.quotes.map((quote) => (
-                    <div key={quote.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="font-semibold text-gray-950">{quote.title}</p>
-                          <p className="mt-1 text-xs text-gray-500">
-                            {quote.quoteNumber} · {quote.status}
-                          </p>
-                        </div>
-                        <p className="shrink-0 text-sm font-semibold text-gray-950 sm:text-right">
-                          {money(quote.totalCents, quote.currency)}
-                        </p>
-                      </div>
-                      {quote.validUntil && (
-                        <p className="mt-2 text-xs text-gray-500">
-                          {c.validUntil} {new Date(quote.validUntil).toLocaleDateString(dateLocale)}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </WalletPanel>
-
-            <WalletPanel icon={PackageCheck} title={c.walletPackages}>
-              {data.wallet.packageBalances.length === 0 ? (
-                <p className="text-sm text-gray-500">{c.noPackages}</p>
-              ) : (
-                <div className="space-y-3">
-                  {data.wallet.packageBalances.map((pkg) => (
-                    <div key={pkg.id} className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
-                      <p className="font-semibold text-gray-950">{pkg.name}</p>
-                      <p className="mt-1 text-sm text-gray-700">
-                        {pkg.remainingSessions}/{pkg.totalSessions} {c.sessionsLeft}
-                      </p>
-                      {pkg.procedure && <p className="text-sm text-gray-500">{pkg.procedure.name}</p>}
-                      {pkg.expiresAt && (
-                        <p className="text-xs text-gray-400">
-                          {c.expires} {new Date(pkg.expiresAt).toLocaleDateString(dateLocale)}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </WalletPanel>
-
-            <WalletPanel icon={Gift} title={c.giftCards}>
-              {data.wallet.giftCards.length === 0 && data.wallet.giftCardRedemptions.length === 0 ? (
-                <p className="text-sm text-gray-500">{c.noGiftCards}</p>
-              ) : (
-                <div className="space-y-3">
-                  {data.wallet.giftCards.map((card) => (
-                    <div key={card.id} className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
-                      <p className="font-semibold text-gray-950">{card.code}</p>
-                      <p className="mt-1 text-sm text-gray-700">
-                        {money(card.remainingBalanceCents, card.currency)} / {money(card.initialBalanceCents, card.currency)}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {card.recipientName || card.buyerName} · {card.status}
-                      </p>
-                    </div>
-                  ))}
-                  {data.wallet.giftCardRedemptions.map((redemption) => (
-                    <div key={redemption.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                      <p className="font-semibold text-gray-950">{c.redeemed}: {redemption.giftCard.code}</p>
-                      <p className="mt-1 text-sm text-gray-700">
-                        {money(redemption.amountCents, redemption.currency)}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {new Date(redemption.redeemedAt).toLocaleDateString(dateLocale)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </WalletPanel>
-
-            <WalletPanel icon={ShieldCheck} title={c.savedMethods}>
-              {data.wallet.savedPaymentMethods.length === 0 ? (
-                <p className="text-sm text-gray-500">{c.noSavedMethods}</p>
-              ) : (
-                <div className="space-y-3">
-                  {data.wallet.savedPaymentMethods.map((method) => (
-                    <div key={method.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                      <p className="font-semibold text-gray-950">{savedMethodLabel(c, method)}</p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {method.status} · {new Date(method.consentedAt).toLocaleDateString(dateLocale)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </WalletPanel>
-
-            <WalletPanel icon={ReceiptText} title={c.recentReceipts}>
-              {data.wallet.receipts.length === 0 ? (
-                <p className="text-sm text-gray-500">{c.noPayments}</p>
-              ) : (
-                <div className="space-y-3">
-                  {data.wallet.receipts.map((payment) => (
+                  {data.wallet.receipts.slice(0, 4).map((payment) => (
                     <div key={payment.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                       <p className="font-semibold text-gray-950">{payment.label}</p>
                       <p className="mt-1 text-sm text-gray-700">{money(payment.amountCents, payment.currency)}</p>
-                      <p className="mt-1 text-sm text-gray-600">{receiptText(c, payment.receiptKind)}</p>
                       <p className="text-xs text-gray-400">
                         {new Date(payment.paidAt).toLocaleDateString(dateLocale)} · {payment.status}
                       </p>
@@ -807,225 +1020,31 @@ export default function PatientPortalPage() {
                 </div>
               )}
             </WalletPanel>
-          </div>
-        </PortalSection>
 
-        <PortalSection icon={CalendarClock} title={c.upcoming}>
-          {data.appointments.length === 0 ? (
-            <p className="text-sm text-gray-500">{c.noUpcoming}</p>
-          ) : (
-            <div className="grid gap-3 lg:grid-cols-2">
-              {data.appointments.map((appointment) => (
-                <div key={appointment.id} className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4">
-                  <p className="font-semibold text-gray-950">{appointment.label}</p>
-                  <p className="mt-1 text-sm text-gray-700">
-                    {new Date(appointment.startsAt).toLocaleString(dateLocale, {
-                      weekday: 'short',
-                      day: '2-digit',
-                      month: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                  {(appointment.locationAddress || appointment.locationArea) && (
-                    <p className="mt-2 text-sm text-gray-600">
-                      {c.location}: {[appointment.locationArea, appointment.locationAddress].filter(Boolean).join(', ')}
-                    </p>
-                  )}
-                  {appointment.locationNotes && <p className="mt-1 text-sm text-gray-500">{appointment.locationNotes}</p>}
-                  {appointment.preVisitTasks.length > 0 && (
-                    <div className="mt-3 rounded-2xl border border-emerald-100 bg-white/80 p-3 text-sm">
-                      <p className="font-semibold text-emerald-950">{c.preVisitTasks}</p>
-                      <p className="mt-1 text-xs text-gray-500">{c.preVisitTasksHint}</p>
-                      <div className="mt-3 space-y-2">
-                        {appointment.preVisitTasks.map((task) => (
-                          <label
-                            key={task.id}
-                            className="flex gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={task.completed}
-                              disabled={taskSavingKey === `${appointment.id}:${task.id}`}
-                              onChange={(event) =>
-                                void savePreVisitTask(appointment.id, task.id, event.currentTarget.checked)
-                              }
-                              className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600"
-                            />
-                            <span>
-                              <span className="block font-semibold text-gray-900">{task.title}</span>
-                              <span className="mt-0.5 block text-xs leading-relaxed text-gray-500">
-                                {task.description}
-                              </span>
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {appointment.policy.type !== 'NONE' && (
-                    <div className="mt-3 rounded-2xl border border-orange-100 bg-white/80 p-3 text-sm">
-                      <p className="font-semibold text-orange-950">{c.policy}</p>
-                      {appointment.policy.text && (
-                        <p className="mt-1 whitespace-pre-wrap text-gray-700">{appointment.policy.text}</p>
+            <WalletPanel icon={FileText} title={c.documents}>
+              {data.consents.length === 0 ? (
+                <EmptyState text={c.noConsents} compact />
+              ) : (
+                <div className="space-y-3">
+                  {data.consents.map((consent) => (
+                    <div key={consent.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                      <p className="font-semibold text-gray-950">{consent.templateTitleSnapshot}</p>
+                      {consent.procedure && <p className="text-sm text-gray-600">{consent.procedure.name}</p>}
+                      {consent.acceptedAt && (
+                        <p className="text-xs text-gray-400">{new Date(consent.acceptedAt).toLocaleDateString(dateLocale)}</p>
                       )}
-                      <div className="mt-2 space-y-1 text-gray-700">
-                        {appointment.policy.acceptedAt && (
-                          <p>
-                            {c.policyAccepted}:{' '}
-                            {new Date(appointment.policy.acceptedAt).toLocaleDateString(dateLocale)}
-                          </p>
-                        )}
-                        {appointment.policy.depositRequiredCents > 0 && (
-                          <p>
-                            {appointment.policy.type === 'FULL_PREPAY' ? c.fullPrepayDue : c.depositDue}:{' '}
-                            {money(appointment.policy.depositRequiredCents, appointment.policy.currency)} ·{' '}
-                            {depositStatusText(c, appointment)}
-                          </p>
-                        )}
-                        {appointment.policy.type === 'CARD_ON_FILE' && <p>{c.cardOnFile}</p>}
-                        <p>
-                          {c.cancellationWindow} {appointment.policy.cancellationWindowHours} {c.hoursBefore}.
-                        </p>
-                        {appointment.policy.lateCancelFeeCents > 0 && (
-                          <p>
-                            {c.lateCancelFee}: {money(appointment.policy.lateCancelFeeCents, appointment.policy.currency)}
-                          </p>
-                        )}
-                        {appointment.policy.noShowFeeCents > 0 && (
-                          <p>
-                            {c.noShowFee}: {money(appointment.policy.noShowFeeCents, appointment.policy.currency)}
-                          </p>
-                        )}
-                      </div>
                     </div>
-                  )}
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() => openRequest(appointment.id, 'RESCHEDULE')}
-                      className="min-h-10 rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-white"
-                    >
-                      {c.requestReschedule}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openRequest(appointment.id, 'CANCEL')}
-                      className="min-h-10 rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-700"
-                    >
-                      {c.requestCancel}
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {selectedAppointment && (
-            <form onSubmit={submitRequest} className="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-              <h3 className="font-semibold text-gray-950">{c.requestChange}</h3>
-              <p className="mt-1 text-sm text-gray-600">{selectedAppointment.label}</p>
-              {requestType === 'RESCHEDULE' && (
-                <label className="mt-3 block text-sm font-medium text-gray-700">
-                  {c.preferredTime}
-                  <input
-                    value={preferredTime}
-                    onChange={(event) => setPreferredTime(event.target.value)}
-                    className="mt-1 min-h-11 w-full rounded-xl border border-gray-200 px-3"
-                    placeholder={c.preferredTimePlaceholder}
-                  />
-                </label>
               )}
-              <label className="mt-3 block text-sm font-medium text-gray-700">
-                {c.message}
-                <textarea
-                  value={message}
-                  onChange={(event) => setMessage(event.target.value)}
-                  rows={3}
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2"
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={requesting}
-                className="mt-3 min-h-11 w-full rounded-xl bg-gray-950 px-4 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
-              >
-                {requesting ? c.sending : c.sendRequest}
-              </button>
-            </form>
-          )}
-        </PortalSection>
+            </WalletPanel>
 
-        <PortalSection icon={MessageCircle} title={c.aftercare}>
-          {data.aftercare.length === 0 ? (
-            <p className="text-sm text-gray-500">{c.noAftercare}</p>
-          ) : (
-            <div className="space-y-3">
-              {data.aftercare.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                  <p className="font-semibold text-gray-950">{item.label}</p>
-                  <p className="text-xs text-gray-400">
-                    {new Date(item.visitAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </p>
-                  {item.aftercareTitle && <p className="mt-2 text-sm font-semibold text-orange-900">{item.aftercareTitle}</p>}
-                  {item.procedureSummary && <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{item.procedureSummary}</p>}
-                  {(item.aftercareText || item.nextSteps) && (
-                    <p className="mt-2 text-sm font-medium text-orange-800 whitespace-pre-wrap">
-                      {item.aftercareText || item.nextSteps}
-                    </p>
-                  )}
-                  {item.aftercareDocumentUrl && (
-                    <a
-                      href={item.aftercareDocumentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-3 inline-flex min-h-10 items-center rounded-xl border border-orange-100 bg-white px-3 text-sm font-semibold text-orange-700"
-                    >
-                      {item.aftercareDocumentName || c.aftercareDocument}
-                    </a>
-                  )}
-                </div>
-              ))}
+            <div className="rounded-[1.5rem] border border-blue-100 bg-blue-50/70 p-4 text-sm leading-relaxed text-blue-950">
+              {c.privateNotice}
             </div>
-          )}
-        </PortalSection>
+          </aside>
+        </div>
 
-        <PortalSection icon={FileText} title={c.treatmentPlans}>
-          {data.treatmentPlans.length === 0 ? (
-            <p className="text-sm text-gray-500">{c.noPlans}</p>
-          ) : (
-            <div className="space-y-3">
-              {data.treatmentPlans.map((plan) => (
-                <div key={plan.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                  <p className="font-semibold text-gray-950">{plan.title}</p>
-                  <p className="text-sm text-gray-600">
-                    {plan.completedSessions}/{plan.expectedSessions} · {plan.status}
-                  </p>
-                  {plan.goals && <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{plan.goals}</p>}
-                  {plan.nextSteps && <p className="mt-2 text-sm font-medium text-orange-800 whitespace-pre-wrap">{plan.nextSteps}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </PortalSection>
-
-        <PortalSection icon={ShieldCheck} title={c.consents}>
-          {data.consents.length === 0 ? (
-            <p className="text-sm text-gray-500">{c.noConsents}</p>
-          ) : (
-            <div className="grid gap-3 lg:grid-cols-2">
-              {data.consents.map((consent) => (
-                <div key={consent.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                  <p className="font-semibold text-gray-950">{consent.templateTitleSnapshot}</p>
-                  {consent.procedure && <p className="text-sm text-gray-600">{consent.procedure.name}</p>}
-                  {consent.acceptedAt && (
-                    <p className="text-xs text-gray-400">{new Date(consent.acceptedAt).toLocaleDateString(dateLocale)}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </PortalSection>
         <footer className="mt-auto flex flex-col gap-1 rounded-[1.5rem] border border-white/70 bg-white/70 px-5 py-4 text-xs text-slate-500 shadow-sm backdrop-blur md:flex-row md:items-center md:justify-between">
           <span>VisionDrive Practice OS</span>
           <span>{data.practice.name}</span>
@@ -1054,6 +1073,18 @@ function PortalSection({
       </div>
       {children}
     </section>
+  )
+}
+
+function EmptyState({ text, compact = false }: { text: string; compact?: boolean }) {
+  return (
+    <div
+      className={`rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 text-sm text-gray-500 ${
+        compact ? 'p-3' : 'p-5'
+      }`}
+    >
+      {text}
+    </div>
   )
 }
 

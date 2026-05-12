@@ -59,17 +59,13 @@ type PracticeNavItem = {
   tone: PracticeNavTone
 }
 
-function getPractitionerInitials(name: string) {
+function getFirstName(name: string) {
   const parts = name
     .trim()
     .split(/\s+/)
     .filter(Boolean)
 
-  if (parts.length >= 2) {
-    return `${parts[0]![0]}${parts[1]![0]}`.toUpperCase()
-  }
-
-  return (parts[0]?.slice(0, 2) || 'VD').toUpperCase()
+  return parts[0] || name
 }
 
 const nav: PracticeNavItem[] = [
@@ -346,7 +342,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
   const practitionerName = practitionerIdentity?.displayName?.trim() || ''
   const workspaceTitle = practitionerName || t.practiceOsTitle
   const workspaceSubtitle = t.practiceConsole
-  const workspaceInitials = getPractitionerInitials(workspaceTitle)
+  const workspaceFirstName = practitionerName ? getFirstName(practitionerName) : workspaceTitle
   const mobileMenuNav = liteMode ? liteCommandNav : [...commandNav, ...growthNav, ...visibleSystemNav]
   const activeNavItem =
     [...nav]
@@ -539,7 +535,7 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
           </span>
           <span className="min-w-0">
             <span className="block truncate text-[21px] font-semibold leading-tight tracking-[-0.03em] text-slate-950">
-              {workspaceInitials}
+              {workspaceFirstName}
             </span>
             <span className="mt-1 block truncate text-sm font-medium leading-tight text-slate-500">
               {workspaceSubtitle}

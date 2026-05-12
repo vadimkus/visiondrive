@@ -15,6 +15,13 @@ function safeFilenamePart(s: string): string {
   return s.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'patient'
 }
 
+function filenameDateStamp(d: Date): string {
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -80,9 +87,10 @@ export async function GET(
     .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
     .slice(0, 25)
 
+  const generatedAt = new Date()
   const pdfInput = {
     practiceName: patient.tenant.name,
-    generatedAt: new Date(),
+    generatedAt,
     patient: {
       firstName: patient.firstName,
       lastName: patient.lastName,
@@ -106,7 +114,8 @@ export async function GET(
   const arrayBuffer = buildClinicPatientSummaryPdf(pdfInput)
   const buf = Buffer.from(arrayBuffer)
 
-  const fname = `patient-summary-${safeFilenamePart(patient.lastName)}-${patient.id.slice(0, 8)}.pdf`
+  const namePart = safeFilenamePart(`${patient.firstName}-${patient.lastName}`)
+  const fname = `${filenameDateStamp(generatedAt)}-patient-summary-${namePart}-${patient.id.slice(0, 8)}.pdf`
 
   return new NextResponse(buf, {
     status: 200,
