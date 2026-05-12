@@ -21,8 +21,8 @@
 **Shipped**
 
 - Added automatic small product/brand icons to procedure catalogue cards in `/clinic/procedures`.
-- Current name-based matches cover Belotero, Blanch Balance/Soft as Belotero family, AestheFill, DR. CYJ / Caregen, and ASCE+ / HRLV / ExoCoBio.
-- Icons use official-domain favicon images with an initials fallback so the card remains clean if an image cannot load.
+- Current name-based matches cover Belotero, Blanch Balance/Soft as Belotero family, AestheFill / Regen Biotech, DR. CYJ / Caregen, ASCE+ / HRLV / ExoCoBio, and common aesthetic brands such as Juvéderm, Botox, Dysport, Restylane, Radiesse, Xeomin, Profhilo, Sculptra, Teosyal, Stylage, Nucleofill, Rejuran, and Jalupro.
+- Every procedure now gets an icon: known products use official-domain favicon images, and unmatched procedure names use a clean initials + sparkle fallback.
 - Added `docs/2026-05-12_clinic-procedure-product-icons.md`.
 
 **Validation**

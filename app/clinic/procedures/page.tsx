@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicSpinner } from '@/components/clinic/ClinicSpinner'
 import { ClinicEmptyState } from '@/components/clinic/ClinicEmptyState'
@@ -121,7 +121,7 @@ type ProcedureForm = {
 type ProcedureProductIcon = {
   label: string
   initials: string
-  imageUrl: string
+  imageUrl?: string
 }
 
 const PRODUCT_ICON_MATCHES: Array<{ keywords: string[]; icon: ProcedureProductIcon }> = [
@@ -129,6 +129,14 @@ const PRODUCT_ICON_MATCHES: Array<{ keywords: string[]; icon: ProcedureProductIc
     keywords: ['belotero'],
     icon: {
       label: 'Belotero',
+      initials: 'BE',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=belotero.co.uk&sz=64',
+    },
+  },
+  {
+    keywords: ['volume'],
+    icon: {
+      label: 'Belotero Volume',
       initials: 'BE',
       imageUrl: 'https://www.google.com/s2/favicons?domain=belotero.co.uk&sz=64',
     },
@@ -150,11 +158,19 @@ const PRODUCT_ICON_MATCHES: Array<{ keywords: string[]; icon: ProcedureProductIc
     },
   },
   {
+    keywords: ['blanch'],
+    icon: {
+      label: 'Belotero blanching',
+      initials: 'BE',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=belotero.com&sz=64',
+    },
+  },
+  {
     keywords: ['aesthefill'],
     icon: {
-      label: 'AestheFill',
+      label: 'AestheFill / Regen Biotech',
       initials: 'AF',
-      imageUrl: 'https://www.google.com/s2/favicons?domain=aesthefill.eu&sz=64',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=regenbiotech.com&sz=64',
     },
   },
   {
@@ -187,6 +203,110 @@ const PRODUCT_ICON_MATCHES: Array<{ keywords: string[]; icon: ProcedureProductIc
       label: 'ASCE+ HRLV / ExoCoBio',
       initials: 'AS',
       imageUrl: 'https://www.google.com/s2/favicons?domain=exocobio.com&sz=64',
+    },
+  },
+  {
+    keywords: ['juvederm'],
+    icon: {
+      label: 'Juvéderm / Allergan Aesthetics',
+      initials: 'JV',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=juvederm.com&sz=64',
+    },
+  },
+  {
+    keywords: ['botox'],
+    icon: {
+      label: 'Botox / Allergan Aesthetics',
+      initials: 'BX',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=botoxcosmetic.com&sz=64',
+    },
+  },
+  {
+    keywords: ['dysport'],
+    icon: {
+      label: 'Dysport / Galderma',
+      initials: 'DY',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=dysportusa.com&sz=64',
+    },
+  },
+  {
+    keywords: ['restylane'],
+    icon: {
+      label: 'Restylane / Galderma',
+      initials: 'RS',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=restylaneusa.com&sz=64',
+    },
+  },
+  {
+    keywords: ['radiesse'],
+    icon: {
+      label: 'Radiesse / Merz Aesthetics',
+      initials: 'RA',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=radiesse.com&sz=64',
+    },
+  },
+  {
+    keywords: ['xeomin'],
+    icon: {
+      label: 'Xeomin / Merz Aesthetics',
+      initials: 'XE',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=xeominaesthetic.com&sz=64',
+    },
+  },
+  {
+    keywords: ['profhilo'],
+    icon: {
+      label: 'Profhilo / IBSA',
+      initials: 'PH',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=profhilo.com&sz=64',
+    },
+  },
+  {
+    keywords: ['sculptra'],
+    icon: {
+      label: 'Sculptra / Galderma',
+      initials: 'SC',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=sculptrausa.com&sz=64',
+    },
+  },
+  {
+    keywords: ['teosyal'],
+    icon: {
+      label: 'TEOSYAL / Teoxane',
+      initials: 'TE',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=teoxane.com&sz=64',
+    },
+  },
+  {
+    keywords: ['stylage'],
+    icon: {
+      label: 'STYLAGE / Vivacy',
+      initials: 'ST',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=laboratoires-vivacy.com&sz=64',
+    },
+  },
+  {
+    keywords: ['nucleofill'],
+    icon: {
+      label: 'Nucleofill',
+      initials: 'NF',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=nucleofill.com&sz=64',
+    },
+  },
+  {
+    keywords: ['rejuran'],
+    icon: {
+      label: 'Rejuran',
+      initials: 'RJ',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=rejuran.com&sz=64',
+    },
+  },
+  {
+    keywords: ['jalupro'],
+    icon: {
+      label: 'Jalupro',
+      initials: 'JA',
+      imageUrl: 'https://www.google.com/s2/favicons?domain=jalupro.com&sz=64',
     },
   },
 ]
@@ -233,9 +353,25 @@ function materialCost(materials: ProcedureMaterial[]) {
     .reduce((sum, material) => sum + material.quantityPerVisit * material.unitCostCents, 0)
 }
 
-function productIconForProcedureName(name: string): ProcedureProductIcon | null {
+function fallbackProductIcon(name: string): ProcedureProductIcon {
+  const words = name
+    .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  const initials = words.length > 1
+    ? `${words[0]?.[0] ?? ''}${words[1]?.[0] ?? ''}`
+    : (words[0] ?? 'PR').slice(0, 2)
+
+  return {
+    label: name,
+    initials: initials.toUpperCase() || 'PR',
+  }
+}
+
+function productIconForProcedureName(name: string): ProcedureProductIcon {
   const normalized = name.toLowerCase()
-  return PRODUCT_ICON_MATCHES.find((match) => match.keywords.every((keyword) => normalized.includes(keyword)))?.icon ?? null
+  return PRODUCT_ICON_MATCHES.find((match) => match.keywords.every((keyword) => normalized.includes(keyword)))?.icon ?? fallbackProductIcon(name)
 }
 
 function ProductIconBadge({ icon }: { icon: ProcedureProductIcon }) {
@@ -246,15 +382,19 @@ function ProductIconBadge({ icon }: { icon: ProcedureProductIcon }) {
       aria-label={icon.label}
     >
       {icon.initials}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={icon.imageUrl}
-        alt=""
-        className="absolute inset-1 h-7 w-7 rounded-lg bg-white object-contain"
-        onError={(event) => {
-          event.currentTarget.style.display = 'none'
-        }}
-      />
+      {icon.imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={icon.imageUrl}
+          alt=""
+          className="absolute inset-1 h-7 w-7 rounded-lg bg-white object-contain"
+          onError={(event) => {
+            event.currentTarget.style.display = 'none'
+          }}
+        />
+      ) : (
+        <Sparkles className="absolute bottom-1 right-1 h-3 w-3 text-orange-400" aria-hidden />
+      )}
     </span>
   )
 }
@@ -694,7 +834,7 @@ export default function ClinicProceduresPage() {
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      {productIcon && <ProductIconBadge icon={productIcon} />}
+                      <ProductIconBadge icon={productIcon} />
                       <h2 className="text-lg font-semibold text-gray-900">{p.name}</h2>
                       {p.active ? (
                         <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
