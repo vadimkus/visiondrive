@@ -1632,6 +1632,7 @@ function PatientPortalCard({
 function SmartFormsSummary({ patient }: { patient: PatientRecord }) {
   const { locale, t } = useClinicLocale()
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const [open, setOpen] = useState(false)
   const grouped = patient.intakeResponses.reduce((acc, response) => {
     const appointmentId = response.appointment?.id ?? 'standalone'
     const existing =
@@ -1654,49 +1655,62 @@ function SmartFormsSummary({ patient }: { patient: PatientRecord }) {
 
   return (
     <section className="rounded-2xl border border-blue-100 bg-blue-50/60 p-5 shadow-sm">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">{t.smartFormsSummary}</h2>
-          <p className="text-sm text-blue-950/75">{t.smartFormsSummaryHint}</p>
-        </div>
-        <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700">
-          {patient.intakeResponses.length} {t.answers}
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-start justify-between gap-4 text-left"
+        aria-expanded={open}
+      >
+        <span>
+          <span className="block text-lg font-semibold text-gray-900">{t.smartFormsSummary}</span>
+          <span className="mt-1 block text-sm text-blue-950/75">{t.smartFormsSummaryHint}</span>
         </span>
-      </div>
+        <span className="inline-flex shrink-0 items-center gap-2">
+          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700">
+            {patient.intakeResponses.length} {t.answers}
+          </span>
+          <ChevronUp
+            className={clsx('h-4 w-4 text-blue-700 transition-transform', !open && 'rotate-180')}
+            aria-hidden
+          />
+        </span>
+      </button>
 
-      {groups.length === 0 ? (
-        <p className="mt-4 rounded-xl border border-dashed border-blue-100 bg-white p-4 text-sm text-gray-500">
-          {t.noSmartFormAnswers}
-        </p>
-      ) : (
-        <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          {groups.map((group) => (
-            <article key={group.key} className="rounded-2xl border border-blue-100 bg-white p-4">
-              <p className="text-sm font-semibold text-gray-950">{group.serviceName}</p>
-              <p className="mt-1 text-xs text-gray-500">
-                {(group.appointmentStartsAt ? new Date(group.appointmentStartsAt) : new Date(group.createdAt)).toLocaleString(
-                  dateLocale,
-                  {
-                    day: '2-digit',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }
-                )}
-              </p>
-              <dl className="mt-3 space-y-2">
-                {group.responses.slice(0, 4).map((response) => (
-                  <div key={response.id}>
-                    <dt className="text-xs font-semibold text-gray-500">{response.promptSnapshot}</dt>
-                    <dd className="mt-0.5 whitespace-pre-wrap text-sm text-gray-900">
-                      {response.answerText || t.emptyValue}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </article>
-          ))}
-        </div>
+      {open && (
+        groups.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed border-blue-100 bg-white p-4 text-sm text-gray-500">
+            {t.noSmartFormAnswers}
+          </p>
+        ) : (
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {groups.map((group) => (
+              <article key={group.key} className="rounded-2xl border border-blue-100 bg-white p-4">
+                <p className="text-sm font-semibold text-gray-950">{group.serviceName}</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  {(group.appointmentStartsAt ? new Date(group.appointmentStartsAt) : new Date(group.createdAt)).toLocaleString(
+                    dateLocale,
+                    {
+                      day: '2-digit',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }
+                  )}
+                </p>
+                <dl className="mt-3 space-y-2">
+                  {group.responses.slice(0, 4).map((response) => (
+                    <div key={response.id}>
+                      <dt className="text-xs font-semibold text-gray-500">{response.promptSnapshot}</dt>
+                      <dd className="mt-0.5 whitespace-pre-wrap text-sm text-gray-900">
+                        {response.answerText || t.emptyValue}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+            ))}
+          </div>
+        )
       )}
     </section>
   )
@@ -2443,8 +2457,6 @@ function OverviewTab({
         </form>
       )}
 
-      <SmartFormsSummary patient={patient} />
-
       <form
         onSubmit={logVisit}
         className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4"
@@ -2684,6 +2696,8 @@ function OverviewTab({
           )}
         </div>
       </div>
+
+      <SmartFormsSummary patient={patient} />
     </div>
   )
 }
