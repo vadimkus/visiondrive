@@ -2235,9 +2235,6 @@ function OverviewTab({
             {patient.homeAddress || t.emptyValue}
           </p>
           <p>
-            <span className="text-gray-500">{t.area}:</span> {patient.area || t.emptyValue}
-          </p>
-          <p>
             <span className="text-gray-500">{t.accessNotes}:</span>{' '}
             {patient.accessNotes || t.emptyValue}
           </p>

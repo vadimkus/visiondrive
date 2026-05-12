@@ -52,7 +52,7 @@ export default function StockItemDetailPage() {
   const router = useRouter()
   const params = useParams()
   const id = String(params.id || '')
-  const { t } = useClinicLocale()
+  const { t, locale } = useClinicLocale()
   const [item, setItem] = useState<Item | null>(null)
   const [procedures, setProcedures] = useState<Procedure[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,6 +85,43 @@ export default function StockItemDetailPage() {
   function parseMajorToCents(value: string) {
     const parsed = Number.parseFloat(value.replace(',', '.') || '0')
     return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * 100)) : 0
+  }
+
+  function movementLabel(type: string, t: ReturnType<typeof useClinicLocale>['t']) {
+    switch (type) {
+      case 'RECEIPT':
+        return t.movementReceipt
+      case 'ADJUSTMENT':
+        return t.movementAdjustment
+      case 'CONSUMPTION':
+        return t.movementConsumption
+      case 'RETURN':
+        return t.movementReturn
+      default:
+        return type
+    }
+  }
+
+  function displayUnit(unit: string, locale: 'en' | 'ru') {
+    const normalized = unit.trim().toLowerCase()
+    if (locale === 'ru' && (normalized === 'unit' || normalized === 'pcs')) return 'шт'
+    return unit || (locale === 'ru' ? 'шт' : 'unit')
+  }
+
+  function movementDetails(note: string | null, reference: string | null, locale: 'en' | 'ru') {
+    const raw = [reference, note].filter(Boolean).join(' · ')
+    const lower = raw.toLowerCase()
+    if (!raw.trim()) return ''
+    if (lower.includes('po receive') || lower.startsWith('po:')) {
+      return locale === 'ru' ? 'Поступление по закупке' : 'Purchase order receipt'
+    }
+
+    return raw
+      .replace(/\bPO:cmp[a-z0-9]+\b/gi, '')
+      .replace(/\bcmp[a-z0-9]+\b/gi, '')
+      .replace(/\s*·\s*·\s*/g, ' · ')
+      .replace(/^(\s*·\s*)+|(\s*·\s*)+$/g, '')
+      .trim()
   }
 
   const load = useCallback(async () => {
@@ -498,30 +535,39 @@ export default function StockItemDetailPage() {
           <p className="p-6 text-sm text-gray-500 text-center">{t.noMovementsYet}</p>
         ) : (
           <ul className="divide-y divide-gray-100">
-            {item.movements.map((m) => (
-              <li key={m.id} className="px-5 py-3 text-sm">
-                <p className="font-medium text-gray-900">
-                  {m.type} · {m.quantityDelta > 0 ? '+' : ''}
-                  {m.quantityDelta} {item.unit}
-                </p>
-                <p className="text-gray-500 text-xs mt-0.5">
-                  {new Date(m.createdAt).toLocaleString()}
-                </p>
-                {m.costMeta && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    {m.costMeta.method === 'FIFO' ? t.stockMovementFifoCost : t.stockMovementReceiptCost}:{' '}
-                    {formatMoney(m.costMeta.totalCostCents)}
-                    <span className="text-gray-300"> · </span>
-                    {formatMoney(m.costMeta.unitCostCents)} / {item.unit}
-                  </p>
-                )}
-                {(m.note || m.reference) && (
-                  <p className="text-gray-700 mt-1 whitespace-pre-wrap">
-                    {[m.reference, m.note].filter(Boolean).join(' · ')}
-                  </p>
-                )}
-              </li>
-            ))}
+            {item.movements.map((m) => {
+              const details = movementDetails(m.note, m.reference, locale)
+              const stockUnit = displayUnit(item.unit, locale)
+              return (
+                <li key={m.id} className="px-5 py-4 text-sm">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                    <p className="font-medium text-gray-900">
+                      {movementLabel(m.type, t)} · {m.quantityDelta > 0 ? '+' : ''}
+                      {m.quantityDelta} {stockUnit}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(m.createdAt).toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-AE', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </p>
+                  </div>
+                  {m.costMeta && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      {m.costMeta.method === 'FIFO' ? t.stockMovementFifoCost : t.stockMovementReceiptCost}:{' '}
+                      {formatMoney(m.costMeta.totalCostCents)}
+                      <span className="text-gray-300"> · </span>
+                      {formatMoney(m.costMeta.unitCostCents)} / {stockUnit}
+                    </p>
+                  )}
+                  {details && (
+                    <p className="mt-2 inline-flex rounded-full bg-gray-50 px-3 py-1 text-xs font-medium text-gray-700">
+                      {details}
+                    </p>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
