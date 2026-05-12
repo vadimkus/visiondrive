@@ -30,10 +30,11 @@ describe('buildClinicPatientSummaryPdf', () => {
     expect(head.startsWith('%PDF')).toBe(true)
   })
 
-  it('transliterates Cyrillic patient text for default PDF font safety', () => {
+  it('generates a Russian-localized PDF with Cyrillic input', () => {
     const ab = buildClinicPatientSummaryPdf({
       practiceName: 'Практика Ирины',
       generatedAt: new Date('2026-05-12T12:00:00Z'),
+      locale: 'ru',
       patient: {
         firstName: 'Елена',
         lastName: 'Горшунова',
@@ -54,9 +55,8 @@ describe('buildClinicPatientSummaryPdf', () => {
       visitDates: [],
     })
 
-    const body = new TextDecoder('latin1').decode(ab)
-    expect(body).toContain('Elena')
-    expect(body).toContain('Gorshunova')
-    expect(body).not.toContain('Горшунова')
+    expect(ab.byteLength).toBeGreaterThan(100_000)
+    const head = new TextDecoder('latin1').decode(ab.slice(0, 5))
+    expect(head.startsWith('%PDF')).toBe(true)
   })
 })

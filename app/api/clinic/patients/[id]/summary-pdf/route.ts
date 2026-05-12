@@ -6,9 +6,10 @@ import { getClinicSession } from '@/lib/clinic/session'
 
 function appointmentLabel(
   procedureName: string | null | undefined,
-  titleOverride: string | null | undefined
+  titleOverride: string | null | undefined,
+  locale: 'en' | 'ru'
 ): string {
-  return procedureName?.trim() || titleOverride?.trim() || 'Appointment'
+  return procedureName?.trim() || titleOverride?.trim() || (locale === 'ru' ? 'Запись' : 'Appointment')
 }
 
 function safeFilenamePart(s: string): string {
@@ -32,6 +33,7 @@ export async function GET(
   }
 
   const { id } = await context.params
+  const locale: 'en' | 'ru' = request.nextUrl.searchParams.get('locale') === 'ru' ? 'ru' : 'en'
 
   const startOfToday = new Date()
   startOfToday.setHours(0, 0, 0, 0)
@@ -91,6 +93,7 @@ export async function GET(
   const pdfInput = {
     practiceName: patient.tenant.name,
     generatedAt,
+    locale,
     patient: {
       firstName: patient.firstName,
       lastName: patient.lastName,
@@ -102,11 +105,11 @@ export async function GET(
     anamnesis: anamnesisFromJson(patient.anamnesisJson),
     upcomingAppointments: upcoming.map((a) => ({
       startsAt: a.startsAt,
-      label: appointmentLabel(a.procedure?.name, a.titleOverride),
+      label: appointmentLabel(a.procedure?.name, a.titleOverride, locale),
     })),
     pastAppointmentSummaries: pastAppts.map((a) => ({
       startsAt: a.startsAt,
-      label: appointmentLabel(a.procedure?.name, a.titleOverride),
+      label: appointmentLabel(a.procedure?.name, a.titleOverride, locale),
     })),
     visitDates: patient.visits.map((v) => ({ visitAt: v.visitAt })),
   }

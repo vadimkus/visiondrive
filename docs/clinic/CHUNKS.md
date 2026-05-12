@@ -1,5 +1,21 @@
 # Implementation log (clinic)
 
+## Chunk 97 — 2026-05-12 (localized patient summary PDF)
+
+**Shipped**
+
+- Patient record quick action now passes the active clinic locale to `GET /api/clinic/patients/[id]/summary-pdf`.
+- `buildClinicPatientSummaryPdf` now supports EN/RU copy for headings, labels, timeline sections, empty states, dates, and footer notices.
+- Added embedded Noto Sans font support through `notosans-fontface` so RU PDFs render real Cyrillic text instead of transliteration.
+- Updated focused PDF tests for Russian-localized generation.
+- Updated `docs/2026-05-12_clinic-patient-summary-pdf-redesign.md`.
+
+**Validation**
+
+- Run `npm run type-check`, `npx vitest run lib/clinic/patient-summary-pdf.test.ts`, and linter diagnostics for the edited PDF files.
+
+---
+
 ## Chunk 96 — 2026-05-12 (procedure product icons)
 
 **Shipped**

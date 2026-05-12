@@ -1020,7 +1020,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           <aside className="border-t border-white/10 bg-slate-950 py-5 pl-5 pr-9 text-white xl:border-l xl:border-t-0 xl:py-6 xl:pl-6 xl:pr-11">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">{t.quickActions}</p>
             <div className="mt-4 grid gap-2">
-              <ActionTile href={`/api/clinic/patients/${patient.id}/summary-pdf`} icon={FileDown} label={t.downloadPatientSummaryPdf} external />
+              <ActionTile href={`/api/clinic/patients/${patient.id}/summary-pdf?locale=${locale}`} icon={FileDown} label={t.downloadPatientSummaryPdf} external />
               <ActionTile href={`/api/clinic/patients/${patient.id}/patient-safe-export`} icon={ShieldCheck} label={t.downloadPatientSafeExportPdf} external />
               <ActionTile href={`/api/clinic/patients/${patient.id}/export`} icon={FileDown} label={t.downloadPatientFullExport} />
               <button
