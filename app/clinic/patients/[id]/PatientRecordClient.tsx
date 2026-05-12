@@ -699,6 +699,37 @@ function balanceTone(balance: ClientBalance) {
   return 'border-gray-200 bg-white text-gray-900'
 }
 
+function PatientHeaderAvatar() {
+  return (
+    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-rose-50 via-amber-50 to-orange-100 ring-1 ring-orange-100">
+      <svg viewBox="0 0 80 80" className="h-full w-full" role="img" aria-label="Patient avatar">
+        <rect width="80" height="80" rx="22" fill="#fff7ed" />
+        <path
+          d="M20 68c2.5-14 12-22 20-22s17.5 8 20 22H20Z"
+          fill="#fb923c"
+          opacity="0.9"
+        />
+        <path
+          d="M18 40c0-16 9-27 22-27s22 11 22 27c0 8-3 16-7 21-2-8-7-13-15-13s-13 5-15 13c-4-5-7-13-7-21Z"
+          fill="#7c2d12"
+        />
+        <path
+          d="M25 39c1-12 7-20 15-20s14 8 15 20c-2 11-8 19-15 19s-13-8-15-19Z"
+          fill="#ffd7b5"
+        />
+        <path
+          d="M24 38c2-13 8-20 17-20 7 0 12 5 15 14-9 2-18 0-27-7-2.5 3.5-4 7.8-5 13Z"
+          fill="#7c2d12"
+        />
+        <circle cx="33" cy="41" r="1.6" fill="#111827" />
+        <circle cx="47" cy="41" r="1.6" fill="#111827" />
+        <path d="M35 50c3.2 2.5 7.8 2.5 11 0" fill="none" stroke="#9a3412" strokeWidth="2" strokeLinecap="round" />
+        <path d="M28 68c2-7 6.5-11 12-11s10 4 12 11H28Z" fill="#fed7aa" />
+      </svg>
+    </div>
+  )
+}
+
 export default function PatientRecordClient({ patientId }: { patientId: string }) {
   const router = useRouter()
   const { locale, t } = useClinicLocale()
@@ -945,10 +976,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           <div className="p-5 sm:p-6 lg:p-8">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex min-w-0 gap-4">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-orange-100 to-amber-50 text-xl font-semibold text-orange-700 ring-1 ring-orange-100">
-                  {patient.firstName.slice(0, 1)}
-                  {patient.lastName.slice(0, 1)}
-                </div>
+                <PatientHeaderAvatar />
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     {patient.category && (
