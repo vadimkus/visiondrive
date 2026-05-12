@@ -151,6 +151,7 @@
 | [2026-05-12_clinic-kb-refresh-gap-audit.md](2026-05-12_clinic-kb-refresh-gap-audit.md) | Knowledge Base refresh for latest workflow changes and missing coverage audit |
 | [2026-05-12_clinic-kb-en-ru-translation-review.md](2026-05-12_clinic-kb-en-ru-translation-review.md) | Knowledge Base EN/RU translation review and copy polish |
 | [2026-05-12_clinic-ai-note-dictation.md](2026-05-12_clinic-ai-note-dictation.md) | AI note assistant dictation button and microphone policy fix |
+| [2026-05-12_clinic-patient-summary-pdf-redesign.md](2026-05-12_clinic-patient-summary-pdf-redesign.md) | Patient summary PDF professional layout and Cyrillic-safe text |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |

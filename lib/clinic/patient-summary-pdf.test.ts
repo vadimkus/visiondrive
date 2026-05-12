@@ -29,4 +29,34 @@ describe('buildClinicPatientSummaryPdf', () => {
     const head = new TextDecoder('latin1').decode(ab.slice(0, 5))
     expect(head.startsWith('%PDF')).toBe(true)
   })
+
+  it('transliterates Cyrillic patient text for default PDF font safety', () => {
+    const ab = buildClinicPatientSummaryPdf({
+      practiceName: 'Практика Ирины',
+      generatedAt: new Date('2026-05-12T12:00:00Z'),
+      patient: {
+        firstName: 'Елена',
+        lastName: 'Горшунова',
+        middleName: null,
+        dateOfBirth: new Date('1968-05-12'),
+        phone: '+971585943830',
+        email: null,
+      },
+      anamnesis: {
+        v: 1,
+        allergies: 'Нет',
+        medications: '',
+        conditions: '',
+        social: '',
+      },
+      upcomingAppointments: [],
+      pastAppointmentSummaries: [],
+      visitDates: [],
+    })
+
+    const body = new TextDecoder('latin1').decode(ab)
+    expect(body).toContain('Elena')
+    expect(body).toContain('Gorshunova')
+    expect(body).not.toContain('Горшунова')
+  })
 })
