@@ -198,7 +198,10 @@ const copy = {
   en: {
     title: 'Patient portal',
     secure: 'Private patient link',
-    intro: 'Your upcoming appointments, aftercare, packages, receipts, and requests in one secure page.',
+    portalEyebrow: 'VisionDrive patient portal',
+    greeting: 'Welcome',
+    intro: 'Appointments, care instructions, balances, receipts, and requests in one secure place.',
+    privateNotice: 'This private link is for patient use only. Do not forward it publicly.',
     clientWallet: 'Client wallet',
     walletIntro: 'Balances, unpaid requests, quotes, packages, gift cards, saved payment methods, and receipts.',
     accountBalance: 'Account balance',
@@ -274,7 +277,10 @@ const copy = {
   ru: {
     title: 'Кабинет пациента',
     secure: 'Приватная ссылка пациента',
-    intro: 'Будущие записи, рекомендации, пакеты, чеки и запросы на одной защищённой странице.',
+    portalEyebrow: 'Кабинет пациента VisionDrive',
+    greeting: 'Здравствуйте',
+    intro: 'Записи, рекомендации, баланс, чеки и запросы в одном защищённом месте.',
+    privateNotice: 'Эта приватная ссылка предназначена только для пациента. Не публикуйте её открыто.',
     clientWallet: 'Кошелёк клиента',
     walletIntro: 'Баланс, неоплаченные запросы, расчёты, пакеты, подарочные карты, сохранённые способы оплаты и чеки.',
     accountBalance: 'Баланс счёта',
@@ -543,26 +549,70 @@ export default function PatientPortalPage() {
     )
   }
 
+  const nextAppointment = data.appointments[0]
+
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.18),transparent_32rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_45%,#eef2ff_100%)] p-4 sm:p-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <header className="rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-xl shadow-orange-100/50 backdrop-blur md:p-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">
-                <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-                {c.secure}
-              </div>
-              <h1 className="text-3xl font-semibold tracking-tight text-gray-950 md:text-5xl">
-                {data.patient.firstName}, {c.title}
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">{c.intro}</p>
-              <p className="mt-2 text-sm font-medium text-orange-800">{data.practice.name}</p>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.18),transparent_28rem),radial-gradient(circle_at_top_right,rgba(99,102,241,0.14),transparent_24rem),linear-gradient(135deg,#fff7ed_0%,#f8fafc_48%,#eef2ff_100%)] px-4 py-5 text-slate-900 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-6xl flex-col gap-6">
+        <div className="flex flex-col gap-3 rounded-[1.5rem] border border-white/80 bg-white/80 px-4 py-3 shadow-sm shadow-orange-100/40 backdrop-blur md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-sm font-bold text-white shadow-lg shadow-orange-200">
+              VD
             </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-700">{c.portalEyebrow}</p>
+              <p className="truncate text-sm font-semibold text-slate-950">{data.practice.name}</p>
+            </div>
+          </div>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">
+            <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+            {c.secure}
+          </div>
+        </div>
+
+        <header className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-xl shadow-orange-100/50 backdrop-blur">
+          <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div className="min-w-0 p-5 md:p-8">
+              <p className="text-sm font-semibold text-orange-700">{c.greeting}, {data.patient.firstName}</p>
+              <h1 className="mt-2 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-gray-950 md:text-5xl">
+                {c.title}
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-gray-600 md:text-base">{c.intro}</p>
+              <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-sm leading-relaxed text-blue-950">
+                {c.privateNotice}
+              </div>
+            </div>
+            <aside className="border-t border-orange-100 bg-gradient-to-br from-orange-50 to-amber-50 p-5 lg:border-l lg:border-t-0 md:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-700">{c.upcoming}</p>
+              {nextAppointment ? (
+                <div className="mt-3">
+                  <p className="text-lg font-semibold text-slate-950">{nextAppointment.label}</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {new Date(nextAppointment.startsAt).toLocaleString(dateLocale, {
+                      weekday: 'short',
+                      day: '2-digit',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-slate-600">{c.noUpcoming}</p>
+              )}
+              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.22em] text-orange-700">{c.accountBalance}</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-950">{walletBalanceAmount(data.wallet.overview)}</p>
+              <p className="mt-1 text-sm text-slate-600">{walletBalanceLabel(c, data.wallet.overview)}</p>
+            </aside>
+          </div>
+          <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-8">
+            <p className="min-w-0 text-sm text-slate-500">
+              {data.patient.firstName} {data.patient.lastName}
+            </p>
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-orange-100 bg-white px-4 text-sm font-semibold text-gray-700 hover:border-orange-200"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-orange-100 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm hover:border-orange-200 md:w-auto"
             >
               <RefreshCw className="h-4 w-4" aria-hidden />
               {c.refresh}
@@ -584,7 +634,7 @@ export default function PatientPortalPage() {
 
         <PortalSection icon={Wallet} title={c.clientWallet}>
           <p className="mb-4 text-sm leading-relaxed text-gray-600">{c.walletIntro}</p>
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <WalletMetric
               label={walletBalanceLabel(c, data.wallet.overview)}
               value={walletBalanceAmount(data.wallet.overview)}
@@ -638,14 +688,14 @@ export default function PatientPortalPage() {
                 <div className="space-y-3">
                   {data.wallet.quotes.map((quote) => (
                     <div key={quote.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
                           <p className="font-semibold text-gray-950">{quote.title}</p>
                           <p className="mt-1 text-xs text-gray-500">
                             {quote.quoteNumber} · {quote.status}
                           </p>
                         </div>
-                        <p className="shrink-0 text-sm font-semibold text-gray-950">
+                        <p className="shrink-0 text-sm font-semibold text-gray-950 sm:text-right">
                           {money(quote.totalCents, quote.currency)}
                         </p>
                       </div>
@@ -764,7 +814,7 @@ export default function PatientPortalPage() {
           {data.appointments.length === 0 ? (
             <p className="text-sm text-gray-500">{c.noUpcoming}</p>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 lg:grid-cols-2">
               {data.appointments.map((appointment) => (
                 <div key={appointment.id} className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4">
                   <p className="font-semibold text-gray-950">{appointment.label}</p>
@@ -850,18 +900,18 @@ export default function PatientPortalPage() {
                       </div>
                     </div>
                   )}
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => openRequest(appointment.id, 'RESCHEDULE')}
-                      className="rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-white"
+                      className="min-h-10 rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-white"
                     >
                       {c.requestReschedule}
                     </button>
                     <button
                       type="button"
                       onClick={() => openRequest(appointment.id, 'CANCEL')}
-                      className="rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-700"
+                      className="min-h-10 rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-700"
                     >
                       {c.requestCancel}
                     </button>
@@ -898,7 +948,7 @@ export default function PatientPortalPage() {
               <button
                 type="submit"
                 disabled={requesting}
-                className="mt-3 min-h-11 rounded-xl bg-gray-950 px-4 text-sm font-semibold text-white disabled:opacity-60"
+                className="mt-3 min-h-11 w-full rounded-xl bg-gray-950 px-4 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
               >
                 {requesting ? c.sending : c.sendRequest}
               </button>
@@ -963,7 +1013,7 @@ export default function PatientPortalPage() {
           {data.consents.length === 0 ? (
             <p className="text-sm text-gray-500">{c.noConsents}</p>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 lg:grid-cols-2">
               {data.consents.map((consent) => (
                 <div key={consent.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                   <p className="font-semibold text-gray-950">{consent.templateTitleSnapshot}</p>
@@ -976,6 +1026,10 @@ export default function PatientPortalPage() {
             </div>
           )}
         </PortalSection>
+        <footer className="mt-auto flex flex-col gap-1 rounded-[1.5rem] border border-white/70 bg-white/70 px-5 py-4 text-xs text-slate-500 shadow-sm backdrop-blur md:flex-row md:items-center md:justify-between">
+          <span>VisionDrive Practice OS</span>
+          <span>{data.practice.name}</span>
+        </footer>
       </div>
     </main>
   )
@@ -991,12 +1045,12 @@ function PortalSection({
   children: ReactNode
 }) {
   return (
-    <section className="rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur md:p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="rounded-2xl bg-orange-50 p-3 text-orange-700">
+    <section className="min-w-0 rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur md:p-6">
+      <div className="mb-4 flex min-w-0 items-center gap-3">
+        <span className="shrink-0 rounded-2xl bg-orange-50 p-3 text-orange-700">
           <Icon className="h-5 w-5" aria-hidden />
         </span>
-        <h2 className="text-lg font-semibold text-gray-950">{title}</h2>
+        <h2 className="min-w-0 text-lg font-semibold text-gray-950">{title}</h2>
       </div>
       {children}
     </section>
@@ -1021,9 +1075,9 @@ function WalletMetric({
   } as const
 
   return (
-    <div className={`rounded-2xl border p-4 ${tones[tone]}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] opacity-70">{label}</p>
-      <p className="mt-2 text-xl font-semibold tracking-tight">{value}</p>
+    <div className={`min-w-0 rounded-2xl border p-4 ${tones[tone]}`}>
+      <p className="break-words text-xs font-semibold uppercase tracking-[0.16em] opacity-70">{label}</p>
+      <p className="mt-2 break-words text-xl font-semibold tracking-tight">{value}</p>
     </div>
   )
 }
@@ -1038,12 +1092,12 @@ function WalletPanel({
   children: ReactNode
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-gray-100 bg-white/80 p-4">
-      <div className="mb-3 flex items-center gap-2 text-gray-950">
-        <span className="rounded-xl bg-gray-50 p-2 text-orange-700">
+    <div className="min-w-0 rounded-[1.5rem] border border-gray-100 bg-white/80 p-4">
+      <div className="mb-3 flex min-w-0 items-center gap-2 text-gray-950">
+        <span className="shrink-0 rounded-xl bg-gray-50 p-2 text-orange-700">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
-        <h3 className="font-semibold">{title}</h3>
+        <h3 className="min-w-0 font-semibold">{title}</h3>
       </div>
       {children}
     </div>

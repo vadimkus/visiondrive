@@ -20,6 +20,7 @@ function SkipToContent() {
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isPortal = pathname?.startsWith('/portal')
+  const isPatientPortal = pathname?.startsWith('/patient-portal')
   const isClinic = pathname?.startsWith('/clinic')
   const isLogin = pathname === '/login'
 
@@ -27,7 +28,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     return <main id="main-content" className="flex-1 min-h-screen">{children}</main>
   }
 
-  if (isPortal || isClinic || isLogin) {
+  if (isPortal || isPatientPortal || isClinic || isLogin) {
     return <main id="main-content" className="min-h-screen w-full min-w-0 flex-1 overflow-x-hidden">{children}</main>
   }
 

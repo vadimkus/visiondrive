@@ -1530,7 +1530,7 @@ function PatientPortalCard({
 
   return (
     <section className="rounded-2xl border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">{t.patientPortalLite}</p>
           <h2 className="mt-1 text-lg font-semibold text-gray-950">{t.patientPortalPrivateLink}</h2>
@@ -1540,7 +1540,7 @@ function PatientPortalCard({
           type="button"
           onClick={createLink}
           disabled={creating}
-          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 lg:w-auto"
+          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
         >
           <Link2 className="h-4 w-4" aria-hidden />
           {creating ? t.creatingEllipsis : t.patientPortalCreateLink}
@@ -1554,7 +1554,7 @@ function PatientPortalCard({
           <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
             {copied ? t.patientPortalCopied : t.patientPortalCopyLink}
           </p>
-          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+          <div className="mt-2 flex flex-col gap-2">
             <input
               readOnly
               value={portalUrl}
@@ -1565,7 +1565,7 @@ function PatientPortalCard({
             <button
               type="button"
               onClick={copyLink}
-              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+              className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 hover:bg-gray-50"
             >
               <Copy className="h-4 w-4" aria-hidden />
               {t.copy}
