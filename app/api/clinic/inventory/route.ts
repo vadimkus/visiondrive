@@ -10,6 +10,11 @@ import {
   parseInjectableBatchMetadata,
   withInjectableBatchMetadata,
 } from '@/lib/clinic/inventory-batches'
+import {
+  parseInventoryCostMeta,
+  stripInventoryCostMeta,
+  withReceiptCostMeta,
+} from '@/lib/clinic/inventory-costing'
 
 export async function GET(request: NextRequest) {
   const session = getClinicSession(request)
@@ -32,13 +37,18 @@ export async function GET(request: NextRequest) {
   })
 
   const filtered = lowOnly ? items.filter((i) => isClinicStockLow(i)) : items
+  const latestUnitCosts = await latestUnitCostByStockItem(
+    session.tenantId,
+    filtered.map((item) => item.id)
+  )
 
   return NextResponse.json({
     items: filtered.map((i) => {
       const batch = parseInjectableBatchMetadata(i.notes)
       return {
         ...i,
-        notes: notesWithoutInjectableBatchMetadata(i.notes),
+        notes: stripInventoryCostMeta(notesWithoutInjectableBatchMetadata(i.notes)),
+        latestUnitCostCents: latestUnitCosts.get(i.id) ?? importedUnitCostCents(i.notes),
         lowStock: isClinicStockLow(i),
         injectableBatch: {
           ...batch,
@@ -47,6 +57,40 @@ export async function GET(request: NextRequest) {
       }
     }),
   })
+}
+
+async function latestUnitCostByStockItem(tenantId: string, stockItemIds: string[]) {
+  if (stockItemIds.length === 0) return new Map<string, number>()
+
+  const movements = await prisma.clinicStockMovement.findMany({
+    where: {
+      stockItemId: { in: stockItemIds },
+      tenantId,
+      quantityDelta: { gt: 0 },
+    },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    select: { stockItemId: true, note: true, createdAt: true },
+  })
+
+  const latest = new Map<string, { cost: number; timestamp: number }>()
+  for (const movement of movements) {
+    const meta = parseInventoryCostMeta(movement.note)
+    if (!meta || meta.unitCostCents <= 0) continue
+    const timestamp = new Date(movement.createdAt).getTime()
+    const current = latest.get(movement.stockItemId)
+    if (!current || timestamp > current.timestamp) {
+      latest.set(movement.stockItemId, { cost: meta.unitCostCents, timestamp })
+    }
+  }
+
+  return new Map(Array.from(latest.entries()).map(([stockItemId, value]) => [stockItemId, value.cost]))
+}
+
+function importedUnitCostCents(notes: string | null) {
+  const match = notes?.match(/^Unit cost:\s*([0-9]+(?:[.,][0-9]+)?)/im)
+  if (!match) return null
+  const amount = Number.parseFloat(match[1].replace(',', '.'))
+  return Number.isFinite(amount) ? Math.round(amount * 100) : null
 }
 
 export async function POST(request: NextRequest) {
@@ -77,6 +121,16 @@ export async function POST(request: NextRequest) {
   let initialQuantity = body.initialQuantity != null ? Number(body.initialQuantity) : 0
   if (!Number.isFinite(initialQuantity) || initialQuantity < 0 || initialQuantity > 1_000_000_000) {
     return NextResponse.json({ error: 'initialQuantity must be a non-negative number' }, { status: 400 })
+  }
+  const initialUnitCostCents =
+    body.initialUnitCostCents != null && body.initialUnitCostCents !== ''
+      ? Number(body.initialUnitCostCents)
+      : null
+  if (
+    initialUnitCostCents != null &&
+    (!Number.isFinite(initialUnitCostCents) || initialUnitCostCents < 0 || initialUnitCostCents > 1_000_000_000)
+  ) {
+    return NextResponse.json({ error: 'initialUnitCostCents must be a non-negative number' }, { status: 400 })
   }
 
   const notes = withInjectableBatchMetadata(
@@ -140,7 +194,7 @@ export async function POST(request: NextRequest) {
             stockItemId: created.id,
             type: 'RECEIPT',
             quantityDelta: delta,
-            note: 'Opening balance',
+            note: withReceiptCostMeta('Opening balance', delta, initialUnitCostCents),
           },
         })
         await tx.clinicStockItem.update({

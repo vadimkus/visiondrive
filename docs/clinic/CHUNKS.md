@@ -1,5 +1,20 @@
 # Implementation log (clinic)
 
+## Chunk 94 — 2026-05-12 (Knowledge Base refresh and gap audit)
+
+**Shipped**
+
+- Updated `/clinic/knowledge-base` EN/RU inventory guidance for unit-of-measure selection, reorder alert thresholds, product import unit columns, and selected stock item deletion.
+- Updated patient/public booking/import guidance for optional date of birth and warning-confirmed patient deletion.
+- Added missing EN/RU Knowledge Base articles for private ICS calendar feed, procedure booking rules, smart waitlist/cancellation fill, and admin user access management.
+- Added `docs/2026-05-12_clinic-kb-refresh-gap-audit.md`.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for the edited Knowledge Base page.
+
+---
+
 ## Chunk 93 — 2026-05-12 (procedure section chevrons)
 
 **Shipped**

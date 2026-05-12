@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ClinicPurchaseOrderStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
+import { withReceiptCostMeta } from '@/lib/clinic/inventory-costing'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function statusAfterReceive(
@@ -119,13 +120,14 @@ export async function POST(
 
         const noteParts = [`PO receive`, refLabel]
         if (receiptNote) noteParts.push(receiptNote)
+        const note = withReceiptCostMeta(noteParts.join(' · '), quantity, line.unitCostCents)
         await tx.clinicStockMovement.create({
           data: {
             tenantId: session.tenantId,
             stockItemId: line.stockItemId,
             type: 'RECEIPT',
             quantityDelta: quantity,
-            note: noteParts.join(' · '),
+            note,
             reference: `PO:${order.id}`,
             createdByUserId: session.userId,
           },

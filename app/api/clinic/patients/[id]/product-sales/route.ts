@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ClinicPaymentMethod, ClinicPaymentStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
+import { fifoCostForConsumption, withFifoCostMeta } from '@/lib/clinic/inventory-costing'
 import { calculateProcessorFeeForPayment, PAYMENT_FEE_METHODS } from '@/lib/clinic/payment-fees'
 import {
   normalizeSalePriceCents,
@@ -209,6 +210,11 @@ export async function POST(
         if (updatedStock.count !== 1) {
           throw new Error(`PRODUCT_SALE_INSUFFICIENT:${stockItem.name}`)
         }
+        const fifoCost = await fifoCostForConsumption(tx, {
+          tenantId: session.tenantId,
+          stockItemId: line.stockItemId,
+          quantity: line.quantity,
+        })
         const movement = await tx.clinicStockMovement.create({
           data: {
             tenantId: session.tenantId,
@@ -216,7 +222,7 @@ export async function POST(
             type: 'CONSUMPTION',
             quantityDelta: -line.quantity,
             reference: productSalePaymentReference(sale.id),
-            note: `Product sale: ${stockItem.name}`,
+            note: withFifoCostMeta(`Product sale: ${stockItem.name}`, fifoCost),
             createdByUserId: session.userId,
           },
         })
@@ -227,6 +233,7 @@ export async function POST(
             stockItemId: line.stockItemId,
             quantity: line.quantity,
             unitPriceCents: line.unitPriceCents,
+            unitCostCents: fifoCost.unitCostCents,
             lineTotalCents: line.quantity * line.unitPriceCents,
             movementId: movement.id,
           },

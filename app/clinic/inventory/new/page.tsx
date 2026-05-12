@@ -11,7 +11,7 @@ type Procedure = { id: string; name: string }
 
 export default function NewStockItemPage() {
   const router = useRouter()
-  const { t } = useClinicLocale()
+  const { locale, t } = useClinicLocale()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [procedures, setProcedures] = useState<Procedure[]>([])
@@ -19,9 +19,10 @@ export default function NewStockItemPage() {
     name: '',
     sku: '',
     barcode: '',
-    unit: 'ml',
+    unit: locale === 'ru' ? 'шт' : 'pcs',
     reorderPoint: '0',
     initialQuantity: '0',
+    initialUnitCost: '',
     consumePerVisit: '0',
     procedureId: '',
     batchNumber: '',
@@ -57,9 +58,12 @@ export default function NewStockItemPage() {
           name: form.name,
           sku: form.sku.trim() || null,
           barcode: form.barcode.trim() || null,
-          unit: form.unit.trim() || 'unit',
+          unit: form.unit.trim() || (locale === 'ru' ? 'шт' : 'pcs'),
           reorderPoint: parseInt(form.reorderPoint, 10) || 0,
           initialQuantity: parseInt(form.initialQuantity, 10) || 0,
+          initialUnitCostCents: form.initialUnitCost.trim()
+            ? Math.max(0, Math.round((Number.parseFloat(form.initialUnitCost.replace(',', '.')) || 0) * 100))
+            : null,
           consumePerVisit: parseInt(form.consumePerVisit, 10) || 0,
           procedureId: form.procedureId || null,
           batchNumber: form.batchNumber.trim() || null,
@@ -162,6 +166,18 @@ export default function NewStockItemPage() {
             onChange={(e) => setForm({ ...form, initialQuantity: e.target.value })}
           />
           <p className="text-xs text-gray-500 mt-1">{t.stockInitialHint}</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.stockMovementUnitCost}</label>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900 min-h-11"
+            value={form.initialUnitCost}
+            onChange={(e) => setForm({ ...form, initialUnitCost: e.target.value })}
+          />
+          <p className="text-xs text-gray-500 mt-1">{t.stockInitialCostHint}</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t.stockLinkProcedure}</label>

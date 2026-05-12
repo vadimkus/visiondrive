@@ -6,10 +6,19 @@ import { useRouter } from 'next/navigation'
 import { useClinicLocale } from '@/lib/clinic/clinic-locale'
 import { ClinicAlert } from '@/components/clinic/ClinicAlert'
 
-type StockRow = { id: string; name: string; unit: string }
+type StockRow = { id: string; name: string; unit: string; latestUnitCostCents: number | null }
 type SupplierRow = { id: string; name: string }
 
-type LineForm = { stockItemId: string; quantityOrdered: string; unitCostCents: string }
+type LineForm = { stockItemId: string; quantityOrdered: string; unitCost: string }
+
+function centsToMajor(cents: number | null | undefined) {
+  return ((cents ?? 0) / 100).toFixed(2)
+}
+
+function parseMajorToCents(value: string) {
+  const parsed = Number.parseFloat(value.replace(',', '.') || '0')
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * 100)) : 0
+}
 
 export default function NewPurchaseOrderPage() {
   const router = useRouter()
@@ -22,7 +31,7 @@ export default function NewPurchaseOrderPage() {
   const [expectedAt, setExpectedAt] = useState('')
   const [notes, setNotes] = useState('')
   const [lines, setLines] = useState<LineForm[]>([
-    { stockItemId: '', quantityOrdered: '1', unitCostCents: '' },
+    { stockItemId: '', quantityOrdered: '1', unitCost: '' },
   ])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -59,7 +68,7 @@ export default function NewPurchaseOrderPage() {
         .filter((l) => l.stockItemId)
         .map((l) => {
           const q = parseInt(l.quantityOrdered, 10) || 0
-          const c = l.unitCostCents.trim() ? parseInt(l.unitCostCents, 10) : null
+          const c = l.unitCost.trim() ? parseMajorToCents(l.unitCost) : null
           return {
             stockItemId: l.stockItemId,
             quantityOrdered: q,
@@ -185,7 +194,7 @@ export default function NewPurchaseOrderPage() {
               type="button"
               className="text-sm font-medium text-orange-600 min-h-11"
               onClick={() =>
-                setLines([...lines, { stockItemId: '', quantityOrdered: '1', unitCostCents: '' }])
+                setLines([...lines, { stockItemId: '', quantityOrdered: '1', unitCost: '' }])
               }
             >
               + {t.poAddLine}
@@ -204,8 +213,14 @@ export default function NewPurchaseOrderPage() {
                     className="w-full rounded-xl border border-gray-200 px-2 py-2 min-h-11 bg-white text-sm"
                     value={line.stockItemId}
                     onChange={(e) => {
+                      const stockItemId = e.target.value
+                      const selected = stock.find((item) => item.id === stockItemId)
                       const next = [...lines]
-                      next[idx] = { ...next[idx], stockItemId: e.target.value }
+                      next[idx] = {
+                        ...next[idx],
+                        stockItemId,
+                        unitCost: selected?.latestUnitCostCents != null ? centsToMajor(selected.latestUnitCostCents) : '',
+                      }
                       setLines(next)
                     }}
                   >
@@ -232,18 +247,20 @@ export default function NewPurchaseOrderPage() {
                   />
                 </div>
                 <div className="sm:col-span-3">
-                  <label className="block text-xs text-gray-600 mb-1">{t.poUnitCostOptional}</label>
+                  <label className="block text-xs text-gray-600 mb-1">{t.poUnitCostAtOrder}</label>
                   <input
                     type="number"
                     min={0}
+                    step="0.01"
                     className="w-full rounded-xl border border-gray-200 px-2 py-2 min-h-11 text-sm"
-                    value={line.unitCostCents}
+                    value={line.unitCost}
                     onChange={(e) => {
                       const next = [...lines]
-                      next[idx] = { ...next[idx], unitCostCents: e.target.value }
+                      next[idx] = { ...next[idx], unitCost: e.target.value }
                       setLines(next)
                     }}
                   />
+                  <p className="mt-1 text-[11px] leading-snug text-gray-500">{t.poUnitCostAtOrderHint}</p>
                 </div>
                 <div className="sm:col-span-1 flex items-end">
                   {lines.length > 1 && (

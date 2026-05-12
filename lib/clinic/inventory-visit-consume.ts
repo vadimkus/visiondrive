@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client'
+import { fifoCostForConsumption, withFifoCostMeta } from '@/lib/clinic/inventory-costing'
 
 export type VisitInventoryDeductionResult = {
   deducted: { itemId: string; name: string; qty: number }[]
@@ -99,13 +100,19 @@ export async function applyProcedureLinkedInventoryDeduction(
       continue
     }
 
+    const fifoCost = await fifoCostForConsumption(tx, {
+      tenantId: params.tenantId,
+      stockItemId: item.itemId,
+      quantity: item.quantityToConsume,
+    })
+
     await tx.clinicStockMovement.create({
       data: {
         tenantId: params.tenantId,
         stockItemId: item.itemId,
         type: 'CONSUMPTION',
         quantityDelta: delta,
-        note: item.movementNote,
+        note: withFifoCostMeta(item.movementNote, fifoCost),
         reference: `APPOINTMENT:${params.appointmentId}`,
         createdByUserId: params.createdByUserId ?? null,
       },

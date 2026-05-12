@@ -7,9 +7,15 @@ import {
   type ProductImportCandidate,
 } from '@/lib/clinic/product-import'
 import type { SpreadsheetCell } from '@/lib/clinic/patient-import'
+import { withReceiptCostMeta } from '@/lib/clinic/inventory-costing'
 import { getClinicSession } from '@/lib/clinic/session'
 
 const MAX_IMPORT_ROWS = 1000
+
+function importUnitCostCents(value: string | null) {
+  const amount = Number.parseFloat(String(value ?? '').replace(',', '.'))
+  return Number.isFinite(amount) ? Math.max(0, Math.round(amount * 100)) : null
+}
 
 function parseCsv(text: string): SpreadsheetCell[][] {
   const rows: SpreadsheetCell[][] = []
@@ -171,7 +177,11 @@ export async function POST(request: NextRequest) {
                     tenantId: session.tenantId,
                     type: 'RECEIPT',
                     quantityDelta: row.initialQuantity,
-                    note: 'Opening balance from import',
+                    note: withReceiptCostMeta(
+                      'Opening balance from import',
+                      row.initialQuantity,
+                      importUnitCostCents(row.unitCost)
+                    ),
                   },
                 }
               : undefined,

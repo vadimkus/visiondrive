@@ -3,6 +3,13 @@ import type { ClinicStockMovementType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { handleLowStockNotificationsForItem } from '@/lib/clinic/inventory-low-stock-notify'
 import { isClinicStockLow } from '@/lib/clinic/inventory'
+import {
+  fifoCostForConsumption,
+  parseInventoryCostMeta,
+  stripInventoryCostMeta,
+  withFifoCostMeta,
+  withReceiptCostMeta,
+} from '@/lib/clinic/inventory-costing'
 import { getClinicSession } from '@/lib/clinic/session'
 
 function parseMovementType(v: string): ClinicStockMovementType | null {
@@ -38,7 +45,13 @@ export async function GET(
     take: limit,
   })
 
-  return NextResponse.json({ movements })
+  return NextResponse.json({
+    movements: movements.map((movement) => ({
+      ...movement,
+      note: stripInventoryCostMeta(movement.note),
+      costMeta: parseInventoryCostMeta(movement.note),
+    })),
+  })
 }
 
 export async function POST(
@@ -69,8 +82,15 @@ export async function POST(
     return NextResponse.json({ error: 'quantityDelta must be a non-zero integer' }, { status: 400 })
   }
 
-  const note = body.note != null ? String(body.note).trim() || null : null
+  let note = body.note != null ? String(body.note).trim() || null : null
   const reference = body.reference != null ? String(body.reference).trim() || null : null
+  const unitCostCents =
+    body.unitCostCents != null && body.unitCostCents !== ''
+      ? Number(body.unitCostCents)
+      : null
+  if (unitCostCents != null && (!Number.isFinite(unitCostCents) || unitCostCents < 0)) {
+    return NextResponse.json({ error: 'unitCostCents must be a non-negative number' }, { status: 400 })
+  }
 
   try {
     const txResult = await prisma.$transaction(async (tx) => {
@@ -87,6 +107,17 @@ export async function POST(
           kind: 'negative' as const,
           quantityOnHand: row.quantityOnHand,
         }
+      }
+
+      if (quantityDelta > 0) {
+        note = withReceiptCostMeta(note, quantityDelta, unitCostCents)
+      } else {
+        const fifoCost = await fifoCostForConsumption(tx, {
+          tenantId: session.tenantId,
+          stockItemId,
+          quantity: Math.abs(quantityDelta),
+        })
+        note = withFifoCostMeta(note, fifoCost)
       }
 
       const movement = await tx.clinicStockMovement.create({
@@ -125,7 +156,11 @@ export async function POST(
 
     return NextResponse.json(
       {
-        movement: txResult.movement,
+        movement: {
+          ...txResult.movement,
+          note: stripInventoryCostMeta(txResult.movement.note),
+          costMeta: parseInventoryCostMeta(txResult.movement.note),
+        },
         item: { ...txResult.item, lowStock: isClinicStockLow(txResult.item) },
       },
       { status: 201 }

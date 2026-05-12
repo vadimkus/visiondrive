@@ -18,6 +18,12 @@ type Movement = {
   note: string | null
   reference: string | null
   createdAt: string
+  costMeta?: {
+    method: 'RECEIPT' | 'FIFO'
+    quantity: number
+    unitCostCents: number
+    totalCostCents: number
+  } | null
 }
 
 type Item = {
@@ -68,8 +74,18 @@ export default function StockItemDetailPage() {
 
   const [movType, setMovType] = useState('RECEIPT')
   const [movDelta, setMovDelta] = useState('1')
+  const [movUnitCost, setMovUnitCost] = useState('')
   const [movNote, setMovNote] = useState('')
   const [movRef, setMovRef] = useState('')
+
+  function formatMoney(cents: number, currency = 'AED') {
+    return `${(cents / 100).toFixed(2)} ${currency}`
+  }
+
+  function parseMajorToCents(value: string) {
+    const parsed = Number.parseFloat(value.replace(',', '.') || '0')
+    return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * 100)) : 0
+  }
 
   const load = useCallback(async () => {
     const [iRes, pRes] = await Promise.all([
@@ -189,6 +205,7 @@ export default function StockItemDetailPage() {
         body: JSON.stringify({
           type: movType,
           quantityDelta: delta,
+          unitCostCents: movUnitCost.trim() ? parseMajorToCents(movUnitCost) : null,
           note: movNote.trim() || null,
           reference: movRef.trim() || null,
         }),
@@ -209,6 +226,7 @@ export default function StockItemDetailPage() {
       )
       setMovNote('')
       setMovRef('')
+      setMovUnitCost('')
     } catch {
       setError(t.networkError)
     } finally {
@@ -297,6 +315,19 @@ export default function StockItemDetailPage() {
               onChange={(e) => setMovDelta(e.target.value)}
             />
           </div>
+          {movType === 'RECEIPT' && (
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">{t.stockMovementUnitCost}</label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 min-h-11"
+                value={movUnitCost}
+                onChange={(e) => setMovUnitCost(e.target.value)}
+              />
+            </div>
+          )}
         </div>
         <p className="text-xs text-gray-500">{t.quantityDeltaHint}</p>
         <div>
@@ -476,6 +507,14 @@ export default function StockItemDetailPage() {
                 <p className="text-gray-500 text-xs mt-0.5">
                   {new Date(m.createdAt).toLocaleString()}
                 </p>
+                {m.costMeta && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    {m.costMeta.method === 'FIFO' ? t.stockMovementFifoCost : t.stockMovementReceiptCost}:{' '}
+                    {formatMoney(m.costMeta.totalCostCents)}
+                    <span className="text-gray-300"> · </span>
+                    {formatMoney(m.costMeta.unitCostCents)} / {item.unit}
+                  </p>
+                )}
                 {(m.note || m.reference) && (
                   <p className="text-gray-700 mt-1 whitespace-pre-wrap">
                     {[m.reference, m.note].filter(Boolean).join(' · ')}

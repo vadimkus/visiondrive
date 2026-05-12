@@ -72,6 +72,7 @@ type StockItem = {
   unit: string
   quantityOnHand: number
   active: boolean
+  latestUnitCostCents: number | null
 }
 
 type MaterialForm = {
@@ -238,6 +239,14 @@ export default function ClinicProceduresPage() {
         ...patch,
       },
     }))
+  }
+
+  function selectMaterialStockItem(procedureId: string, stockItemId: string) {
+    const stockItem = stockItems.find((item) => item.id === stockItemId)
+    updateForm(procedureId, {
+      stockItemId,
+      unitCost: centsToMajor(stockItem?.latestUnitCostCents ?? 0),
+    })
   }
 
   function updateIntakeForm(procedureId: string, patch: Partial<IntakeForm>) {
@@ -1079,13 +1088,17 @@ export default function ClinicProceduresPage() {
                   <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.4fr_0.6fr_0.7fr_1fr_auto]">
                     <select
                       value={form.stockItemId}
-                      onChange={(e) => updateForm(p.id, { stockItemId: e.target.value })}
+                      onChange={(e) => selectMaterialStockItem(p.id, e.target.value)}
                       className="min-h-11 min-w-0 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900"
                     >
                       <option value="">{t.materialItem}</option>
                       {stockItems.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {item.name} ({item.quantityOnHand} {item.unit})
+                          {item.name} ({item.quantityOnHand} {item.unit}
+                          {item.latestUnitCostCents != null
+                            ? ` · ${formatMoney(item.latestUnitCostCents, p.currency)}`
+                            : ''}
+                          )
                         </option>
                       ))}
                     </select>

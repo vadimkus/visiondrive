@@ -10,6 +10,7 @@ import {
   parseInjectableBatchMetadata,
   withInjectableBatchMetadata,
 } from '@/lib/clinic/inventory-batches'
+import { parseInventoryCostMeta, stripInventoryCostMeta } from '@/lib/clinic/inventory-costing'
 
 export async function GET(
   request: NextRequest,
@@ -40,7 +41,12 @@ export async function GET(
   return NextResponse.json({
     item: {
       ...item,
-      notes: notesWithoutInjectableBatchMetadata(item.notes),
+      notes: stripInventoryCostMeta(notesWithoutInjectableBatchMetadata(item.notes)),
+      movements: item.movements.map((movement) => ({
+        ...movement,
+        note: stripInventoryCostMeta(movement.note),
+        costMeta: parseInventoryCostMeta(movement.note),
+      })),
       lowStock: isClinicStockLow(item),
       injectableBatch: {
         ...parseInjectableBatchMetadata(item.notes),
@@ -179,7 +185,7 @@ export async function PATCH(
   return NextResponse.json({
     item: {
       ...item,
-      notes: notesWithoutInjectableBatchMetadata(item.notes),
+      notes: stripInventoryCostMeta(notesWithoutInjectableBatchMetadata(item.notes)),
       lowStock: isClinicStockLow(item),
       injectableBatch: {
         ...parseInjectableBatchMetadata(item.notes),

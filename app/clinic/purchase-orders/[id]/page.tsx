@@ -28,6 +28,10 @@ type Order = {
   lines: Line[]
 }
 
+function formatMoney(cents: number, currency = 'AED') {
+  return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
 export default function PurchaseOrderDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -291,6 +295,13 @@ export default function PurchaseOrderDetailPage() {
                   <p className="text-gray-800">
                     {t.poReceivedProgress}: {l.quantityReceived} / {l.quantityOrdered}
                   </p>
+                  {l.unitCostCents != null && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      {t.poUnitCostAtOrder}: {formatMoney(l.unitCostCents)}
+                      <span className="text-gray-300"> · </span>
+                      {formatMoney(l.quantityOrdered * l.unitCostCents)}
+                    </p>
+                  )}
                 </div>
               </div>
             </li>
