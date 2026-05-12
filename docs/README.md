@@ -149,6 +149,7 @@
 | [2026-05-12_clinic-procedure-card-edit-accordion.md](2026-05-12_clinic-procedure-card-edit-accordion.md) | Procedure catalog accordion and editable procedure card |
 | [2026-05-12_clinic-inventory-fifo-costing.md](2026-05-12_clinic-inventory-fifo-costing.md) | Inventory receipt cost snapshots and FIFO write-off costing |
 | [2026-05-12_clinic-kb-refresh-gap-audit.md](2026-05-12_clinic-kb-refresh-gap-audit.md) | Knowledge Base refresh for latest workflow changes and missing coverage audit |
+| [2026-05-12_clinic-kb-en-ru-translation-review.md](2026-05-12_clinic-kb-en-ru-translation-review.md) | Knowledge Base EN/RU translation review and copy polish |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |
