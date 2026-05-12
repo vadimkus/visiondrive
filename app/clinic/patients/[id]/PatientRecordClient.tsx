@@ -574,6 +574,19 @@ function tagLabel(t: ReturnType<typeof useClinicLocale>['t'], tag: PatientTag) {
   return t.tagLatePayer
 }
 
+function isTagDuplicateOfCategory(category: PatientCategory | null, tag: PatientTag) {
+  if (!category) return false
+  const categoryTagMap: Record<PatientCategory, PatientTag> = {
+    VIP: 'vip',
+    REGULAR: 'regular',
+    NEW: 'new',
+    SENSITIVE: 'sensitive',
+    HIGH_RISK: 'high-risk',
+  }
+
+  return categoryTagMap[category] === tag
+}
+
 function ageFromDob(iso: string | null) {
   if (!iso) return null
   const d = new Date(iso)
@@ -897,6 +910,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   }
 
   const age = ageFromDob(patient.dateOfBirth)
+  const headerTags = patient.tags.filter((tag) => !isTagDuplicateOfCategory(patient.category, tag)).slice(0, 3)
   const tabs: { id: Tab; label: string; icon: typeof Calendar; count: number | null }[] = [
     { id: 'overview', label: t.overview, icon: ClipboardList, count: null },
     { id: 'timeline', label: t.timeline, icon: Clock, count: timelineItems.length },
@@ -942,7 +956,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
                         {categoryLabel(t, patient.category)}
                       </span>
                     )}
-                    {patient.tags.slice(0, 3).map((tag) => (
+                    {headerTags.map((tag) => (
                       <span key={tag} className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
                         {tagLabel(t, tag)}
                       </span>
@@ -970,7 +984,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
             <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <InfoTile icon={PhoneCall} label={t.phoneLabel} value={patient.phone || t.emptyValue} href={patient.phone ? `tel:${patient.phone}` : undefined} />
               <InfoTile icon={Mail} label={t.emailLabel} value={patient.email || t.emptyValue} href={patient.email ? `mailto:${patient.email}` : undefined} />
-              <InfoTile icon={MapPin} label={t.area} value={patient.area || t.emptyValue} />
+              <InfoTile icon={CreditCard} label={t.totalPaid} value={formatMoney(patient.clientBalance.paidCents, patient.clientBalance.currency)} />
               <InfoTile icon={Clock} label={t.upcomingScheduled} value={nextAppointment ? new Date(nextAppointment.startsAt).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' }) : t.emptyValue} />
             </div>
           </div>
