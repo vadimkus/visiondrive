@@ -529,14 +529,17 @@ export default function ClinicShell({ children }: { children: React.ReactNode })
           className="group flex min-h-24 items-center gap-4 rounded-[2rem] border border-orange-100/70 bg-white/75 p-3 shadow-lg shadow-orange-100/30 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:shadow-orange-100/50"
           aria-label={t.dashboard}
         >
-          <span className="flex w-20 shrink-0 items-center justify-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-[1.65rem] bg-gradient-to-br from-orange-50 via-white to-amber-50 text-2xl font-black tracking-[-0.04em] text-orange-700 shadow-sm ring-1 ring-orange-100 transition group-hover:ring-orange-200">
-              {workspaceInitials}
+          <span className="flex w-20 shrink-0 flex-col items-center gap-1.5">
+            <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1.65rem] bg-white shadow-sm ring-1 ring-orange-100 transition group-hover:ring-orange-200">
+              <Logo className="h-12 w-12" priority />
+            </span>
+            <span className="text-[11px] font-semibold leading-none tracking-tight text-slate-600">
+              Vision<span className="text-orange-500">Drive</span>
             </span>
           </span>
           <span className="min-w-0">
             <span className="block truncate text-[21px] font-semibold leading-tight tracking-[-0.03em] text-slate-950">
-              {workspaceTitle}
+              {workspaceInitials}
             </span>
             <span className="mt-1 block truncate text-sm font-medium leading-tight text-slate-500">
               {workspaceSubtitle}

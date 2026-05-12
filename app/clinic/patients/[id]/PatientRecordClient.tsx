@@ -1364,16 +1364,30 @@ function DesktopTabHeader({
 
 function BalanceSummaryCard({ balance }: { balance: ClientBalance }) {
   const { t } = useClinicLocale()
+  const [showHint, setShowHint] = useState(false)
 
   return (
     <section className={clsx('rounded-2xl border p-5 shadow-sm', balanceTone(balance))}>
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide opacity-75">{t.clientBalance}</p>
           <p className="mt-1 text-xl font-semibold">{balanceLabel(t, balance)}</p>
         </div>
-        <p className="text-xs opacity-70 sm:max-w-xs">{t.balanceHint}</p>
+        <button
+          type="button"
+          onClick={() => setShowHint((current) => !current)}
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-current/20 text-sm font-bold opacity-75 transition hover:opacity-100"
+          aria-label={t.balanceHint}
+          aria-expanded={showHint}
+        >
+          ?
+        </button>
       </div>
+      {showHint && (
+        <p className="mt-3 rounded-xl border border-current/10 bg-white/55 p-3 text-sm leading-relaxed opacity-80">
+          {t.balanceHint}
+        </p>
+      )}
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
         <div>
           <dt className="opacity-70">{t.balanceExpected}</dt>
@@ -1474,7 +1488,7 @@ function PatientPortalCard({
 
   return (
     <section className="rounded-2xl border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">{t.patientPortalLite}</p>
           <h2 className="mt-1 text-lg font-semibold text-gray-950">{t.patientPortalPrivateLink}</h2>
@@ -1484,7 +1498,7 @@ function PatientPortalCard({
           type="button"
           onClick={createLink}
           disabled={creating}
-          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
+          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 lg:w-auto"
         >
           <Link2 className="h-4 w-4" aria-hidden />
           {creating ? t.creatingEllipsis : t.patientPortalCreateLink}
