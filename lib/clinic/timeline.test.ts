@@ -42,6 +42,39 @@ describe('buildTimelineItems', () => {
     expect(items[1].kind).toBe('payment')
     expect(items.length).toBe(4)
   })
+
+  it('combines same-time visit procedures into one timeline row', () => {
+    const items = buildTimelineItems(
+      [],
+      [
+        {
+          id: 'visit-1',
+          visitAt: '2026-05-12T14:17:00.000Z',
+          status: 'COMPLETED',
+          chiefComplaint: null,
+          procedureSummary: 'Radiesse средняя треть и нижняя треть',
+        },
+        {
+          id: 'visit-2',
+          visitAt: '2026-05-12T14:17:00.000Z',
+          status: 'COMPLETED',
+          chiefComplaint: null,
+          procedureSummary: 'Fibro NCT 135 HA лицо',
+        },
+      ],
+      [],
+      [],
+      'ru-RU'
+    )
+
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      kind: 'visit',
+      refId: undefined,
+      label: 'Визит · Завершён',
+      detail: 'Radiesse средняя треть и нижняя треть · Fibro NCT 135 HA лицо',
+    })
+  })
 })
 
 describe('filterTimelineItems', () => {

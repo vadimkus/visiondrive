@@ -158,6 +158,7 @@
 | [2026-05-12_clinic-purchase-order-edit-mode.md](2026-05-12_clinic-purchase-order-edit-mode.md) | Purchase order detail edit mode and received-line lock rule |
 | [2026-05-13_clinic-patient-signed-questionnaire.md](2026-05-13_clinic-patient-signed-questionnaire.md) | Patient-card signed doctor questionnaire |
 | [2026-05-13_clinic-visit-multiple-procedure-actions.md](2026-05-13_clinic-visit-multiple-procedure-actions.md) | Patient visit add-procedure and save-visit actions |
+| [2026-05-13_clinic-patient-timeline-visit-grouping.md](2026-05-13_clinic-patient-timeline-visit-grouping.md) | Patient history grouping for same-time multi-procedure visits |
 | [2026-04-29_clinic-public-practitioner-profile.md](2026-04-29_clinic-public-practitioner-profile.md) | Superseded public practitioner profile note |
 | [2026-04-28_clinic-dormant-patient-reactivation.md](2026-04-28_clinic-dormant-patient-reactivation.md) | Clinic dormant patient reactivation note |
 | [2026-04-27_clinic-patient-portal-lite.md](2026-04-27_clinic-patient-portal-lite.md) | Clinic patient portal lite note |

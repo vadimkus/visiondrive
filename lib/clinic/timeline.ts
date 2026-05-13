@@ -98,6 +98,16 @@ function formatTimelineLabel(kind: Exclude<TimelineFilter, 'all'>, status: strin
   return `${formatKind(kind, locale)} · ${formatStatus(status, locale)}`
 }
 
+function visitGroupKey(visit: VisitInput) {
+  const date = new Date(visit.visitAt)
+  const minute = Number.isNaN(date.getTime()) ? visit.visitAt : date.toISOString().slice(0, 16)
+  return `${minute}|${visit.status}`
+}
+
+function compactUnique(values: string[]) {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))]
+}
+
 export function buildTimelineItems(
   appointments: AppointmentInput[],
   visits: VisitInput[],
@@ -125,15 +135,25 @@ export function buildTimelineItems(
     })
   }
 
-  for (const v of visits) {
-    const sort = new Date(v.visitAt).getTime()
+  const visitGroups = new Map<string, VisitInput[]>()
+  for (const visit of visits) {
+    const key = visitGroupKey(visit)
+    visitGroups.set(key, [...(visitGroups.get(key) ?? []), visit])
+  }
+
+  for (const group of visitGroups.values()) {
+    const firstVisit = group[0]
+    const sort = new Date(firstVisit.visitAt).getTime()
+    const details = compactUnique(
+      group.map((visit) => visit.procedureSummary || visit.chiefComplaint || '')
+    )
     items.push({
       sort,
       kind: 'visit',
-      refId: v.id,
-      label: formatTimelineLabel('visit', v.status, locale),
-      detail: v.procedureSummary || v.chiefComplaint || (timelineLanguage(locale) === 'ru' ? 'Визит' : 'Encounter'),
-      meta: new Date(v.visitAt).toLocaleString(locale, {
+      refId: group.length === 1 ? firstVisit.id : undefined,
+      label: formatTimelineLabel('visit', firstVisit.status, locale),
+      detail: details.join(' · ') || (timelineLanguage(locale) === 'ru' ? 'Визит' : 'Encounter'),
+      meta: new Date(firstVisit.visitAt).toLocaleString(locale, {
         weekday: 'short',
         day: 'numeric',
         month: 'short',

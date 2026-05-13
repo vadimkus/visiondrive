@@ -1,5 +1,20 @@
 # Implementation log (clinic)
 
+## Chunk 100 — 2026-05-13 (patient timeline visit grouping)
+
+**Shipped**
+
+- Updated patient timeline construction so multiple completed visit rows with the same visit date/time and status are displayed as one `Visit` row.
+- Combined unique procedure summaries into a single detail line, so a multi-procedure visit shows once with one date instead of repeating separate timeline cards.
+- Kept the change display-only: underlying visit records, payments, media, stock movements, and CRM links are not merged or rewritten.
+- Added focused Vitest coverage for same-time multi-procedure visit grouping in RU locale.
+
+**Validation**
+
+- Run `npx vitest run lib/clinic/timeline.test.ts`, `npm run type-check`, and linter diagnostics for `lib/clinic/timeline.ts`.
+
+---
+
 ## Chunk 99 — 2026-05-13 (patient portal link chevron)
 
 **Shipped**
