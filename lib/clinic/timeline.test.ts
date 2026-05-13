@@ -75,6 +75,33 @@ describe('buildTimelineItems', () => {
       detail: 'Radiesse средняя треть и нижняя треть · Fibro NCT 135 HA лицо',
     })
   })
+
+  it('shows pending visit charges as outstanding debt in Russian history', () => {
+    const items = buildTimelineItems(
+      [],
+      [],
+      [
+        {
+          id: 'charge-visit-1',
+          paidAt: '2026-05-13T09:00:00.000Z',
+          status: 'PENDING',
+          amountCents: 80000,
+          currency: 'AED',
+          method: 'OTHER',
+          reference: 'VISIT_CHARGE:visit-1',
+        },
+      ],
+      [],
+      'ru-RU'
+    )
+
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      kind: 'payment',
+      label: 'Платёж · Ожидает оплаты',
+      detail: 'Ожидает оплаты 800.00 AED · Долг 800.00 AED',
+    })
+  })
 })
 
 describe('filterTimelineItems', () => {

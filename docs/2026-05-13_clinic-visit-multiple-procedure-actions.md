@@ -17,6 +17,7 @@ Iryna's workflow needs one patient visit to contain several procedure lines:
 - Added procedure-line billing fields: procedure price, paid amount, and payment method.
 - The visit summary now records the line-by-line procedure billing plus visit total, paid amount, debt, or credit/deposit.
 - Visit billing creates a pending charge for the visit total and paid payment records for collected amounts, allowing the patient balance card to show outstanding debt or credit/deposit.
+- The patient history timeline now renders unpaid visit charges as `Ожидает оплаты ... · Долг ...` instead of a generic `OTHER` payment row.
 - Added EN/RU confirmation copy after adding a procedure.
 - After `Save visit`, the patient card offers `Make next appointment` / `Сделать следующую запись`.
 - The next-appointment panel opens a month calendar, then lets staff choose time, procedure, and duration before creating a manual appointment through the existing appointments API.

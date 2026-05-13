@@ -37,6 +37,7 @@ type PaymentInput = {
   amountCents: number
   currency: string
   method: string
+  reference?: string | null
 }
 
 type CrmInput = {
@@ -96,6 +97,18 @@ function formatKind(kind: Exclude<TimelineFilter, 'all'>, locale: string) {
 
 function formatTimelineLabel(kind: Exclude<TimelineFilter, 'all'>, status: string, locale: string) {
   return `${formatKind(kind, locale)} · ${formatStatus(status, locale)}`
+}
+
+function formatDebtLabel(locale: string) {
+  return timelineLanguage(locale) === 'ru' ? 'Долг' : 'Outstanding'
+}
+
+function formatPendingLabel(locale: string) {
+  return timelineLanguage(locale) === 'ru' ? 'Ожидает оплаты' : 'Pending'
+}
+
+function isVisitCharge(reference: string | null | undefined) {
+  return reference?.startsWith('VISIT_CHARGE:')
 }
 
 function visitGroupKey(visit: VisitInput) {
@@ -166,12 +179,16 @@ export function buildTimelineItems(
   for (const pmt of payments) {
     const sort = new Date(pmt.paidAt).getTime()
     const major = (pmt.amountCents / 100).toFixed(2)
+    const amount = `${major} ${pmt.currency}`
+    const detail = isVisitCharge(pmt.reference) && pmt.status.toUpperCase() === 'PENDING'
+      ? `${formatPendingLabel(locale)} ${amount} · ${formatDebtLabel(locale)} ${amount}`
+      : `${amount} · ${pmt.method}`
     items.push({
       sort,
       kind: 'payment',
       refId: pmt.id,
       label: formatTimelineLabel('payment', pmt.status, locale),
-      detail: `${major} ${pmt.currency} · ${pmt.method}`,
+      detail,
       meta: new Date(pmt.paidAt).toLocaleDateString(locale, {
         day: 'numeric',
         month: 'short',
