@@ -18,6 +18,9 @@ Iryna's workflow needs one patient visit to contain several procedure lines:
 - The visit summary now records the line-by-line procedure billing plus visit total, paid amount, debt, or credit/deposit.
 - Visit billing creates a pending charge for the visit total and paid payment records for collected amounts, allowing the patient balance card to show outstanding debt or credit/deposit.
 - Added EN/RU confirmation copy after adding a procedure.
+- After `Save visit`, the patient card offers `Make next appointment` / `Сделать следующую запись`.
+- The next-appointment panel opens a month calendar, then lets staff choose time, procedure, and duration before creating a manual appointment through the existing appointments API.
+- Patient quick actions were moved out of the header and collapsed below it by default, keeping the patient card cleaner on iPad.
 - Added an inline `Procedure map and photos` / `Разметка процедуры и фото` block inside the visit form.
 - The practitioner can draw the face/procedure map and stage `Before` / `After` photos without leaving the visit form.
 - Each staged procedure line carries its own pending face map and before/after photos. When `Save visit` creates the visit, all staged media uploads with that new `visitId`.

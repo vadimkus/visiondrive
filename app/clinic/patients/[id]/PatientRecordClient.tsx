@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Calendar,
+  CalendarPlus,
   CreditCard,
   MessageSquare,
   Camera,
@@ -106,6 +107,8 @@ type VisitProcedureOption = {
   active: boolean
   basePriceCents: number
   currency: string
+  defaultDurationMin?: number
+  bookingPolicyType?: string
   materials?: Array<{ id: string; active: boolean; quantityPerVisit: number }>
 }
 
@@ -125,6 +128,35 @@ function defaultVisitDateTimeInput() {
   const d = new Date()
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
   return d.toISOString().slice(0, 16)
+}
+
+function dateToInputValue(date: Date) {
+  const local = new Date(date)
+  local.setMinutes(local.getMinutes() - local.getTimezoneOffset())
+  return local.toISOString().slice(0, 10)
+}
+
+function defaultNextAppointmentDateInput() {
+  const d = new Date()
+  d.setDate(d.getDate() + 14)
+  return dateToInputValue(d)
+}
+
+function monthInputFromDateInput(value: string) {
+  return value.slice(0, 7) || dateToInputValue(new Date()).slice(0, 7)
+}
+
+function appointmentMonthDays(monthInput: string) {
+  const [yearRaw, monthRaw] = monthInput.split('-').map((part) => Number.parseInt(part, 10))
+  const year = Number.isFinite(yearRaw) ? yearRaw : new Date().getFullYear()
+  const monthIndex = Number.isFinite(monthRaw) ? monthRaw - 1 : new Date().getMonth()
+  const first = new Date(year, monthIndex, 1)
+  const leadingBlanks = (first.getDay() + 6) % 7
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+  return [
+    ...Array.from({ length: leadingBlanks }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, index) => dateToInputValue(new Date(year, monthIndex, index + 1))),
+  ]
 }
 
 function openOfflineMediaDb() {
@@ -838,6 +870,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const [editOpen, setEditOpen] = useState(false)
   const [savingPatient, setSavingPatient] = useState(false)
   const [deletingPatient, setDeletingPatient] = useState(false)
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false)
   const [selectedTimelineVisitId, setSelectedTimelineVisitId] = useState<string | null>(null)
 
   const [editFirst, setEditFirst] = useState('')
@@ -1071,7 +1104,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
       <DoctorQuestionnaireCard patient={patient} onRefresh={load} />
 
       <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-xl shadow-slate-200/60 backdrop-blur">
-        <div className="grid xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div>
           <div className="p-5 sm:p-6 lg:p-8">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex min-w-0 gap-4">
@@ -1116,26 +1149,42 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
             </div>
           </div>
 
-          <aside className="border-t border-white/10 bg-slate-950 py-5 pl-5 pr-9 text-white xl:border-l xl:border-t-0 xl:py-6 xl:pl-6 xl:pr-11">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">{t.quickActions}</p>
-            <div className="mt-4 grid gap-2">
-              <ActionTile href={`/api/clinic/patients/${patient.id}/summary-pdf?locale=${locale}`} icon={FileDown} label={t.downloadPatientSummaryPdf} external />
-              <ActionTile href={`/api/clinic/patients/${patient.id}/patient-safe-export`} icon={ShieldCheck} label={t.downloadPatientSafeExportPdf} external />
-              <ActionTile href={`/api/clinic/patients/${patient.id}/export`} icon={FileDown} label={t.downloadPatientFullExport} />
-              <button
-                type="button"
-                onClick={() => void deletePatientRecord()}
-                disabled={deletingPatient}
-                className="mr-2 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 text-left text-sm font-semibold text-red-100 transition hover:bg-red-500/20 disabled:opacity-60"
-              >
-                <span className="inline-flex items-center gap-3">
-                  <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
-                  {deletingPatient ? t.deletingEllipsis : t.deletePatientRecord}
-                </span>
-              </button>
-            </div>
-          </aside>
         </div>
+      </section>
+
+      <section className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => setQuickActionsOpen((value) => !value)}
+          className="flex w-full min-h-14 items-center justify-between gap-3 px-5 text-left"
+        >
+          <span>
+            <span className="block text-sm font-semibold text-slate-950">{t.quickActions}</span>
+            <span className="mt-0.5 block text-xs text-slate-500">{t.quickActionsCollapsedHint}</span>
+          </span>
+          <ChevronDown
+            className={clsx('h-5 w-5 text-slate-400 transition-transform', quickActionsOpen && 'rotate-180')}
+            aria-hidden
+          />
+        </button>
+        {quickActionsOpen && (
+          <div className="grid gap-2 border-t border-slate-100 bg-slate-950 p-4 text-white sm:grid-cols-2 xl:grid-cols-4">
+            <ActionTile href={`/api/clinic/patients/${patient.id}/summary-pdf?locale=${locale}`} icon={FileDown} label={t.downloadPatientSummaryPdf} external />
+            <ActionTile href={`/api/clinic/patients/${patient.id}/patient-safe-export`} icon={ShieldCheck} label={t.downloadPatientSafeExportPdf} external />
+            <ActionTile href={`/api/clinic/patients/${patient.id}/export`} icon={FileDown} label={t.downloadPatientFullExport} />
+            <button
+              type="button"
+              onClick={() => void deletePatientRecord()}
+              disabled={deletingPatient}
+              className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 text-left text-sm font-semibold text-red-100 transition hover:bg-red-500/20 disabled:opacity-60"
+            >
+              <span className="inline-flex items-center gap-3">
+                <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+                {deletingPatient ? t.deletingEllipsis : t.deletePatientRecord}
+              </span>
+            </button>
+          </div>
+        )}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_25rem]">
@@ -2186,6 +2235,18 @@ function OverviewTab({
   const [procedurePrice, setProcedurePrice] = useState('')
   const [procedurePaid, setProcedurePaid] = useState('')
   const [procedurePaymentMethod, setProcedurePaymentMethod] = useState('CASH')
+  const [nextAppointmentPrompt, setNextAppointmentPrompt] = useState(false)
+  const [nextAppointmentOpen, setNextAppointmentOpen] = useState(false)
+  const [nextAppointmentDate, setNextAppointmentDate] = useState(defaultNextAppointmentDateInput)
+  const [nextAppointmentMonth, setNextAppointmentMonth] = useState(() =>
+    monthInputFromDateInput(defaultNextAppointmentDateInput())
+  )
+  const [nextAppointmentTime, setNextAppointmentTime] = useState('10:00')
+  const [nextAppointmentProcedureId, setNextAppointmentProcedureId] = useState('')
+  const [nextAppointmentDuration, setNextAppointmentDuration] = useState('60')
+  const [nextAppointmentBookingPolicyAccepted, setNextAppointmentBookingPolicyAccepted] = useState(false)
+  const [nextAppointmentSaving, setNextAppointmentSaving] = useState(false)
+  const [nextAppointmentMessage, setNextAppointmentMessage] = useState('')
   const aiRecognitionRef = useRef<BrowserSpeechRecognition | null>(null)
   const activeTreatmentPlans = patient.treatmentPlans.filter((plan) =>
     ['ACTIVE', 'PAUSED'].includes(plan.status)
@@ -2521,6 +2582,71 @@ function OverviewTab({
     }).join('\n\n')
   }
 
+  const selectedNextAppointmentProcedure = visitProcedures.find((procedure) => procedure.id === nextAppointmentProcedureId) ?? null
+  const nextAppointmentRequiresPolicy =
+    selectedNextAppointmentProcedure != null && (selectedNextAppointmentProcedure.bookingPolicyType ?? 'NONE') !== 'NONE'
+
+  const changeNextAppointmentMonth = (delta: number) => {
+    const [yearRaw, monthRaw] = nextAppointmentMonth.split('-').map((part) => Number.parseInt(part, 10))
+    const next = new Date(yearRaw, monthRaw - 1 + delta, 1)
+    setNextAppointmentMonth(dateToInputValue(next).slice(0, 7))
+  }
+
+  const selectNextAppointmentProcedure = (procedureId: string) => {
+    setNextAppointmentProcedureId(procedureId)
+    setNextAppointmentBookingPolicyAccepted(false)
+    const procedure = visitProcedures.find((candidate) => candidate.id === procedureId)
+    if (procedure?.defaultDurationMin) {
+      setNextAppointmentDuration(String(procedure.defaultDurationMin))
+    }
+  }
+
+  const createNextAppointment = async () => {
+    const start = new Date(`${nextAppointmentDate}T${nextAppointmentTime || '10:00'}`)
+    if (Number.isNaN(start.getTime())) {
+      setNextAppointmentMessage(t.invalidDateTime)
+      return
+    }
+    const duration = Math.max(5, Number.parseInt(nextAppointmentDuration || '60', 10) || 60)
+    const end = new Date(start.getTime() + duration * 60_000)
+
+    setNextAppointmentSaving(true)
+    setNextAppointmentMessage('')
+    try {
+      const res = await fetch('/api/clinic/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          patientId: patient.id,
+          procedureId: nextAppointmentProcedureId || undefined,
+          startsAt: start.toISOString(),
+          endsAt: end.toISOString(),
+          bookingPolicyAccepted: nextAppointmentBookingPolicyAccepted,
+          titleOverride: nextAppointmentProcedureId ? undefined : t.followUpAppointment,
+          source: 'MANUAL',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (res.status === 409) {
+          setNextAppointmentMessage(t.nextAppointmentConflict)
+        } else {
+          setNextAppointmentMessage(data.error || t.saveFailed)
+        }
+        return
+      }
+      setNextAppointmentMessage(t.nextAppointmentSaved)
+      setNextAppointmentOpen(false)
+      setNextAppointmentPrompt(false)
+      await onVisitLogged()
+    } catch {
+      setNextAppointmentMessage(t.networkError)
+    } finally {
+      setNextAppointmentSaving(false)
+    }
+  }
+
   const importScratchpadDraft = () => {
     if (!scratchpadDraft.trim()) return
     setSummary((current) => (current.trim() ? `${current.trim()}\n\n${scratchpadDraft.trim()}` : scratchpadDraft.trim()))
@@ -2785,6 +2911,8 @@ function OverviewTab({
       }
       setDraftSavedAt(null)
       setVisitSaveMessage((current) => current || t.offlineVisitDraftSynced)
+      setNextAppointmentPrompt(true)
+      setNextAppointmentMessage('')
       await onVisitLogged()
     } catch {
       setVisitSaveMessage(t.offlineVisitDraftKept)
@@ -2797,6 +2925,10 @@ function OverviewTab({
     e.preventDefault()
     await saveVisitEntry({ keepAdding: false })
   }
+
+  const nextAppointmentDays = appointmentMonthDays(nextAppointmentMonth)
+  const nextAppointmentWeekdays =
+    locale === 'ru' ? ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
   return (
     <div className="space-y-6">
@@ -3516,6 +3648,141 @@ function OverviewTab({
           </button>
         </div>
       </form>
+
+      {(nextAppointmentPrompt || nextAppointmentOpen || nextAppointmentMessage) && (
+        <section className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-base font-semibold text-slate-950">{t.nextAppointmentAfterVisitTitle}</p>
+              <p className="mt-1 text-sm text-slate-500">{t.nextAppointmentAfterVisitHint}</p>
+              {nextAppointmentMessage && (
+                <p className="mt-2 text-sm font-medium text-orange-700">{nextAppointmentMessage}</p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setNextAppointmentOpen((value) => !value)
+                setNextAppointmentPrompt(true)
+              }}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white transition hover:bg-orange-600"
+            >
+              <CalendarPlus className="h-4 w-4" aria-hidden />
+              {t.makeNextAppointment}
+            </button>
+          </div>
+
+          {nextAppointmentOpen && (
+            <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => changeNextAppointmentMonth(-1)}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
+                  >
+                    {t.prevMonth}
+                  </button>
+                  <p className="text-sm font-semibold text-slate-950">
+                    {new Date(`${nextAppointmentMonth}-01T00:00:00`).toLocaleDateString(dateLocale, {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => changeNextAppointmentMonth(1)}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700"
+                  >
+                    {t.nextMonth}
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-500">
+                  {nextAppointmentWeekdays.map((weekday) => (
+                    <span key={weekday}>{weekday}</span>
+                  ))}
+                </div>
+                <div className="mt-2 grid grid-cols-7 gap-1">
+                  {nextAppointmentDays.map((day, index) =>
+                    day ? (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => setNextAppointmentDate(day)}
+                        className={clsx(
+                          'min-h-11 rounded-xl text-sm font-semibold transition',
+                          day === nextAppointmentDate
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-white text-slate-700 hover:bg-orange-50'
+                        )}
+                      >
+                        {Number.parseInt(day.slice(-2), 10)}
+                      </button>
+                    ) : (
+                      <span key={`blank-${index}`} />
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+                <label className="block">
+                  <span className="mb-1 block text-sm font-medium text-slate-700">{t.appointmentTime}</span>
+                  <input
+                    type="time"
+                    value={nextAppointmentTime}
+                    onChange={(e) => setNextAppointmentTime(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-3 text-base"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm font-medium text-slate-700">{t.procedureOptional}</span>
+                  <select
+                    value={nextAppointmentProcedureId}
+                    onChange={(e) => selectNextAppointmentProcedure(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-base"
+                  >
+                    <option value="">{t.emptyValue}</option>
+                    {visitProcedures.map((procedure) => (
+                      <option key={procedure.id} value={procedure.id}>
+                        {procedure.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm font-medium text-slate-700">{t.durationMinutes}</span>
+                  <input
+                    value={nextAppointmentDuration}
+                    onChange={(e) => setNextAppointmentDuration(e.target.value)}
+                    inputMode="numeric"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-3 text-base"
+                  />
+                </label>
+                {nextAppointmentRequiresPolicy && (
+                  <label className="flex items-start gap-3 rounded-xl border border-orange-100 bg-orange-50 p-3 text-sm text-orange-950">
+                    <input
+                      type="checkbox"
+                      checked={nextAppointmentBookingPolicyAccepted}
+                      onChange={(e) => setNextAppointmentBookingPolicyAccepted(e.target.checked)}
+                      className="mt-1"
+                    />
+                    <span>{t.bookingPolicyAccepted}</span>
+                  </label>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void createNextAppointment()}
+                  disabled={nextAppointmentSaving}
+                  className="w-full rounded-xl bg-slate-950 py-3 font-semibold text-white disabled:opacity-60"
+                >
+                  {nextAppointmentSaving ? t.savingEllipsis : t.createAppointment}
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-3">{t.recentAppointments}</h2>
