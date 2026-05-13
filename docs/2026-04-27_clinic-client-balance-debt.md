@@ -23,6 +23,7 @@ Context: implemented the first item from the Altegio home-visit adaptation map: 
 - Linked `REFUNDED` payments reduce paid value.
 - Linked or standalone `PENDING` payments count as due.
 - Standalone `PAID` payments count as patient credit/deposit.
+- Manual visit charges use `VISIT_CHARGE:<visitId>` and only payments with matching `VISIT_PAYMENT:<sameVisitId>` reduce that specific charge. Paid rows from older visits must not clear a new unpaid visit.
 - `VOID` payments are ignored.
 
 ## Notes

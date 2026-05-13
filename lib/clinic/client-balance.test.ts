@@ -64,6 +64,36 @@ describe('clinic client balance', () => {
     expect(summary.dueCents).toBe(12000)
   })
 
+  it('does not use one visit payment to clear another visit charge', () => {
+    const summary = buildClientBalanceSummary({
+      charges: [],
+      standalonePayments: [
+        { id: 'paid-visit-1', amountCents: 80000, currency: 'AED', status: 'PAID', reference: 'VISIT_PAYMENT:visit-1' },
+        { id: 'charge-visit-2', amountCents: 80000, currency: 'AED', status: 'PENDING', reference: 'VISIT_CHARGE:visit-2' },
+      ],
+    })
+
+    expect(summary.status).toBe('DEBT')
+    expect(summary.paidCents).toBe(80000)
+    expect(summary.pendingCents).toBe(80000)
+    expect(summary.dueCents).toBe(80000)
+  })
+
+  it('clears a visit charge only with matching visit payments', () => {
+    const summary = buildClientBalanceSummary({
+      charges: [],
+      standalonePayments: [
+        { id: 'charge-visit-1', amountCents: 80000, currency: 'AED', status: 'PENDING', reference: 'VISIT_CHARGE:visit-1' },
+        { id: 'paid-visit-1', amountCents: 80000, currency: 'AED', status: 'PAID', reference: 'VISIT_PAYMENT:visit-1' },
+      ],
+    })
+
+    expect(summary.status).toBe('CLEAR')
+    expect(summary.paidCents).toBe(80000)
+    expect(summary.pendingCents).toBe(0)
+    expect(summary.dueCents).toBe(0)
+  })
+
   it('does not treat package sale payments as patient deposit credit', () => {
     const summary = buildClientBalanceSummary({
       charges: [],

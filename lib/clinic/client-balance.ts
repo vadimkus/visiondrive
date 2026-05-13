@@ -52,6 +52,11 @@ function normalizeCurrency(value: string | null | undefined) {
   return value?.trim().toUpperCase() || null
 }
 
+function visitReferenceId(reference: string | null | undefined, prefix: 'VISIT_CHARGE:' | 'VISIT_PAYMENT:') {
+  if (!reference?.startsWith(prefix)) return null
+  return reference.slice(prefix.length).trim() || null
+}
+
 function paymentTotals(payments: ClientBalancePayment[]) {
   let paidCents = 0
   let refundedCents = 0
@@ -127,7 +132,66 @@ export function buildClientBalanceSummary({
     (payment) =>
       !isPackagePaymentReference(payment.reference) && !isProductSalePaymentReference(payment.reference)
   )
-  const standaloneTotals = paymentTotals(balanceStandalonePayments)
+
+  const visitChargeRows = balanceStandalonePayments.filter((payment) =>
+    visitReferenceId(payment.reference, 'VISIT_CHARGE:')
+  )
+  const visitPaymentRows = balanceStandalonePayments.filter((payment) =>
+    visitReferenceId(payment.reference, 'VISIT_PAYMENT:')
+  )
+  const visitPaymentRowsByVisitId = new Map<string, ClientBalancePayment[]>()
+  for (const payment of visitPaymentRows) {
+    const visitId = visitReferenceId(payment.reference, 'VISIT_PAYMENT:')
+    if (!visitId) continue
+    visitPaymentRowsByVisitId.set(visitId, [...(visitPaymentRowsByVisitId.get(visitId) ?? []), payment])
+  }
+
+  const handledVisitPaymentIds = new Set<string>()
+  for (const charge of visitChargeRows) {
+    const visitId = visitReferenceId(charge.reference, 'VISIT_CHARGE:')
+    if (!visitId) continue
+    const chargeExpectedCents = positiveCents(charge.amountCents)
+    const matchingPayments = visitPaymentRowsByVisitId.get(visitId) ?? []
+    const totals = paymentTotals(matchingPayments)
+    const netPaidCents = totals.paidCents - totals.refundedCents
+    const outstandingCents = Math.max(chargeExpectedCents - netPaidCents, 0)
+
+    currency = normalizeCurrency(charge.currency) ?? normalizeCurrency(matchingPayments[0]?.currency) ?? currency
+    expectedCents += chargeExpectedCents
+    paidCents += totals.paidCents
+    refundedCents += totals.refundedCents
+    pendingCents += outstandingCents
+    grossDueCents += outstandingCents
+    rawCreditCents += Math.max(netPaidCents - chargeExpectedCents, 0)
+    for (const payment of matchingPayments) {
+      if (payment.id) handledVisitPaymentIds.add(payment.id)
+      if (payment.paidAt) {
+        const paidAt = payment.paidAt instanceof Date ? payment.paidAt : new Date(payment.paidAt)
+        if (!Number.isNaN(paidAt.getTime())) {
+          const iso = paidAt.toISOString()
+          if (!lastPaymentAt || iso > lastPaymentAt) lastPaymentAt = iso
+        }
+      }
+    }
+  }
+
+  const unlinkedVisitPaymentRows = visitPaymentRows.filter(
+    (payment) => !payment.id || !handledVisitPaymentIds.has(payment.id)
+  )
+  const unlinkedVisitPaymentTotals = paymentTotals(unlinkedVisitPaymentRows)
+  paidCents += unlinkedVisitPaymentTotals.paidCents
+  refundedCents += unlinkedVisitPaymentTotals.refundedCents
+  if (unlinkedVisitPaymentTotals.lastPaymentAt && (!lastPaymentAt || unlinkedVisitPaymentTotals.lastPaymentAt > lastPaymentAt)) {
+    lastPaymentAt = unlinkedVisitPaymentTotals.lastPaymentAt
+  }
+
+  const standaloneTotals = paymentTotals(
+    balanceStandalonePayments.filter(
+      (payment) =>
+        !visitReferenceId(payment.reference, 'VISIT_CHARGE:') &&
+        !visitReferenceId(payment.reference, 'VISIT_PAYMENT:')
+    )
+  )
   paidCents += standaloneTotals.paidCents
   refundedCents += standaloneTotals.refundedCents
   pendingCents += standaloneTotals.pendingCents
