@@ -39,6 +39,10 @@ export async function POST(request: NextRequest) {
     body.treatmentPlanId != null && String(body.treatmentPlanId).trim()
       ? String(body.treatmentPlanId).trim()
       : null
+  const procedureId =
+    body.procedureId != null && String(body.procedureId).trim()
+      ? String(body.procedureId).trim()
+      : null
 
   if (!patientId || !visitAtRaw) {
     return NextResponse.json({ error: 'patientId and visitAt are required' }, { status: 400 })
@@ -85,6 +89,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Treatment plan not found for this patient' }, { status: 400 })
     }
   }
+  const selectedProcedure = procedureId
+    ? await prisma.clinicProcedure.findFirst({
+      where: { id: procedureId, tenantId: session.tenantId, active: true },
+      select: { id: true, name: true },
+    })
+    : null
+  if (procedureId && !selectedProcedure) {
+    return NextResponse.json({ error: 'Procedure not found for this practice' }, { status: 400 })
+  }
 
   const statusRaw = body.status != null ? String(body.status) : 'COMPLETED'
   const status = parseVisitStatus(statusRaw)
@@ -118,8 +131,8 @@ export async function POST(request: NextRequest) {
         id: aftercareTemplateId,
         tenantId: session.tenantId,
         active: true,
-        ...(appointment?.procedureId
-          ? { OR: [{ procedureId: appointment.procedureId }, { procedureId: null }] }
+        ...((appointment?.procedureId ?? selectedProcedure?.id)
+          ? { OR: [{ procedureId: appointment?.procedureId ?? selectedProcedure?.id }, { procedureId: null }] }
           : {}),
       },
       include: { procedure: { select: { id: true, name: true } } },
@@ -131,7 +144,7 @@ export async function POST(request: NextRequest) {
       template.messageBody || '',
       {
         patient,
-        procedure: appointment?.procedure ?? template.procedure,
+        procedure: appointment?.procedure ?? selectedProcedure ?? template.procedure,
         titleOverride: appointment?.titleOverride ?? null,
         visitAt,
       },
@@ -190,10 +203,12 @@ export async function POST(request: NextRequest) {
       skipped: [] as { itemId: string; name: string; reason: string }[],
     }
 
-    if (visit.status === 'COMPLETED' && appointmentId) {
+    if (visit.status === 'COMPLETED' && (appointmentId || procedureId)) {
       inventoryDeduction = await applyProcedureLinkedInventoryDeduction(tx, {
         tenantId: session.tenantId,
         appointmentId,
+        procedureId,
+        visitId: visit.id,
         createdByUserId: session.userId,
       })
       visit = await tx.clinicVisit.update({
@@ -220,6 +235,10 @@ export async function POST(request: NextRequest) {
           createdAt: true,
         },
       })
+      if (!appointmentId) {
+        return { visit, inventoryDeduction, packageDeduction: { deducted: null, skipped: null } }
+      }
+
       await tx.clinicAppointment.update({
         where: { id: appointmentId },
         data: { status: ClinicAppointmentStatus.COMPLETED, completedAt: new Date() },

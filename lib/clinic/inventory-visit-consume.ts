@@ -15,25 +15,31 @@ type ConsumptionLine = {
 }
 
 /**
- * For a completed visit with an appointment that has a procedure: deduct the
- * procedure BOM if configured; otherwise fall back to legacy stock item links.
+ * For a completed visit with a selected procedure: deduct the procedure BOM if
+ * configured; otherwise fall back to legacy stock item links.
  */
 export async function applyProcedureLinkedInventoryDeduction(
   tx: Prisma.TransactionClient,
-  params: { tenantId: string; appointmentId: string | null; createdByUserId?: string | null }
+  params: {
+    tenantId: string
+    appointmentId: string | null
+    procedureId?: string | null
+    visitId?: string | null
+    createdByUserId?: string | null
+  }
 ): Promise<VisitInventoryDeductionResult> {
   const deducted: VisitInventoryDeductionResult['deducted'] = []
   const skipped: VisitInventoryDeductionResult['skipped'] = []
 
-  if (!params.appointmentId) {
-    return { deducted, skipped }
+  let procedureId = params.procedureId?.trim() || null
+  if (!procedureId && params.appointmentId) {
+    const appt = await tx.clinicAppointment.findFirst({
+      where: { id: params.appointmentId, tenantId: params.tenantId },
+      select: { procedureId: true },
+    })
+    procedureId = appt?.procedureId ?? null
   }
-
-  const appt = await tx.clinicAppointment.findFirst({
-    where: { id: params.appointmentId, tenantId: params.tenantId },
-    select: { procedureId: true },
-  })
-  if (!appt?.procedureId) {
+  if (!procedureId) {
     return { deducted, skipped }
   }
 
@@ -41,7 +47,7 @@ export async function applyProcedureLinkedInventoryDeduction(
     where: {
       tenantId: params.tenantId,
       active: true,
-      procedureId: appt.procedureId,
+      procedureId,
       quantityPerVisit: { gt: 0 },
     },
     include: { stockItem: true },
@@ -64,7 +70,7 @@ export async function applyProcedureLinkedInventoryDeduction(
             where: {
               tenantId: params.tenantId,
               active: true,
-              procedureId: appt.procedureId,
+              procedureId,
               consumePerVisit: { gt: 0 },
             },
           })
@@ -113,7 +119,11 @@ export async function applyProcedureLinkedInventoryDeduction(
         type: 'CONSUMPTION',
         quantityDelta: delta,
         note: withFifoCostMeta(item.movementNote, fifoCost),
-        reference: `APPOINTMENT:${params.appointmentId}`,
+        reference: params.visitId
+          ? `VISIT:${params.visitId}`
+          : params.appointmentId
+            ? `APPOINTMENT:${params.appointmentId}`
+            : `PROCEDURE:${procedureId}`,
         createdByUserId: params.createdByUserId ?? null,
       },
     })

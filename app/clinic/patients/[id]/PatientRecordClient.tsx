@@ -60,6 +60,7 @@ const OFFLINE_MEDIA_STORE = 'mediaDrafts'
 type OfflineVisitDraft = {
   patientId: string
   visitAt: string
+  procedureId?: string
   chiefComplaint: string
   procedureSummary: string
   nextSteps: string
@@ -94,6 +95,13 @@ type PendingVisitPhoto = {
 type PendingVisitFaceMap = {
   blob: Blob
   metadata: FaceMapMetadata
+}
+
+type VisitProcedureOption = {
+  id: string
+  name: string
+  active: boolean
+  materials?: Array<{ id: string; active: boolean; quantityPerVisit: number }>
 }
 
 function defaultVisitDateTimeInput() {
@@ -2136,8 +2144,10 @@ function OverviewTab({
   const [summary, setSummary] = useState('')
   const [nextSteps, setNextSteps] = useState('')
   const [staffNotes, setStaffNotes] = useState('')
+  const [selectedProcedureId, setSelectedProcedureId] = useState('')
   const [treatmentPlanId, setTreatmentPlanId] = useState('')
   const [aftercareTemplates, setAftercareTemplates] = useState<AftercareTemplateRow[]>([])
+  const [visitProcedures, setVisitProcedures] = useState<VisitProcedureOption[]>([])
   const [aftercareTemplateId, setAftercareTemplateId] = useState('')
   const [logging, setLogging] = useState(false)
   const [online, setOnline] = useState(true)
@@ -2164,11 +2174,19 @@ function OverviewTab({
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const res = await fetch('/api/clinic/aftercare-templates', { credentials: 'include' })
-      if (!res.ok) return
-      const data = await res.json()
+      const [aftercareRes, proceduresRes] = await Promise.all([
+        fetch('/api/clinic/aftercare-templates', { credentials: 'include' }),
+        fetch('/api/clinic/procedures', { credentials: 'include' }),
+      ])
       if (!cancelled) {
-        setAftercareTemplates((data.templates || []).filter((template: AftercareTemplateRow) => template.active))
+        if (aftercareRes.ok) {
+          const data = await aftercareRes.json()
+          setAftercareTemplates((data.templates || []).filter((template: AftercareTemplateRow) => template.active))
+        }
+        if (proceduresRes.ok) {
+          const data = await proceduresRes.json()
+          setVisitProcedures((data.procedures || []).filter((procedure: VisitProcedureOption) => procedure.active))
+        }
       }
     })()
     return () => {
@@ -2275,6 +2293,7 @@ function OverviewTab({
       setSummary('')
       setNextSteps('')
       setStaffNotes('')
+      setSelectedProcedureId('')
       setTreatmentPlanId('')
       setAftercareTemplateId('')
     }
@@ -2288,6 +2307,7 @@ function OverviewTab({
           setSummary(typeof draft.procedureSummary === 'string' ? draft.procedureSummary : '')
           setNextSteps(typeof draft.nextSteps === 'string' ? draft.nextSteps : '')
           setStaffNotes(typeof draft.staffNotes === 'string' ? draft.staffNotes : '')
+          setSelectedProcedureId(typeof draft.procedureId === 'string' ? draft.procedureId : '')
           setTreatmentPlanId(typeof draft.treatmentPlanId === 'string' ? draft.treatmentPlanId : '')
           setAftercareTemplateId(typeof draft.aftercareTemplateId === 'string' ? draft.aftercareTemplateId : '')
           setDraftSavedAt(typeof draft.updatedAt === 'string' ? draft.updatedAt : null)
@@ -2315,6 +2335,7 @@ function OverviewTab({
       summary.trim() ||
       nextSteps.trim() ||
       staffNotes.trim() ||
+      selectedProcedureId ||
       treatmentPlanId ||
       aftercareTemplateId
 
@@ -2328,6 +2349,7 @@ function OverviewTab({
       const draft: OfflineVisitDraft = {
         patientId: patient.id,
         visitAt,
+        procedureId: selectedProcedureId,
         chiefComplaint: chief,
         procedureSummary: summary,
         nextSteps,
@@ -2348,6 +2370,7 @@ function OverviewTab({
     nextSteps,
     offlineDraftKey,
     patient.id,
+    selectedProcedureId,
     staffNotes,
     summary,
     treatmentPlanId,
@@ -2355,6 +2378,9 @@ function OverviewTab({
   ])
 
   const selectedAftercareTemplate = aftercareTemplates.find((template) => template.id === aftercareTemplateId)
+  const selectedVisitProcedure = visitProcedures.find((procedure) => procedure.id === selectedProcedureId) ?? null
+  const selectedVisitProcedureMaterialCount =
+    selectedVisitProcedure?.materials?.filter((material) => material.active && material.quantityPerVisit > 0).length ?? 0
   const pendingVisitMediaCount = pendingVisitPhotos.length + (pendingVisitFaceMap ? 1 : 0)
 
   function toggleTag(tag: PatientTag) {
@@ -2363,6 +2389,14 @@ function OverviewTab({
         ? editTags.filter((item) => item !== tag)
         : [...editTags, tag]
     )
+  }
+
+  const selectVisitProcedure = (procedureId: string) => {
+    setSelectedProcedureId(procedureId)
+    const procedure = visitProcedures.find((candidate) => candidate.id === procedureId)
+    if (procedure && !summary.trim()) {
+      setSummary(procedure.name)
+    }
   }
 
   const importScratchpadDraft = () => {
@@ -2383,6 +2417,7 @@ function OverviewTab({
     setSummary('')
     setNextSteps('')
     setStaffNotes('')
+    setSelectedProcedureId('')
     setTreatmentPlanId('')
     setAftercareTemplateId('')
     setPendingVisitPhotos([])
@@ -2504,6 +2539,7 @@ function OverviewTab({
     setSummary('')
     setNextSteps('')
     setStaffNotes('')
+    setSelectedProcedureId('')
     setTreatmentPlanId('')
     setAftercareTemplateId('')
   }
@@ -2522,6 +2558,7 @@ function OverviewTab({
           visitAt: iso,
           chiefComplaint: chief || null,
           procedureSummary: summary || null,
+          procedureId: selectedProcedureId || null,
           nextSteps: nextSteps || null,
           staffNotes: staffNotes || null,
           treatmentPlanId: treatmentPlanId || null,
@@ -3024,6 +3061,30 @@ function OverviewTab({
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.procedureSummary}</label>
+          {visitProcedures.length > 0 && (
+            <div className="mb-3 rounded-2xl border border-orange-100 bg-orange-50/70 p-3">
+              <label className="block text-sm font-medium text-orange-950 mb-1">{t.visitProcedureSelect}</label>
+              <select
+                value={selectedProcedureId}
+                onChange={(e) => selectVisitProcedure(e.target.value)}
+                className="w-full rounded-xl border border-orange-100 bg-white px-3 py-2.5 text-base text-slate-900"
+              >
+                <option value="">{t.noProcedureSelected}</option>
+                {visitProcedures.map((procedure) => (
+                  <option key={procedure.id} value={procedure.id}>
+                    {procedure.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-xs text-orange-800">
+                {selectedProcedureId
+                  ? selectedVisitProcedureMaterialCount > 0
+                    ? t.procedureInventoryAutoDeduct.replace('{count}', String(selectedVisitProcedureMaterialCount))
+                    : t.procedureInventoryNoMaterials
+                  : t.procedureInventorySelectHint}
+              </p>
+            </div>
+          )}
           <textarea
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
