@@ -43,6 +43,12 @@ export async function POST(request: NextRequest) {
     body.procedureId != null && String(body.procedureId).trim()
       ? String(body.procedureId).trim()
       : null
+  const procedureIds = Array.isArray(body.procedureIds)
+    ? body.procedureIds.map((value) => String(value).trim()).filter(Boolean)
+    : procedureId
+      ? [procedureId]
+      : []
+  const uniqueProcedureIds = Array.from(new Set(procedureIds))
 
   if (!patientId || !visitAtRaw) {
     return NextResponse.json({ error: 'patientId and visitAt are required' }, { status: 400 })
@@ -89,15 +95,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Treatment plan not found for this patient' }, { status: 400 })
     }
   }
-  const selectedProcedure = procedureId
-    ? await prisma.clinicProcedure.findFirst({
-      where: { id: procedureId, tenantId: session.tenantId, active: true },
+  const selectedProcedures = uniqueProcedureIds.length > 0
+    ? await prisma.clinicProcedure.findMany({
+      where: { id: { in: uniqueProcedureIds }, tenantId: session.tenantId, active: true },
       select: { id: true, name: true },
     })
-    : null
-  if (procedureId && !selectedProcedure) {
+    : []
+  if (uniqueProcedureIds.length > 0 && selectedProcedures.length !== uniqueProcedureIds.length) {
     return NextResponse.json({ error: 'Procedure not found for this practice' }, { status: 400 })
   }
+  const selectedProcedure = selectedProcedures[0] ?? null
 
   const statusRaw = body.status != null ? String(body.status) : 'COMPLETED'
   const status = parseVisitStatus(statusRaw)
@@ -203,14 +210,19 @@ export async function POST(request: NextRequest) {
       skipped: [] as { itemId: string; name: string; reason: string }[],
     }
 
-    if (visit.status === 'COMPLETED' && (appointmentId || procedureId)) {
-      inventoryDeduction = await applyProcedureLinkedInventoryDeduction(tx, {
-        tenantId: session.tenantId,
-        appointmentId,
-        procedureId,
-        visitId: visit.id,
-        createdByUserId: session.userId,
-      })
+    if (visit.status === 'COMPLETED' && (appointmentId || procedureIds.length > 0)) {
+      const procedureIdsToDeduct = procedureIds.length > 0 ? procedureIds : [null]
+      for (const selectedProcedureId of procedureIdsToDeduct) {
+        const result = await applyProcedureLinkedInventoryDeduction(tx, {
+          tenantId: session.tenantId,
+          appointmentId,
+          procedureId: selectedProcedureId,
+          visitId: visit.id,
+          createdByUserId: session.userId,
+        })
+        inventoryDeduction.deducted.push(...result.deducted)
+        inventoryDeduction.skipped.push(...result.skipped)
+      }
       visit = await tx.clinicVisit.update({
         where: { id: visit.id },
         data: { inventoryConsumedAt: new Date() },

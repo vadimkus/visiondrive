@@ -61,6 +61,9 @@ type OfflineVisitDraft = {
   patientId: string
   visitAt: string
   procedureId?: string
+  procedurePrice?: string
+  procedurePaid?: string
+  procedurePaymentMethod?: string
   chiefComplaint: string
   procedureSummary: string
   nextSteps: string
@@ -101,7 +104,21 @@ type VisitProcedureOption = {
   id: string
   name: string
   active: boolean
+  basePriceCents: number
+  currency: string
   materials?: Array<{ id: string; active: boolean; quantityPerVisit: number }>
+}
+
+type PendingVisitProcedureLine = {
+  id: string
+  procedureId: string | null
+  procedureName: string
+  summary: string
+  priceCents: number
+  paidCents: number
+  paymentMethod: string
+  photos: PendingVisitPhoto[]
+  faceMap: PendingVisitFaceMap | null
 }
 
 function defaultVisitDateTimeInput() {
@@ -1023,7 +1040,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
   const age = ageFromDob(patient.dateOfBirth)
   const headerTags = patient.tags.filter((tag) => !isTagDuplicateOfCategory(patient.category, tag)).slice(0, 3)
   const tabs: { id: Tab; label: string; icon: typeof Calendar; count: number | null }[] = [
-    { id: 'overview', label: t.overview, icon: ClipboardList, count: null },
+    { id: 'overview', label: t.visitTab, icon: ClipboardList, count: null },
     { id: 'timeline', label: t.timeline, icon: Clock, count: timelineItems.length },
     { id: 'photos', label: t.photos, icon: Camera, count: patient.media.length },
     { id: 'quotes', label: t.priceQuotes, icon: Send, count: patient.priceQuotes.length },
@@ -2165,6 +2182,10 @@ function OverviewTab({
   const [visitFaceMapOpen, setVisitFaceMapOpen] = useState(false)
   const [visitFaceMapSaving, setVisitFaceMapSaving] = useState(false)
   const [pendingVisitFaceMap, setPendingVisitFaceMap] = useState<PendingVisitFaceMap | null>(null)
+  const [visitProcedureLines, setVisitProcedureLines] = useState<PendingVisitProcedureLine[]>([])
+  const [procedurePrice, setProcedurePrice] = useState('')
+  const [procedurePaid, setProcedurePaid] = useState('')
+  const [procedurePaymentMethod, setProcedurePaymentMethod] = useState('CASH')
   const aiRecognitionRef = useRef<BrowserSpeechRecognition | null>(null)
   const activeTreatmentPlans = patient.treatmentPlans.filter((plan) =>
     ['ACTIVE', 'PAUSED'].includes(plan.status)
@@ -2294,6 +2315,12 @@ function OverviewTab({
       setNextSteps('')
       setStaffNotes('')
       setSelectedProcedureId('')
+      setProcedurePrice('')
+      setProcedurePaid('')
+      setProcedurePaymentMethod('CASH')
+      setVisitProcedureLines([])
+      setPendingVisitPhotos([])
+      setPendingVisitFaceMap(null)
       setTreatmentPlanId('')
       setAftercareTemplateId('')
     }
@@ -2308,6 +2335,9 @@ function OverviewTab({
           setNextSteps(typeof draft.nextSteps === 'string' ? draft.nextSteps : '')
           setStaffNotes(typeof draft.staffNotes === 'string' ? draft.staffNotes : '')
           setSelectedProcedureId(typeof draft.procedureId === 'string' ? draft.procedureId : '')
+          setProcedurePrice(typeof draft.procedurePrice === 'string' ? draft.procedurePrice : '')
+          setProcedurePaid(typeof draft.procedurePaid === 'string' ? draft.procedurePaid : '')
+          setProcedurePaymentMethod(typeof draft.procedurePaymentMethod === 'string' ? draft.procedurePaymentMethod : 'CASH')
           setTreatmentPlanId(typeof draft.treatmentPlanId === 'string' ? draft.treatmentPlanId : '')
           setAftercareTemplateId(typeof draft.aftercareTemplateId === 'string' ? draft.aftercareTemplateId : '')
           setDraftSavedAt(typeof draft.updatedAt === 'string' ? draft.updatedAt : null)
@@ -2336,6 +2366,8 @@ function OverviewTab({
       nextSteps.trim() ||
       staffNotes.trim() ||
       selectedProcedureId ||
+      procedurePrice.trim() ||
+      procedurePaid.trim() ||
       treatmentPlanId ||
       aftercareTemplateId
 
@@ -2350,6 +2382,9 @@ function OverviewTab({
         patientId: patient.id,
         visitAt,
         procedureId: selectedProcedureId,
+        procedurePrice,
+        procedurePaid,
+        procedurePaymentMethod,
         chiefComplaint: chief,
         procedureSummary: summary,
         nextSteps,
@@ -2370,6 +2405,9 @@ function OverviewTab({
     nextSteps,
     offlineDraftKey,
     patient.id,
+    procedurePaid,
+    procedurePaymentMethod,
+    procedurePrice,
     selectedProcedureId,
     staffNotes,
     summary,
@@ -2382,6 +2420,13 @@ function OverviewTab({
   const selectedVisitProcedureMaterialCount =
     selectedVisitProcedure?.materials?.filter((material) => material.active && material.quantityPerVisit > 0).length ?? 0
   const pendingVisitMediaCount = pendingVisitPhotos.length + (pendingVisitFaceMap ? 1 : 0)
+  const stagedProcedureTotals = visitProcedureLines.reduce(
+    (totals, line) => ({
+      priceCents: totals.priceCents + line.priceCents,
+      paidCents: totals.paidCents + line.paidCents,
+    }),
+    { priceCents: 0, paidCents: 0 }
+  )
 
   function toggleTag(tag: PatientTag) {
     setEditTags(
@@ -2397,6 +2442,83 @@ function OverviewTab({
     if (procedure && !summary.trim()) {
       setSummary(procedure.name)
     }
+    if (procedure && !procedurePrice.trim() && procedure.basePriceCents > 0) {
+      setProcedurePrice((procedure.basePriceCents / 100).toFixed(2))
+    }
+  }
+
+  const moneyInputToCents = (value: string) => {
+    const parsed = Number.parseFloat(value || '0')
+    return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : 0
+  }
+
+  const clearCurrentProcedureFields = () => {
+    setSelectedProcedureId('')
+    setSummary('')
+    setProcedurePrice('')
+    setProcedurePaid('')
+    setProcedurePaymentMethod('CASH')
+    setPendingVisitPhotos([])
+    setPendingVisitFaceMap(null)
+    setVisitFaceMapOpen(false)
+  }
+
+  const buildCurrentProcedureLine = (): PendingVisitProcedureLine | null => {
+    const procedure = selectedProcedureId
+      ? visitProcedures.find((candidate) => candidate.id === selectedProcedureId) ?? null
+      : null
+    const cleanSummary = summary.trim()
+    const priceCents = moneyInputToCents(procedurePrice)
+    const paidCents = moneyInputToCents(procedurePaid)
+    const hasMedia = pendingVisitPhotos.length > 0 || pendingVisitFaceMap !== null
+    if (!procedure && !cleanSummary && priceCents === 0 && paidCents === 0 && !hasMedia) return null
+
+    return {
+      id: `${Date.now()}:${Math.random().toString(36).slice(2)}`,
+      procedureId: procedure?.id ?? null,
+      procedureName: procedure?.name ?? (cleanSummary || t.manualProcedure),
+      summary: cleanSummary || procedure?.name || '',
+      priceCents,
+      paidCents,
+      paymentMethod: procedurePaymentMethod,
+      photos: pendingVisitPhotos,
+      faceMap: pendingVisitFaceMap,
+    }
+  }
+
+  const addProcedureLine = () => {
+    const line = buildCurrentProcedureLine()
+    if (!line) {
+      setVisitSaveMessage(t.visitProcedureLineRequired)
+      return
+    }
+    setVisitProcedureLines((current) => [...current, line])
+    clearCurrentProcedureFields()
+    setVisitSaveMessage(t.procedureAddedToVisit)
+  }
+
+  const visitLinesForSave = () => {
+    const currentLine = buildCurrentProcedureLine()
+    return currentLine ? [...visitProcedureLines, currentLine] : visitProcedureLines
+  }
+
+  const formatVisitLineSummary = (lines: PendingVisitProcedureLine[]) => {
+    return lines.map((line, index) => {
+      const balance = line.paidCents - line.priceCents
+      const balanceLabel =
+        balance < 0
+          ? `${t.balanceDebt}: ${formatMoney(Math.abs(balance), 'AED')}`
+          : balance > 0
+            ? `${t.balanceCredit}: ${formatMoney(balance, 'AED')}`
+            : t.balanceClear
+      return [
+        `${index + 1}. ${line.procedureName}`,
+        line.summary && line.summary !== line.procedureName ? line.summary : null,
+        `${t.procedurePrice}: ${formatMoney(line.priceCents, 'AED')}`,
+        `${t.paid}: ${formatMoney(line.paidCents, 'AED')} · ${line.paymentMethod}`,
+        balanceLabel,
+      ].filter(Boolean).join('\n')
+    }).join('\n\n')
   }
 
   const importScratchpadDraft = () => {
@@ -2422,6 +2544,7 @@ function OverviewTab({
     setAftercareTemplateId('')
     setPendingVisitPhotos([])
     setPendingVisitFaceMap(null)
+    setVisitProcedureLines([])
     setVisitSaveMessage(t.offlineVisitDraftCleared)
     try {
       window.localStorage.removeItem(offlineDraftKey)
@@ -2445,43 +2568,89 @@ function OverviewTab({
     ])
   }
 
-  const uploadVisitMedia = async (visitId: string) => {
-    const procedureName = summary.trim() || null
-    for (const photo of pendingVisitPhotos) {
-      const fd = new FormData()
-      fd.append('file', photo.file)
-      fd.append('kind', photo.kind)
-      fd.append('visitId', visitId)
-      fd.append('caption', photo.kind === 'BEFORE' ? t.photoKindBefore : t.photoKindAfter)
-      fd.append('protocolChecked', JSON.stringify(['same_lighting', 'same_angle']))
-      if (procedureName) fd.append('protocolProcedureName', procedureName)
-      const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
+  const uploadVisitMedia = async (visitId: string, lines: PendingVisitProcedureLine[]) => {
+    for (const line of lines) {
+      for (const photo of line.photos) {
+        const fd = new FormData()
+        fd.append('file', photo.file)
+        fd.append('kind', photo.kind)
+        fd.append('visitId', visitId)
+        fd.append('caption', `${line.procedureName} · ${photo.kind === 'BEFORE' ? t.photoKindBefore : t.photoKindAfter}`)
+        fd.append('protocolChecked', JSON.stringify(['same_lighting', 'same_angle']))
+        fd.append('protocolProcedureName', line.procedureName)
+        const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
+          method: 'POST',
+          body: fd,
+          credentials: 'include',
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || t.uploadFailed)
+        }
+      }
+
+      if (line.faceMap) {
+        const fd = new FormData()
+        fd.append('file', line.faceMap.blob, `visit-face-map-${Date.now()}.png`)
+        fd.append('kind', 'OTHER')
+        fd.append('visitId', visitId)
+        fd.append('caption', `${line.procedureName} · ${t.faceMapCaptionPrefix}`)
+        fd.append('faceMap', JSON.stringify(line.faceMap.metadata))
+        fd.append('protocolProcedureName', line.procedureName)
+        const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
+          method: 'POST',
+          body: fd,
+          credentials: 'include',
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || t.faceMapSaveFailed)
+        }
+      }
+    }
+  }
+
+  const saveVisitPayments = async (visitId: string, lines: PendingVisitProcedureLine[]) => {
+    const totalPriceCents = lines.reduce((sum, line) => sum + line.priceCents, 0)
+    if (totalPriceCents > 0) {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/payments`, {
         method: 'POST',
-        body: fd,
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: JSON.stringify({
+          amountCents: totalPriceCents,
+          currency: 'AED',
+          method: 'OTHER',
+          status: 'PENDING',
+          note: `${t.visitTotal}: ${formatMoney(totalPriceCents, 'AED')}`,
+          reference: `VISIT_CHARGE:${visitId}`,
+          paidAt: new Date().toISOString(),
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
-        throw new Error(data.error || t.uploadFailed)
+        throw new Error(data.error || t.operationFailed)
       }
     }
 
-    if (pendingVisitFaceMap) {
-      const fd = new FormData()
-      fd.append('file', pendingVisitFaceMap.blob, `visit-face-map-${Date.now()}.png`)
-      fd.append('kind', 'OTHER')
-      fd.append('visitId', visitId)
-      fd.append('caption', `${t.faceMapCaptionPrefix} · ${new Date().toLocaleString(dateLocale)}`)
-      fd.append('faceMap', JSON.stringify(pendingVisitFaceMap.metadata))
-      if (procedureName) fd.append('protocolProcedureName', procedureName)
-      const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
+    for (const line of lines.filter((candidate) => candidate.paidCents > 0)) {
+      const res = await fetch(`/api/clinic/patients/${patient.id}/payments`, {
         method: 'POST',
-        body: fd,
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: JSON.stringify({
+          amountCents: line.paidCents,
+          currency: 'AED',
+          method: line.paymentMethod,
+          status: 'PAID',
+          note: `${t.visitPaymentForProcedure}: ${line.procedureName}`,
+          reference: `VISIT_PAYMENT:${visitId}`,
+          paidAt: new Date().toISOString(),
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
-        throw new Error(data.error || t.faceMapSaveFailed)
+        throw new Error(data.error || t.operationFailed)
       }
     }
   }
@@ -2536,15 +2705,42 @@ function OverviewTab({
 
   const clearVisitProcedureFields = () => {
     setChief('')
-    setSummary('')
+    clearCurrentProcedureFields()
     setNextSteps('')
     setStaffNotes('')
-    setSelectedProcedureId('')
     setTreatmentPlanId('')
     setAftercareTemplateId('')
   }
 
   const saveVisitEntry = async ({ keepAdding }: { keepAdding: boolean }) => {
+    if (keepAdding) {
+      addProcedureLine()
+      return
+    }
+
+    const lines = visitLinesForSave()
+    if (lines.length === 0 && !chief.trim() && !nextSteps.trim() && !staffNotes.trim()) {
+      setVisitSaveMessage(t.visitProcedureLineRequired)
+      return
+    }
+
+    const totalPriceCents = lines.reduce((sum, line) => sum + line.priceCents, 0)
+    const totalPaidCents = lines.reduce((sum, line) => sum + line.paidCents, 0)
+    const totalBalanceCents = totalPaidCents - totalPriceCents
+    const financialSummary =
+      totalPriceCents > 0 || totalPaidCents > 0
+        ? [
+            `${t.visitTotal}: ${formatMoney(totalPriceCents, 'AED')}`,
+            `${t.paid}: ${formatMoney(totalPaidCents, 'AED')}`,
+            totalBalanceCents < 0
+              ? `${t.balanceDebt}: ${formatMoney(Math.abs(totalBalanceCents), 'AED')}`
+              : totalBalanceCents > 0
+                ? `${t.balanceCredit}: ${formatMoney(totalBalanceCents, 'AED')}`
+                : t.balanceClear,
+          ].join('\n')
+        : ''
+    const combinedSummary = [formatVisitLineSummary(lines), financialSummary].filter(Boolean).join('\n\n')
+
     setLogging(true)
     setVisitSaveMessage('')
     try {
@@ -2557,8 +2753,8 @@ function OverviewTab({
           patientId: patient.id,
           visitAt: iso,
           chiefComplaint: chief || null,
-          procedureSummary: summary || null,
-          procedureId: selectedProcedureId || null,
+          procedureSummary: combinedSummary || summary || null,
+          procedureIds: lines.map((line) => line.procedureId).filter(Boolean),
           nextSteps: nextSteps || null,
           staffNotes: staffNotes || null,
           treatmentPlanId: treatmentPlanId || null,
@@ -2571,25 +2767,24 @@ function OverviewTab({
         alert(data.error || t.couldNotLogVisit)
         return
       }
-      if (pendingVisitMediaCount > 0 && data.visit?.id) {
+      if (data.visit?.id) {
+        const visitId = String(data.visit.id)
         try {
-          await uploadVisitMedia(String(data.visit.id))
-          setPendingVisitPhotos([])
-          setPendingVisitFaceMap(null)
+          await uploadVisitMedia(visitId, lines)
+          await saveVisitPayments(visitId, lines)
         } catch (mediaError) {
-          setPendingVisitPhotos([])
-          setPendingVisitFaceMap(null)
           setVisitSaveMessage(mediaError instanceof Error ? mediaError.message : t.visitMediaUploadFailed)
         }
       }
       clearVisitProcedureFields()
+      setVisitProcedureLines([])
       try {
         window.localStorage.removeItem(offlineDraftKey)
       } catch {
         /* ignore */
       }
       setDraftSavedAt(null)
-      setVisitSaveMessage((current) => current || (keepAdding ? t.procedureAddedToVisit : t.offlineVisitDraftSynced))
+      setVisitSaveMessage((current) => current || t.offlineVisitDraftSynced)
       await onVisitLogged()
     } catch {
       setVisitSaveMessage(t.offlineVisitDraftKept)
@@ -2607,8 +2802,8 @@ function OverviewTab({
     <div className="space-y-6">
       <DesktopTabHeader
         icon={ClipboardList}
-        title={t.overview}
-        hint={t.patientTabOverviewHint}
+        title={t.visitTab}
+        hint={t.visitTabHint}
         stats={[
           { label: t.timelineVisits, value: String(patient.visits.length) },
           { label: t.answers, value: String(patient.intakeResponses.length) },
@@ -3001,6 +3196,45 @@ function OverviewTab({
             </select>
           </div>
         )}
+        {visitProcedureLines.length > 0 && (
+          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="font-semibold text-slate-950">{t.visitProceduresInVisit}</p>
+              <p className="text-sm text-slate-600">
+                {t.visitTotal}: {formatMoney(stagedProcedureTotals.priceCents, 'AED')} · {t.paid}:{' '}
+                {formatMoney(stagedProcedureTotals.paidCents, 'AED')}
+              </p>
+            </div>
+            <div className="mt-3 space-y-2">
+              {visitProcedureLines.map((line, index) => (
+                <div key={line.id} className="flex items-start justify-between gap-3 rounded-xl bg-white px-3 py-2 text-sm">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900">
+                      {index + 1}. {line.procedureName}
+                    </p>
+                    <p className="mt-1 text-slate-600">
+                      {t.procedurePrice}: {formatMoney(line.priceCents, 'AED')} · {t.paid}:{' '}
+                      {formatMoney(line.paidCents, 'AED')} · {line.paymentMethod}
+                    </p>
+                    {(line.photos.length > 0 || line.faceMap) && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        {line.photos.length + (line.faceMap ? 1 : 0)} {t.photos}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVisitProcedureLines((current) => current.filter((item) => item.id !== line.id))}
+                    className="shrink-0 text-slate-400 hover:text-red-600"
+                    aria-label={t.close}
+                  >
+                    <XCircle className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -3091,6 +3325,42 @@ function OverviewTab({
             rows={2}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
           />
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <label className="block">
+              <span className="block text-sm text-gray-600 mb-1">{t.procedurePrice}</span>
+              <input
+                value={procedurePrice}
+                onChange={(e) => setProcedurePrice(e.target.value)}
+                inputMode="decimal"
+                placeholder="0.00"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
+              />
+            </label>
+            <label className="block">
+              <span className="block text-sm text-gray-600 mb-1">{t.procedurePaid}</span>
+              <input
+                value={procedurePaid}
+                onChange={(e) => setProcedurePaid(e.target.value)}
+                inputMode="decimal"
+                placeholder="0.00"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base"
+              />
+            </label>
+            <label className="block">
+              <span className="block text-sm text-gray-600 mb-1">{t.paymentMethod}</span>
+              <select
+                value={procedurePaymentMethod}
+                onChange={(e) => setProcedurePaymentMethod(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base"
+              >
+                <option value="CASH">{t.payMethodCash}</option>
+                <option value="CARD">{t.payMethodCard}</option>
+                <option value="TRANSFER">{t.payMethodTransfer}</option>
+                <option value="POS">{t.payMethodPos}</option>
+                <option value="OTHER">{t.payMethodOther}</option>
+              </select>
+            </label>
+          </div>
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t.nextStepsHint}</label>
