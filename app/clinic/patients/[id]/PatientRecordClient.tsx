@@ -687,16 +687,16 @@ const PHOTO_PROTOCOL_ITEMS = [
 type PhotoProtocolItemId = (typeof PHOTO_PROTOCOL_ITEMS)[number]
 
 const DOCTOR_QUESTIONNAIRE_QUESTIONS = [
-  { id: 'chronic_diseases', type: 'TEXT', ru: 'Хронические заболевания: нет / да, укажите какие', en: 'Chronic diseases: no / yes, specify' },
-  { id: 'allergies', type: 'TEXT', ru: 'Аллергии, включая Lidocaine / местные анестетики: нет / да, укажите какие', en: 'Allergies, including Lidocaine / local anesthetics: no / yes, specify' },
-  { id: 'autoimmune', type: 'CHECKBOX', ru: 'Аутоиммунные заболевания', en: 'Autoimmune diseases' },
-  { id: 'oncology', type: 'CHECKBOX', ru: 'Онкологические заболевания', en: 'Oncological diseases' },
-  { id: 'diabetes_pressure', type: 'TEXT', ru: 'Сахарный диабет, повышенное или пониженное давление: нет / да, уточните', en: 'Diabetes, high or low blood pressure: no / yes, specify' },
-  { id: 'fainting_clotting_herpes', type: 'TEXT', ru: 'Обмороки / потеря сознания, нарушения свертываемости крови, герпес: нет / да, уточните', en: 'Fainting / loss of consciousness, blood clotting disorders, herpes: no / yes, specify' },
-  { id: 'pregnancy_lactation', type: 'CHECKBOX', ru: 'Беременность / лактация', en: 'Pregnancy / lactation' },
-  { id: 'medications_supplements', type: 'TEXT', ru: 'Прием препаратов и БАДов: антикоагулянты, Aspirin / Plavix / Warfarin, Roaccutane / Isotretinoin, гормональные препараты, иммуносупрессоры, омега-3, витамин E, другое', en: 'Medicines and supplements: anticoagulants, Aspirin / Plavix / Warfarin, Roaccutane / Isotretinoin, hormones, immunosuppressants, omega-3, vitamin E, other' },
-  { id: 'previous_aesthetic_procedures', type: 'TEXT', ru: 'Предыдущие эстетические процедуры: ботулотоксин, филлеры, биоревитализация / полинуклеотиды, нити, лазеры / RF / шлифовки', en: 'Previous aesthetic procedures: botulinum toxin, fillers, biorevitalization / polynucleotides, threads, lasers / RF / resurfacing' },
-  { id: 'prior_complications_consent', type: 'TEXT', ru: 'Осложнения ранее и подтверждение согласия: пациент сообщил о рисках, уходе после процедуры и согласии на фото до/после', en: 'Previous complications and consent confirmation: patient was informed about risks, aftercare, and before/after photos' },
+  { id: 'chronic_diseases', type: 'YES_NO', ru: 'Хронические заболевания', en: 'Chronic diseases' },
+  { id: 'allergies', type: 'YES_NO', ru: 'Аллергии, включая Lidocaine / местные анестетики', en: 'Allergies, including Lidocaine / local anesthetics' },
+  { id: 'autoimmune', type: 'YES_NO', ru: 'Аутоиммунные заболевания', en: 'Autoimmune diseases' },
+  { id: 'oncology', type: 'YES_NO', ru: 'Онкологические заболевания', en: 'Oncological diseases' },
+  { id: 'diabetes_pressure', type: 'YES_NO', ru: 'Сахарный диабет, повышенное или пониженное давление', en: 'Diabetes, high or low blood pressure' },
+  { id: 'fainting_clotting_herpes', type: 'YES_NO', ru: 'Обмороки / потеря сознания, нарушения свертываемости крови, герпес', en: 'Fainting / loss of consciousness, blood clotting disorders, herpes' },
+  { id: 'pregnancy_lactation', type: 'YES_NO', ru: 'Беременность / лактация', en: 'Pregnancy / lactation' },
+  { id: 'medications_supplements', type: 'YES_NO', ru: 'Прием препаратов и БАДов: антикоагулянты, Aspirin / Plavix / Warfarin, Roaccutane / Isotretinoin, гормональные препараты, иммуносупрессоры, омега-3, витамин E, другое', en: 'Medicines and supplements: anticoagulants, Aspirin / Plavix / Warfarin, Roaccutane / Isotretinoin, hormones, immunosuppressants, omega-3, vitamin E, other' },
+  { id: 'previous_aesthetic_procedures', type: 'YES_NO', ru: 'Предыдущие эстетические процедуры: ботулотоксин, филлеры, биоревитализация / полинуклеотиды, нити, лазеры / RF / шлифовки', en: 'Previous aesthetic procedures: botulinum toxin, fillers, biorevitalization / polynucleotides, threads, lasers / RF / resurfacing' },
+  { id: 'prior_complications_consent', type: 'YES_NO', ru: 'Осложнения ранее и подтверждение согласия: пациент сообщил о рисках, уходе после процедуры и согласии на фото до/после', en: 'Previous complications and consent confirmation: patient was informed about risks, aftercare, and before/after photos' },
 ] as const
 
 type DoctorQuestionnaireQuestion = (typeof DOCTOR_QUESTIONNAIRE_QUESTIONS)[number]
@@ -704,17 +704,18 @@ type DoctorQuestionnaireQuestion = (typeof DOCTOR_QUESTIONNAIRE_QUESTIONS)[numbe
 const QUESTIONNAIRE_COPY = {
   en: {
     title: 'Doctor questionnaire',
-    hint: '10 doctor questions. Patient checks relevant items, adds answers, signs, and the signed sheet is saved on the patient card.',
+    hint: '10 doctor questions. Patient selects Yes or No for every item, signs on the tablet, and the signed sheet is saved on the patient card.',
     signed: 'Signed questionnaire',
     unsigned: 'Not signed yet',
     open: 'Open questionnaire',
     close: 'Close questionnaire',
-    textPlaceholder: 'Patient answer',
-    checked: 'Checked',
-    notChecked: 'Not checked',
-    checkIfYes: 'Check if yes',
+    checked: 'Yes',
+    notChecked: 'No',
+    yes: 'Yes',
+    no: 'No',
     signature: 'Client signature',
-    signaturePlaceholder: 'Client full name',
+    signatureDrawHint: 'Sign inside the box with finger or Apple Pencil.',
+    clearSignature: 'Clear signature',
     signedAt: 'Signed at',
     save: 'Save signed questionnaire',
     saving: 'Saving...',
@@ -722,17 +723,18 @@ const QUESTIONNAIRE_COPY = {
   },
   ru: {
     title: 'Лист-опросник от доктора',
-    hint: '10 вопросов от доктора. Клиент отмечает нужные пункты, вписывает ответы, подписывает лист, и подписанный лист сохраняется в карточке пациента.',
+    hint: '10 вопросов от доктора. Клиент выбирает Да или Нет по каждому пункту, подписывает на планшете, и подписанный лист сохраняется в карточке пациента.',
     signed: 'Подписанный опросник',
     unsigned: 'Пока не подписан',
     open: 'Открыть опросник',
     close: 'Свернуть опросник',
-    textPlaceholder: 'Ответ клиента',
-    checked: 'Отмечено',
-    notChecked: 'Не отмечено',
-    checkIfYes: 'Отметить, если да',
+    checked: 'Да',
+    notChecked: 'Нет',
+    yes: 'Да',
+    no: 'Нет',
     signature: 'Подпись клиента',
-    signaturePlaceholder: 'ФИО клиента',
+    signatureDrawHint: 'Подпишите внутри поля пальцем или Apple Pencil.',
+    clearSignature: 'Очистить подпись',
     signedAt: 'Подписано',
     save: 'Сохранить подписанный опросник',
     saving: 'Сохраняем...',
@@ -1452,18 +1454,83 @@ function DoctorQuestionnaireCard({
   const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
   const signedQuestionnaire = doctorQuestionnaireFromJson(patient.anamnesisJson)
   const [open, setOpen] = useState(false)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
   const [checked, setChecked] = useState<Record<string, boolean>>({})
-  const [signature, setSignature] = useState(`${patient.firstName} ${patient.lastName}`.trim())
+  const [signatureDataUrl, setSignatureDataUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const signatureCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const signatureDrawingRef = useRef(false)
+  const lastSignaturePointRef = useRef<{ x: number; y: number } | null>(null)
 
   const questionText = (question: DoctorQuestionnaireQuestion) => (locale === 'ru' ? question.ru : question.en)
 
+  const resetSignatureCanvas = useCallback(() => {
+    const canvas = signatureCanvasRef.current
+    if (!canvas) return
+    const context = canvas.getContext('2d')
+    if (!context) return
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    context.fillStyle = '#ffffff'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.strokeStyle = '#0f172a'
+    context.lineWidth = 3
+    context.lineCap = 'round'
+    context.lineJoin = 'round'
+    setSignatureDataUrl('')
+  }, [])
+
+  useEffect(() => {
+    if (!open || signedQuestionnaire) return
+    resetSignatureCanvas()
+  }, [open, resetSignatureCanvas, signedQuestionnaire])
+
+  const signaturePointFromEvent = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = event.currentTarget
+    const rect = canvas.getBoundingClientRect()
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    }
+  }
+
+  const startSignature = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    event.preventDefault()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    signatureDrawingRef.current = true
+    const point = signaturePointFromEvent(event)
+    lastSignaturePointRef.current = point
+    const context = event.currentTarget.getContext('2d')
+    if (!context) return
+    context.beginPath()
+    context.arc(point.x, point.y, 1.5, 0, Math.PI * 2)
+    context.fillStyle = '#0f172a'
+    context.fill()
+  }
+
+  const moveSignature = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!signatureDrawingRef.current) return
+    event.preventDefault()
+    const previous = lastSignaturePointRef.current
+    const point = signaturePointFromEvent(event)
+    const context = event.currentTarget.getContext('2d')
+    if (!context || !previous) return
+    context.beginPath()
+    context.moveTo(previous.x, previous.y)
+    context.lineTo(point.x, point.y)
+    context.stroke()
+    lastSignaturePointRef.current = point
+  }
+
+  const finishSignature = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!signatureDrawingRef.current) return
+    signatureDrawingRef.current = false
+    lastSignaturePointRef.current = null
+    setSignatureDataUrl(event.currentTarget.toDataURL('image/png'))
+  }
+
   const saveQuestionnaire = async (event: React.FormEvent) => {
     event.preventDefault()
-    const signatureText = signature.trim()
-    if (!signatureText) {
+    if (!signatureDataUrl) {
       setError(c.signatureRequired)
       return
     }
@@ -1473,13 +1540,13 @@ function DoctorQuestionnaireCard({
       v: 1,
       title: c.title,
       signedAt: new Date().toISOString(),
-      signatureText,
+      signatureText: `${patient.firstName} ${patient.lastName}`.trim() || c.signature,
+      signatureDataUrl,
       answers: DOCTOR_QUESTIONNAIRE_QUESTIONS.map((question) => ({
         id: question.id,
         prompt: questionText(question),
         type: question.type,
-        checked: question.type === 'CHECKBOX' ? checked[question.id] === true : undefined,
-        answer: question.type === 'TEXT' ? (answers[question.id] ?? '').trim() : undefined,
+        checked: checked[question.id] === true,
       })),
     }
 
@@ -1543,9 +1610,21 @@ function DoctorQuestionnaireCard({
             <div className="mt-4 space-y-3">
               <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-950">
                 <p className="font-semibold">{c.signed}</p>
-                <p className="mt-1">
-                  {c.signature}: <span className="font-semibold">{signedQuestionnaire.signatureText}</span>
-                </p>
+                {signedQuestionnaire.signatureDataUrl ? (
+                  <div className="mt-3 rounded-xl border border-emerald-100 bg-white p-2">
+                    <Image
+                      src={signedQuestionnaire.signatureDataUrl}
+                      alt={c.signature}
+                      width={520}
+                      height={140}
+                      className="h-24 w-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <p className="mt-1">
+                    {c.signature}: <span className="font-semibold">{signedQuestionnaire.signatureText}</span>
+                  </p>
+                )}
                 <p className="mt-1 text-emerald-800">
                   {c.signedAt}:{' '}
                   {new Date(signedQuestionnaire.signedAt).toLocaleString(dateLocale, {
@@ -1562,7 +1641,7 @@ function DoctorQuestionnaireCard({
                   <div key={answer.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm">
                     <p className="font-semibold text-slate-950">{answer.prompt}</p>
                     <p className="mt-2 whitespace-pre-wrap text-slate-700">
-                      {answer.type === 'CHECKBOX'
+                      {answer.type === 'YES_NO' || answer.type === 'CHECKBOX'
                         ? answer.checked ? c.checked : c.notChecked
                         : answer.answer || t.emptyValue}
                     </p>
@@ -1576,44 +1655,60 @@ function DoctorQuestionnaireCard({
                 {DOCTOR_QUESTIONNAIRE_QUESTIONS.map((question) => (
                   <div key={question.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <p className="text-sm font-semibold text-slate-950">{questionText(question)}</p>
-                    {question.type === 'CHECKBOX' ? (
-                      <label className="mt-3 flex items-center gap-3 text-sm text-slate-700">
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <label className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 has-[:checked]:border-orange-300 has-[:checked]:bg-orange-50 has-[:checked]:text-orange-800">
                         <input
                           type="checkbox"
                           checked={checked[question.id] === true}
                           onChange={(event) => setChecked((current) => ({
                             ...current,
-                            [question.id]: event.currentTarget.checked,
+                            [question.id]: event.currentTarget.checked ? true : false,
                           }))}
                           className="h-4 w-4 rounded border-slate-300 text-orange-600"
                         />
-                        {c.checkIfYes}
+                        {c.yes}
                       </label>
-                    ) : (
-                      <textarea
-                        value={answers[question.id] ?? ''}
-                        onChange={(event) => setAnswers((current) => ({
-                          ...current,
-                          [question.id]: event.currentTarget.value,
-                        }))}
-                        rows={3}
-                        placeholder={c.textPlaceholder}
-                        className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-                      />
-                    )}
+                      <label className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 has-[:checked]:border-slate-300 has-[:checked]:bg-slate-100">
+                        <input
+                          type="checkbox"
+                          checked={checked[question.id] !== true}
+                          onChange={(event) => setChecked((current) => ({
+                            ...current,
+                            [question.id]: event.currentTarget.checked ? false : true,
+                          }))}
+                          className="h-4 w-4 rounded border-slate-300 text-slate-600"
+                        />
+                        {c.no}
+                      </label>
+                    </div>
                   </div>
                 ))}
               </div>
               <div className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4">
-                <label className="block text-sm font-semibold text-orange-950">
-                  {c.signature}
-                  <input
-                    value={signature}
-                    onChange={(event) => setSignature(event.target.value)}
-                    placeholder={c.signaturePlaceholder}
-                    className="mt-2 min-h-11 w-full rounded-xl border border-orange-100 bg-white px-3 text-sm text-slate-900"
-                  />
-                </label>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-orange-950">{c.signature}</p>
+                    <p className="mt-1 text-xs text-orange-800">{c.signatureDrawHint}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetSignatureCanvas}
+                    className="w-fit rounded-xl bg-white px-3 py-2 text-xs font-semibold text-orange-700 shadow-sm"
+                  >
+                    {c.clearSignature}
+                  </button>
+                </div>
+                <canvas
+                  ref={signatureCanvasRef}
+                  width={900}
+                  height={220}
+                  onPointerDown={startSignature}
+                  onPointerMove={moveSignature}
+                  onPointerUp={finishSignature}
+                  onPointerCancel={finishSignature}
+                  onPointerLeave={finishSignature}
+                  className="mt-3 h-40 w-full touch-none rounded-xl border border-orange-100 bg-white"
+                />
               </div>
               <button
                 type="submit"
@@ -2221,6 +2316,8 @@ function OverviewTab({
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null)
   const [scratchpadDraft, setScratchpadDraft] = useState('')
   const [visitSaveMessage, setVisitSaveMessage] = useState('')
+  const [contactCardOpen, setContactCardOpen] = useState(false)
+  const [anamnesisCardOpen, setAnamnesisCardOpen] = useState(false)
   const [aiNoteInput, setAiNoteInput] = useState('')
   const [aiNoteBusy, setAiNoteBusy] = useState(false)
   const [aiVoiceSupported, setAiVoiceSupported] = useState(false)
@@ -2944,113 +3041,143 @@ function OverviewTab({
       />
 
       <div className="grid gap-5 lg:grid-cols-2">
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-2 text-sm">
-        <div className="flex justify-between items-start gap-3">
-          <p className="font-medium text-gray-900">{t.contact}</p>
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm text-sm">
           <button
             type="button"
-            onClick={() => setEditOpen(!editOpen)}
-            className="text-orange-600 text-sm font-medium flex items-center gap-1"
+            onClick={() => setContactCardOpen((value) => !value)}
+            className="flex w-full min-h-14 items-center justify-between gap-3 px-5 text-left"
           >
-            {editOpen ? (
-              <>
-                <ChevronUp className="w-4 h-4" /> {t.close}
-              </>
-            ) : (
-              <>
-                <Pencil className="w-4 h-4" /> {t.edit}
-              </>
-            )}
+            <span className="font-medium text-gray-900">{t.contact}</span>
+            <ChevronDown
+              className={clsx('h-5 w-5 text-gray-400 transition-transform', contactCardOpen && 'rotate-180')}
+              aria-hidden
+            />
           </button>
-        </div>
-        <p>
-          <span className="text-gray-500">{t.phoneLabel}:</span> {patient.phone || t.emptyValue}
-        </p>
-        <p>
-          <span className="text-gray-500">{t.emailLabel}:</span> {patient.email || t.emptyValue}
-        </p>
-        <div className="rounded-2xl bg-emerald-50/70 border border-emerald-100 p-3">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-            {t.homeVisitRoute}
-          </p>
-          <p>
-            <span className="text-gray-500">{t.homeAddress}:</span>{' '}
-            {patient.homeAddress || t.emptyValue}
-          </p>
-          <p>
-            <span className="text-gray-500">{t.accessNotes}:</span>{' '}
-            {patient.accessNotes || t.emptyValue}
-          </p>
-        </div>
-        <div className="pt-2">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            {t.patientCategory}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {patient.category ? (
-              <span className="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
-                {categoryLabel(t, patient.category)}
-              </span>
-            ) : (
-              <span className="text-gray-500">{t.noCategory}</span>
-            )}
-            {patient.tags.filter((tag) => !isTagDuplicateOfCategory(patient.category, tag)).map((tag) => (
-              <span key={tag} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700">
-                {tagLabel(t, tag)}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="rounded-2xl bg-orange-50/70 border border-orange-100 p-3">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-orange-700">
-            {t.referralTracking}
-          </p>
-          <p>
-            <span className="text-gray-500">{t.referredBy}:</span>{' '}
-            {patient.referredByName || t.emptyValue}
-          </p>
-          {patient.referralNote && (
-            <p className="mt-1">
-              <span className="text-gray-500">{t.referralNote}:</span> {patient.referralNote}
-            </p>
+          {contactCardOpen && (
+            <div className="space-y-2 border-t border-gray-100 p-5 pt-4">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(!editOpen)}
+                  className="text-orange-600 text-sm font-medium flex items-center gap-1"
+                >
+                  {editOpen ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" /> {t.close}
+                    </>
+                  ) : (
+                    <>
+                      <Pencil className="w-4 h-4" /> {t.edit}
+                    </>
+                  )}
+                </button>
+              </div>
+              <p>
+                <span className="text-gray-500">{t.phoneLabel}:</span> {patient.phone || t.emptyValue}
+              </p>
+              <p>
+                <span className="text-gray-500">{t.emailLabel}:</span> {patient.email || t.emptyValue}
+              </p>
+              <div className="rounded-2xl bg-emerald-50/70 border border-emerald-100 p-3">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  {t.homeVisitRoute}
+                </p>
+                <p>
+                  <span className="text-gray-500">{t.homeAddress}:</span>{' '}
+                  {patient.homeAddress || t.emptyValue}
+                </p>
+                <p>
+                  <span className="text-gray-500">{t.accessNotes}:</span>{' '}
+                  {patient.accessNotes || t.emptyValue}
+                </p>
+              </div>
+              <div className="pt-2">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  {t.patientCategory}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {patient.category ? (
+                    <span className="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
+                      {categoryLabel(t, patient.category)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">{t.noCategory}</span>
+                  )}
+                  {patient.tags.filter((tag) => !isTagDuplicateOfCategory(patient.category, tag)).map((tag) => (
+                    <span key={tag} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700">
+                      {tagLabel(t, tag)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-orange-50/70 border border-orange-100 p-3">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-orange-700">
+                  {t.referralTracking}
+                </p>
+                <p>
+                  <span className="text-gray-500">{t.referredBy}:</span>{' '}
+                  {patient.referredByName || t.emptyValue}
+                </p>
+                {patient.referralNote && (
+                  <p className="mt-1">
+                    <span className="text-gray-500">{t.referralNote}:</span> {patient.referralNote}
+                  </p>
+                )}
+              </div>
+            </div>
           )}
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3 text-sm">
-        <p className="font-medium text-gray-900">{t.anamnesisHeading}</p>
-        <p className="text-xs text-gray-500">{t.anamnesisHint}</p>
-        {hasAnamnesis ? (
-          <dl className="space-y-2 text-gray-800">
-            {amDisplay.allergies ? (
-              <div>
-                <dt className="text-gray-500 text-xs">{t.anamnesisAllergies}</dt>
-                <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.allergies}</dd>
-              </div>
-            ) : null}
-            {amDisplay.medications ? (
-              <div>
-                <dt className="text-gray-500 text-xs">{t.anamnesisMedications}</dt>
-                <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.medications}</dd>
-              </div>
-            ) : null}
-            {amDisplay.conditions ? (
-              <div>
-                <dt className="text-gray-500 text-xs">{t.anamnesisConditions}</dt>
-                <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.conditions}</dd>
-              </div>
-            ) : null}
-            {amDisplay.social ? (
-              <div>
-                <dt className="text-gray-500 text-xs">{t.anamnesisSocial}</dt>
-                <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.social}</dd>
-              </div>
-            ) : null}
-          </dl>
-        ) : (
-          <p className="text-gray-500">{t.anamnesisNoneOnFile}</p>
-        )}
-      </div>
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm text-sm">
+          <button
+            type="button"
+            onClick={() => setAnamnesisCardOpen((value) => !value)}
+            className="flex w-full min-h-14 items-center justify-between gap-3 px-5 text-left"
+          >
+            <span>
+              <span className="block font-medium text-gray-900">{t.anamnesisHeading}</span>
+              <span className="mt-0.5 block text-xs text-gray-500">{t.anamnesisHint}</span>
+            </span>
+            <ChevronDown
+              className={clsx('h-5 w-5 text-gray-400 transition-transform', anamnesisCardOpen && 'rotate-180')}
+              aria-hidden
+            />
+          </button>
+          {anamnesisCardOpen && (
+            <div className="border-t border-gray-100 p-5 pt-4">
+              {hasAnamnesis ? (
+                <dl className="space-y-2 text-gray-800">
+                  {amDisplay.allergies ? (
+                    <div>
+                      <dt className="text-gray-500 text-xs">{t.anamnesisAllergies}</dt>
+                      <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.allergies}</dd>
+                    </div>
+                  ) : null}
+                  {amDisplay.medications ? (
+                    <div>
+                      <dt className="text-gray-500 text-xs">{t.anamnesisMedications}</dt>
+                      <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.medications}</dd>
+                    </div>
+                  ) : null}
+                  {amDisplay.conditions ? (
+                    <div>
+                      <dt className="text-gray-500 text-xs">{t.anamnesisConditions}</dt>
+                      <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.conditions}</dd>
+                    </div>
+                  ) : null}
+                  {amDisplay.social ? (
+                    <div>
+                      <dt className="text-gray-500 text-xs">{t.anamnesisSocial}</dt>
+                      <dd className="whitespace-pre-wrap mt-0.5">{amDisplay.social}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              ) : (
+                <p className="text-gray-500">{t.anamnesisNoneOnFile}</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {editOpen && (

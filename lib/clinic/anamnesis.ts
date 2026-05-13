@@ -13,7 +13,7 @@ export type ClinicAnamnesisV1 = {
 export type ClinicDoctorQuestionnaireAnswer = {
   id: string
   prompt: string
-  type: 'CHECKBOX' | 'TEXT'
+  type: 'YES_NO' | 'CHECKBOX' | 'TEXT'
   checked?: boolean
   answer?: string
 }
@@ -23,11 +23,13 @@ export type ClinicDoctorQuestionnaireV1 = {
   title: string
   signedAt: string
   signatureText: string
+  signatureDataUrl?: string
   answers: ClinicDoctorQuestionnaireAnswer[]
 }
 
 const MAX_LEN = 8000
 const MAX_QUESTIONNAIRE_TEXT_LEN = 1000
+const MAX_SIGNATURE_DATA_URL_LEN = 250_000
 const MAX_QUESTIONNAIRE_ANSWERS = 20
 
 export function doctorQuestionnaireFromJson(raw: unknown): ClinicDoctorQuestionnaireV1 | null {
@@ -47,13 +49,19 @@ export function doctorQuestionnaireFromJson(raw: unknown): ClinicDoctorQuestionn
     const id = typeof answer.id === 'string' ? answer.id.trim().slice(0, 80) : ''
     const prompt = typeof answer.prompt === 'string' ? answer.prompt.trim().slice(0, 400) : ''
     const type: ClinicDoctorQuestionnaireAnswer['type'] | null =
-      answer.type === 'CHECKBOX' ? 'CHECKBOX' : answer.type === 'TEXT' ? 'TEXT' : null
+      answer.type === 'YES_NO'
+        ? 'YES_NO'
+        : answer.type === 'CHECKBOX'
+          ? 'CHECKBOX'
+          : answer.type === 'TEXT'
+            ? 'TEXT'
+            : null
     if (!id || !prompt || !type) return []
     return [{
       id,
       prompt,
       type,
-      checked: type === 'CHECKBOX' ? answer.checked === true : undefined,
+      checked: type === 'YES_NO' || type === 'CHECKBOX' ? answer.checked === true : undefined,
       answer: type === 'TEXT' && typeof answer.answer === 'string'
         ? answer.answer.trim().slice(0, MAX_QUESTIONNAIRE_TEXT_LEN)
         : undefined,
@@ -67,6 +75,10 @@ export function doctorQuestionnaireFromJson(raw: unknown): ClinicDoctorQuestionn
     title: typeof o.title === 'string' ? o.title.trim().slice(0, 160) || 'Doctor questionnaire' : 'Doctor questionnaire',
     signedAt,
     signatureText: signatureText.slice(0, 240),
+    signatureDataUrl:
+      typeof o.signatureDataUrl === 'string' && o.signatureDataUrl.startsWith('data:image/')
+        ? o.signatureDataUrl.slice(0, MAX_SIGNATURE_DATA_URL_LEN)
+        : undefined,
     answers,
   }
 }
