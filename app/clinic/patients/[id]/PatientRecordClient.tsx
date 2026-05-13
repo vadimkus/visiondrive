@@ -85,6 +85,17 @@ type OfflineMediaDraft = {
   createdAt: string
 }
 
+type PendingVisitPhoto = {
+  id: string
+  kind: 'BEFORE' | 'AFTER'
+  file: File
+}
+
+type PendingVisitFaceMap = {
+  blob: Blob
+  metadata: FaceMapMetadata
+}
+
 function defaultVisitDateTimeInput() {
   const d = new Date()
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
@@ -2140,6 +2151,10 @@ function OverviewTab({
   const [aiVoiceListening, setAiVoiceListening] = useState(false)
   const [aiVoiceInterim, setAiVoiceInterim] = useState('')
   const [aiVoiceError, setAiVoiceError] = useState<string | null>(null)
+  const [pendingVisitPhotos, setPendingVisitPhotos] = useState<PendingVisitPhoto[]>([])
+  const [visitFaceMapOpen, setVisitFaceMapOpen] = useState(false)
+  const [visitFaceMapSaving, setVisitFaceMapSaving] = useState(false)
+  const [pendingVisitFaceMap, setPendingVisitFaceMap] = useState<PendingVisitFaceMap | null>(null)
   const aiRecognitionRef = useRef<BrowserSpeechRecognition | null>(null)
   const activeTreatmentPlans = patient.treatmentPlans.filter((plan) =>
     ['ACTIVE', 'PAUSED'].includes(plan.status)
@@ -2340,6 +2355,7 @@ function OverviewTab({
   ])
 
   const selectedAftercareTemplate = aftercareTemplates.find((template) => template.id === aftercareTemplateId)
+  const pendingVisitMediaCount = pendingVisitPhotos.length + (pendingVisitFaceMap ? 1 : 0)
 
   function toggleTag(tag: PatientTag) {
     setEditTags(
@@ -2369,6 +2385,8 @@ function OverviewTab({
     setStaffNotes('')
     setTreatmentPlanId('')
     setAftercareTemplateId('')
+    setPendingVisitPhotos([])
+    setPendingVisitFaceMap(null)
     setVisitSaveMessage(t.offlineVisitDraftCleared)
     try {
       window.localStorage.removeItem(offlineDraftKey)
@@ -2376,6 +2394,72 @@ function OverviewTab({
       /* ignore */
     }
     setDraftSavedAt(null)
+  }
+
+  const addPendingVisitPhoto = (kind: PendingVisitPhoto['kind'], event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setPendingVisitPhotos((current) => [
+      ...current.filter((photo) => photo.kind !== kind),
+      {
+        id: `${kind}:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+        kind,
+        file,
+      },
+    ])
+  }
+
+  const uploadVisitMedia = async (visitId: string) => {
+    const procedureName = summary.trim() || null
+    for (const photo of pendingVisitPhotos) {
+      const fd = new FormData()
+      fd.append('file', photo.file)
+      fd.append('kind', photo.kind)
+      fd.append('visitId', visitId)
+      fd.append('caption', photo.kind === 'BEFORE' ? t.photoKindBefore : t.photoKindAfter)
+      fd.append('protocolChecked', JSON.stringify(['same_lighting', 'same_angle']))
+      if (procedureName) fd.append('protocolProcedureName', procedureName)
+      const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
+        method: 'POST',
+        body: fd,
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.uploadFailed)
+      }
+    }
+
+    if (pendingVisitFaceMap) {
+      const fd = new FormData()
+      fd.append('file', pendingVisitFaceMap.blob, `visit-face-map-${Date.now()}.png`)
+      fd.append('kind', 'OTHER')
+      fd.append('visitId', visitId)
+      fd.append('caption', `${t.faceMapCaptionPrefix} · ${new Date().toLocaleString(dateLocale)}`)
+      fd.append('faceMap', JSON.stringify(pendingVisitFaceMap.metadata))
+      if (procedureName) fd.append('protocolProcedureName', procedureName)
+      const res = await fetch(`/api/clinic/patients/${patient.id}/media`, {
+        method: 'POST',
+        body: fd,
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || t.faceMapSaveFailed)
+      }
+    }
+  }
+
+  const savePendingVisitFaceMap = async (blob: Blob, metadata: FaceMapMetadata) => {
+    setVisitFaceMapSaving(true)
+    try {
+      setPendingVisitFaceMap({ blob, metadata })
+      setVisitFaceMapOpen(false)
+      setVisitSaveMessage(t.visitProcedureMapReady)
+    } finally {
+      setVisitFaceMapSaving(false)
+    }
   }
 
   const draftVisitNote = async () => {
@@ -2450,6 +2534,17 @@ function OverviewTab({
         alert(data.error || t.couldNotLogVisit)
         return
       }
+      if (pendingVisitMediaCount > 0 && data.visit?.id) {
+        try {
+          await uploadVisitMedia(String(data.visit.id))
+          setPendingVisitPhotos([])
+          setPendingVisitFaceMap(null)
+        } catch (mediaError) {
+          setPendingVisitPhotos([])
+          setPendingVisitFaceMap(null)
+          setVisitSaveMessage(mediaError instanceof Error ? mediaError.message : t.visitMediaUploadFailed)
+        }
+      }
       clearVisitProcedureFields()
       try {
         window.localStorage.removeItem(offlineDraftKey)
@@ -2457,7 +2552,7 @@ function OverviewTab({
         /* ignore */
       }
       setDraftSavedAt(null)
-      setVisitSaveMessage(keepAdding ? t.procedureAddedToVisit : t.offlineVisitDraftSynced)
+      setVisitSaveMessage((current) => current || (keepAdding ? t.procedureAddedToVisit : t.offlineVisitDraftSynced))
       await onVisitLogged()
     } catch {
       setVisitSaveMessage(t.offlineVisitDraftKept)
@@ -2945,6 +3040,92 @@ function OverviewTab({
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
           />
         </div>
+        <section className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-950">{t.visitProcedureMediaTitle}</p>
+              <p className="mt-1 text-sm text-slate-600">{t.visitProcedureMediaHint}</p>
+            </div>
+            <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+              {pendingVisitMediaCount} {t.photos}
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <button
+              type="button"
+              onClick={() => setVisitFaceMapOpen((value) => !value)}
+              className="min-h-12 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white"
+            >
+              {pendingVisitFaceMap ? t.visitProcedureMapReady : t.faceMapNew}
+            </button>
+            <label className="flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-orange-200 bg-orange-50 px-4 text-sm font-semibold text-orange-800">
+              {t.addBeforePhoto}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={(event) => addPendingVisitPhoto('BEFORE', event)}
+                className="sr-only"
+              />
+            </label>
+            <label className="flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-orange-200 bg-orange-50 px-4 text-sm font-semibold text-orange-800">
+              {t.addAfterPhoto}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={(event) => addPendingVisitPhoto('AFTER', event)}
+                className="sr-only"
+              />
+            </label>
+          </div>
+
+          {pendingVisitMediaCount > 0 && (
+            <div className="mt-3 space-y-2 text-sm text-slate-700">
+              {pendingVisitFaceMap && (
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2">
+                  <span>{t.faceMapBadge}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPendingVisitFaceMap(null)}
+                    className="text-slate-400 hover:text-red-600"
+                    aria-label={t.close}
+                  >
+                    <XCircle className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
+              )}
+              {pendingVisitPhotos.map((photo) => (
+                <div key={photo.id} className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2">
+                  <span className="min-w-0 truncate">
+                    {photo.kind === 'BEFORE' ? t.photoKindBefore : t.photoKindAfter}: {photo.file.name || t.photos}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPendingVisitPhotos((current) => current.filter((item) => item.id !== photo.id))}
+                    className="shrink-0 text-slate-400 hover:text-red-600"
+                    aria-label={t.close}
+                  >
+                    <XCircle className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {visitFaceMapOpen && (
+          <ClinicFaceMapEditor
+            t={t}
+            mediaOptions={[]}
+            initialBase={{ source: 'template', sourceMediaId: null }}
+            initialFaceMap={pendingVisitFaceMap?.metadata ?? null}
+            saving={visitFaceMapSaving}
+            onSave={savePendingVisitFaceMap}
+            onClose={() => setVisitFaceMapOpen(false)}
+          />
+        )}
         {aftercareTemplates.length > 0 && (
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
             <label className="block text-sm font-medium text-emerald-950 mb-1">{t.aftercareTemplate}</label>
