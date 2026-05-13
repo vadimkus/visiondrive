@@ -1,5 +1,18 @@
 # Implementation log (clinic)
 
+## Chunk 99 — 2026-05-13 (patient portal link chevron)
+
+**Shipped**
+
+- Collapsed the patient record `Patient portal / Private patient link` card behind a chevron by default.
+- Kept active-link status visible only after expanding the card, with the existing `?` hint still available inside the expanded area.
+
+**Validation**
+
+- Run `npm run type-check` and linter diagnostics for `app/clinic/patients/[id]/PatientRecordClient.tsx`.
+
+---
+
 ## Chunk 98 — 2026-05-12 (purchase order edit mode)
 
 **Shipped**

@@ -19,7 +19,8 @@ The follow-up design pass reframed the page as a customer link, not an internal 
 - Added wrapping and `min-w-0` safeguards to prevent long EN/RU copy, patient names, procedure names, and money values from causing horizontal overlap.
 - Added route-level loading/error screens and a clearer unavailable-link state so expired or revoked customer links do not render as a blank page on mobile/tablet.
 - Simplified the patient-facing top area after customer review: use a dedicated VisionDrive SVG mark, remove the practice name from the portal chrome, and remove the extra “care at a glance” heading so the page starts with the greeting and useful summary cards.
+- On the internal patient record, collapsed the private patient portal link management card behind a chevron by default to keep the sidebar/mobile header area cleaner.
 
 ## Verification
 
-- Run targeted lint/type checks after the UI change.
+- Run targeted lint/type checks after the UI changes.
