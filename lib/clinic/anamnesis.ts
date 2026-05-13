@@ -7,9 +7,76 @@ export type ClinicAnamnesisV1 = {
   medications: string
   conditions: string
   social: string
+  doctorQuestionnaire?: ClinicDoctorQuestionnaireV1
+}
+
+export type ClinicDoctorQuestionnaireAnswer = {
+  id: string
+  prompt: string
+  type: 'CHECKBOX' | 'TEXT'
+  checked?: boolean
+  answer?: string
+}
+
+export type ClinicDoctorQuestionnaireV1 = {
+  v: 1
+  title: string
+  signedAt: string
+  signatureText: string
+  answers: ClinicDoctorQuestionnaireAnswer[]
 }
 
 const MAX_LEN = 8000
+const MAX_QUESTIONNAIRE_TEXT_LEN = 1000
+const MAX_QUESTIONNAIRE_ANSWERS = 20
+
+export function doctorQuestionnaireFromJson(raw: unknown): ClinicDoctorQuestionnaireV1 | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const source = raw as Record<string, unknown>
+  const nested = source.doctorQuestionnaire
+  if (!nested || typeof nested !== 'object' || Array.isArray(nested)) return null
+  const o = nested as Record<string, unknown>
+  const signatureText = typeof o.signatureText === 'string' ? o.signatureText.trim() : ''
+  const signedAt = typeof o.signedAt === 'string' ? o.signedAt.trim() : ''
+  const rawAnswers = Array.isArray(o.answers) ? o.answers : []
+  if (!signatureText || !signedAt || rawAnswers.length === 0) return null
+
+  const answers = rawAnswers.slice(0, MAX_QUESTIONNAIRE_ANSWERS).flatMap((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return []
+    const answer = item as Record<string, unknown>
+    const id = typeof answer.id === 'string' ? answer.id.trim().slice(0, 80) : ''
+    const prompt = typeof answer.prompt === 'string' ? answer.prompt.trim().slice(0, 400) : ''
+    const type: ClinicDoctorQuestionnaireAnswer['type'] | null =
+      answer.type === 'CHECKBOX' ? 'CHECKBOX' : answer.type === 'TEXT' ? 'TEXT' : null
+    if (!id || !prompt || !type) return []
+    return [{
+      id,
+      prompt,
+      type,
+      checked: type === 'CHECKBOX' ? answer.checked === true : undefined,
+      answer: type === 'TEXT' && typeof answer.answer === 'string'
+        ? answer.answer.trim().slice(0, MAX_QUESTIONNAIRE_TEXT_LEN)
+        : undefined,
+    }]
+  })
+
+  if (answers.length === 0) return null
+
+  return {
+    v: 1,
+    title: typeof o.title === 'string' ? o.title.trim().slice(0, 160) || 'Doctor questionnaire' : 'Doctor questionnaire',
+    signedAt,
+    signatureText: signatureText.slice(0, 240),
+    answers,
+  }
+}
+
+export function normalizeDoctorQuestionnaire(value: unknown): ClinicDoctorQuestionnaireV1 | null {
+  const wrapped = value && typeof value === 'object' && !Array.isArray(value) && 'doctorQuestionnaire' in value
+    ? value
+    : { doctorQuestionnaire: value }
+  return doctorQuestionnaireFromJson(wrapped)
+}
 
 export function anamnesisFromJson(raw: unknown): ClinicAnamnesisV1 {
   const empty: ClinicAnamnesisV1 = {
@@ -31,6 +98,7 @@ export function anamnesisFromJson(raw: unknown): ClinicAnamnesisV1 {
     medications: s('medications'),
     conditions: s('conditions'),
     social: s('social'),
+    doctorQuestionnaire: doctorQuestionnaireFromJson(raw) ?? undefined,
   }
 }
 
@@ -39,12 +107,14 @@ export function anamnesisToStorage(fields: {
   medications: string
   conditions: string
   social: string
+  doctorQuestionnaire?: ClinicDoctorQuestionnaireV1 | null
 }): Prisma.InputJsonValue | null {
   const allergies = fields.allergies.trim()
   const medications = fields.medications.trim()
   const conditions = fields.conditions.trim()
   const social = fields.social.trim()
-  if (!allergies && !medications && !conditions && !social) return null
+  const doctorQuestionnaire = normalizeDoctorQuestionnaire(fields.doctorQuestionnaire)
+  if (!allergies && !medications && !conditions && !social && !doctorQuestionnaire) return null
   for (const [val, name] of [
     [allergies, 'allergies'],
     [medications, 'medications'],
@@ -55,7 +125,11 @@ export function anamnesisToStorage(fields: {
       throw new Error(`${name} exceeds ${MAX_LEN} characters`)
     }
   }
-  return { v: 1, allergies, medications, conditions, social }
+  const stored: Record<string, Prisma.InputJsonValue> = { v: 1, allergies, medications, conditions, social }
+  if (doctorQuestionnaire) {
+    stored.doctorQuestionnaire = doctorQuestionnaire as unknown as Prisma.InputJsonValue
+  }
+  return stored
 }
 
 export function parseAnamnesisPatchBody(
@@ -72,6 +146,7 @@ export function parseAnamnesisPatchBody(
       medications: typeof o.medications === 'string' ? o.medications : '',
       conditions: typeof o.conditions === 'string' ? o.conditions : '',
       social: typeof o.social === 'string' ? o.social : '',
+      doctorQuestionnaire: normalizeDoctorQuestionnaire(o.doctorQuestionnaire),
     })
     return { ok: true, value }
   } catch (e) {

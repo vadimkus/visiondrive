@@ -13,6 +13,7 @@ import {
   Send,
   PhoneCall,
   Pencil,
+  ChevronDown,
   ChevronUp,
   ClipboardList,
   FileDown,
@@ -32,7 +33,12 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import clsx from 'clsx'
-import { anamnesisFromJson, anamnesisToStorage } from '@/lib/clinic/anamnesis'
+import {
+  anamnesisFromJson,
+  anamnesisToStorage,
+  doctorQuestionnaireFromJson,
+  type ClinicDoctorQuestionnaireV1,
+} from '@/lib/clinic/anamnesis'
 import { patientDeleteConfirmation } from '@/lib/clinic/data-export'
 import { buildTimelineItems, filterTimelineItems, type TimelineFilter } from '@/lib/clinic/timeline'
 import { PATIENT_CATEGORIES, PATIENT_TAGS, type PatientCategory, type PatientTag } from '@/lib/clinic/patient-tags'
@@ -612,6 +618,60 @@ const PHOTO_PROTOCOL_ITEMS = [
 
 type PhotoProtocolItemId = (typeof PHOTO_PROTOCOL_ITEMS)[number]
 
+const DOCTOR_QUESTIONNAIRE_QUESTIONS = [
+  { id: 'chronic_diseases', type: 'TEXT', ru: 'Хронические заболевания: нет / да, укажите какие', en: 'Chronic diseases: no / yes, specify' },
+  { id: 'allergies', type: 'TEXT', ru: 'Аллергии, включая Lidocaine / местные анестетики: нет / да, укажите какие', en: 'Allergies, including Lidocaine / local anesthetics: no / yes, specify' },
+  { id: 'autoimmune', type: 'CHECKBOX', ru: 'Аутоиммунные заболевания', en: 'Autoimmune diseases' },
+  { id: 'oncology', type: 'CHECKBOX', ru: 'Онкологические заболевания', en: 'Oncological diseases' },
+  { id: 'diabetes_pressure', type: 'TEXT', ru: 'Сахарный диабет, повышенное или пониженное давление: нет / да, уточните', en: 'Diabetes, high or low blood pressure: no / yes, specify' },
+  { id: 'fainting_clotting_herpes', type: 'TEXT', ru: 'Обмороки / потеря сознания, нарушения свертываемости крови, герпес: нет / да, уточните', en: 'Fainting / loss of consciousness, blood clotting disorders, herpes: no / yes, specify' },
+  { id: 'pregnancy_lactation', type: 'CHECKBOX', ru: 'Беременность / лактация', en: 'Pregnancy / lactation' },
+  { id: 'medications_supplements', type: 'TEXT', ru: 'Прием препаратов и БАДов: антикоагулянты, Aspirin / Plavix / Warfarin, Roaccutane / Isotretinoin, гормональные препараты, иммуносупрессоры, омега-3, витамин E, другое', en: 'Medicines and supplements: anticoagulants, Aspirin / Plavix / Warfarin, Roaccutane / Isotretinoin, hormones, immunosuppressants, omega-3, vitamin E, other' },
+  { id: 'previous_aesthetic_procedures', type: 'TEXT', ru: 'Предыдущие эстетические процедуры: ботулотоксин, филлеры, биоревитализация / полинуклеотиды, нити, лазеры / RF / шлифовки', en: 'Previous aesthetic procedures: botulinum toxin, fillers, biorevitalization / polynucleotides, threads, lasers / RF / resurfacing' },
+  { id: 'prior_complications_consent', type: 'TEXT', ru: 'Осложнения ранее и подтверждение согласия: пациент сообщил о рисках, уходе после процедуры и согласии на фото до/после', en: 'Previous complications and consent confirmation: patient was informed about risks, aftercare, and before/after photos' },
+] as const
+
+type DoctorQuestionnaireQuestion = (typeof DOCTOR_QUESTIONNAIRE_QUESTIONS)[number]
+
+const QUESTIONNAIRE_COPY = {
+  en: {
+    title: 'Doctor questionnaire',
+    hint: '10 doctor questions. Patient checks relevant items, adds answers, signs, and the signed sheet is saved on the patient card.',
+    signed: 'Signed questionnaire',
+    unsigned: 'Not signed yet',
+    open: 'Open questionnaire',
+    close: 'Close questionnaire',
+    textPlaceholder: 'Patient answer',
+    checked: 'Checked',
+    notChecked: 'Not checked',
+    checkIfYes: 'Check if yes',
+    signature: 'Client signature',
+    signaturePlaceholder: 'Client full name',
+    signedAt: 'Signed at',
+    save: 'Save signed questionnaire',
+    saving: 'Saving...',
+    signatureRequired: 'Client signature is required.',
+  },
+  ru: {
+    title: 'Лист-опросник от доктора',
+    hint: '10 вопросов от доктора. Клиент отмечает нужные пункты, вписывает ответы, подписывает лист, и подписанный лист сохраняется в карточке пациента.',
+    signed: 'Подписанный опросник',
+    unsigned: 'Пока не подписан',
+    open: 'Открыть опросник',
+    close: 'Свернуть опросник',
+    textPlaceholder: 'Ответ клиента',
+    checked: 'Отмечено',
+    notChecked: 'Не отмечено',
+    checkIfYes: 'Отметить, если да',
+    signature: 'Подпись клиента',
+    signaturePlaceholder: 'ФИО клиента',
+    signedAt: 'Подписано',
+    save: 'Сохранить подписанный опросник',
+    saving: 'Сохраняем...',
+    signatureRequired: 'Нужна подпись клиента.',
+  },
+} as const
+
 function photoProtocolItemLabel(t: ReturnType<typeof useClinicLocale>['t'], item: PhotoProtocolItemId) {
   if (item === 'same_lighting') return t.photoProtocolSameLighting
   if (item === 'same_angle') return t.photoProtocolSameAngle
@@ -857,6 +917,7 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           medications: editMedications,
           conditions: editConditions,
           social: editSocial,
+          doctorQuestionnaire: doctorQuestionnaireFromJson(patient.anamnesisJson),
         })
       } catch (err) {
         setError(err instanceof Error ? err.message : t.saveFailed)
@@ -1288,7 +1349,198 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           </div>
         </aside>
       </div>
+      <DoctorQuestionnaireCard patient={patient} onRefresh={load} />
     </div>
+  )
+}
+
+function DoctorQuestionnaireCard({
+  patient,
+  onRefresh,
+}: {
+  patient: PatientRecord
+  onRefresh: () => Promise<void>
+}) {
+  const { locale, t } = useClinicLocale()
+  const c = QUESTIONNAIRE_COPY[locale]
+  const dateLocale = locale === 'ru' ? 'ru-RU' : 'en-GB'
+  const signedQuestionnaire = doctorQuestionnaireFromJson(patient.anamnesisJson)
+  const [open, setOpen] = useState(false)
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [checked, setChecked] = useState<Record<string, boolean>>({})
+  const [signature, setSignature] = useState(`${patient.firstName} ${patient.lastName}`.trim())
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const questionText = (question: DoctorQuestionnaireQuestion) => (locale === 'ru' ? question.ru : question.en)
+
+  const saveQuestionnaire = async (event: React.FormEvent) => {
+    event.preventDefault()
+    const signatureText = signature.trim()
+    if (!signatureText) {
+      setError(c.signatureRequired)
+      return
+    }
+
+    const anamnesis = anamnesisFromJson(patient.anamnesisJson)
+    const doctorQuestionnaire: ClinicDoctorQuestionnaireV1 = {
+      v: 1,
+      title: c.title,
+      signedAt: new Date().toISOString(),
+      signatureText,
+      answers: DOCTOR_QUESTIONNAIRE_QUESTIONS.map((question) => ({
+        id: question.id,
+        prompt: questionText(question),
+        type: question.type,
+        checked: question.type === 'CHECKBOX' ? checked[question.id] === true : undefined,
+        answer: question.type === 'TEXT' ? (answers[question.id] ?? '').trim() : undefined,
+      })),
+    }
+
+    setSaving(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/clinic/patients/${patient.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          anamnesisJson: anamnesisToStorage({
+            allergies: anamnesis.allergies,
+            medications: anamnesis.medications,
+            conditions: anamnesis.conditions,
+            social: anamnesis.social,
+            doctorQuestionnaire,
+          }),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || t.saveFailed)
+        return
+      }
+      setOpen(false)
+      await onRefresh()
+    } catch {
+      setError(t.networkError)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section className="rounded-[1.75rem] border border-white/80 bg-white/90 shadow-sm">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="flex min-h-16 w-full items-center justify-between gap-4 px-5 py-4 text-left"
+      >
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold text-slate-950">{c.title}</span>
+          <span className="mt-1 block text-xs text-slate-500">
+            {signedQuestionnaire ? c.signed : c.unsigned}
+          </span>
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-orange-700">
+          {open ? c.close : c.open}
+          {open ? <ChevronUp className="h-4 w-4" aria-hidden /> : <ChevronDown className="h-4 w-4" aria-hidden />}
+        </span>
+      </button>
+
+      {open && (
+        <div className="border-t border-slate-100 px-5 pb-5">
+          <p className="mt-4 text-sm leading-relaxed text-slate-600">{c.hint}</p>
+          {error && <p className="mt-3 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+
+          {signedQuestionnaire ? (
+            <div className="mt-4 space-y-3">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-950">
+                <p className="font-semibold">{c.signed}</p>
+                <p className="mt-1">
+                  {c.signature}: <span className="font-semibold">{signedQuestionnaire.signatureText}</span>
+                </p>
+                <p className="mt-1 text-emerald-800">
+                  {c.signedAt}:{' '}
+                  {new Date(signedQuestionnaire.signedAt).toLocaleString(dateLocale, {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </div>
+              <div className="grid gap-3 lg:grid-cols-2">
+                {signedQuestionnaire.answers.map((answer) => (
+                  <div key={answer.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm">
+                    <p className="font-semibold text-slate-950">{answer.prompt}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-slate-700">
+                      {answer.type === 'CHECKBOX'
+                        ? answer.checked ? c.checked : c.notChecked
+                        : answer.answer || t.emptyValue}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={saveQuestionnaire} className="mt-4 space-y-3">
+              <div className="grid gap-3 lg:grid-cols-2">
+                {DOCTOR_QUESTIONNAIRE_QUESTIONS.map((question) => (
+                  <div key={question.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p className="text-sm font-semibold text-slate-950">{questionText(question)}</p>
+                    {question.type === 'CHECKBOX' ? (
+                      <label className="mt-3 flex items-center gap-3 text-sm text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={checked[question.id] === true}
+                          onChange={(event) => setChecked((current) => ({
+                            ...current,
+                            [question.id]: event.currentTarget.checked,
+                          }))}
+                          className="h-4 w-4 rounded border-slate-300 text-orange-600"
+                        />
+                        {c.checkIfYes}
+                      </label>
+                    ) : (
+                      <textarea
+                        value={answers[question.id] ?? ''}
+                        onChange={(event) => setAnswers((current) => ({
+                          ...current,
+                          [question.id]: event.currentTarget.value,
+                        }))}
+                        rows={3}
+                        placeholder={c.textPlaceholder}
+                        className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4">
+                <label className="block text-sm font-semibold text-orange-950">
+                  {c.signature}
+                  <input
+                    value={signature}
+                    onChange={(event) => setSignature(event.target.value)}
+                    placeholder={c.signaturePlaceholder}
+                    className="mt-2 min-h-11 w-full rounded-xl border border-orange-100 bg-white px-3 text-sm text-slate-900"
+                  />
+                </label>
+              </div>
+              <button
+                type="submit"
+                disabled={saving}
+                className="min-h-11 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {saving ? c.saving : c.save}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+    </section>
   )
 }
 
@@ -1467,6 +1719,7 @@ function PatientPortalCard({
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
   const [showHint, setShowHint] = useState(false)
+  const [portalOpen, setPortalOpen] = useState(false)
   const now = Date.now()
   const activeLink =
     patient.portalLinks.find((link) => !link.revokedAt && new Date(link.expiresAt).getTime() >= now) ?? null
@@ -1531,37 +1784,57 @@ function PatientPortalCard({
 
   return (
     <section className="rounded-2xl border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
-      <div className="flex flex-col gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">{t.patientPortalLite}</p>
-          <div className="mt-1 flex items-start justify-between gap-3">
-            <h2 className="min-w-0 text-lg font-semibold text-gray-950">{t.patientPortalPrivateLink}</h2>
+      <button
+        type="button"
+        onClick={() => setPortalOpen((value) => !value)}
+        aria-expanded={portalOpen}
+        className="flex w-full items-start justify-between gap-4 text-left"
+      >
+        <span className="min-w-0">
+          <span className="block text-xs font-semibold uppercase tracking-wide text-blue-800">{t.patientPortalLite}</span>
+          <span className="mt-1 block min-w-0 text-lg font-semibold text-gray-950">
+            {t.patientPortalPrivateLink}
+          </span>
+        </span>
+        <span className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-white text-blue-800 shadow-sm">
+          {portalOpen ? <ChevronUp className="h-4 w-4" aria-hidden /> : <ChevronDown className="h-4 w-4" aria-hidden />}
+        </span>
+      </button>
+
+      {portalOpen && (
+        <div className="mt-4 border-t border-blue-100 pt-4">
+          <div className="flex flex-col gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm leading-relaxed text-blue-950/80">
+                  {activeLink ? t.patientPortalActiveLink : t.patientPortalNoActiveLink}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowHint((value) => !value)}
+                  aria-label={t.patientPortalPrivateLinkHint}
+                  aria-expanded={showHint}
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-white text-sm font-semibold text-blue-800 shadow-sm hover:bg-blue-50"
+                >
+                  ?
+                </button>
+              </div>
+              {showHint && (
+                <p className="mt-3 rounded-2xl border border-blue-100 bg-white/80 p-3 text-sm leading-relaxed text-blue-950/80">
+                  {t.patientPortalPrivateLinkHint}
+                </p>
+              )}
+            </div>
             <button
               type="button"
-              onClick={() => setShowHint((value) => !value)}
-              aria-label={t.patientPortalPrivateLinkHint}
-              aria-expanded={showHint}
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-white text-sm font-semibold text-blue-800 shadow-sm hover:bg-blue-50"
+              onClick={createLink}
+              disabled={creating}
+              className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
             >
-              ?
+              <Link2 className="h-4 w-4" aria-hidden />
+              {creating ? t.creatingEllipsis : t.patientPortalCreateLink}
             </button>
           </div>
-          {showHint && (
-            <p className="mt-3 rounded-2xl border border-blue-100 bg-white/80 p-3 text-sm leading-relaxed text-blue-950/80">
-              {t.patientPortalPrivateLinkHint}
-            </p>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={createLink}
-          disabled={creating}
-          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-        >
-          <Link2 className="h-4 w-4" aria-hidden />
-          {creating ? t.creatingEllipsis : t.patientPortalCreateLink}
-        </button>
-      </div>
 
       {error && <p className="mt-3 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
@@ -1669,6 +1942,8 @@ function PatientPortalCard({
           )}
         </div>
       </div>
+        </div>
+      )}
     </section>
   )
 }
