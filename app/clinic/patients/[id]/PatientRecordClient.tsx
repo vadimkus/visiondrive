@@ -2415,8 +2415,16 @@ function OverviewTab({
     }
   }
 
-  const logVisit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const clearVisitProcedureFields = () => {
+    setChief('')
+    setSummary('')
+    setNextSteps('')
+    setStaffNotes('')
+    setTreatmentPlanId('')
+    setAftercareTemplateId('')
+  }
+
+  const saveVisitEntry = async ({ keepAdding }: { keepAdding: boolean }) => {
     setLogging(true)
     setVisitSaveMessage('')
     try {
@@ -2442,25 +2450,25 @@ function OverviewTab({
         alert(data.error || t.couldNotLogVisit)
         return
       }
-      setChief('')
-      setSummary('')
-      setNextSteps('')
-      setStaffNotes('')
-      setTreatmentPlanId('')
-      setAftercareTemplateId('')
+      clearVisitProcedureFields()
       try {
         window.localStorage.removeItem(offlineDraftKey)
       } catch {
         /* ignore */
       }
       setDraftSavedAt(null)
-      setVisitSaveMessage(t.offlineVisitDraftSynced)
+      setVisitSaveMessage(keepAdding ? t.procedureAddedToVisit : t.offlineVisitDraftSynced)
       await onVisitLogged()
     } catch {
       setVisitSaveMessage(t.offlineVisitDraftKept)
     } finally {
       setLogging(false)
     }
+  }
+
+  const logVisit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await saveVisitEntry({ keepAdding: false })
   }
 
   return (
@@ -2978,13 +2986,23 @@ function OverviewTab({
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-base"
           />
         </div>
-        <button
-          type="submit"
-          disabled={logging}
-          className="w-full py-3.5 rounded-xl bg-gray-900 text-white font-semibold disabled:opacity-60"
-        >
-          {logging ? t.savingEllipsis : online ? t.saveVisit : t.offlineVisitSyncWhenOnline}
-        </button>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => void saveVisitEntry({ keepAdding: true })}
+            disabled={logging}
+            className="w-full rounded-xl border border-orange-200 bg-orange-50 py-3.5 font-semibold text-orange-800 transition hover:bg-orange-100 disabled:opacity-60"
+          >
+            {logging ? t.savingEllipsis : t.addProcedure}
+          </button>
+          <button
+            type="submit"
+            disabled={logging}
+            className="w-full rounded-xl bg-gray-900 py-3.5 font-semibold text-white disabled:opacity-60"
+          >
+            {logging ? t.savingEllipsis : online ? t.saveVisit : t.offlineVisitSyncWhenOnline}
+          </button>
+        </div>
       </form>
 
       <div>
