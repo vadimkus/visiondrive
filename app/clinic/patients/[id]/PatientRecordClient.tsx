@@ -1032,6 +1032,8 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
         {t.backPatients}
       </Link>
 
+      <DoctorQuestionnaireCard patient={patient} onRefresh={load} />
+
       <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-xl shadow-slate-200/60 backdrop-blur">
         <div className="grid xl:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="p-5 sm:p-6 lg:p-8">
@@ -1349,7 +1351,6 @@ export default function PatientRecordClient({ patientId }: { patientId: string }
           </div>
         </aside>
       </div>
-      <DoctorQuestionnaireCard patient={patient} onRefresh={load} />
     </div>
   )
 }

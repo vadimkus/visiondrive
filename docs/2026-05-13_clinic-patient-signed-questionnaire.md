@@ -2,11 +2,11 @@
 
 ## Context
 
-Vadim requested a patient-card questionnaire at the bottom of the patient record: always collapsed under a chevron, 10 doctor questions, checkbox/text answers, client signature, save, and future read-only display as a signed sheet.
+Vadim requested a patient-card questionnaire: always collapsed under a chevron, 10 doctor questions, checkbox/text answers, client signature, save, and future read-only display as a signed sheet.
 
 ## What Changed
 
-- Added a bottom-of-card `Лист-опросник от доктора` / `Doctor questionnaire` section in `PatientRecordClient`.
+- Added a top-of-card `Лист-опросник от доктора` / `Doctor questionnaire` section in `PatientRecordClient`, directly under the back link and before the patient header card.
 - The section is collapsed by default and expands via chevron.
 - Before signing, it shows 10 starter doctor questions with mixed text inputs and checkboxes.
 - A client signature field is required before saving.
