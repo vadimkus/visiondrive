@@ -1,0 +1,16 @@
+---
+description: Bali LLTS114 land location context
+alwaysApply: true
+---
+
+# Bali Land Location - LLTS114
+
+When the user refers to the Bali land, Pejeng land, Plot LLTS114, or the retirement/villa land, use this saved location context.
+
+- Google Maps link provided by user: https://maps.app.goo.gl/vX9gZwnv4NuZ3bXi8
+- The link resolves to a Google Maps route. Treat the route destination as the land pin unless the user later corrects it.
+- Land destination coordinates: `-8.4402778, 115.3135278`
+- Google Maps direct pin: https://www.google.com/maps?q=-8.4402778,115.3135278
+- Earlier zoning/map work identified the relevant land deal as LLTS114 in the Pejeng/Tampaksiring area with parcel/zoning references around yellow residential/R3 context.
+
+For legal/building decisions, do not treat the map pin as a cadastral boundary. Ask for or rely on the official measurement drawing, SHM/SPPT references, and notary documents for boundaries and exact land area.
