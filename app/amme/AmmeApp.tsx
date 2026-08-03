@@ -6,6 +6,7 @@ import { AMME_MENU_CATEGORIES, SEND_DELAY_SEC } from '@/lib/amme/menu'
 import { formatIdr } from '@/lib/amme/money'
 import { KNOWLEDGE_ARTICLES, KNOWLEDGE_CATEGORIES } from '@/lib/amme/knowledge'
 import CrmView, { type GuestCard } from '@/app/amme/CrmView'
+import ManagementView from '@/app/amme/ManagementView'
 
 type StaffRole = 'ADMIN' | 'KITCHEN' | 'OWNER'
 
@@ -71,6 +72,8 @@ type KitchenLine = {
   guestName: string
   visitId: string
   tabId: string
+  station: string
+  priority: number
 }
 
 type Audit = {
@@ -118,7 +121,16 @@ type State = {
   history: Visit[]
 }
 
-type View = 'dash' | 'book' | 'guests' | 'crm' | 'kitchen' | 'report' | 'menu' | 'knowledge'
+type View =
+  | 'dash'
+  | 'book'
+  | 'guests'
+  | 'crm'
+  | 'kitchen'
+  | 'report'
+  | 'manage'
+  | 'menu'
+  | 'knowledge'
 
 const VIEW_META: Record<View, { label: string; hint: string; ico: string }> = {
   dash: { label: 'Дашборд', hint: 'Смена и быстрые действия', ico: '◆' },
@@ -127,6 +139,7 @@ const VIEW_META: Record<View, { label: string; hint: string; ico: string }> = {
   crm: { label: 'CRM', hint: 'Профили, сегменты, заметки', ico: '◈' },
   kitchen: { label: 'Кухня', hint: 'Очередь тикетов', ico: '▣' },
   report: { label: 'Отчёт', hint: 'Выручка и журнал', ico: '▤' },
+  manage: { label: 'Управление', hint: 'Capacity, склад, BI, workflows', ico: '⬡' },
   menu: { label: 'Меню', hint: 'Цены и активность', ico: '≡' },
   knowledge: { label: 'Справка', hint: 'Инструкции для смены', ico: '?' },
 }
@@ -153,6 +166,19 @@ const auditTime = (iso: string | null) => {
 function todayKey() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function useNow(interval = 15_000) {
+  const [now, setNow] = useState(0)
+  useEffect(() => {
+    const first = setTimeout(() => setNow(Date.now()), 0)
+    const timer = setInterval(() => setNow(Date.now()), interval)
+    return () => {
+      clearTimeout(first)
+      clearInterval(timer)
+    }
+  }, [interval])
+  return now
 }
 
 function tabSum(tab: Tab) {
@@ -281,13 +307,24 @@ export default function AmmeApp({
   }, [view, loadReport])
 
   useEffect(() => {
+    const interval = view === 'kitchen' ? 4_000 : 15_000
     const t = setInterval(() => {
       void load()
       void loadDashReport()
       if (view === 'report') void loadReport()
-    }, 20000)
+    }, interval)
     return () => clearInterval(t)
   }, [load, loadDashReport, loadReport, view])
+
+  useEffect(() => {
+    if (view !== 'kitchen') return
+    const source = new EventSource('/api/amme/events')
+    const refresh = () => void load()
+    source.addEventListener('send_kitchen', refresh)
+    source.addEventListener('line_done', refresh)
+    source.addEventListener('line_qty_changed', refresh)
+    return () => source.close()
+  }, [load, view])
 
   useEffect(() => {
     return () => {
@@ -346,7 +383,7 @@ export default function AmmeApp({
   }
 
   const kitchenOpen = state?.kitchen.filter((k) => k.status === 'SENT').length || 0
-  const openVisits = state?.visits || []
+  const openVisits = useMemo(() => state?.visits || [], [state?.visits])
   const waiting = state?.bookings.filter((b) => b.status === 'WAITING').length || 0
   const banyaLive = openVisits.filter((v) => v.banya && !v.banyaEndedAt)
   const activeMenu = useMemo(() => (state?.menu || []).filter((m) => m.active), [state?.menu])
@@ -411,7 +448,13 @@ export default function AmmeApp({
         </div>
 
         <nav className="amme-side-nav">
-          {(Object.keys(VIEW_META) as View[]).map((id) => {
+          {(Object.keys(VIEW_META) as View[])
+            .filter((id) => {
+              if (user.staffRole === 'KITCHEN') return id === 'dash' || id === 'kitchen' || id === 'knowledge'
+              if (user.staffRole === 'ADMIN') return id !== 'menu'
+              return true
+            })
+            .map((id) => {
             const m = VIEW_META[id]
             const badge =
               id === 'kitchen' && kitchenOpen > 0
@@ -676,6 +719,8 @@ export default function AmmeApp({
             />
           ) : null}
 
+          {view === 'manage' ? <ManagementView day={day} onToast={showToast} /> : null}
+
           {view === 'menu' ? (
             <MenuEditor
               menu={state.menu}
@@ -861,7 +906,7 @@ function Bookings(props: {
   onOpenVisit: (visitId: string) => void
   guestsById: Map<string, GuestCard>
 }) {
-  const now = Date.now()
+  const now = useNow()
   return (
     <>
       <div
@@ -1620,8 +1665,34 @@ function Receipt(props: {
 }
 
 function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string) => void }) {
-  const open = lines.filter((l) => l.status === 'SENT')
-  const done = lines.filter((l) => l.status === 'DONE').slice(-12)
+  const now = useNow()
+  const stations = [...new Set(lines.map((line) => line.station || 'Кухня'))]
+  const [station, setStation] = useState('ALL')
+  const [sound, setSound] = useState(true)
+  const previousOpen = useRef(0)
+  const open = lines
+    .filter((l) => l.status === 'SENT' && (station === 'ALL' || l.station === station))
+    .sort((a, b) => b.priority - a.priority || String(a.sentAt).localeCompare(String(b.sentAt)))
+  const done = lines
+    .filter((l) => l.status === 'DONE' && (station === 'ALL' || l.station === station))
+    .slice(-12)
+
+  useEffect(() => {
+    const count = lines.filter((line) => line.status === 'SENT').length
+    if (sound && count > previousOpen.current && previousOpen.current > 0) {
+      try {
+        const audio = new AudioContext()
+        const oscillator = audio.createOscillator()
+        oscillator.frequency.value = 880
+        oscillator.connect(audio.destination)
+        oscillator.start()
+        oscillator.stop(audio.currentTime + 0.12)
+      } catch {
+        // Browser may require an initial interaction before audio.
+      }
+    }
+    previousOpen.current = count
+  }, [lines, sound])
 
   const urgencyStyle = (mins: number) => {
     const u = kitchenUrgency(mins)
@@ -1632,7 +1703,20 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
 
   return (
     <>
-      <p className="amme-eyebrow">Кухня · тикеты</p>
+      <div className="amme-kds-toolbar">
+        <p className="amme-eyebrow" style={{ margin: 0 }}>KDS · тикеты</p>
+        <div className="amme-seg">
+          <button type="button" className={station === 'ALL' ? 'on' : ''} onClick={() => setStation('ALL')}>Все</button>
+          {stations.map((name) => (
+            <button key={name} type="button" className={station === name ? 'on' : ''} onClick={() => setStation(name)}>
+              {name}
+            </button>
+          ))}
+        </div>
+        <button className={sound ? 'amme-jade' : 'amme-ghost'} type="button" onClick={() => setSound((value) => !value)}>
+          Звук {sound ? 'ON' : 'OFF'}
+        </button>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 12 }}>
         {open.length === 0 ? (
           <div className="amme-card" style={{ color: 'var(--amme-dim)' }}>
@@ -1640,7 +1724,7 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
           </div>
         ) : null}
         {open.map((l) => {
-          const mins = l.sentAt ? Math.floor((Date.now() - new Date(l.sentAt).getTime()) / 60000) : 0
+          const mins = l.sentAt && now ? Math.floor((now - new Date(l.sentAt).getTime()) / 60000) : 0
           const style = urgencyStyle(mins)
           return (
             <div
@@ -1658,9 +1742,7 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
                 }}
               >
                 <span style={{ fontFamily: 'var(--amme-display)', fontSize: 16 }}>{l.guestName}</span>
-                <span className="amme-mono" style={{ color: style.timerColor }}>
-                  {mins}м
-                </span>
+                <span className="amme-mono" style={{ color: style.timerColor }}>{l.station} · {mins}м</span>
               </div>
               <div style={{ padding: 13 }}>
                 <div style={{ fontSize: 16, marginBottom: 12 }}>
@@ -1922,15 +2004,13 @@ function MenuEditor({
   menu: MenuItem[]
   onSave: (code: string, patch: { name?: string; price?: number; active?: boolean }) => void
 }) {
-  const [drafts, setDrafts] = useState<Record<string, { name: string; price: string }>>({})
-
-  useEffect(() => {
+  const [drafts, setDrafts] = useState<Record<string, { name: string; price: string }>>(() => {
     const next: Record<string, { name: string; price: string }> = {}
     for (const m of menu) {
       next[m.code] = { name: m.name, price: String(m.price) }
     }
-    setDrafts(next)
-  }, [menu])
+    return next
+  })
 
   return (
     <>

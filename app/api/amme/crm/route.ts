@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAmmeSession } from '@/lib/amme/session'
+import { assertAmmePermission, hasAmmePermission } from '@/lib/amme/rbac'
 import {
   createGuestManual,
   getGuestDetail,
@@ -12,6 +13,9 @@ import {
 export async function GET(request: NextRequest) {
   const session = await getAmmeSession(request)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!hasAmmePermission(session, 'crm:read')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const { searchParams } = new URL(request.url)
   const guestId = searchParams.get('id')
@@ -50,6 +54,7 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
+    assertAmmePermission(session, 'crm:write')
     const body = await request.json()
     const type = body.type as string
 

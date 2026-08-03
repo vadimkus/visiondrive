@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAmmeSession } from '@/lib/amme/session'
+import { AMME_ACTION_PERMISSION, assertAmmePermission } from '@/lib/amme/rbac'
 import * as svc from '@/lib/amme/service'
 
 type Body = {
@@ -22,8 +23,12 @@ type Body = {
   time?: string
   phone?: string
   note?: string
+  resourceId?: string
+  depositAmount?: number
+  depositStatus?: 'NONE' | 'REQUIRED' | 'PENDING' | 'PAID' | 'FORFEITED' | 'REFUNDED' | 'WAIVED'
   price?: number
   active?: boolean
+  paymentMethod?: 'CASH' | 'QRIS' | 'CARD' | 'TRANSFER' | 'PACKAGE' | 'GIFT_CARD' | 'OTHER'
 }
 
 export async function POST(request: NextRequest) {
@@ -34,6 +39,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as Body
+    if (!body.type || typeof body.type !== 'string') {
+      return NextResponse.json({ success: false, error: 'type обязателен' }, { status: 400 })
+    }
+    const permission = AMME_ACTION_PERMISSION[body.type]
+    if (permission) assertAmmePermission(session, permission)
     const v = session.venueId
     const a = session.userId
 
@@ -48,7 +58,7 @@ export async function POST(request: NextRequest) {
         await svc.unmarkNoshow(v, body.bookingId!, a)
         break
       case 'toggle_banya':
-        await svc.toggleBookingBanya(v, body.bookingId!)
+        await svc.toggleBookingBanya(v, body.bookingId!, a)
         break
       case 'walkin':
         await svc.walkIn(
@@ -83,7 +93,7 @@ export async function POST(request: NextRequest) {
         )
         break
       case 'pay':
-        await svc.payTab(v, body.tabId!, a)
+        await svc.payTab(v, body.tabId!, a, body.paymentMethod)
         break
       case 'close':
         await svc.closeTab(v, body.tabId!, a)
@@ -105,6 +115,9 @@ export async function POST(request: NextRequest) {
             banya: !!body.banya,
             phone: body.phone,
             note: body.note,
+            resourceId: body.resourceId,
+            depositAmount: body.depositAmount,
+            depositStatus: body.depositStatus,
           },
           a
         )

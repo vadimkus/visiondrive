@@ -9,6 +9,7 @@ export type AmmeSession = {
   role: string
   tenantId: string
   staffRole: AmmeStaffRole
+  permissions: string[]
   venueId: string
   name: string | null
 }
@@ -35,7 +36,7 @@ export async function getAmmeSession(request: NextRequest): Promise<AmmeSession 
     }),
   ])
 
-  if (!venue || !user || user.status !== 'ACTIVE') return null
+  if (!venue || !user || user.status !== 'ACTIVE' || profile?.active === false) return null
 
   return {
     userId: user.id,
@@ -43,6 +44,7 @@ export async function getAmmeSession(request: NextRequest): Promise<AmmeSession 
     role: decoded.role,
     tenantId: decoded.tenantId,
     staffRole: profile?.staffRole ?? 'ADMIN',
+    permissions: profile?.permissions ?? [],
     venueId: venue.id,
     name: user.name,
   }

@@ -2445,8 +2445,10 @@ model RateLimit {
 
 enum AmmeBookingStatus {
   WAITING
+  CONFIRMED
   ARRIVED
   NOSHOW
+  CANCELLED
 }
 
 enum AmmeLineStatus {
@@ -2469,55 +2471,156 @@ enum AmmeStaffRole {
   OWNER
 }
 
-model AmmeVenue {
-  id         String   @id @default(cuid())
-  tenantId   String   @unique
-  name       String   @default("AMMÉ")
-  banyaPrice Int      @default(800000)
-  currency   String   @default("IDR")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+enum AmmeResourceKind {
+  BANYA
+  TABLE
+  ROOM
+  EQUIPMENT
+}
 
-  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  menu     AmmeMenuItem[]
-  bookings AmmeBooking[]
-  visits   AmmeVisit[]
-  guests   AmmeGuest[]
-  audits   AmmeAuditEvent[]
+enum AmmeDepositStatus {
+  NONE
+  REQUIRED
+  PENDING
+  PAID
+  FORFEITED
+  REFUNDED
+  WAIVED
+}
+
+enum AmmePaymentMethod {
+  CASH
+  QRIS
+  CARD
+  TRANSFER
+  PACKAGE
+  GIFT_CARD
+  OTHER
+}
+
+enum AmmePaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  VOIDED
+}
+
+enum AmmeStockMovementType {
+  RECEIPT
+  CONSUMPTION
+  SALE
+  WASTE
+  ADJUSTMENT
+  TRANSFER
+}
+
+enum AmmePackageType {
+  SESSION_PACK
+  MEMBERSHIP
+  CREDIT
+}
+
+enum AmmeGuestPackageStatus {
+  ACTIVE
+  PAUSED
+  EXHAUSTED
+  EXPIRED
+  CANCELLED
+}
+
+enum AmmeMessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum AmmeShiftStatus {
+  PLANNED
+  OPEN
+  CLOSED
+}
+
+model AmmeVenue {
+  id              String   @id @default(cuid())
+  tenantId        String   @unique
+  name            String   @default("AMMÉ")
+  slug            String   @default("main")
+  banyaPrice      Int      @default(800000)
+  banyaCapacity   Int      @default(20)
+  sessionMinutes  Int      @default(180)
+  turnoverMinutes Int      @default(30)
+  timezone        String   @default("Asia/Makassar")
+  openHour        Int      @default(9)
+  closeHour       Int      @default(23)
+  currency        String   @default("IDR")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  menu           AmmeMenuItem[]
+  bookings       AmmeBooking[]
+  visits         AmmeVisit[]
+  guests         AmmeGuest[]
+  audits         AmmeAuditEvent[]
+  resources      AmmeResource[]
+  waitlist       AmmeWaitlistEntry[]
+  payments       AmmePayment[]
+  stations       AmmeKdsStation[]
+  inventory      AmmeInventoryItem[]
+  stockMovements AmmeStockMovement[]
+  packages       AmmePackage[]
+  giftCards      AmmeGiftCard[]
+  shifts         AmmeShift[]
+  messages       AmmeOutboundMessage[]
+  automations    AmmeAutomation[]
+  domainEvents   AmmeDomainEvent[]
 
   @@map("amme_venues")
 }
 
 /// Unified guest profile (hospitality CRM) — one person across bookings/visits.
 model AmmeGuest {
-  id            String    @id @default(cuid())
-  venueId       String
-  name          String
-  phone         String?
-  phoneNorm     String?
-  email         String?
-  notes         String?   @db.Text
-  tags          String[]  @default([])
-  preferences   String?   @db.Text
-  dietary       String?
-  birthday      DateTime? @db.Date
-  source        String?
-  language      String?   @default("ru")
-  visitCount    Int       @default(0)
-  noshowCount   Int       @default(0)
-  lifetimeSpend Int       @default(0)
-  avgSpend      Int       @default(0)
-  firstVisitAt  DateTime? @db.Timestamptz(6)
-  lastVisitAt   DateTime? @db.Timestamptz(6)
-  banyaPref     Boolean   @default(false)
-  blocked       Boolean   @default(false)
-  vip           Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  venueId         String
+  name            String
+  phone           String?
+  phoneNorm       String?
+  email           String?
+  notes           String?   @db.Text
+  tags            String[]  @default([])
+  preferences     String?   @db.Text
+  dietary         String?
+  birthday        DateTime? @db.Date
+  source          String?
+  language        String?   @default("ru")
+  visitCount      Int       @default(0)
+  noshowCount     Int       @default(0)
+  lifetimeSpend   Int       @default(0)
+  avgSpend        Int       @default(0)
+  firstVisitAt    DateTime? @db.Timestamptz(6)
+  lastVisitAt     DateTime? @db.Timestamptz(6)
+  banyaPref       Boolean   @default(false)
+  blocked         Boolean   @default(false)
+  vip             Boolean   @default(false)
+  recencyScore    Int       @default(1)
+  frequencyScore  Int       @default(1)
+  monetaryScore   Int       @default(1)
+  rfmSegment      String?   @default("NEW")
+  consentWhatsApp Boolean   @default(false)
+  marketingOptIn  Boolean   @default(false)
+  lastContactAt   DateTime? @db.Timestamptz(6)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  venue    AmmeVenue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  bookings AmmeBooking[]
-  visits   AmmeVisit[]
+  venue     AmmeVenue             @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  bookings  AmmeBooking[]
+  visits    AmmeVisit[]
+  waitlist  AmmeWaitlistEntry[]
+  packages  AmmeGuestPackage[]
+  giftCards AmmeGiftCard[]
+  messages  AmmeOutboundMessage[]
 
   @@unique([venueId, phoneNorm])
   @@index([venueId, name])
@@ -2533,6 +2636,7 @@ model AmmeMenuItem {
   code      String
   name      String
   price     Int
+  costPrice Int      @default(0)
   category  String
   station   String   @default("Кухня")
   vegFlag   String?
@@ -2541,7 +2645,8 @@ model AmmeMenuItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  venue AmmeVenue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venue   AmmeVenue        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  recipes AmmeRecipeItem[]
 
   @@unique([venueId, code])
   @@index([venueId, category])
@@ -2549,24 +2654,33 @@ model AmmeMenuItem {
 }
 
 model AmmeBooking {
-  id        String            @id @default(cuid())
-  venueId   String
-  guestId   String?
-  date      DateTime          @db.Date
-  at        DateTime          @db.Timestamptz(6)
-  name      String
-  guests    Int               @default(1)
-  banya     Boolean           @default(false)
-  phone     String?
-  note      String?
-  status    AmmeBookingStatus @default(WAITING)
-  visitId   String?           @unique
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  id                 String            @id @default(cuid())
+  venueId            String
+  guestId            String?
+  date               DateTime          @db.Date
+  at                 DateTime          @db.Timestamptz(6)
+  endsAt             DateTime?         @db.Timestamptz(6)
+  name               String
+  guests             Int               @default(1)
+  banya              Boolean           @default(false)
+  phone              String?
+  note               String?
+  source             String?           @default("admin")
+  depositAmount      Int               @default(0)
+  depositStatus      AmmeDepositStatus @default(NONE)
+  confirmedAt        DateTime?         @db.Timestamptz(6)
+  cancelledAt        DateTime?         @db.Timestamptz(6)
+  cancellationReason String?
+  status             AmmeBookingStatus @default(WAITING)
+  visitId            String?           @unique
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
-  venue AmmeVenue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  guest AmmeGuest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
-  visit AmmeVisit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  venue     AmmeVenue             @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  guest     AmmeGuest?            @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  visit     AmmeVisit?            @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  resources AmmeBookingResource[]
+  payments  AmmePayment[]
 
   @@index([venueId, date, status])
   @@index([guestId])
@@ -2586,10 +2700,11 @@ model AmmeVisit {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  venue   AmmeVenue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  guest   AmmeGuest?   @relation(fields: [guestId], references: [id], onDelete: SetNull)
-  booking AmmeBooking?
-  tabs    AmmeTab[]
+  venue     AmmeVenue             @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  guest     AmmeGuest?            @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  booking   AmmeBooking?
+  tabs      AmmeTab[]
+  resources AmmeBookingResource[]
 
   @@index([venueId, closedAt])
   @@index([guestId])
@@ -2606,30 +2721,32 @@ model AmmeTab {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  visit AmmeVisit  @relation(fields: [visitId], references: [id], onDelete: Cascade)
-  lines AmmeLine[]
+  visit    AmmeVisit     @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  lines    AmmeLine[]
+  payments AmmePayment[]
 
   @@index([visitId])
   @@map("amme_tabs")
 }
 
 model AmmeLine {
-  id             String         @id @default(cuid())
-  tabId          String
-  name           String
-  qty            Int            @default(1)
-  price          Int
-  kind           AmmeLineKind   @default(FOOD)
-  station        String         @default("Кухня")
-  status         AmmeLineStatus @default(DRAFT)
-  menuCode       String?
-  sentAt         DateTime?      @db.Timestamptz(6)
-  doneAt         DateTime?      @db.Timestamptz(6)
-  cancelledAt    DateTime?      @db.Timestamptz(6)
-  cancelReason   String?
-  cancelledById  String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  tabId         String
+  name          String
+  qty           Int            @default(1)
+  price         Int
+  kind          AmmeLineKind   @default(FOOD)
+  station       String         @default("Кухня")
+  priority      Int            @default(0)
+  status        AmmeLineStatus @default(DRAFT)
+  menuCode      String?
+  sentAt        DateTime?      @db.Timestamptz(6)
+  doneAt        DateTime?      @db.Timestamptz(6)
+  cancelledAt   DateTime?      @db.Timestamptz(6)
+  cancelReason  String?
+  cancelledById String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   tab AmmeTab @relation(fields: [tabId], references: [id], onDelete: Cascade)
 
@@ -2656,13 +2773,341 @@ model AmmeAuditEvent {
 }
 
 model AmmeStaffProfile {
-  id        String        @id @default(cuid())
-  userId    String        @unique
-  tenantId  String
-  staffRole AmmeStaffRole @default(ADMIN)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  userId      String        @unique
+  tenantId    String
+  venueId     String?
+  staffRole   AmmeStaffRole @default(ADMIN)
+  permissions String[]      @default([])
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([tenantId])
   @@map("amme_staff_profiles")
+}
+
+model AmmeResource {
+  id              String           @id @default(cuid())
+  venueId         String
+  code            String
+  name            String
+  kind            AmmeResourceKind
+  capacity        Int              @default(1)
+  sessionMinutes  Int?
+  turnoverMinutes Int?
+  active          Boolean          @default(true)
+  sortOrder       Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  venue    AmmeVenue             @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  bookings AmmeBookingResource[]
+  waitlist AmmeWaitlistEntry[]
+
+  @@unique([venueId, code])
+  @@index([venueId, kind, active])
+  @@map("amme_resources")
+}
+
+model AmmeBookingResource {
+  id         String   @id @default(cuid())
+  bookingId  String?
+  visitId    String?
+  resourceId String
+  guests     Int      @default(1)
+  startsAt   DateTime @db.Timestamptz(6)
+  endsAt     DateTime @db.Timestamptz(6)
+  createdAt  DateTime @default(now())
+
+  booking  AmmeBooking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  visit    AmmeVisit?   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  resource AmmeResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([resourceId, startsAt, endsAt])
+  @@index([bookingId])
+  @@index([visitId])
+  @@map("amme_booking_resources")
+}
+
+model AmmeWaitlistEntry {
+  id            String    @id @default(cuid())
+  venueId       String
+  guestId       String?
+  resourceId    String?
+  name          String
+  phone         String?
+  guests        Int       @default(1)
+  requestedDate DateTime  @db.Date
+  preferredFrom DateTime? @db.Timestamptz(6)
+  preferredTo   DateTime? @db.Timestamptz(6)
+  banya         Boolean   @default(true)
+  priority      Int       @default(0)
+  status        String    @default("WAITING")
+  notes         String?
+  offeredAt     DateTime? @db.Timestamptz(6)
+  expiresAt     DateTime? @db.Timestamptz(6)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  venue    AmmeVenue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  guest    AmmeGuest?    @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  resource AmmeResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+
+  @@index([venueId, requestedDate, status])
+  @@map("amme_waitlist_entries")
+}
+
+model AmmePayment {
+  id         String            @id @default(cuid())
+  venueId    String
+  tabId      String?
+  bookingId  String?
+  amount     Int
+  tipAmount  Int               @default(0)
+  method     AmmePaymentMethod
+  status     AmmePaymentStatus @default(PAID)
+  reference  String?
+  note       String?
+  actorId    String?
+  paidAt     DateTime?         @default(now()) @db.Timestamptz(6)
+  refundedAt DateTime?         @db.Timestamptz(6)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  venue   AmmeVenue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  tab     AmmeTab?     @relation(fields: [tabId], references: [id], onDelete: SetNull)
+  booking AmmeBooking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([venueId, paidAt])
+  @@index([tabId])
+  @@index([bookingId])
+  @@map("amme_payments")
+}
+
+model AmmeKdsStation {
+  id            String   @id @default(cuid())
+  venueId       String
+  code          String
+  name          String
+  color         String?
+  targetMinutes Int      @default(10)
+  active        Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  venue AmmeVenue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, code])
+  @@map("amme_kds_stations")
+}
+
+model AmmeInventoryItem {
+  id          String   @id @default(cuid())
+  venueId     String
+  sku         String
+  name        String
+  unit        String   @default("pcs")
+  onHand      Decimal  @default(0) @db.Decimal(12, 3)
+  reorderAt   Decimal  @default(0) @db.Decimal(12, 3)
+  avgUnitCost Int      @default(0)
+  supplier    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  venue     AmmeVenue           @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  recipes   AmmeRecipeItem[]
+  movements AmmeStockMovement[]
+
+  @@unique([venueId, sku])
+  @@index([venueId, active])
+  @@map("amme_inventory_items")
+}
+
+model AmmeRecipeItem {
+  id              String  @id @default(cuid())
+  menuItemId      String
+  inventoryItemId String
+  quantity        Decimal @db.Decimal(12, 3)
+
+  menuItem      AmmeMenuItem      @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  inventoryItem AmmeInventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, inventoryItemId])
+  @@map("amme_recipe_items")
+}
+
+model AmmeStockMovement {
+  id              String                @id @default(cuid())
+  venueId         String
+  inventoryItemId String
+  type            AmmeStockMovementType
+  quantity        Decimal               @db.Decimal(12, 3)
+  unitCost        Int                   @default(0)
+  referenceType   String?
+  referenceId     String?
+  note            String?
+  actorId         String?
+  createdAt       DateTime              @default(now()) @db.Timestamptz(6)
+
+  venue         AmmeVenue         @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  inventoryItem AmmeInventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([venueId, createdAt])
+  @@index([inventoryItemId, createdAt])
+  @@map("amme_stock_movements")
+}
+
+model AmmePackage {
+  id           String          @id @default(cuid())
+  venueId      String
+  code         String
+  name         String
+  type         AmmePackageType
+  price        Int
+  sessions     Int             @default(0)
+  creditValue  Int             @default(0)
+  validityDays Int             @default(365)
+  active       Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  venue         AmmeVenue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  guestPackages AmmeGuestPackage[]
+
+  @@unique([venueId, code])
+  @@map("amme_packages")
+}
+
+model AmmeGuestPackage {
+  id                String                 @id @default(cuid())
+  guestId           String
+  packageId         String
+  status            AmmeGuestPackageStatus @default(ACTIVE)
+  sessionsRemaining Int                    @default(0)
+  creditRemaining   Int                    @default(0)
+  startsAt          DateTime               @default(now()) @db.Timestamptz(6)
+  expiresAt         DateTime?              @db.Timestamptz(6)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  guest   AmmeGuest   @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  package AmmePackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
+
+  @@index([guestId, status])
+  @@map("amme_guest_packages")
+}
+
+model AmmeGiftCard {
+  id           String    @id @default(cuid())
+  venueId      String
+  guestId      String?
+  code         String
+  initialValue Int
+  balance      Int
+  active       Boolean   @default(true)
+  expiresAt    DateTime? @db.Timestamptz(6)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  venue AmmeVenue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  guest AmmeGuest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  @@unique([venueId, code])
+  @@map("amme_gift_cards")
+}
+
+model AmmeShift {
+  id          String          @id @default(cuid())
+  venueId     String
+  staffUserId String?
+  role        AmmeStaffRole?
+  startsAt    DateTime        @db.Timestamptz(6)
+  endsAt      DateTime?       @db.Timestamptz(6)
+  status      AmmeShiftStatus @default(PLANNED)
+  openedAt    DateTime?       @db.Timestamptz(6)
+  closedAt    DateTime?       @db.Timestamptz(6)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  venue AmmeVenue       @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  notes AmmeShiftNote[]
+
+  @@index([venueId, startsAt])
+  @@map("amme_shifts")
+}
+
+model AmmeShiftNote {
+  id        String   @id @default(cuid())
+  shiftId   String
+  authorId  String?
+  body      String   @db.Text
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  shift AmmeShift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@index([shiftId, createdAt])
+  @@map("amme_shift_notes")
+}
+
+model AmmeOutboundMessage {
+  id          String            @id @default(cuid())
+  venueId     String
+  guestId     String?
+  bookingId   String?
+  channel     String            @default("WHATSAPP")
+  template    String?
+  recipient   String
+  body        String            @db.Text
+  status      AmmeMessageStatus @default(QUEUED)
+  scheduledAt DateTime?         @db.Timestamptz(6)
+  sentAt      DateTime?         @db.Timestamptz(6)
+  providerId  String?
+  error       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  venue AmmeVenue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  guest AmmeGuest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  @@index([venueId, status, scheduledAt])
+  @@map("amme_outbound_messages")
+}
+
+model AmmeAutomation {
+  id         String    @id @default(cuid())
+  venueId    String
+  name       String
+  trigger    String
+  conditions Json?
+  actions    Json
+  active     Boolean   @default(true)
+  lastRunAt  DateTime? @db.Timestamptz(6)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  venue AmmeVenue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId, trigger, active])
+  @@map("amme_automations")
+}
+
+model AmmeDomainEvent {
+  id            String   @id @default(cuid())
+  venueId       String
+  type          String
+  aggregateType String
+  aggregateId   String
+  actorId       String?
+  payload       Json?
+  occurredAt    DateTime @default(now()) @db.Timestamptz(6)
+
+  venue AmmeVenue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId, occurredAt])
+  @@index([aggregateType, aggregateId, occurredAt])
+  @@map("amme_domain_events")
 }

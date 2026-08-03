@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAmmeSession } from '@/lib/amme/session'
+import { hasAmmePermission } from '@/lib/amme/rbac'
 import { getReport, type ReportRange } from '@/lib/amme/service'
 
 export async function GET(request: NextRequest) {
   const session = await getAmmeSession(request)
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  if (!hasAmmePermission(session, 'report:read')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   const day = request.nextUrl.searchParams.get('day')
   const range = (request.nextUrl.searchParams.get('range') || '7d') as ReportRange

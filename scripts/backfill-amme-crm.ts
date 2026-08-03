@@ -29,8 +29,22 @@ async function main() {
 
   const venues = await prisma.ammeVenue.findMany()
   let linked = 0
+  let allocated = 0
 
   for (const venue of venues) {
+    const resource = await prisma.ammeResource.upsert({
+      where: { venueId_code: { venueId: venue.id, code: 'BANYA_MAIN' } },
+      update: { capacity: venue.banyaCapacity, active: true },
+      create: {
+        venueId: venue.id,
+        code: 'BANYA_MAIN',
+        name: 'Главная баня',
+        kind: 'BANYA',
+        capacity: venue.banyaCapacity,
+        sessionMinutes: venue.sessionMinutes,
+        turnoverMinutes: venue.turnoverMinutes,
+      },
+    })
     const bookings = await prisma.ammeBooking.findMany({
       where: { venueId: venue.id, guestId: null },
     })
@@ -72,13 +86,53 @@ async function main() {
       linked += 1
     }
 
+    const banyaBookings = await prisma.ammeBooking.findMany({
+      where: { venueId: venue.id, banya: true, resources: { none: {} } },
+    })
+    for (const booking of banyaBookings) {
+      await prisma.ammeBookingResource.create({
+        data: {
+          bookingId: booking.id,
+          visitId: booking.visitId,
+          resourceId: resource.id,
+          guests: booking.guests,
+          startsAt: booking.at,
+          endsAt:
+            booking.endsAt ||
+            new Date(booking.at.getTime() + venue.sessionMinutes * 60_000),
+        },
+      })
+      allocated += 1
+    }
+
+    const banyaWalkIns = await prisma.ammeVisit.findMany({
+      where: {
+        venueId: venue.id,
+        banya: true,
+        booking: null,
+        resources: { none: {} },
+      },
+    })
+    for (const visit of banyaWalkIns) {
+      await prisma.ammeBookingResource.create({
+        data: {
+          visitId: visit.id,
+          resourceId: resource.id,
+          guests: visit.guests,
+          startsAt: visit.openedAt,
+          endsAt: new Date(visit.openedAt.getTime() + venue.sessionMinutes * 60_000),
+        },
+      })
+      allocated += 1
+    }
+
     const guests = await prisma.ammeGuest.findMany({ where: { venueId: venue.id } })
     for (const g of guests) {
       await recomputeGuestStats(venue.id, g.id)
     }
 
     console.log(
-      `venue ${venue.name}: bookings/visits linked≈${linked}, guests=${guests.length}, phones=${guests.filter((g) => normalizePhone(g.phone)).length}`
+      `venue ${venue.name}: linked≈${linked}, capacity=${allocated}, guests=${guests.length}, phones=${guests.filter((g) => normalizePhone(g.phone)).length}`
     )
   }
 

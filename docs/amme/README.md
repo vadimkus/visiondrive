@@ -1,6 +1,6 @@
 # AMMÉ — папка проекта
 
-Всё по пилоту учёта бани + кухни для Таши и владельца.
+Единая документация management platform AMMÉ: banya capacity + bookings + POS + station KDS + CRM/RFM + inventory + packages + Owner BI.
 
 **Живой продукт:** https://visiondrive.ae/amme  
 **Код:** репозиторий VisionDrive (`~/VisionDrive`), путь `/amme`
@@ -11,17 +11,13 @@
 
 | Файл | Зачем |
 |---|---|
-| [AMME-README.md](./AMME-README.md) | Этот индекс |
-| [AMME-доступ.md](./AMME-доступ.md) | Логин, пароль, что внутри админки |
-| [AMME-статус-продакшн.md](./AMME-статус-продакшн.md) | Что уже в проде, e2e, деплой |
-| [AMME-CRM.md](./AMME-CRM.md) | CRM: профили, сегменты, API |
-| [AMME-API-и-цепочка.md](./AMME-API-и-цепочка.md) | Бизнес-цепочка и все actions |
-| [AMME-код-и-пути.md](./AMME-код-и-пути.md) | Где лежит код в VisionDrive |
-| [AMME-roadmap-spa-fb-2026.md](./AMME-roadmap-spa-fb-2026.md) | Полный аудит + gap vs Zenoti/Mangomint + roadmap P0/P1/P2 |
-| [AMME-передача-проекта.md](./AMME-передача-проекта.md) | Исходная передача контекста |
-| [AMME-ТЗ.md](./AMME-ТЗ.md) | ТЗ v0.2 (MVP) |
-| [AMME-стек-и-этапы.md](./AMME-стек-и-этапы.md) | Стек и этапы |
-| [amme-demo.html](./amme-demo.html) | Старое HTML-демо (продажа/объяснение) |
+| [README.md](./README.md) | Этот индекс |
+| [ACCESS.md](./ACCESS.md) | Доступ и роли |
+| [STATUS.md](./STATUS.md) | Реализованный scope, тесты и прод |
+| [CRM.md](./CRM.md) | CRM 360 и RFM |
+| [API.md](./API.md) | API, RBAC и бизнес-цепочка |
+| [CODEPATHS.md](./CODEPATHS.md) | Код и ключевые пути |
+| [ROADMAP.md](./ROADMAP.md) | Архитектурный аудит и roadmap |
 
 Копии в репо VisionDrive: `docs/2026-08-03_amme-*.md`, `docs/amme/`.
 
@@ -38,4 +34,4 @@
 
 ## Обновлено
 
-2026-08-03 — прод Ready, CRM + e2e пройдены.
+2026-08-03 — management-platform rebuild: schema, RBAC, capacity/public booking, deposits/payments, real-time KDS, CRM/RFM, packages, inventory, shifts, workflows, BI; 248 tests + E2E PASS.

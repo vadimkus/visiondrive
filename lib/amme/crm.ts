@@ -395,5 +395,12 @@ export function serializeGuest(g: AmmeGuest) {
     banyaPref: g.banyaPref,
     blocked: g.blocked,
     vip: g.vip,
+    recencyScore: g.recencyScore,
+    frequencyScore: g.frequencyScore,
+    monetaryScore: g.monetaryScore,
+    rfmSegment: g.rfmSegment,
+    consentWhatsApp: g.consentWhatsApp,
+    marketingOptIn: g.marketingOptIn,
+    lastContactAt: g.lastContactAt?.toISOString() || null,
   }
 }

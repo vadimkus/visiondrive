@@ -66,20 +66,77 @@ async function main() {
     create: { tenantId: tenant.id, userId: user.id, role: 'ADMIN', status: 'ACTIVE' },
   })
 
-  await prisma.ammeStaffProfile.upsert({
-    where: { userId: user.id },
-    update: { tenantId: tenant.id, staffRole: 'ADMIN' },
-    create: { userId: user.id, tenantId: tenant.id, staffRole: 'ADMIN' },
-  })
-
   const venue = await prisma.ammeVenue.upsert({
     where: { tenantId: tenant.id },
-    update: { name: 'AMMÉ', banyaPrice: BANYA_PRICE_DEFAULT, currency: 'IDR' },
+    update: {
+      name: 'AMMÉ',
+      banyaPrice: BANYA_PRICE_DEFAULT,
+      banyaCapacity: 20,
+      sessionMinutes: 180,
+      turnoverMinutes: 30,
+      timezone: 'Asia/Makassar',
+      currency: 'IDR',
+    },
     create: {
       tenantId: tenant.id,
       name: 'AMMÉ',
       banyaPrice: BANYA_PRICE_DEFAULT,
+      banyaCapacity: 20,
+      sessionMinutes: 180,
+      turnoverMinutes: 30,
+      timezone: 'Asia/Makassar',
       currency: 'IDR',
+    },
+  })
+
+  await prisma.ammeStaffProfile.upsert({
+    where: { userId: user.id },
+    update: { tenantId: tenant.id, venueId: venue.id, staffRole: 'OWNER', active: true },
+    create: {
+      userId: user.id,
+      tenantId: tenant.id,
+      venueId: venue.id,
+      staffRole: 'OWNER',
+      active: true,
+    },
+  })
+
+  await prisma.ammeResource.upsert({
+    where: { venueId_code: { venueId: venue.id, code: 'BANYA_MAIN' } },
+    update: { name: 'Главная баня', kind: 'BANYA', capacity: 20, active: true },
+    create: {
+      venueId: venue.id,
+      code: 'BANYA_MAIN',
+      name: 'Главная баня',
+      kind: 'BANYA',
+      capacity: 20,
+      sessionMinutes: 180,
+      turnoverMinutes: 30,
+    },
+  })
+
+  for (const [index, station] of [
+    { code: 'KITCHEN', name: 'Кухня', targetMinutes: 12 },
+    { code: 'BAR', name: 'Бар', targetMinutes: 5 },
+  ].entries()) {
+    await prisma.ammeKdsStation.upsert({
+      where: { venueId_code: { venueId: venue.id, code: station.code } },
+      update: { ...station, active: true, sortOrder: index },
+      create: { venueId: venue.id, ...station, sortOrder: index },
+    })
+  }
+
+  await prisma.ammePackage.upsert({
+    where: { venueId_code: { venueId: venue.id, code: 'BANYA_5' } },
+    update: { name: '5 посещений бани', price: 3_600_000, sessions: 5, active: true },
+    create: {
+      venueId: venue.id,
+      code: 'BANYA_5',
+      name: '5 посещений бани',
+      type: 'SESSION_PACK',
+      price: 3_600_000,
+      sessions: 5,
+      validityDays: 180,
     },
   })
 

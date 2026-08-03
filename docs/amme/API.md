@@ -35,6 +35,9 @@ Walk-in пропускает шаг записи.
 | `GET /api/amme/state?day=YYYY-MM-DD` | venue, menu, bookings, visits, kitchen, audits, guests |
 | `GET /api/amme/report?day=&range=today\|7d\|30d\|custom&from=&to=` | выручка, avg, food/banya, top, daily, hourly, noshow |
 | `GET/POST /api/amme/crm` | см. AMME-CRM.md |
+| `GET/POST /api/amme/manage` | capacity, waitlist, deposits, KDS stations, inventory, recipes, packages, RFM, shifts, workflows, BI |
+| `GET /api/amme/events` | SSE domain-event stream for KDS and live operations |
+| `GET/POST /api/amme/public/booking` | public availability and capacity-safe booking |
 
 ---
 
@@ -44,7 +47,7 @@ Walk-in пропускает шаг записи.
 
 | type | Поля | Эффект |
 |---|---|---|
-| booking_create | time, name, guests, banya, phone?, note?, day | запись + CRM guest |
+| booking_create | time, name, guests, banya, phone?, note?, resourceId?, depositAmount?, depositStatus?, day | capacity-safe запись + CRM guest |
 | import | text, mode append\|replace, day | парсинг списка |
 | arrive | bookingId | визит + счёт |
 | noshow / unmark | bookingId | неявка / вернуть |
@@ -55,8 +58,8 @@ Walk-in пропускает шаг записи.
 | send | tabId | DRAFT → SENT |
 | done | lineId | SENT → DONE |
 | move | lineIds, targetTabId? / newTabForVisitId? | перенос / новый счёт |
-| pay | tabId | paidAt + CRM stats |
-| close | tabId | closedAt (нужны закрытые кухня-строки) |
+| pay | tabId, paymentMethod | payment ledger + paidAt + CRM stats |
+| close | tabId | closedAt; неоплаченный счёт закрыть нельзя |
 | end_banya | visitId | banyaEndedAt |
 | menu_update | menuCode, price?, name?, active? | меню |
 
@@ -72,6 +75,15 @@ Walk-in пропускает шаг записи.
 
 ---
 
-## Prisma модели
+## RBAC
 
-`AmmeVenue` · `AmmeGuest` · `AmmeMenuItem` · `AmmeBooking` · `AmmeVisit` · `AmmeTab` · `AmmeLine` · `AmmeAuditEvent` · `AmmeStaffProfile`
+- `KITCHEN`: state + KDS send/done only
+- `ADMIN`: bookings, visits, payments, CRM, report, inventory
+- `OWNER`: full control including menu, settings, stations, packages, workflows and staff
+- `AmmeStaffProfile.permissions` supports explicit overrides.
+
+## Prisma models
+
+Core: `AmmeVenue` · `AmmeGuest` · `AmmeMenuItem` · `AmmeBooking` · `AmmeVisit` · `AmmeTab` · `AmmeLine`.
+
+Management: `AmmeResource` · `AmmeBookingResource` · `AmmeWaitlistEntry` · `AmmePayment` · `AmmeKdsStation` · `AmmeInventoryItem` · `AmmeRecipeItem` · `AmmeStockMovement` · `AmmePackage` · `AmmeGuestPackage` · `AmmeGiftCard` · `AmmeShift` · `AmmeShiftNote` · `AmmeOutboundMessage` · `AmmeAutomation` · `AmmeDomainEvent`.

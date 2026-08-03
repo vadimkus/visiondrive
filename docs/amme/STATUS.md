@@ -4,7 +4,7 @@
 
 ## Вердикт
 
-Пилот **жив на проде**. Учёт смены + CRM работают. E2E на `visiondrive.ae` пройден.
+AMMÉ перестроена из shift-MVP в management platform: capacity scheduling, deposits and payment ledger, station KDS, CRM/RFM, packages, inventory/recipes/COGS foundation, staff handover, workflows and Owner BI. Additive schema applied to production Postgres without removing existing records.
 
 | | |
 |---|---|
@@ -17,7 +17,25 @@
 
 ---
 
-## Что уже работает (Layer A — MVP)
+## Management platform (3 Aug 2026)
+
+- Server-side RBAC: `KITCHEN`, `ADMIN`, `OWNER` plus per-user permission overrides
+- Hard capacity resources and overlap checks; old banya bookings backfilled
+- Public online booking: `/amme/book`
+- Waitlist and 25% deposit requirement on public bookings
+- Separate payment ledger (cash, QRIS, card, transfer, package, gift card)
+- Close no longer silently marks a tab paid
+- Dedicated station KDS: `/amme/kitchen`, 4s fallback polling + SSE refresh + sound
+- Inventory, recipe BOM, stock movements and automatic consumption on KDS DONE
+- Packages/memberships and guest package assignment
+- RFM scores and segments
+- Shift opening and handover notes
+- Workflow definitions and WhatsApp outbox
+- Owner BI: utilization, RevPAH, food attach, repeat %, no-show %, deposit capture
+- Bali timezone is explicit (`Asia/Makassar`)
+- Append-only domain event stream plus audit trail
+
+## Что уже работает (operations)
 
 ### Операции смены
 
@@ -44,16 +62,21 @@
 
 ---
 
-## E2E проверка (prod)
+## Проверка
 
 Прогон `npm run test:amme-e2e`:
 
 ```
-login → booking+guest → arrive → order→pay→close → crm stats → crm update → crm history
+login → public availability → inventory/package/automation → capacity booking+guest
+→ arrive → recipe → KDS send/done → QRIS payment ledger → close
+→ CRM stats/update/history → package assignment → RFM + Owner BI
 → ok: true
 ```
 
-Отдельный ручной прогон цепочки до CRM тоже PASS (выручка/отчёт ок).
+- Production build: PASS
+- TypeScript: PASS
+- Unit/integration suite: **72 files / 248 tests PASS**
+- Full AMMÉ E2E against local production build and production Postgres: PASS
 
 ---
 
@@ -68,16 +91,9 @@ TLS для Timescale: `lib/db-tls.ts` (relaxed SSL локально).
 
 ---
 
-## Известные открытые вопросы (не код)
+## Внешние интеграции
 
-Из ТЗ / передачи — всё ещё на владельце/админе:
-
-1. Воскресенье: слоты или один сеанс?
-2. Ресторан в будни: отдельные списки?
-3. Цена пилота / ask владельцу
-4. Админ откажется от параллельных «Заметок»?
-
-Layer B (Telegram, hotel full suite) — **не в пилоте**.
+WhatsApp outbox and deposit records are implemented. Actual WhatsApp Cloud/Twilio credentials and payment-acquirer webhooks remain provider configuration, not an application-code gap.
 
 ---
 
