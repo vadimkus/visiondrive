@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { formatIdr } from '@/lib/amme/money'
 import { CRM_TAG_PRESETS, type CrmSegment } from '@/lib/amme/crm-shared'
+import { useI18n, type TranslationKey } from '@/app/amme/i18n'
 
 export type GuestCard = {
   id: string
@@ -41,21 +42,32 @@ type HistoryRow = {
 
 type Summary = Record<CrmSegment, number>
 
-const SEGMENTS: { id: CrmSegment; label: string }[] = [
-  { id: 'all', label: 'Все' },
-  { id: 'vip', label: 'VIP' },
-  { id: 'regular', label: 'Постоянные' },
-  { id: 'new', label: 'Новые' },
-  { id: 'dormant', label: 'Спят 30д+' },
-  { id: 'banya', label: 'Баня' },
-  { id: 'high', label: 'High spend' },
-  { id: 'noshow', label: 'Noshow' },
-  { id: 'blocked', label: 'Осторожно' },
+const CRM_TAG_EN: Record<string, string> = {
+  VIP: 'VIP',
+  Постоянный: 'Regular',
+  Аллергия: 'Allergy',
+  Веган: 'Vegan',
+  Пресса: 'Press',
+  'Друг дома': 'Friend of the house',
+  Группа: 'Group',
+  Осторожно: 'Caution',
+}
+
+const SEGMENTS: { id: CrmSegment; label: TranslationKey }[] = [
+  { id: 'all', label: 'crm.segment.all' },
+  { id: 'vip', label: 'crm.segment.vip' },
+  { id: 'regular', label: 'crm.segment.regular' },
+  { id: 'new', label: 'crm.segment.new' },
+  { id: 'dormant', label: 'crm.segment.dormant' },
+  { id: 'banya', label: 'crm.segment.banya' },
+  { id: 'high', label: 'crm.segment.highSpend' },
+  { id: 'noshow', label: 'crm.segment.noShow' },
+  { id: 'blocked', label: 'crm.segment.blocked' },
 ]
 
-function fmtDay(iso: string | null) {
+function fmtDay(iso: string | null, locale: string) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('ru-RU', {
+  return new Date(iso).toLocaleDateString(locale === 'en' ? 'en-GB' : 'ru-RU', {
     day: '2-digit',
     month: 'short',
     year: '2-digit',
@@ -71,6 +83,7 @@ export default function CrmView({
   focusGuestId?: string | null
   onFocusConsumed?: () => void
 }) {
+  const { locale, t } = useI18n()
   const [segment, setSegment] = useState<CrmSegment>('all')
   const [q, setQ] = useState('')
   const [guests, setGuests] = useState<GuestCard[]>([])
@@ -101,20 +114,20 @@ export default function CrmView({
     const res = await fetch(`/api/amme/crm?${params}`)
     const data = await res.json()
     if (!res.ok || !data.success) {
-      onToast(data.error || 'CRM недоступен', true)
+      onToast(data.error || t('crm.unavailable'), true)
       return
     }
     setGuests(data.guests || [])
     setSummary(data.summary || {})
     setTotal(data.total || 0)
-  }, [onToast, q, segment])
+  }, [onToast, q, segment, t])
 
   const loadDetail = useCallback(
     async (id: string) => {
       const res = await fetch(`/api/amme/crm?id=${encodeURIComponent(id)}`)
       const data = await res.json()
       if (!res.ok || !data.success) {
-        onToast(data.error || 'Карточка не найдена', true)
+        onToast(data.error || t('crm.cardNotFound'), true)
         return
       }
       const g = data.guest as GuestCard
@@ -130,7 +143,7 @@ export default function CrmView({
       setEBlocked(!!g.blocked)
       setEBanya(!!g.banyaPref)
     },
-    [onToast]
+    [onToast, t]
   )
 
   useEffect(() => {
@@ -171,10 +184,10 @@ export default function CrmView({
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
-        onToast(data.error || 'Не сохранилось', true)
+        onToast(data.error || t('common.operationFailed'), true)
         return
       }
-      onToast('Карточка сохранена')
+      onToast(t('crm.cardSaved'))
       setDetail(data.guest)
       void loadList()
     } finally {
@@ -199,10 +212,10 @@ export default function CrmView({
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
-        onToast(data.error || 'Не создалось', true)
+        onToast(data.error || t('common.operationFailed'), true)
         return
       }
-      onToast('Гость добавлен в CRM')
+      onToast(t('crm.guestAdded'))
       setCreateOpen(false)
       setCName('')
       setCPhone('')
@@ -223,7 +236,7 @@ export default function CrmView({
     <div className="amme-crm">
       <div className="amme-kpis">
         <div className="amme-kpi">
-          <div className="kl">База гостей</div>
+          <div className="kl">{t('crm.guestBase')}</div>
           <div className="kv">{summary.all ?? total}</div>
         </div>
         <div className="amme-kpi">
@@ -231,11 +244,11 @@ export default function CrmView({
           <div className="kv">{summary.vip ?? 0}</div>
         </div>
         <div className="amme-kpi">
-          <div className="kl">Постоянные 3+</div>
+          <div className="kl">{t('crm.regular3')}</div>
           <div className="kv">{summary.regular ?? 0}</div>
         </div>
         <div className="amme-kpi">
-          <div className="kl">Спят 30д+</div>
+          <div className="kl">{t('crm.dormant30')}</div>
           <div className="kv">{summary.dormant ?? 0}</div>
         </div>
         <div className="amme-kpi">
@@ -251,37 +264,38 @@ export default function CrmView({
               key={s.id}
               type="button"
               className={segment === s.id ? 'on' : ''}
+              aria-pressed={segment === s.id}
               onClick={() => setSegment(s.id)}
             >
-              {s.label}
+              {t(s.label)}
               {summary[s.id] != null ? ` · ${summary[s.id]}` : ''}
             </button>
           ))}
         </div>
         <div className="amme-crm-search">
           <input
-            placeholder="Поиск: имя, телефон, тег, заметка"
+            placeholder={t('crm.searchPlaceholder')}
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
           <button className="amme-primary" type="button" onClick={() => setCreateOpen((v) => !v)}>
-            + Гость
+            {t('crm.addGuest')}
           </button>
         </div>
       </div>
 
       {createOpen ? (
         <div className="amme-card amme-crm-create">
-          <p className="amme-eyebrow">Новая карточка CRM</p>
+          <p className="amme-eyebrow">{t('crm.newCard')}</p>
           <div className="amme-crm-form-grid">
-            <input placeholder="Имя *" value={cName} onChange={(e) => setCName(e.target.value)} />
+            <input placeholder={`${t('common.name')} *`} value={cName} onChange={(e) => setCName(e.target.value)} />
             <input
-              placeholder="Телефон (WhatsApp)"
+              placeholder={t('crm.whatsappPhone')}
               value={cPhone}
               onChange={(e) => setCPhone(e.target.value)}
             />
             <textarea
-              placeholder="Заметка для смены"
+              placeholder={t('crm.shiftNote')}
               value={cNotes}
               onChange={(e) => setCNotes(e.target.value)}
               rows={2}
@@ -289,7 +303,7 @@ export default function CrmView({
           </div>
           <label className="amme-crm-check">
             <input type="checkbox" checked={cVip} onChange={(e) => setCVip(e.target.checked)} />
-            VIP сразу
+            {t('crm.vipImmediately')}
           </label>
           <button
             className="amme-primary"
@@ -297,7 +311,7 @@ export default function CrmView({
             disabled={busy || !cName.trim()}
             onClick={() => void createGuest()}
           >
-            Сохранить в CRM
+            {t('crm.saveToCrm')}
           </button>
         </div>
       ) : null}
@@ -306,8 +320,8 @@ export default function CrmView({
         <div className="amme-crm-list">
           {guests.length === 0 ? (
             <div className="amme-card">
-              <p className="amme-eyebrow">Пусто</p>
-              <p>Гости появятся автоматически из записей и walk-in с телефоном, или создайте вручную.</p>
+              <p className="amme-eyebrow">{t('crm.emptyTitle')}</p>
+              <p>{t('crm.emptyHelp')}</p>
             </div>
           ) : (
             guests.map((g) => (
@@ -322,12 +336,12 @@ export default function CrmView({
                   <span className="spend">{formatIdr(g.lifetimeSpend)}</span>
                 </div>
                 <div className="meta">
-                  {g.phone || 'без телефона'} · {g.visitCount} виз. · noshow {g.noshowCount}
+                  {g.phone || t('crm.noPhone')} · {t('common.visits', { count: g.visitCount })} · noshow {g.noshowCount}
                 </div>
                 <div className="tags">
                   {g.vip ? <span className="tag vip">VIP</span> : null}
-                  {g.banyaPref ? <span className="tag">баня</span> : null}
-                  {g.blocked ? <span className="tag bad">осторожно</span> : null}
+                  {g.banyaPref ? <span className="tag">{t('bookings.banya')}</span> : null}
+                  {g.blocked ? <span className="tag bad">{t('bookings.caution')}</span> : null}
                   {g.tags
                     .filter((t) => t !== 'VIP' && t !== 'Осторожно')
                     .slice(0, 3)
@@ -345,12 +359,12 @@ export default function CrmView({
         <div className="amme-crm-detail amme-card">
           {!detail ? (
             <>
-              <p className="amme-eyebrow">Карточка гостя</p>
-              <p>Выберите гостя слева — увидите историю, заметки и сегменты.</p>
+              <p className="amme-eyebrow">{t('crm.guestCard')}</p>
+              <p>{t('crm.selectGuestHelp')}</p>
               <ul className="amme-crm-hints">
-                <li>Телефон = ключ профиля (как в hotel CRM / WhatsApp).</li>
-                <li>VIP ставится вручную или авто при 5+ визитах / ≥5M IDR.</li>
-                <li>Заметки видны на смене при открытии счёта.</li>
+                <li>{t('crm.phoneIsKey')}</li>
+                <li>{t('crm.vipRule')}</li>
+                <li>{t('crm.notesVisible')}</li>
               </ul>
             </>
           ) : (
@@ -359,30 +373,30 @@ export default function CrmView({
                 <div>
                   <h2>{detail.name}</h2>
                   <div className="sub">
-                    LTV {formatIdr(detail.lifetimeSpend)} · avg {formatIdr(detail.avgSpend)} · первый{' '}
-                    {fmtDay(detail.firstVisitAt)} · последний {fmtDay(detail.lastVisitAt)}
+                    LTV {formatIdr(detail.lifetimeSpend)} · {t('crm.averageSpend', { amount: formatIdr(detail.avgSpend) })} ·{' '}
+                    {t('crm.firstVisit', { date: fmtDay(detail.firstVisitAt, locale) })} · {t('crm.lastVisit', { date: fmtDay(detail.lastVisitAt, locale) })}
                   </div>
                 </div>
                 <button className="amme-jade" type="button" disabled={busy} onClick={() => void saveDetail()}>
-                  Сохранить
+                  {t('common.actions.save')}
                 </button>
               </div>
 
               {(detail.notes || detail.blocked || detail.dietary) && (
                 <div className={`amme-crm-alert ${detail.blocked ? 'bad' : ''}`}>
-                  {detail.blocked ? '⚠ Осторожно / blacklist. ' : ''}
-                  {detail.dietary ? `Диета: ${detail.dietary}. ` : ''}
+                  {detail.blocked ? `${t('crm.blacklistAlert')} ` : ''}
+                  {detail.dietary ? `${t('crm.dietary')}: ${detail.dietary}. ` : ''}
                   {detail.notes || ''}
                 </div>
               )}
 
               <div className="amme-crm-form-grid">
                 <label>
-                  Телефон
+                  {t('common.phone')}
                   <input value={ePhone} onChange={(e) => setEPhone(e.target.value)} />
                 </label>
                 <label>
-                  День рождения
+                  {t('crm.birthday')}
                   <input
                     type="date"
                     value={eBirthday}
@@ -390,20 +404,20 @@ export default function CrmView({
                   />
                 </label>
                 <label className="span2">
-                  Заметки для смены
+                  {t('crm.shiftNotes')}
                   <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} rows={3} />
                 </label>
                 <label className="span2">
-                  Предпочтения
+                  {t('crm.preferences')}
                   <textarea
                     value={ePrefs}
                     onChange={(e) => setEPrefs(e.target.value)}
                     rows={2}
-                    placeholder="тихий стол, любит пельмени, не любит громкую музыку…"
+                    placeholder={t('crm.preferencesPlaceholder')}
                   />
                 </label>
                 <label className="span2">
-                  Диета / аллергии
+                  {t('crm.dietary')}
                   <input value={eDietary} onChange={(e) => setEDietary(e.target.value)} />
                 </label>
               </div>
@@ -419,7 +433,7 @@ export default function CrmView({
                     checked={eBanya}
                     onChange={(e) => setEBanya(e.target.checked)}
                   />
-                  Любит баню
+                  {t('crm.likesBanya')}
                 </label>
                 <label className="amme-crm-check">
                   <input
@@ -427,7 +441,7 @@ export default function CrmView({
                     checked={eBlocked}
                     onChange={(e) => setEBlocked(e.target.checked)}
                   />
-                  Осторожно
+                  {t('bookings.caution')}
                 </label>
               </div>
 
@@ -437,26 +451,27 @@ export default function CrmView({
                     key={t}
                     type="button"
                     className={eTags.includes(t) ? 'on' : ''}
+                    aria-pressed={eTags.includes(t)}
                     onClick={() => toggleTag(t)}
                   >
-                    {t}
+                    {locale === 'en' ? CRM_TAG_EN[t] || t : t}
                   </button>
                 ))}
               </div>
 
               <p className="amme-eyebrow" style={{ marginTop: 18 }}>
-                История визитов
+                {t('crm.visitHistory')}
               </p>
               <div className="amme-crm-history">
                 {history.length === 0 ? (
-                  <p className="dim">Пока нет закрытых/открытых визитов в профиле.</p>
+                  <p className="dim">{t('crm.noHistory')}</p>
                 ) : (
                   history.map((h) => (
                     <div key={h.id} className="row">
                       <div>
-                        <strong>{fmtDay(h.openedAt)}</strong>
-                        {h.banya ? ' · баня' : ' · кухня'} · {h.guests} чел.
-                        {h.paid ? ' · оплачен' : ''}
+                        <strong>{fmtDay(h.openedAt, locale)}</strong>
+                        {h.banya ? ` · ${t('bookings.banya')}` : ` · ${t('bookings.kitchen')}`} · {t('common.people', { count: h.guests })}
+                        {h.paid ? ` · ${t('status.paid').toLocaleLowerCase()}` : ''}
                       </div>
                       <div className="spend">{formatIdr(h.spend)}</div>
                       {h.topItems.length ? (

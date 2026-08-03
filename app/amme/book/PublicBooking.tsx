@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { formatIdr } from '@/lib/amme/money'
+import LanguageSwitcher from '@/app/amme/components/LanguageSwitcher'
+import { useI18n } from '@/app/amme/i18n'
 
 type Slot = {
   resourceId: string
@@ -16,6 +18,7 @@ function today() {
 }
 
 export default function PublicBooking() {
+  const { t } = useI18n()
   const [day, setDay] = useState(today())
   const [slots, setSlots] = useState<Slot[]>([])
   const [slot, setSlot] = useState<Slot | null>(null)
@@ -59,10 +62,10 @@ export default function PublicBooking() {
       })
       const data = await response.json()
       if (!response.ok || !data.success) {
-        setMessage(data.error || 'Не удалось создать запись')
+        setMessage(data.error || t('public.createFailed'))
         return
       }
-      setMessage(`Запись создана. Депозит к оплате: ${formatIdr(data.depositAmount)}`)
+      setMessage(t('public.createdDeposit', { amount: formatIdr(data.depositAmount) }))
       setName('')
       setPhone('')
       setNote('')
@@ -75,11 +78,12 @@ export default function PublicBooking() {
   return (
     <main className="amme-public-book">
       <section>
-        <p className="eyebrow">BALI · BANYA &amp; KITCHEN</p>
+        <LanguageSwitcher />
+        <p className="eyebrow">{t('public.eyebrow')}</p>
         <h1>{venue?.name || 'AMMÉ'}</h1>
-        <p className="lead">Выберите время посещения. Мы удержим место после подтверждения депозита.</p>
+        <p className="lead">{t('public.lead')}</p>
 
-        <label>Дата<input type="date" min={today()} value={day} onChange={(event) => setDay(event.target.value)} /></label>
+        <label>{t('common.date')}<input type="date" min={today()} value={day} onChange={(event) => setDay(event.target.value)} /></label>
         <div className="slots">
           {slots.map((item) => (
             <button
@@ -91,29 +95,29 @@ export default function PublicBooking() {
             >
               <strong>{item.time}</strong>
               <span>{item.resourceName}</span>
-              <small>{item.remaining} мест</small>
+              <small>{t('public.remainingPlaces', { count: item.remaining })}</small>
             </button>
           ))}
         </div>
 
         <div className="form">
-          <label>Имя<input value={name} onChange={(event) => setName(event.target.value)} /></label>
-          <label>WhatsApp / телефон<input value={phone} onChange={(event) => setPhone(event.target.value)} /></label>
-          <label>Гостей<input type="number" min={1} max={20} value={guests} onChange={(event) => setGuests(Number(event.target.value))} /></label>
-          <label>Комментарий<textarea rows={3} value={note} onChange={(event) => setNote(event.target.value)} /></label>
+          <label>{t('common.name')}<input value={name} onChange={(event) => setName(event.target.value)} /></label>
+          <label>{t('public.whatsappPhone')}<input value={phone} onChange={(event) => setPhone(event.target.value)} /></label>
+          <label>{t('common.guests')}<input type="number" min={1} max={20} value={guests} onChange={(event) => setGuests(Number(event.target.value))} /></label>
+          <label>{t('common.comment')}<textarea rows={3} value={note} onChange={(event) => setNote(event.target.value)} /></label>
         </div>
 
         {venue ? (
           <div className="summary">
-            <span>{guests} гост. · {venue.sessionMinutes} мин.</span>
+            <span>{t('public.summary', { guests, minutes: venue.sessionMinutes })}</span>
             <strong>{formatIdr(venue.banyaPrice * guests)}</strong>
-            <small>Депозит 25%: {formatIdr(venue.banyaPrice * guests * 0.25)}</small>
+            <small>{t('public.deposit25', { amount: formatIdr(venue.banyaPrice * guests * 0.25) })}</small>
           </div>
         ) : null}
         <button className="submit" type="button" disabled={busy || !slot || !name || !phone} onClick={() => void submit()}>
-          {busy ? 'Создаём запись…' : 'Забронировать'}
+          {busy ? t('public.creating') : t('public.booking')}
         </button>
-        {message ? <p className="message">{message}</p> : null}
+        {message ? <p className="message" role="status" aria-live="polite">{message}</p> : null}
       </section>
     </main>
   )

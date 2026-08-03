@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import LanguageSwitcher from '@/app/amme/components/LanguageSwitcher'
+import { useI18n } from '@/app/amme/i18n'
 
 type Ticket = {
   id: string
@@ -14,6 +16,7 @@ type Ticket = {
 }
 
 export default function KdsClient({ venueName }: { venueName: string }) {
+  const { t } = useI18n()
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [station, setStation] = useState('ALL')
   const [now, setNow] = useState(0)
@@ -62,8 +65,8 @@ export default function KdsClient({ venueName }: { venueName: string }) {
   }, [sound, tickets])
 
   const stations = useMemo(
-    () => [...new Set(tickets.map((ticket) => ticket.station || 'Кухня'))],
-    [tickets]
+    () => [...new Set(tickets.map((ticket) => ticket.station || t('sidebar.kitchen')))],
+    [tickets, t]
   )
   const open = tickets
     .filter((ticket) => ticket.status === 'SENT' && (station === 'ALL' || ticket.station === station))
@@ -85,15 +88,16 @@ export default function KdsClient({ venueName }: { venueName: string }) {
   return (
     <div className="amme-kds-full">
       <header>
-        <div><strong>{venueName}</strong><span>KITCHEN DISPLAY</span></div>
+        <div><strong>{venueName}</strong><span>{t('kds.display')}</span></div>
         <nav>
-          <button className={station === 'ALL' ? 'on' : ''} onClick={() => setStation('ALL')}>Все</button>
-          {stations.map((item) => <button key={item} className={station === item ? 'on' : ''} onClick={() => setStation(item)}>{item}</button>)}
+          <button aria-pressed={station === 'ALL'} className={station === 'ALL' ? 'on' : ''} onClick={() => setStation('ALL')}>{t('kds.allStations')}</button>
+          {stations.map((item) => <button key={item} aria-pressed={station === item} className={station === item ? 'on' : ''} onClick={() => setStation(item)}>{item}</button>)}
         </nav>
-        <button className={sound ? 'on' : ''} onClick={() => setSound((value) => !value)}>Звук {sound ? 'ON' : 'OFF'}</button>
+        <LanguageSwitcher />
+        <button aria-pressed={sound} className={sound ? 'on' : ''} onClick={() => setSound((value) => !value)}>{t('kds.sound', { state: sound ? t('common.on') : t('common.off') })}</button>
       </header>
       <main>
-        {open.length === 0 ? <div className="empty">Очередь пуста</div> : null}
+        {open.length === 0 ? <div className="empty">{t('kds.empty')}</div> : null}
         {open.map((ticket) => {
           const minutes = ticket.sentAt && now
             ? Math.floor((now - new Date(ticket.sentAt).getTime()) / 60_000)
@@ -101,10 +105,15 @@ export default function KdsClient({ venueName }: { venueName: string }) {
           const urgency = minutes >= 10 ? 'hot' : minutes >= 5 ? 'warn' : 'ok'
           return (
             <article key={ticket.id} className={urgency}>
-              <div className="ticket-head"><strong>{ticket.guestName}</strong><b>{minutes}м</b></div>
+              <div className="ticket-head"><strong>{ticket.guestName}</strong><b>{t('common.minutes', { count: minutes })}</b></div>
               <div className="station">{ticket.station}</div>
               <div className="dish">{ticket.qty}× {ticket.name}</div>
-              <button onClick={() => void done(ticket.id)}>ОТДАНО</button>
+              <button
+                aria-label={`${t('kds.served')}: ${ticket.qty}× ${ticket.name}, ${ticket.guestName}`}
+                onClick={() => void done(ticket.id)}
+              >
+                {t('kds.served').toLocaleUpperCase()}
+              </button>
             </article>
           )
         })}

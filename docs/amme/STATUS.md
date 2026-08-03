@@ -6,6 +6,8 @@
 
 AMMÉ перестроена из shift-MVP в management platform: capacity scheduling, deposits and payment ledger, station KDS, CRM/RFM, packages, inventory/recipes/COGS foundation, staff handover, workflows and Owner BI. Additive schema applied to production Postgres without removing existing records.
 
+Интерфейс полностью обновлён в системе **Tropical Nocturne**: тёплая Bali-inspired dark palette, editorial typography, responsive POS/KDS layouts, premium interaction states и мгновенный RU/EN i18n с сохранением выбора.
+
 | | |
 |---|---|
 | URL | https://visiondrive.ae/amme |
@@ -35,6 +37,17 @@ AMMÉ перестроена из shift-MVP в management platform: capacity sch
 - Bali timezone is explicit (`Asia/Makassar`)
 - Append-only domain event stream plus audit trail
 
+## Tropical Nocturne UI (3 Aug 2026)
+
+- Design tokens: obsidian, charcoal, teak, ivory, sand, aged gold, terracotta, palm sage
+- Component primitives: five button variants, cards, KPI cards, status pills, language switcher
+- Cormorant Garamond display + Manrope operational body + IBM Plex Mono for time/money
+- RU default and EN translation for all operational screens, CRM, management, KDS, public booking and knowledge articles
+- Instant language switching without reload; persisted to `localStorage` and cookie
+- Tablet POS remains two-column; mobile gets a floating bottom navigation and accessible logout
+- Focus rings, pressed states, live status feedback and reduced-motion support
+- Visual captures: `docs/amme/screenshots/`
+
 ## Что уже работает (operations)
 
 ### Операции смены
@@ -50,7 +63,7 @@ AMMÉ перестроена из shift-MVP в management platform: capacity sch
 9. Баня как строка + лента «баня сейчас»
 10. Отчёты: сегодня / 7д / 30д / свой период, графики, печать
 11. Редактор меню (цена, имя, active)
-12. Справка (knowledge base на русском)
+12. Справка (knowledge base на русском и английском)
 
 ### CRM (добавлено 3 авг)
 

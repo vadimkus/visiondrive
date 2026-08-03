@@ -2,9 +2,12 @@
 
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import LanguageSwitcher from '@/app/amme/components/LanguageSwitcher'
+import { useI18n } from '@/app/amme/i18n'
 
 export default function AmmeLoginPage() {
   const router = useRouter()
+  const { t } = useI18n()
   const [email, setEmail] = useState('tasha@amme.visiondrive.ae')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -22,13 +25,13 @@ export default function AmmeLoginPage() {
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
-        setError(data.error || 'Не удалось войти')
+        setError(data.error || t('login.failed'))
         return
       }
       router.replace('/amme')
       router.refresh()
     } catch {
-      setError('Сеть недоступна')
+      setError(t('app.networkError'))
     } finally {
       setLoading(false)
     }
@@ -37,9 +40,10 @@ export default function AmmeLoginPage() {
   return (
     <div className="amme-login-wrap">
       <form className="amme-login-card" onSubmit={onSubmit}>
+        <LanguageSwitcher />
         <div className="amme-eyebrow">VisionDrive · AMMÉ Bali</div>
         <h1>AMMÉ</h1>
-        <p>Учёт гостей: баня и кухня. Командный центр смены для администратора.</p>
+        <p>{t('login.description')}</p>
 
         <div className="amme-field">
           <label htmlFor="email">Email</label>
@@ -53,7 +57,7 @@ export default function AmmeLoginPage() {
           />
         </div>
         <div className="amme-field">
-          <label htmlFor="password">Пароль</label>
+          <label htmlFor="password">{t('login.password')}</label>
           <input
             id="password"
             type="password"
@@ -65,15 +69,15 @@ export default function AmmeLoginPage() {
         </div>
 
         {error ? (
-          <p style={{ color: '#e0a47c', fontSize: 13, margin: '0 0 12px' }}>{error}</p>
+          <p className="amme-login-error">{error}</p>
         ) : null}
 
         <button className="amme-primary" type="submit" disabled={loading} style={{ width: '100%' }}>
-          {loading ? 'Входим…' : 'Войти в смену'}
+          {loading ? t('login.signingIn') : t('login.signIn')}
         </button>
 
-        <p style={{ margin: '16px 0 0', fontSize: 12, color: 'var(--amme-mute)', lineHeight: 1.5 }}>
-          После входа: дашборд, записи, гости, кухня, отчёты и база знаний. Данные хранятся в Postgres.
+        <p className="amme-login-footnote">
+          {t('login.footnote')}
         </p>
       </form>
     </div>

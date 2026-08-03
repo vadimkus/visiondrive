@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { formatIdr } from '@/lib/amme/money'
+import { useI18n, type TranslationKey } from '@/app/amme/i18n'
 
 type ManagementPayload = {
   venue: {
@@ -123,12 +124,13 @@ export default function ManagementView({
   day: string
   onToast: (message: string, error?: boolean) => void
 }) {
+  const { locale, t } = useI18n()
   const [panel, setPanel] = useState<Panel>('control')
   const [management, setManagement] = useState<ManagementPayload | null>(null)
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const [resourceName, setResourceName] = useState('Главная баня')
+  const [resourceName, setResourceName] = useState(() => t('capacity.defaultResource'))
   const [resourceCapacity, setResourceCapacity] = useState(20)
   const [waitName, setWaitName] = useState('')
   const [waitPhone, setWaitPhone] = useState('')
@@ -151,12 +153,12 @@ export default function ManagementView({
     const res = await fetch(`/api/amme/manage?day=${encodeURIComponent(day)}`)
     const data = await res.json()
     if (!res.ok || !data.success) {
-      onToast(data.error || 'Management API недоступен', true)
+      onToast(data.error || t('management.unavailable'), true)
       return
     }
     setManagement(data.management)
     setAnalytics(data.analytics)
-  }, [day, onToast])
+  }, [day, onToast, t])
 
   useEffect(() => {
     void load()
@@ -172,7 +174,7 @@ export default function ManagementView({
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
-        onToast(data.error || 'Операция не выполнена', true)
+        onToast(data.error || t('common.operationFailed'), true)
         return false
       }
       setManagement(data.management)
@@ -191,16 +193,16 @@ export default function ManagementView({
   )
 
   if (!management || !analytics) {
-    return <div className="amme-card">Загрузка системы управления…</div>
+    return <div className="amme-card">{t('management.loading')}</div>
   }
 
-  const panels: Array<{ id: Panel; label: string }> = [
-    { id: 'control', label: 'Owner BI' },
-    { id: 'capacity', label: 'Capacity & waitlist' },
-    { id: 'inventory', label: 'Inventory / COGS' },
-    { id: 'packages', label: 'Packages' },
-    { id: 'staff', label: 'Смена' },
-    { id: 'automation', label: 'Automation' },
+  const panels: Array<{ id: Panel; label: TranslationKey }> = [
+    { id: 'control', label: 'management.panel.ownerBi' },
+    { id: 'capacity', label: 'management.panel.capacity' },
+    { id: 'inventory', label: 'management.panel.inventory' },
+    { id: 'packages', label: 'management.panel.packages' },
+    { id: 'staff', label: 'management.panel.staff' },
+    { id: 'automation', label: 'management.panel.automation' },
   ]
 
   return (
@@ -211,9 +213,10 @@ export default function ManagementView({
             key={item.id}
             type="button"
             className={panel === item.id ? 'on' : ''}
+            aria-pressed={panel === item.id}
             onClick={() => setPanel(item.id)}
           >
-            {item.label}
+            {t(item.label)}
           </button>
         ))}
       </div>
@@ -222,43 +225,43 @@ export default function ManagementView({
         <>
           <div className="amme-kpis">
             <div className="amme-kpi">
-              <div className="kl">Выручка сегодня</div>
+              <div className="kl">{t('management.revenueToday')}</div>
               <div className="kv">{formatIdr(analytics.revenue)}</div>
             </div>
             <div className="amme-kpi">
-              <div className="kl">Загрузка бани</div>
+              <div className="kl">{t('management.banyaUtilization')}</div>
               <div className="kv">{analytics.utilizationPct}%</div>
             </div>
             <div className="amme-kpi">
-              <div className="kl">Rev / доступный час</div>
+              <div className="kl">{t('management.revPerHour')}</div>
               <div className="kv">{formatIdr(analytics.revPerAvailableHour)}</div>
             </div>
             <div className="amme-kpi">
-              <div className="kl">Food attach</div>
+              <div className="kl">{t('management.foodAttach')}</div>
               <div className="kv">{analytics.foodAttachPct}%</div>
             </div>
             <div className="amme-kpi">
-              <div className="kl">Повторные гости</div>
+              <div className="kl">{t('management.repeatGuests')}</div>
               <div className="kv">{analytics.repeatGuestPct}%</div>
             </div>
             <div className="amme-kpi">
-              <div className="kl">No-show</div>
+              <div className="kl">{t('management.noShow')}</div>
               <div className="kv">{analytics.noShowPct}%</div>
             </div>
           </div>
           <div className="amme-split">
             <div className="amme-card">
-              <p className="amme-eyebrow">Контроль денег</p>
+              <p className="amme-eyebrow">{t('management.moneyControl')}</p>
               <div className="amme-manage-list">
-                <div><span>Оплачено</span><strong>{formatIdr(analytics.paid)}</strong></div>
-                <div><span>Депозиты</span><strong>{formatIdr(analytics.depositCaptured)}</strong></div>
-                <div><span>Средний визит</span><strong>{formatIdr(analytics.avgVisit)}</strong></div>
-                <div><span>Баня</span><strong>{formatIdr(analytics.banyaRevenue)}</strong></div>
-                <div><span>F&amp;B</span><strong>{formatIdr(analytics.foodRevenue)}</strong></div>
+                <div><span>{t('management.paid')}</span><strong>{formatIdr(analytics.paid)}</strong></div>
+                <div><span>{t('management.deposits')}</span><strong>{formatIdr(analytics.depositCaptured)}</strong></div>
+                <div><span>{t('management.averageVisit')}</span><strong>{formatIdr(analytics.avgVisit)}</strong></div>
+                <div><span>{t('management.banyaRevenue')}</span><strong>{formatIdr(analytics.banyaRevenue)}</strong></div>
+                <div><span>{t('management.foodRevenue')}</span><strong>{formatIdr(analytics.foodRevenue)}</strong></div>
               </div>
             </div>
             <div className="amme-card">
-              <p className="amme-eyebrow">RFM база</p>
+              <p className="amme-eyebrow">{t('management.rfmBase')}</p>
               <div className="amme-manage-list">
                 {Object.entries(analytics.rfm).map(([segment, count]) => (
                   <div key={segment}><span>{segment}</span><strong>{count}</strong></div>
@@ -268,9 +271,9 @@ export default function ManagementView({
                 className="amme-jade"
                 type="button"
                 disabled={busy}
-                onClick={() => void act({ type: 'rfm_recompute' }, 'RFM обновлён')}
+                onClick={() => void act({ type: 'rfm_recompute' }, t('management.rfmUpdated'))}
               >
-                Пересчитать RFM
+                {t('management.recomputeRfm')}
               </button>
             </div>
           </div>
@@ -280,12 +283,12 @@ export default function ManagementView({
       {panel === 'capacity' ? (
         <div className="amme-manage-grid">
           <div className="amme-card">
-            <p className="amme-eyebrow">Ресурсы и загрузка · {day}</p>
+            <p className="amme-eyebrow">{t('capacity.resources', { date: day })}</p>
             {management.capacity.map((row) => (
               <div key={row.resourceId} className="amme-capacity-row">
                 <div>
                   <strong>{row.name}</strong>
-                  <span>{row.allocated} гостей · лимит {row.capacity}</span>
+                  <span>{t('capacity.allocated', { allocated: row.allocated, capacity: row.capacity })}</span>
                 </div>
                 <div className="amme-capacity-bar">
                   <i style={{ width: `${Math.min(100, row.utilizationPct)}%` }} />
@@ -293,8 +296,8 @@ export default function ManagementView({
                 <b>{row.utilizationPct}%</b>
               </div>
             ))}
-            <div className="amme-field"><label>Название ресурса</label><input value={resourceName} onChange={(e) => setResourceName(e.target.value)} /></div>
-            <div className="amme-field"><label>Вместимость</label><input type="number" value={resourceCapacity} onChange={(e) => setResourceCapacity(Number(e.target.value))} /></div>
+            <div className="amme-field"><label>{t('capacity.resourceName')}</label><input value={resourceName} onChange={(e) => setResourceName(e.target.value)} /></div>
+            <div className="amme-field"><label>{t('capacity.capacity')}</label><input type="number" value={resourceCapacity} onChange={(e) => setResourceCapacity(Number(e.target.value))} /></div>
             <button className="amme-primary" type="button" disabled={busy} onClick={() => void act({
               type: 'resource_upsert',
               code: resourceName.toUpperCase().replace(/\s+/g, '_'),
@@ -303,21 +306,21 @@ export default function ManagementView({
               capacity: resourceCapacity,
               sessionMinutes: management.venue.sessionMinutes,
               turnoverMinutes: management.venue.turnoverMinutes,
-            }, 'Ресурс сохранён')}>Сохранить ресурс</button>
+            }, t('capacity.resourceSaved'))}>{t('capacity.saveResource')}</button>
           </div>
           <div className="amme-card">
-            <p className="amme-eyebrow">Лист ожидания</p>
-            <div className="amme-field"><label>Имя</label><input value={waitName} onChange={(e) => setWaitName(e.target.value)} /></div>
-            <div className="amme-field"><label>Телефон</label><input value={waitPhone} onChange={(e) => setWaitPhone(e.target.value)} /></div>
-            <div className="amme-field"><label>Гостей</label><input type="number" value={waitGuests} onChange={(e) => setWaitGuests(Number(e.target.value))} /></div>
+            <p className="amme-eyebrow">{t('capacity.waitlist')}</p>
+            <div className="amme-field"><label>{t('common.name')}</label><input value={waitName} onChange={(e) => setWaitName(e.target.value)} /></div>
+            <div className="amme-field"><label>{t('common.phone')}</label><input value={waitPhone} onChange={(e) => setWaitPhone(e.target.value)} /></div>
+            <div className="amme-field"><label>{t('common.guests')}</label><input type="number" value={waitGuests} onChange={(e) => setWaitGuests(Number(e.target.value))} /></div>
             <button className="amme-primary" type="button" disabled={busy || !waitName} onClick={() => void act({
               type: 'waitlist_add', name: waitName, phone: waitPhone, guests: waitGuests, day,
-            }, 'Добавлено в waitlist').then((ok) => {
+            }, t('capacity.waitlistAdded')).then((ok) => {
               if (ok) { setWaitName(''); setWaitPhone('') }
-            })}>+ Waitlist</button>
+            })}>{t('capacity.addWaitlist')}</button>
             <div className="amme-manage-list" style={{ marginTop: 14 }}>
               {management.waitlist.map((entry) => (
-                <div key={entry.id}><span>{entry.name} · {entry.guests} чел.</span><strong>{entry.status}</strong></div>
+                <div key={entry.id}><span>{entry.name} · {t('common.people', { count: entry.guests })}</span><strong>{entry.status}</strong></div>
               ))}
             </div>
           </div>
@@ -327,29 +330,29 @@ export default function ManagementView({
       {panel === 'inventory' ? (
         <div className="amme-manage-grid">
           <div className="amme-card">
-            <p className="amme-eyebrow">Остатки {lowStock.length ? `· ${lowStock.length} low` : ''}</p>
+            <p className="amme-eyebrow">{t('inventory.stock')} {lowStock.length ? `· ${t('inventory.lowCount', { count: lowStock.length })}` : ''}</p>
             <div className="amme-manage-list">
               {management.inventory.map((item) => (
                 <div key={item.id} className={item.onHand <= item.reorderAt ? 'warn' : ''}>
-                  <span>{item.name}<small>{item.sku} · {item.supplier || 'без поставщика'}</small></span>
+                  <span>{item.name}<small>{item.sku} · {item.supplier || t('inventory.noSupplier')}</small></span>
                   <strong>{item.onHand} {item.unit}</strong>
                   <button className="amme-ghost" type="button" onClick={() => void act({
                     type: 'inventory_adjust', inventoryItemId: item.id, quantity: 1, movementType: 'RECEIPT', note: 'Quick +1',
-                  }, 'Остаток обновлён')}>+1</button>
+                  }, t('inventory.updated'))}>+1</button>
                 </div>
               ))}
             </div>
           </div>
           <div className="amme-card">
-            <p className="amme-eyebrow">Новая складская позиция</p>
-            <div className="amme-field"><label>SKU</label><input value={sku} onChange={(e) => setSku(e.target.value)} /></div>
-            <div className="amme-field"><label>Название</label><input value={stockName} onChange={(e) => setStockName(e.target.value)} /></div>
-            <div className="amme-field"><label>Остаток</label><input type="number" value={stockQty} onChange={(e) => setStockQty(Number(e.target.value))} /></div>
-            <div className="amme-field"><label>Reorder at</label><input type="number" value={stockReorder} onChange={(e) => setStockReorder(Number(e.target.value))} /></div>
-            <div className="amme-field"><label>Cost / unit</label><input type="number" value={stockCost} onChange={(e) => setStockCost(Number(e.target.value))} /></div>
+            <p className="amme-eyebrow">{t('inventory.newItem')}</p>
+            <div className="amme-field"><label>{t('inventory.sku')}</label><input value={sku} onChange={(e) => setSku(e.target.value)} /></div>
+            <div className="amme-field"><label>{t('inventory.itemName')}</label><input value={stockName} onChange={(e) => setStockName(e.target.value)} /></div>
+            <div className="amme-field"><label>{t('inventory.onHand')}</label><input type="number" value={stockQty} onChange={(e) => setStockQty(Number(e.target.value))} /></div>
+            <div className="amme-field"><label>{t('inventory.reorderAt')}</label><input type="number" value={stockReorder} onChange={(e) => setStockReorder(Number(e.target.value))} /></div>
+            <div className="amme-field"><label>{t('inventory.costPerUnit')}</label><input type="number" value={stockCost} onChange={(e) => setStockCost(Number(e.target.value))} /></div>
             <button className="amme-primary" type="button" disabled={busy || !sku || !stockName} onClick={() => void act({
               type: 'inventory_upsert', sku, name: stockName, unit: 'pcs', onHand: stockQty, reorderAt: stockReorder, avgUnitCost: stockCost,
-            }, 'Складская позиция создана')}>Сохранить</button>
+            }, t('inventory.itemCreated'))}>{t('common.actions.save')}</button>
           </div>
         </div>
       ) : null}
@@ -357,21 +360,21 @@ export default function ManagementView({
       {panel === 'packages' ? (
         <div className="amme-manage-grid">
           <div className="amme-card">
-            <p className="amme-eyebrow">Memberships / packages</p>
+            <p className="amme-eyebrow">{t('packages.memberships')}</p>
             <div className="amme-manage-list">
               {management.packages.map((pkg) => (
                 <div key={pkg.id}>
-                  <span>{pkg.name}<small>{pkg.type} · {pkg.sessions} визитов</small></span>
-                  <strong>{formatIdr(pkg.price)} · {pkg._count.guestPackages} guests</strong>
+                  <span>{pkg.name}<small>{pkg.type} · {t('packages.visits', { count: pkg.sessions })}</small></span>
+                  <strong>{formatIdr(pkg.price)} · {t('packages.guests', { count: pkg._count.guestPackages })}</strong>
                 </div>
               ))}
             </div>
           </div>
           <div className="amme-card">
-            <p className="amme-eyebrow">Создать пакет</p>
-            <div className="amme-field"><label>Название</label><input value={packageName} onChange={(e) => setPackageName(e.target.value)} /></div>
-            <div className="amme-field"><label>Цена</label><input type="number" value={packagePrice} onChange={(e) => setPackagePrice(Number(e.target.value))} /></div>
-            <div className="amme-field"><label>Сессий</label><input type="number" value={packageSessions} onChange={(e) => setPackageSessions(Number(e.target.value))} /></div>
+            <p className="amme-eyebrow">{t('packages.createTitle')}</p>
+            <div className="amme-field"><label>{t('packages.name')}</label><input value={packageName} onChange={(e) => setPackageName(e.target.value)} /></div>
+            <div className="amme-field"><label>{t('packages.price')}</label><input type="number" value={packagePrice} onChange={(e) => setPackagePrice(Number(e.target.value))} /></div>
+            <div className="amme-field"><label>{t('packages.sessions')}</label><input type="number" value={packageSessions} onChange={(e) => setPackageSessions(Number(e.target.value))} /></div>
             <button className="amme-primary" type="button" disabled={busy || !packageName} onClick={() => void act({
               type: 'package_upsert',
               code: packageName.toUpperCase().replace(/\s+/g, '_'),
@@ -381,7 +384,7 @@ export default function ManagementView({
               sessions: packageSessions,
               creditValue: 0,
               validityDays: 365,
-            }, 'Пакет создан')}>Создать</button>
+            }, t('packages.created'))}>{t('common.actions.create')}</button>
           </div>
         </div>
       ) : null}
@@ -389,24 +392,24 @@ export default function ManagementView({
       {panel === 'staff' ? (
         <div className="amme-manage-grid">
           <div className="amme-card">
-            <p className="amme-eyebrow">Текущая смена</p>
+            <p className="amme-eyebrow">{t('staff.currentShift')}</p>
             {openShift ? (
               <>
-                <h3>OPEN · {new Date(openShift.startsAt).toLocaleString('ru-RU')}</h3>
+                <h3>OPEN · {new Date(openShift.startsAt).toLocaleString(locale === 'en' ? 'en-GB' : 'ru-RU')}</h3>
                 <div className="amme-manage-list">
                   {openShift.notes.map((note) => <div key={note.id}><span>{note.body}</span></div>)}
                 </div>
               </>
             ) : (
-              <button className="amme-primary" type="button" onClick={() => void act({ type: 'shift_open' }, 'Смена открыта')}>Открыть смену</button>
+              <button className="amme-primary" type="button" onClick={() => void act({ type: 'shift_open' }, t('staff.shiftOpened'))}>{t('staff.openShift')}</button>
             )}
           </div>
           <div className="amme-card">
-            <p className="amme-eyebrow">Передача смены</p>
-            <textarea rows={5} value={shiftNote} onChange={(e) => setShiftNote(e.target.value)} placeholder="Что передать следующей смене…" />
+            <p className="amme-eyebrow">{t('staff.handover')}</p>
+            <textarea rows={5} value={shiftNote} onChange={(e) => setShiftNote(e.target.value)} placeholder={t('staff.handoverPlaceholder')} />
             <button className="amme-primary" type="button" disabled={!openShift || !shiftNote.trim()} onClick={() => void act({
               type: 'shift_note', shiftId: openShift?.id, body: shiftNote,
-            }, 'Заметка сохранена').then((ok) => ok && setShiftNote(''))}>Сохранить handover</button>
+            }, t('staff.noteSaved')).then((ok) => ok && setShiftNote(''))}>{t('staff.saveHandover')}</button>
           </div>
         </div>
       ) : null}
@@ -414,25 +417,25 @@ export default function ManagementView({
       {panel === 'automation' ? (
         <div className="amme-manage-grid">
           <div className="amme-card">
-            <p className="amme-eyebrow">Workflows</p>
+            <p className="amme-eyebrow">{t('automation.workflows')}</p>
             <div className="amme-manage-list">
               {management.automations.map((automation) => (
                 <div key={automation.id}><span>{automation.name}<small>{automation.trigger}</small></span><strong>{automation.active ? 'ON' : 'OFF'}</strong></div>
               ))}
             </div>
-            <div className="amme-field"><label>Название</label><input value={automationName} onChange={(e) => setAutomationName(e.target.value)} /></div>
-            <div className="amme-field"><label>Trigger</label><select value={automationTrigger} onChange={(e) => setAutomationTrigger(e.target.value)}><option value="close_tab">close_tab</option><option value="noshow">noshow</option><option value="booking_create">booking_create</option><option value="guest_birthday">guest_birthday</option></select></div>
+            <div className="amme-field"><label>{t('automation.name')}</label><input value={automationName} onChange={(e) => setAutomationName(e.target.value)} /></div>
+            <div className="amme-field"><label>{t('automation.trigger')}</label><select value={automationTrigger} onChange={(e) => setAutomationTrigger(e.target.value)}><option value="close_tab">close_tab</option><option value="noshow">noshow</option><option value="booking_create">booking_create</option><option value="guest_birthday">guest_birthday</option></select></div>
             <button className="amme-primary" type="button" disabled={!automationName} onClick={() => void act({
               type: 'automation_upsert', name: automationName, trigger: automationTrigger, conditions: {}, actions: { type: 'ADD_TAG', tag: 'Follow-up' },
-            }, 'Automation создан')}>Создать workflow</button>
+            }, t('automation.created'))}>{t('automation.createWorkflow')}</button>
           </div>
           <div className="amme-card">
-            <p className="amme-eyebrow">WhatsApp outbox</p>
-            <div className="amme-field"><label>Получатель</label><input value={messageTo} onChange={(e) => setMessageTo(e.target.value)} placeholder="+62…" /></div>
-            <div className="amme-field"><label>Текст</label><textarea rows={4} value={messageBody} onChange={(e) => setMessageBody(e.target.value)} /></div>
+            <p className="amme-eyebrow">{t('automation.whatsappOutbox')}</p>
+            <div className="amme-field"><label>{t('automation.recipient')}</label><input value={messageTo} onChange={(e) => setMessageTo(e.target.value)} placeholder="+62…" /></div>
+            <div className="amme-field"><label>{t('automation.text')}</label><textarea rows={4} value={messageBody} onChange={(e) => setMessageBody(e.target.value)} /></div>
             <button className="amme-primary" type="button" disabled={!messageTo || !messageBody} onClick={() => void act({
               type: 'message_queue', recipient: messageTo, body: messageBody, channel: 'WHATSAPP',
-            }, 'Сообщение в очереди')}>В очередь</button>
+            }, t('automation.messageQueued'))}>{t('automation.queue')}</button>
             <div className="amme-manage-list" style={{ marginTop: 14 }}>
               {management.messages.slice(0, 10).map((message) => (
                 <div key={message.id}><span>{message.recipient}<small>{message.body}</small></span><strong>{message.status}</strong></div>

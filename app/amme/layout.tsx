@@ -1,17 +1,18 @@
 import type { Metadata } from 'next'
-import { Bricolage_Grotesque, IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google'
+import { Cormorant_Garamond, IBM_Plex_Mono, Manrope } from 'next/font/google'
+import { I18nProvider } from './i18n'
 import './amme.css'
 
-const display = Bricolage_Grotesque({
-  subsets: ['latin', 'latin-ext'],
+const display = Cormorant_Garamond({
+  subsets: ['latin', 'cyrillic'],
   variable: '--font-amme-display',
-  weight: ['500', '700'],
+  weight: ['500', '600', '700'],
 })
 
-const body = IBM_Plex_Sans({
+const body = Manrope({
   subsets: ['latin', 'cyrillic'],
   variable: '--font-amme-body',
-  weight: ['400', '500', '600'],
+  weight: ['400', '500', '600', '700'],
 })
 
 const mono = IBM_Plex_Mono({
@@ -38,7 +39,7 @@ export default function AmmeLayout({ children }: { children: React.ReactNode }) 
         } as React.CSSProperties
       }
     >
-      {children}
+      <I18nProvider>{children}</I18nProvider>
     </div>
   )
 }

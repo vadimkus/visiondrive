@@ -5,8 +5,12 @@ import { useRouter } from 'next/navigation'
 import { AMME_MENU_CATEGORIES, SEND_DELAY_SEC } from '@/lib/amme/menu'
 import { formatIdr } from '@/lib/amme/money'
 import { KNOWLEDGE_ARTICLES, KNOWLEDGE_CATEGORIES } from '@/lib/amme/knowledge'
+import { KNOWLEDGE_ARTICLES_EN, KNOWLEDGE_CATEGORY_EN } from '@/lib/amme/knowledge-en'
 import CrmView, { type GuestCard } from '@/app/amme/CrmView'
 import ManagementView from '@/app/amme/ManagementView'
+import LanguageSwitcher from '@/app/amme/components/LanguageSwitcher'
+import { KpiCard } from '@/app/amme/components/ui'
+import { useI18n, type TranslationKey } from '@/app/amme/i18n'
 
 type StaffRole = 'ADMIN' | 'KITCHEN' | 'OWNER'
 
@@ -132,22 +136,22 @@ type View =
   | 'menu'
   | 'knowledge'
 
-const VIEW_META: Record<View, { label: string; hint: string; ico: string }> = {
-  dash: { label: 'Дашборд', hint: 'Смена и быстрые действия', ico: '◆' },
-  book: { label: 'Записи', hint: 'Приход, неявки, импорт', ico: '☰' },
-  guests: { label: 'Счета', hint: 'Счета, меню, оплата', ico: '◎' },
-  crm: { label: 'CRM', hint: 'Профили, сегменты, заметки', ico: '◈' },
-  kitchen: { label: 'Кухня', hint: 'Очередь тикетов', ico: '▣' },
-  report: { label: 'Отчёт', hint: 'Выручка и журнал', ico: '▤' },
-  manage: { label: 'Управление', hint: 'Capacity, склад, BI, workflows', ico: '⬡' },
-  menu: { label: 'Меню', hint: 'Цены и активность', ico: '≡' },
-  knowledge: { label: 'Справка', hint: 'Инструкции для смены', ico: '?' },
+const VIEW_META: Record<View, { label: TranslationKey; hint: TranslationKey; ico: string }> = {
+  dash: { label: 'sidebar.dashboard', hint: 'sidebar.dashboardHint', ico: '◆' },
+  book: { label: 'sidebar.bookings', hint: 'sidebar.bookingsHint', ico: '☰' },
+  guests: { label: 'sidebar.bills', hint: 'sidebar.billsHint', ico: '◎' },
+  crm: { label: 'sidebar.crm', hint: 'sidebar.crmHint', ico: '◈' },
+  kitchen: { label: 'sidebar.kitchen', hint: 'sidebar.kitchenHint', ico: '▣' },
+  report: { label: 'sidebar.reports', hint: 'sidebar.reportsHint', ico: '▤' },
+  manage: { label: 'sidebar.management', hint: 'sidebar.managementHint', ico: '⬡' },
+  menu: { label: 'sidebar.menu', hint: 'sidebar.menuHint', ico: '≡' },
+  knowledge: { label: 'sidebar.knowledge', hint: 'sidebar.knowledgeHint', ico: '?' },
 }
 
-const ROLE_LABEL: Record<StaffRole, string> = {
-  ADMIN: 'админ',
-  KITCHEN: 'кухня',
-  OWNER: 'владелец',
+const ROLE_LABEL: Record<StaffRole, TranslationKey> = {
+  ADMIN: 'role.admin',
+  KITCHEN: 'role.kitchen',
+  OWNER: 'role.owner',
 }
 
 const hhmm = (iso: string) =>
@@ -224,6 +228,7 @@ export default function AmmeApp({
   user: { id: string; email: string; name: string | null; staffRole: StaffRole }
 }) {
   const router = useRouter()
+  const { t } = useI18n()
   const [view, setView] = useState<View>('dash')
   const [day, setDay] = useState(todayKey)
   const [search, setSearch] = useState('')
@@ -268,11 +273,11 @@ export default function AmmeApp({
     }
     const data = await res.json()
     if (!data.success) {
-      showToast(data.error || 'Ошибка загрузки', true)
+      showToast(data.error || t('app.loadError'), true)
       return
     }
     setState(pickState(data))
-  }, [day, router, showToast])
+  }, [day, router, showToast, t])
 
   const loadDashReport = useCallback(async () => {
     const params = new URLSearchParams({ day, range: '7d' })
@@ -343,7 +348,7 @@ export default function AmmeApp({
         })
         const data = await res.json()
         if (!res.ok || data.success === false) {
-          showToast(data.error || 'Ошибка', true)
+          showToast(data.error || t('common.operationFailed'), true)
           return false
         }
         setState(pickState(data))
@@ -352,13 +357,13 @@ export default function AmmeApp({
         if (successMsg) showToast(successMsg)
         return true
       } catch {
-        showToast('Сеть недоступна', true)
+        showToast(t('app.networkError'), true)
         return false
       } finally {
         setBusy(false)
       }
     },
-    [day, loadDashReport, loadReport, showToast, view]
+    [day, loadDashReport, loadReport, showToast, t, view]
   )
 
   function armSend(tabId: string) {
@@ -430,7 +435,7 @@ export default function AmmeApp({
       <div className="amme-shell">
         <div className="amme-workspace">
           <div className="amme-main">
-            <p className="amme-eyebrow">Загрузка смены…</p>
+            <p className="amme-eyebrow">{t('app.loading')}</p>
           </div>
         </div>
       </div>
@@ -444,7 +449,7 @@ export default function AmmeApp({
       <aside className="amme-sidebar amme-no-print">
         <div className="amme-side-brand">
           <div className="mark">{state.venue.name}</div>
-          <div className="sub">AMMÉ · учёт бани и кухни</div>
+          <div className="sub">AMMÉ · {t('app.tagline')}</div>
         </div>
 
         <nav className="amme-side-nav">
@@ -467,10 +472,11 @@ export default function AmmeApp({
                 key={id}
                 type="button"
                 className={view === id ? 'on' : ''}
+                aria-current={view === id ? 'page' : undefined}
                 onClick={() => setView(id)}
               >
                 <span className="ico">{m.ico}</span>
-                {m.label}
+                {t(m.label)}
                 {badge != null ? <span className="badge">{badge}</span> : null}
               </button>
             )
@@ -481,11 +487,11 @@ export default function AmmeApp({
           <div className="amme-user-chip">
             <div className="nm">{user.name || user.email}</div>
             <div className="em">
-              {user.email} · {ROLE_LABEL[user.staffRole]}
+              {user.email} · {t(ROLE_LABEL[user.staffRole])}
             </div>
           </div>
           <button className="amme-ghost" type="button" onClick={() => void logout()}>
-            Выйти
+            {t('common.actions.logout')}
           </button>
         </div>
       </aside>
@@ -493,21 +499,25 @@ export default function AmmeApp({
       <div className="amme-workspace">
         <header className="amme-topbar amme-no-print">
           <div>
-            <h1>{meta.label}</h1>
-            <div className="hint">{meta.hint}</div>
+            <h1>{t(meta.label)}</h1>
+            <div className="hint">{t(meta.hint)}</div>
           </div>
 
           <div className="amme-top-actions">
+            <LanguageSwitcher />
+            <button className="amme-ghost amme-mobile-logout" type="button" onClick={() => void logout()}>
+              {t('common.actions.logout')}
+            </button>
             <div className="amme-field" style={{ margin: 0, width: 148 }}>
-              <label>Дата смены</label>
+              <label>{t('common.shiftDate')}</label>
               <input type="date" value={day} onChange={(e) => setDay(e.target.value)} />
             </div>
             {(view === 'book' || view === 'guests' || view === 'dash') && (
               <div className="amme-field" style={{ margin: 0, width: 180 }}>
-                <label>Поиск</label>
+                <label>{t('common.actions.search')}</label>
                 <input
                   type="search"
-                  placeholder="Имя гостя"
+                  placeholder={t('bookings.guestName')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -516,7 +526,7 @@ export default function AmmeApp({
           </div>
         </header>
 
-        <div className="amme-main" style={{ opacity: busy ? 0.65 : 1 }}>
+        <main className="amme-main" style={{ opacity: busy ? 0.65 : 1 }}>
           {view === 'dash' ? (
             <Dashboard
               state={state}
@@ -556,7 +566,7 @@ export default function AmmeApp({
               onUnmark={(id) => void act({ type: 'unmark', bookingId: id })}
               onToggle={(id) => void act({ type: 'toggle_banya', bookingId: id })}
               onImport={(mode) => {
-                void act({ type: 'import', text: importText, mode }, 'Список импортирован').then(
+                void act({ type: 'import', text: importText, mode }, t('bookings.imported')).then(
                   (ok) => {
                     if (ok) setImportText('')
                   }
@@ -572,7 +582,7 @@ export default function AmmeApp({
                     banya: bkBanya,
                     phone: bkPhone || undefined,
                   },
-                  'Запись добавлена'
+                  t('bookings.created')
                 ).then((ok) => {
                   if (ok) {
                     setBkOpen(false)
@@ -657,12 +667,12 @@ export default function AmmeApp({
                 void act({ type: 'send', tabId: activeTab.id })
               }}
               onPay={() =>
-                activeTab && void act({ type: 'pay', tabId: activeTab.id }, 'Оплата зафиксирована')
+                activeTab && void act({ type: 'pay', tabId: activeTab.id }, t('bills.paymentRecorded'))
               }
               onClose={() =>
-                activeTab && void act({ type: 'close', tabId: activeTab.id }, 'Счёт закрыт')
+                activeTab && void act({ type: 'close', tabId: activeTab.id }, t('bills.closed'))
               }
-              onEndBanya={(id) => void act({ type: 'end_banya', visitId: id }, 'Баня завершена')}
+              onEndBanya={(id) => void act({ type: 'end_banya', visitId: id }, t('bills.banyaEnded'))}
               onNewTab={() => {
                 if (!activeVisit || !selLines.size) return
                 void act({
@@ -687,7 +697,7 @@ export default function AmmeApp({
                     banya: wBanya,
                     phone: wPhone || undefined,
                   },
-                  'Визит открыт'
+                  t('bills.visitOpened')
                 ).then((ok) => {
                   if (ok) {
                     setWalkOpen(false)
@@ -725,7 +735,7 @@ export default function AmmeApp({
             <MenuEditor
               menu={state.menu}
               onSave={(code, patch) =>
-                void act({ type: 'menu_update', menuCode: code, ...patch }, 'Меню обновлено')
+                void act({ type: 'menu_update', menuCode: code, ...patch }, t('menu.updated'))
               }
             />
           ) : null}
@@ -733,10 +743,18 @@ export default function AmmeApp({
           {view === 'knowledge' ? (
             <KnowledgeView selArticle={selArticle} setSelArticle={setSelArticle} article={article} />
           ) : null}
-        </div>
+        </main>
       </div>
 
-      {toast ? <div className={`amme-toast ${toast.err ? 'err' : ''}`}>{toast.msg}</div> : null}
+      {toast ? (
+        <div
+          className={`amme-toast ${toast.err ? 'err' : ''}`}
+          role={toast.err ? 'alert' : 'status'}
+          aria-live={toast.err ? 'assertive' : 'polite'}
+        >
+          {toast.msg}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -758,63 +776,40 @@ function Dashboard({
   visits: Visit[]
   onGo: (v: View) => void
 }) {
+  const { t } = useI18n()
   return (
     <>
-      <p className="amme-eyebrow">Смена · {state.day}</p>
+      <p className="amme-eyebrow">{t('dashboard.shift', { date: state.day })}</p>
       <div className="amme-kpis">
-        <div className="amme-kpi">
-          <div className="kl">Выручка (7д)</div>
-          <div className="kv">
-            {formatIdr((report?.rev || 0) / 1000)}
-            <small>тыс</small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Средний чек</div>
-          <div className="kv">
-            {formatIdr((report?.avg || 0) / 1000)}
-            <small>тыс</small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Гости сейчас</div>
-          <div className="kv">{state.visits.length}</div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">В бане</div>
-          <div className="kv">{banyaLive.reduce((s, v) => s + v.guests, 0)}</div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Ждут записи</div>
-          <div className="kv">{waiting}</div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Кухня</div>
-          <div className="kv">{kitchenOpen}</div>
-        </div>
+        <KpiCard label={t('dashboard.revenue7d')} value={formatIdr((report?.rev || 0) / 1000)} suffix={t('common.currencyThousands')} tone="gold" />
+        <KpiCard label={t('dashboard.averageBill')} value={formatIdr((report?.avg || 0) / 1000)} suffix={t('common.currencyThousands')} tone="sage" />
+        <KpiCard label={t('dashboard.guestsNow')} value={state.visits.length} tone="neutral" />
+        <KpiCard label={t('dashboard.inBanya')} value={banyaLive.reduce((s, v) => s + v.guests, 0)} tone="terracotta" />
+        <KpiCard label={t('dashboard.waitingBookings')} value={waiting} tone="gold" />
+        <KpiCard label={t('dashboard.kitchenQueue')} value={kitchenOpen} tone="sage" />
       </div>
 
       <div className="amme-no-print" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
         <button className="amme-primary" type="button" onClick={() => onGo('book')}>
-          Открыть записи
+          {t('dashboard.openBookings')}
         </button>
         <button className="amme-ghost" type="button" onClick={() => onGo('guests')}>
-          Гости и счета
+          {t('dashboard.guestsAndBills')}
         </button>
         <button className="amme-ghost" type="button" onClick={() => onGo('kitchen')}>
-          Кухня {kitchenOpen > 0 ? `(${kitchenOpen})` : ''}
+          {t('sidebar.kitchen')} {kitchenOpen > 0 ? `(${kitchenOpen})` : ''}
         </button>
         <button className="amme-ghost" type="button" onClick={() => onGo('report')}>
-          Отчёт
+          {t('dashboard.report')}
         </button>
       </div>
 
       <div className="amme-split" style={{ gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}>
         <div className="amme-card">
-          <p className="amme-eyebrow">Активные гости</p>
+          <p className="amme-eyebrow">{t('dashboard.activeGuests')}</p>
           {visits.length === 0 ? (
             <p style={{ color: 'var(--amme-dim)', margin: 0 }}>
-              Пока никого. Отметьте приход в Записях.
+              {t('dashboard.noActiveGuests')}
             </p>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>
@@ -832,7 +827,7 @@ function Dashboard({
                   <div>
                     <div style={{ fontFamily: 'var(--amme-display)', fontSize: 17 }}>{v.name}</div>
                     <div className="amme-mono" style={{ fontSize: 12, color: 'var(--amme-dim)' }}>
-                      {v.guests} чел. · {v.banya ? 'баня' : 'только кухня'} · {hhmm(v.openedAt)}
+                      {t('common.people', { count: v.guests })} · {v.banya ? t('dashboard.banyaOnly') : t('dashboard.kitchenOnly')} · {hhmm(v.openedAt)}
                     </div>
                   </div>
                   <div className="amme-mono" style={{ color: 'var(--amme-sage)' }}>
@@ -845,9 +840,9 @@ function Dashboard({
         </div>
 
         <div className="amme-card">
-          <p className="amme-eyebrow">Журнал смены</p>
+          <p className="amme-eyebrow">{t('dashboard.shiftLog')}</p>
           {state.audits.length === 0 ? (
-            <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Пока без событий.</p>
+            <p style={{ color: 'var(--amme-dim)', margin: 0 }}>{t('dashboard.noEvents')}</p>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>
               {state.audits.map((a) => (
@@ -906,6 +901,7 @@ function Bookings(props: {
   onOpenVisit: (visitId: string) => void
   guestsById: Map<string, GuestCard>
 }) {
+  const { t } = useI18n()
   const now = useNow()
   return (
     <>
@@ -914,10 +910,10 @@ function Bookings(props: {
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}
       >
         <p className="amme-eyebrow" style={{ margin: 0 }}>
-          Записи · {props.day}
+          {t('bookings.title', { date: props.day })}
         </p>
         <button className="amme-primary" type="button" onClick={() => props.setBkOpen(!props.bkOpen)}>
-          + Запись вручную
+          {t('bookings.addManual')}
         </button>
       </div>
 
@@ -925,43 +921,44 @@ function Bookings(props: {
         <div className="amme-card amme-no-print" style={{ maxWidth: 560, marginBottom: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 10 }}>
             <div className="amme-field">
-              <label>Время</label>
+              <label>{t('common.time')}</label>
               <input value={props.bkTime} onChange={(e) => props.setBkTime(e.target.value)} placeholder="12:00" />
             </div>
             <div className="amme-field">
-              <label>Имя</label>
+              <label>{t('common.name')}</label>
               <input value={props.bkName} onChange={(e) => props.setBkName(e.target.value)} />
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
             <span className="amme-mono" style={{ fontSize: 12, color: 'var(--amme-dim)' }}>
-              Гостей
+              {t('common.guests')}
             </span>
-            <button className="amme-ghost" type="button" onClick={() => props.setBkGuests((n) => Math.max(1, n - 1))}>
+            <button className="amme-ghost" type="button" aria-label={t('common.actions.decrease')} onClick={() => props.setBkGuests((n) => Math.max(1, n - 1))}>
               −
             </button>
             <span className="amme-mono">{props.bkGuests}</span>
-            <button className="amme-ghost" type="button" onClick={() => props.setBkGuests((n) => n + 1)}>
+            <button className="amme-ghost" type="button" aria-label={t('common.actions.increase')} onClick={() => props.setBkGuests((n) => n + 1)}>
               +
             </button>
             <button
               type="button"
+              aria-pressed={props.bkBanya}
               className={props.bkBanya ? 'amme-jade' : 'amme-ghost'}
               onClick={() => props.setBkBanya(!props.bkBanya)}
             >
-              {props.bkBanya ? 'баня' : 'только кухня'}
+              {props.bkBanya ? t('bookings.banya') : t('bookings.kitchenOnly')}
             </button>
           </div>
           <div className="amme-field">
-            <label>Телефон</label>
+            <label>{t('common.phone')}</label>
             <input value={props.bkPhone} onChange={(e) => props.setBkPhone(e.target.value)} />
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
             <button className="amme-primary" type="button" onClick={props.onCreate}>
-              Сохранить
+              {t('common.actions.save')}
             </button>
             <button className="amme-ghost" type="button" onClick={() => props.setBkOpen(false)}>
-              Отмена
+              {t('common.actions.cancel')}
             </button>
           </div>
         </div>
@@ -970,7 +967,7 @@ function Bookings(props: {
       <div style={{ display: 'grid', gap: 6, maxWidth: 860, marginBottom: 22 }}>
         {props.bookings.length === 0 ? (
           <div className="amme-card" style={{ color: 'var(--amme-dim)' }}>
-            Нет записей на эту дату.
+            {t('bookings.none')}
           </div>
         ) : null}
         {props.bookings.map((b) => {
@@ -987,18 +984,18 @@ function Bookings(props: {
                 alignItems: 'center',
                 opacity: b.status === 'NOSHOW' ? 0.45 : 1,
                 borderColor: g?.blocked
-                  ? '#6b2a2a'
+                  ? 'rgba(216, 102, 89, 0.5)'
                   : late
-                    ? '#6b3a24'
+                    ? 'rgba(201, 105, 75, 0.5)'
                     : b.status === 'ARRIVED'
-                      ? '#31513f'
+                      ? 'rgba(120, 145, 122, 0.5)'
                       : undefined,
                 background: g?.blocked
-                  ? '#2a1818'
+                  ? 'rgba(216, 102, 89, 0.08)'
                   : late
-                    ? '#271e19'
+                    ? 'rgba(201, 105, 75, 0.08)'
                     : b.status === 'ARRIVED'
-                      ? '#1c2620'
+                      ? 'rgba(120, 145, 122, 0.08)'
                       : undefined,
               }}
             >
@@ -1022,40 +1019,40 @@ function Bookings(props: {
                   {g && g.visitCount >= 2 ? (
                     <span className="amme-pill">{g.visitCount}×</span>
                   ) : null}
-                  {g?.blocked ? <span className="amme-pill bad">осторожно</span> : null}
+                  {g?.blocked ? <span className="amme-pill bad">{t('bookings.caution')}</span> : null}
                 </div>
                 <div
                   className="amme-mono"
                   style={{ fontSize: 11.5, color: 'var(--amme-dim)', display: 'flex', gap: 8, flexWrap: 'wrap' }}
                 >
-                  <span>{b.guests} чел.</span>
+                  <span>{t('common.people', { count: b.guests })}</span>
                   <button type="button" onClick={() => props.onToggle(b.id)} disabled={b.status !== 'WAITING'}>
-                    {b.banya ? 'баня' : 'кухня'}
+                    {b.banya ? t('bookings.banya') : t('bookings.kitchen')}
                   </button>
                   {b.phone ? <span>{b.phone}</span> : null}
-                  {g?.notes ? <span title={g.notes}>📝 заметка</span> : null}
-                  {late ? <span style={{ color: 'var(--amme-ember)' }}>опоздание</span> : null}
+                  {g?.notes ? <span title={g.notes}>📝 {t('bookings.note')}</span> : null}
+                  {late ? <span style={{ color: 'var(--amme-ember)' }}>{t('bookings.late')}</span> : null}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 {b.status === 'WAITING' ? (
                   <>
                     <button className="amme-jade" type="button" onClick={() => props.onArrive(b.id)}>
-                      Пришёл
+                      {t('bookings.arrive')}
                     </button>
                     <button className="amme-ghost" type="button" onClick={() => props.onNoshow(b.id)}>
-                      Не пришёл
+                      {t('bookings.noShow')}
                     </button>
                   </>
                 ) : null}
                 {b.status === 'ARRIVED' && b.visitId ? (
                   <button className="amme-ghost" type="button" onClick={() => props.onOpenVisit(b.visitId!)}>
-                    К счёту
+                    {t('bookings.toBill')}
                   </button>
                 ) : null}
                 {b.status === 'NOSHOW' ? (
                   <button className="amme-ghost" type="button" onClick={() => props.onUnmark(b.id)}>
-                    Вернуть
+                    {t('bookings.return')}
                   </button>
                 ) : null}
               </div>
@@ -1065,22 +1062,22 @@ function Bookings(props: {
       </div>
 
       <div className="amme-card amme-no-print" style={{ maxWidth: 860 }}>
-        <h3 style={{ fontFamily: 'var(--amme-display)', margin: '0 0 4px', fontWeight: 500 }}>Импорт списка</h3>
+        <h3 style={{ fontFamily: 'var(--amme-display)', margin: '0 0 4px', fontWeight: 500 }}>{t('bookings.importTitle')}</h3>
         <p style={{ margin: '0 0 10px', fontSize: 12.5, color: 'var(--amme-dim)' }}>
-          Вставьте текст. Обязательно время (10:00). Распознаются телефон, число гостей и «баня».
+          {t('bookings.importHelp')}
         </p>
         <textarea
           rows={4}
           value={props.importText}
           onChange={(e) => props.setImportText(e.target.value)}
-          placeholder={'10:00 Игорь 2 чел баня +62…\n11:30 Настя x3'}
+          placeholder={t('bookings.importPlaceholder')}
         />
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           <button className="amme-ghost" type="button" onClick={() => props.onImport('append')}>
-            Добавить
+            {t('bookings.importAppend')}
           </button>
           <button className="amme-ghost" type="button" onClick={() => props.onImport('replace')}>
-            Заменить ожидающих
+            {t('bookings.importReplace')}
           </button>
         </div>
       </div>
@@ -1122,27 +1119,27 @@ function Guests(props: {
   onMoveTo: (tabId: string) => void
   onWalkin: () => void
 }) {
+  const { t } = useI18n()
   const bPeople = props.banyaLive.reduce((s, v) => s + v.guests, 0)
   return (
     <>
       <div
-        className="amme-card"
+        className={`amme-card amme-banya-banner ${bPeople ? 'is-live' : ''}`}
         style={{
           display: 'flex',
           gap: 16,
           alignItems: 'center',
           flexWrap: 'wrap',
           marginBottom: 16,
-          borderColor: bPeople ? '#6b3a24' : undefined,
-          background: bPeople ? 'linear-gradient(90deg,#2a1e18,#1e2325 60%)' : undefined,
+          borderColor: bPeople ? 'rgba(201, 105, 75, 0.38)' : undefined,
         }}
       >
         <div>
           <div className="amme-eyebrow" style={{ margin: 0 }}>
-            Баня сейчас
+            {t('bills.banyaNow')}
           </div>
           <div style={{ fontFamily: 'var(--amme-display)', fontSize: 20 }}>
-            {bPeople ? props.banyaLive.map((v) => v.name).join(', ') : 'пусто'}
+            {bPeople ? props.banyaLive.map((v) => v.name).join(', ') : t('bills.banyaEmpty')}
           </div>
         </div>
         <div className="amme-mono" style={{ color: 'var(--amme-ember)' }}>
@@ -1151,7 +1148,7 @@ function Guests(props: {
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {props.banyaLive.map((v) => (
             <button key={v.id} className="amme-ghost" type="button" onClick={() => props.onEndBanya(v.id)}>
-              Завершить · {v.name}
+              {t('bills.endBanya', { name: v.name })}
             </button>
           ))}
         </div>
@@ -1161,21 +1158,21 @@ function Guests(props: {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
             <p className="amme-eyebrow" style={{ margin: 0 }}>
-              Гости в зале
+              {t('bills.guestsInHall')}
             </p>
             <button className="amme-ghost amme-no-print" type="button" onClick={() => props.setWalkOpen(true)}>
-              + гость без записи
+              {t('bills.walkIn')}
             </button>
           </div>
 
           {props.walkOpen ? (
             <div className="amme-card amme-no-print" style={{ marginBottom: 12 }}>
               <div className="amme-field">
-                <label>Имя</label>
+                <label>{t('common.name')}</label>
                 <input value={props.wName} onChange={(e) => props.setWName(e.target.value)} />
               </div>
               <div className="amme-field">
-                <label>Телефон (для CRM)</label>
+                <label>{t('bills.walkInPhone')}</label>
                 <input
                   value={props.wPhone}
                   onChange={(e) => props.setWPhone(e.target.value)}
@@ -1183,27 +1180,28 @@ function Guests(props: {
                 />
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
-                <button className="amme-ghost" type="button" onClick={() => props.setWGuests((n) => Math.max(1, n - 1))}>
+                <button className="amme-ghost" type="button" aria-label={t('common.actions.decrease')} onClick={() => props.setWGuests((n) => Math.max(1, n - 1))}>
                   −
                 </button>
                 <span className="amme-mono">{props.wGuests}</span>
-                <button className="amme-ghost" type="button" onClick={() => props.setWGuests((n) => n + 1)}>
+                <button className="amme-ghost" type="button" aria-label={t('common.actions.increase')} onClick={() => props.setWGuests((n) => n + 1)}>
                   +
                 </button>
                 <button
                   type="button"
+                  aria-pressed={props.wBanya}
                   className={props.wBanya ? 'amme-jade' : 'amme-ghost'}
                   onClick={() => props.setWBanya(!props.wBanya)}
                 >
-                  {props.wBanya ? 'баня' : 'только кухня'}
+                  {props.wBanya ? t('bookings.banya') : t('bookings.kitchenOnly')}
                 </button>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="amme-primary" type="button" onClick={props.onWalkin}>
-                  Открыть визит
+                  {t('bills.openVisit')}
                 </button>
                 <button className="amme-ghost" type="button" onClick={() => props.setWalkOpen(false)}>
-                  Отмена
+                  {t('common.actions.cancel')}
                 </button>
               </div>
             </div>
@@ -1219,7 +1217,7 @@ function Guests(props: {
           >
             {props.visits.length === 0 ? (
               <div className="amme-card" style={{ color: 'var(--amme-dim)' }}>
-                Нет активных гостей.
+                {t('bills.noActiveGuests')}
               </div>
             ) : null}
             {props.visits.map((v) => {
@@ -1235,7 +1233,7 @@ function Guests(props: {
                   style={{
                     textAlign: 'left',
                     borderColor: g?.blocked
-                      ? '#6b2a2a'
+                      ? 'rgba(216, 102, 89, 0.5)'
                       : props.activeVisit?.id === v.id
                         ? 'var(--amme-sage)'
                         : undefined,
@@ -1257,8 +1255,8 @@ function Guests(props: {
                     {g && g.visitCount >= 2 ? <span className="amme-pill">{g.visitCount}×</span> : null}
                   </div>
                   <div className="amme-mono" style={{ fontSize: 11.5, color: 'var(--amme-dim)', marginTop: 3 }}>
-                    {v.guests} чел. · {v.banya ? 'баня' : 'кухня'}
-                    {hot ? ' · кухня' : ''}
+                    {t('common.people', { count: v.guests })} · {v.banya ? t('bookings.banya') : t('bookings.kitchen')}
+                    {hot ? ` · ${t('bookings.kitchen')}` : ''}
                     {g?.notes ? ' · 📝' : ''}
                   </div>
                   <div
@@ -1273,9 +1271,9 @@ function Guests(props: {
           </div>
 
           <div
-            className="amme-card"
+            className="amme-card amme-menu-surface"
             style={{
-              background: 'radial-gradient(120% 140% at 30% 0%,#232a2c,#191e20)',
+              background: 'radial-gradient(120% 140% at 30% 0%,var(--amme-teak-700),var(--amme-charcoal-800))',
             }}
           >
             <h2
@@ -1303,7 +1301,7 @@ function Guests(props: {
                         textTransform: 'uppercase',
                         margin: '0 0 8px',
                         paddingBottom: 5,
-                        borderBottom: '1px solid #46504f',
+                        borderBottom: '1px solid var(--amme-line-strong)',
                       }}
                     >
                       {cat}
@@ -1383,9 +1381,11 @@ function Receipt(props: {
   onNewTab: () => void
   onMoveTo: (tabId: string) => void
 }) {
+  const { t } = useI18n()
   if (!props.visit || !props.tab) {
     return (
       <div
+        className="amme-receipt amme-receipt-empty"
         style={{
           background: '#f3eee4',
           color: '#7a6f63',
@@ -1396,7 +1396,7 @@ function Receipt(props: {
           fontSize: 12.5,
         }}
       >
-        Выберите гостя слева
+        {t('bills.selectGuest')}
       </div>
     )
   }
@@ -1407,6 +1407,7 @@ function Receipt(props: {
 
   return (
     <div
+      className="amme-receipt"
       style={{
         background: '#f3eee4',
         color: '#241f1b',
@@ -1421,7 +1422,7 @@ function Receipt(props: {
         <div style={{ fontFamily: 'var(--amme-display)', fontWeight: 700, fontSize: 17, letterSpacing: '0.08em' }}>
           AMMÉ
         </div>
-        <div style={{ fontSize: 11, color: '#6a6055', marginTop: 3, letterSpacing: '0.08em' }}>СЧЁТ</div>
+        <div style={{ fontSize: 11, color: '#6a6055', marginTop: 3, letterSpacing: '0.08em' }}>{t('bills.receipt')}</div>
       </div>
       <div
         style={{
@@ -1432,7 +1433,7 @@ function Receipt(props: {
         }}
       >
         <b style={{ fontWeight: 500 }}>{props.visit.name}</b>
-        <span>{props.visit.guests} чел.</span>
+        <span>{t('common.people', { count: props.visit.guests })}</span>
       </div>
 
       {props.guest ? (
@@ -1449,9 +1450,9 @@ function Receipt(props: {
         >
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             {props.guest.vip ? <span className="amme-pill vip">VIP</span> : null}
-            <span>{props.guest.visitCount} виз.</span>
+            <span>{t('bills.visitCount', { count: props.guest.visitCount })}</span>
             <span>LTV {formatIdr(props.guest.lifetimeSpend)}</span>
-            {props.guest.dietary ? <span>диета: {props.guest.dietary}</span> : null}
+            {props.guest.dietary ? <span>{t('bills.diet', { value: props.guest.dietary })}</span> : null}
             <button
               type="button"
               style={{ marginLeft: 'auto', textDecoration: 'underline', color: '#5a4f45' }}
@@ -1462,7 +1463,7 @@ function Receipt(props: {
           </div>
           {props.guest.notes || props.guest.preferences || props.guest.blocked ? (
             <div style={{ marginTop: 4 }}>
-              {props.guest.blocked ? '⚠ Осторожно. ' : ''}
+              {props.guest.blocked ? `${t('bills.cautionMessage')} ` : ''}
               {props.guest.notes || props.guest.preferences}
             </div>
           ) : null}
@@ -1470,21 +1471,21 @@ function Receipt(props: {
       ) : null}
 
       <div style={{ display: 'flex', gap: 5, paddingTop: 9, flexWrap: 'wrap' }}>
-        {props.visit.tabs.map((t, i) => (
+        {props.visit.tabs.map((tab, i) => (
           <button
-            key={t.id}
+            key={tab.id}
             type="button"
-            onClick={() => props.onSelectTab(t.id)}
+            onClick={() => props.onSelectTab(tab.id)}
             style={{
               padding: '3px 9px',
               border: '1px solid #c3b8a6',
               borderRadius: 2,
               fontSize: 11,
-              background: t.id === props.tab!.id ? '#241f1b' : 'transparent',
-              color: t.id === props.tab!.id ? '#f3eee4' : '#5c5247',
+              background: tab.id === props.tab!.id ? '#241f1b' : 'transparent',
+              color: tab.id === props.tab!.id ? '#f3eee4' : '#5c5247',
             }}
           >
-            {t.label || `Счёт ${i + 1}`}
+            {tab.label || t('bills.billNumber', { number: i + 1 })}
           </button>
         ))}
       </div>
@@ -1492,7 +1493,7 @@ function Receipt(props: {
       <div style={{ marginTop: 11, paddingTop: 11, borderTop: '1px dashed #b8ae9e' }}>
         {lines.length === 0 ? (
           <div style={{ padding: '20px 0', textAlign: 'center', color: '#7a6f63' }}>
-            Пусто, ткните блюдо в меню
+            {t('bills.empty')}
           </div>
         ) : (
           lines.map((l) => (
@@ -1545,6 +1546,7 @@ function Receipt(props: {
                 <span style={{ display: 'flex', gap: 2 }}>
                   <button
                     type="button"
+                    aria-label={`${t('common.actions.decrease')}: ${l.name}`}
                     onClick={() => props.onBump(l.id, -1)}
                     style={{ width: 20, height: 20, border: '1px solid #cdc2b0', borderRadius: 2 }}
                   >
@@ -1552,6 +1554,7 @@ function Receipt(props: {
                   </button>
                   <button
                     type="button"
+                    aria-label={`${t('common.actions.increase')}: ${l.name}`}
                     onClick={() => props.onBump(l.id, 1)}
                     style={{ width: 20, height: 20, border: '1px solid #cdc2b0', borderRadius: 2 }}
                   >
@@ -1567,7 +1570,7 @@ function Receipt(props: {
       {props.selLines.size > 0 ? (
         <div style={{ marginTop: 11, padding: 10, background: '#241f1b', color: '#f3eee4', borderRadius: 2 }}>
           <div style={{ fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b3a692' }}>
-            Выбрано {props.selLines.size}
+            {t('bills.selected', { count: props.selLines.size })}
           </div>
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 7 }}>
             <button
@@ -1575,16 +1578,16 @@ function Receipt(props: {
               onClick={props.onNewTab}
               style={{ padding: '6px 10px', border: '1px solid #e2542a', background: '#e2542a', borderRadius: 2 }}
             >
-              В новый счёт
+              {t('bills.moveToNew')}
             </button>
-            {otherTabs.map((t) => (
+            {otherTabs.map((tab) => (
               <button
-                key={t.id}
+                key={tab.id}
                 type="button"
-                onClick={() => props.onMoveTo(t.id)}
+                onClick={() => props.onMoveTo(tab.id)}
                 style={{ padding: '6px 10px', border: '1px solid #6a6055', borderRadius: 2 }}
               >
-                → {t.label || 'счёт'}
+                {t('bills.moveTo', { bill: tab.label || t('bills.receipt').toLocaleLowerCase() })}
               </button>
             ))}
           </div>
@@ -1605,9 +1608,9 @@ function Receipt(props: {
             borderRadius: 2,
           }}
         >
-          <span>На кухню через {props.sendLeft}с</span>
+          <span>{t('bills.sendCountdown', { seconds: props.sendLeft })}</span>
           <button type="button" onClick={props.onSendNow} style={{ color: '#d8c48f', textDecoration: 'underline' }}>
-            Сейчас
+            {t('bills.sendNow')}
           </button>
         </div>
       ) : null}
@@ -1623,7 +1626,7 @@ function Receipt(props: {
           fontWeight: 500,
         }}
       >
-        <span>Итого</span>
+        <span>{t('common.total')}</span>
         <span>{formatIdr(total)} Rp</span>
       </div>
 
@@ -1642,7 +1645,7 @@ function Receipt(props: {
             fontSize: 12,
           }}
         >
-          {props.tab.paidAt ? 'Оплачено' : 'Оплатить'}
+          {props.tab.paidAt ? t('bills.paid') : t('bills.pay')}
         </button>
         <button
           type="button"
@@ -1657,7 +1660,7 @@ function Receipt(props: {
             fontSize: 12,
           }}
         >
-          Закрыть счёт
+          {t('bills.closeBill')}
         </button>
       </div>
     </div>
@@ -1665,8 +1668,9 @@ function Receipt(props: {
 }
 
 function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string) => void }) {
+  const { t } = useI18n()
   const now = useNow()
-  const stations = [...new Set(lines.map((line) => line.station || 'Кухня'))]
+  const stations = [...new Set(lines.map((line) => line.station || t('sidebar.kitchen')))]
   const [station, setStation] = useState('ALL')
   const [sound, setSound] = useState(true)
   const previousOpen = useRef(0)
@@ -1704,23 +1708,23 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
   return (
     <>
       <div className="amme-kds-toolbar">
-        <p className="amme-eyebrow" style={{ margin: 0 }}>KDS · тикеты</p>
+        <p className="amme-eyebrow" style={{ margin: 0 }}>{t('kds.title')}</p>
         <div className="amme-seg">
-          <button type="button" className={station === 'ALL' ? 'on' : ''} onClick={() => setStation('ALL')}>Все</button>
+          <button type="button" aria-pressed={station === 'ALL'} className={station === 'ALL' ? 'on' : ''} onClick={() => setStation('ALL')}>{t('kds.allStations')}</button>
           {stations.map((name) => (
-            <button key={name} type="button" className={station === name ? 'on' : ''} onClick={() => setStation(name)}>
+            <button key={name} type="button" aria-pressed={station === name} className={station === name ? 'on' : ''} onClick={() => setStation(name)}>
               {name}
             </button>
           ))}
         </div>
-        <button className={sound ? 'amme-jade' : 'amme-ghost'} type="button" onClick={() => setSound((value) => !value)}>
-          Звук {sound ? 'ON' : 'OFF'}
+        <button className={sound ? 'amme-jade' : 'amme-ghost'} type="button" aria-pressed={sound} onClick={() => setSound((value) => !value)}>
+          {t('kds.sound', { state: sound ? t('common.on') : t('common.off') })}
         </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 12 }}>
         {open.length === 0 ? (
           <div className="amme-card" style={{ color: 'var(--amme-dim)' }}>
-            Очередь пуста
+            {t('kds.empty')}
           </div>
         ) : null}
         {open.map((l) => {
@@ -1749,7 +1753,7 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
                   {l.qty}× {l.name}
                 </div>
                 <button className="amme-jade" type="button" onClick={() => onDone(l.id)} style={{ width: '100%' }}>
-                  Отдано
+                  {t('kds.served')}
                 </button>
               </div>
             </div>
@@ -1759,7 +1763,7 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
       {done.length ? (
         <>
           <p className="amme-eyebrow" style={{ marginTop: 22 }}>
-            Недавно отдано
+            {t('kds.recentlyServed')}
           </p>
           <div className="amme-card" style={{ color: 'var(--amme-dim)', fontSize: 13 }}>
             {done.map((l) => (
@@ -1795,8 +1799,9 @@ function ReportView({
   setCustomTo: (v: string) => void
   onRefresh: () => void
 }) {
+  const { t } = useI18n()
   if (!report) {
-    return <p className="amme-eyebrow">Считаем отчёт…</p>
+    return <p className="amme-eyebrow">{t('reports.calculating')}</p>
   }
 
   const maxTop = report.top[0]?.[1] || 1
@@ -1811,21 +1816,22 @@ function ReportView({
         style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 16 }}
       >
         <p className="amme-eyebrow" style={{ margin: 0 }}>
-          Итоги · {report.rangeLabel}
+          {t('reports.summary', { range: report.rangeLabel })}
         </p>
         <div className="amme-seg">
           {(
             [
-              ['today', 'Сегодня'],
-              ['7d', '7 дней'],
-              ['30d', '30 дней'],
-              ['custom', 'Свой'],
+              ['today', t('reports.today')],
+              ['7d', t('reports.sevenDays')],
+              ['30d', t('reports.thirtyDays')],
+              ['custom', t('reports.custom')],
             ] as const
           ).map(([id, label]) => (
             <button
               key={id}
               type="button"
               className={reportRange === id ? 'on' : ''}
+              aria-pressed={reportRange === id}
               onClick={() => setReportRange(id)}
             >
               {label}
@@ -1840,71 +1846,30 @@ function ReportView({
             </span>
             <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} style={{ width: 140 }} />
             <button className="amme-ghost" type="button" onClick={onRefresh}>
-              Применить
+              {t('common.actions.apply')}
             </button>
           </>
         ) : null}
         <button className="amme-primary" type="button" onClick={() => window.print()} style={{ marginLeft: 'auto' }}>
-          Печать
+          {t('common.actions.print')}
         </button>
       </div>
 
       <div className="amme-kpis">
-        <div className="amme-kpi">
-          <div className="kl">Выручка</div>
-          <div className="kv">
-            {formatIdr(report.rev / 1000)}
-            <small>тыс Rp</small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Средний чек</div>
-          <div className="kv">
-            {formatIdr(report.avg / 1000)}
-            <small>тыс</small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Доля еды</div>
-          <div className="kv">
-            {report.foodShare}
-            <small>%</small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Доля бани</div>
-          <div className="kv">
-            {report.banyaShare}
-            <small>%</small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Еда на гостя бани</div>
-          <div className="kv">
-            {formatIdr(report.perGuest / 1000)}
-            <small>тыс</small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Неявки</div>
-          <div className="kv">
-            {noshowPct}
-            <small>
-              % · {report.bkNo}/{report.bkAll}
-            </small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Обслужено гостей</div>
-          <div className="kv">{report.guestsServed}</div>
-        </div>
+        <KpiCard label={t('reports.revenue')} value={formatIdr(report.rev / 1000)} suffix={`${t('common.currencyThousands')} Rp`} tone="gold" />
+        <KpiCard label={t('reports.averageBill')} value={formatIdr(report.avg / 1000)} suffix={t('common.currencyThousands')} tone="sage" />
+        <KpiCard label={t('reports.foodShare')} value={report.foodShare} suffix="%" tone="sage" />
+        <KpiCard label={t('reports.banyaShare')} value={report.banyaShare} suffix="%" tone="terracotta" />
+        <KpiCard label={t('reports.foodPerBanyaGuest')} value={formatIdr(report.perGuest / 1000)} suffix={t('common.currencyThousands')} tone="gold" />
+        <KpiCard label={t('reports.noShows')} value={noshowPct} suffix={`% · ${report.bkNo}/${report.bkAll}`} tone="terracotta" />
+        <KpiCard label={t('reports.guestsServed')} value={report.guestsServed} tone="neutral" />
       </div>
 
       <div className="amme-split" style={{ gridTemplateColumns: 'minmax(0,1.2fr) minmax(0,1fr)', marginBottom: 18 }}>
         <div className="amme-card">
-          <p className="amme-eyebrow">Выручка по дням</p>
+          <p className="amme-eyebrow">{t('reports.revenueByDay')}</p>
           {report.daily.length === 0 ? (
-            <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Нет оплаченных счетов за период.</p>
+            <p style={{ color: 'var(--amme-dim)', margin: 0 }}>{t('reports.noPaidBills')}</p>
           ) : (
             <div className="amme-day-chart">
               {report.daily.map((d) => (
@@ -1921,7 +1886,7 @@ function ReportView({
         </div>
 
         <div className="amme-card">
-          <p className="amme-eyebrow">Счета по часам</p>
+          <p className="amme-eyebrow">{t('reports.billsByHour')}</p>
           <div className="amme-day-chart" style={{ minHeight: 100 }}>
             {report.hourly
               .filter((h) => h.tabs > 0)
@@ -1931,7 +1896,7 @@ function ReportView({
                     className="stem"
                     style={{
                       height: `${Math.max(4, (h.tabs / maxHourly) * 80)}px`,
-                      background: 'linear-gradient(180deg, var(--amme-gold), #8a6f45)',
+                      background: 'linear-gradient(180deg, var(--amme-gold-300), var(--amme-gold-700))',
                     }}
                   />
                   <div className="lbl">{h.hour}</div>
@@ -1941,10 +1906,10 @@ function ReportView({
         </div>
       </div>
 
-      <p className="amme-eyebrow">Топ позиций</p>
+      <p className="amme-eyebrow">{t('reports.topItems')}</p>
       <div className="amme-card amme-bars" style={{ marginBottom: 18 }}>
         {report.top.length === 0 ? (
-          <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Пока нет данных.</p>
+          <p style={{ color: 'var(--amme-dim)', margin: 0 }}>{t('common.noData')}</p>
         ) : (
           report.top.map(([n, s]) => (
             <div key={n} className="amme-bar-row">
@@ -1960,10 +1925,10 @@ function ReportView({
         )}
       </div>
 
-      <p className="amme-eyebrow">Журнал за период</p>
+      <p className="amme-eyebrow">{t('reports.periodLog')}</p>
       <div className="amme-card" style={{ marginBottom: 14 }}>
         {report.audits.length === 0 ? (
-          <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Событий нет.</p>
+          <p style={{ color: 'var(--amme-dim)', margin: 0 }}>{t('reports.noEvents')}</p>
         ) : (
           report.audits.map((a) => (
             <div
@@ -1990,8 +1955,7 @@ function ReportView({
       </div>
 
       <p style={{ fontSize: 12, color: 'var(--amme-dim)' }}>
-        Баня: {formatIdr(banyaPrice)} Rp с человека за сеанс. Оплачено счетов: {report.tabsPaid}, визитов:{' '}
-        {report.visitsPaid}.
+        {t('reports.banyaPriceNote', { price: formatIdr(banyaPrice), bills: report.tabsPaid, visits: report.visitsPaid })}
       </p>
     </>
   )
@@ -2004,6 +1968,7 @@ function MenuEditor({
   menu: MenuItem[]
   onSave: (code: string, patch: { name?: string; price?: number; active?: boolean }) => void
 }) {
+  const { t } = useI18n()
   const [drafts, setDrafts] = useState<Record<string, { name: string; price: string }>>(() => {
     const next: Record<string, { name: string; price: string }> = {}
     for (const m of menu) {
@@ -2014,9 +1979,9 @@ function MenuEditor({
 
   return (
     <>
-      <p className="amme-eyebrow">Редактор меню</p>
+      <p className="amme-eyebrow">{t('menu.editor')}</p>
       <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--amme-dim)' }}>
-        Изменение цены не пересчитывает старые счета. Выключенные позиции скрыты с доски заказа.
+        {t('menu.editorHelp')}
       </p>
       <div style={{ display: 'grid', gap: 10, maxWidth: 720 }}>
         {menu.map((m) => {
@@ -2045,7 +2010,7 @@ function MenuEditor({
                 />
               </div>
               <div className="amme-field" style={{ margin: 0 }}>
-                <label>Цена Rp</label>
+                <label>{t('menu.priceRp')}</label>
                 <input
                   value={d.price}
                   inputMode="numeric"
@@ -2064,14 +2029,14 @@ function MenuEditor({
                     onSave(m.code, { name: d.name.trim(), price })
                   }}
                 >
-                  Сохранить
+                  {t('common.actions.save')}
                 </button>
                 <button
                   className={m.active ? 'amme-ghost' : 'amme-jade'}
                   type="button"
                   onClick={() => onSave(m.code, { active: !m.active })}
                 >
-                  {m.active ? 'Выключить' : 'Включить'}
+                  {m.active ? t('common.actions.disable') : t('common.actions.enable')}
                 </button>
               </div>
             </div>
@@ -2091,7 +2056,9 @@ function KnowledgeView({
   setSelArticle: (id: string) => void
   article: (typeof KNOWLEDGE_ARTICLES)[number] | undefined
 }) {
+  const { locale, t } = useI18n()
   if (!article) return null
+  const localizedArticle = locale === 'en' ? { ...article, ...KNOWLEDGE_ARTICLES_EN[article.id] } : article
 
   return (
     <div className="amme-kb-grid">
@@ -2101,7 +2068,7 @@ function KnowledgeView({
           if (items.length === 0) return null
           return (
             <div key={cat} style={{ marginBottom: 16 }}>
-              <p className="amme-eyebrow">{cat}</p>
+              <p className="amme-eyebrow">{locale === 'en' ? KNOWLEDGE_CATEGORY_EN[cat] : cat}</p>
               <div className="amme-kb-list">
                 {items.map((a) => (
                   <button
@@ -2110,9 +2077,11 @@ function KnowledgeView({
                     className={selArticle === a.id ? 'on' : ''}
                     onClick={() => setSelArticle(a.id)}
                   >
-                    <div className="cat">{a.minutes} мин</div>
-                    <div style={{ fontWeight: 600 }}>{a.title}</div>
-                    <div style={{ fontSize: 12, color: 'var(--amme-dim)', marginTop: 4 }}>{a.summary}</div>
+                    <div className="cat">{t('knowledge.minutes', { count: a.minutes })}</div>
+                    <div style={{ fontWeight: 600 }}>{locale === 'en' ? KNOWLEDGE_ARTICLES_EN[a.id]?.title || a.title : a.title}</div>
+                    <div style={{ fontSize: 12, color: 'var(--amme-dim)', marginTop: 4 }}>
+                      {locale === 'en' ? KNOWLEDGE_ARTICLES_EN[a.id]?.summary || a.summary : a.summary}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -2122,11 +2091,11 @@ function KnowledgeView({
       </div>
 
       <div className="amme-card amme-kb-article">
-        <p className="amme-eyebrow">{article.category}</p>
-        <h2>{article.title}</h2>
-        <p style={{ color: 'var(--amme-dim)', margin: '0 0 16px' }}>{article.summary}</p>
+        <p className="amme-eyebrow">{localizedArticle.category}</p>
+        <h2>{localizedArticle.title}</h2>
+        <p style={{ color: 'var(--amme-dim)', margin: '0 0 16px' }}>{localizedArticle.summary}</p>
         <ol>
-          {article.body.map((step, i) => (
+          {localizedArticle.body.map((step, i) => (
             <li key={i}>{step}</li>
           ))}
         </ol>
