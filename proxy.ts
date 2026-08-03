@@ -5,10 +5,12 @@ const protectedRoutes = ['/clinic', '/amme']
 const publicRoutes = [
   '/login',
   '/amme/login',
+  '/amme/book',
   '/api/auth/login',
   '/api/auth/logout',
   '/api/amme/auth/login',
   '/api/amme/auth/logout',
+  '/api/amme/public',
 ]
 
 function isRoute(pathname: string, routes: string[]) {
