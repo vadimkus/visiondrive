@@ -34,6 +34,8 @@
     ".next",
     "dist",
     "build",
+    "scripts",
+    "scripts/**/*",
     "agent-pnl",
     "agent-pnl/**/*",
     "**/cdk/**/*"

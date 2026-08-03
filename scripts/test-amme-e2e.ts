@@ -2,6 +2,8 @@
  * End-to-end AMMÉ ops + CRM against a running deployment.
  * Usage: BASE_URL=https://visiondrive.ae npx tsx scripts/test-amme-e2e.ts
  */
+export {}
+
 const BASE = (process.env.BASE_URL || 'https://visiondrive.ae').replace(/\/$/, '')
 const EMAIL = process.env.AMME_TASHA_EMAIL || 'tasha@amme.visiondrive.ae'
 const PASS = process.env.AMME_TASHA_PASSWORD || 'AmmeTasha#2026Kp'
