@@ -26,7 +26,7 @@ export async function getVenueState(venueId: string, day?: string | null) {
 
   const [menu, bookings, openVisits, recentClosed] = await Promise.all([
     prisma.ammeMenuItem.findMany({
-      where: { venueId, active: true },
+      where: { venueId },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     }),
     prisma.ammeBooking.findMany({
@@ -59,17 +59,24 @@ export async function getVenueState(venueId: string, day?: string | null) {
     }),
   ])
 
-  const kitchenLines = await prisma.ammeLine.findMany({
-    where: {
-      status: { in: ['SENT', 'DONE'] },
-      sentAt: { not: null },
-      tab: { visit: { venueId, closedAt: null } },
-    },
-    include: {
-      tab: { include: { visit: true } },
-    },
-    orderBy: { sentAt: 'asc' },
-  })
+  const [kitchenLines, audits] = await Promise.all([
+    prisma.ammeLine.findMany({
+      where: {
+        status: { in: ['SENT', 'DONE'] },
+        sentAt: { not: null },
+        tab: { visit: { venueId, closedAt: null } },
+      },
+      include: {
+        tab: { include: { visit: true } },
+      },
+      orderBy: { sentAt: 'asc' },
+    }),
+    prisma.ammeAuditEvent.findMany({
+      where: { venueId },
+      orderBy: { createdAt: 'desc' },
+      take: 12,
+    }),
+  ])
 
   return {
     venue: {
@@ -93,6 +100,12 @@ export async function getVenueState(venueId: string, day?: string | null) {
       guestName: l.tab.visit.name,
       visitId: l.tab.visitId,
       tabId: l.tabId,
+    })),
+    audits: audits.map((a) => ({
+      id: a.id,
+      action: a.action,
+      detail: a.detail,
+      createdAt: a.createdAt.toISOString(),
     })),
   }
 }
@@ -472,46 +485,103 @@ export async function importBookings(
   return parsed.length
 }
 
-export async function getReport(venueId: string, day?: string | null) {
+export type ReportRange = 'today' | '7d' | '30d' | 'custom'
+
+function rangeBounds(range: ReportRange, day?: string | null, fromDay?: string | null, toDay?: string | null) {
+  const anchor = parseDayKey(day)
+  const endExclusive = new Date(anchor.getTime() + 86400000)
+  if (range === 'today') {
+    return { from: anchor, to: endExclusive, label: dayKey(anchor) }
+  }
+  if (range === '30d') {
+    return { from: new Date(endExclusive.getTime() - 30 * 86400000), to: endExclusive, label: '30 дней' }
+  }
+  if (range === 'custom' && fromDay && toDay) {
+    const from = parseDayKey(fromDay)
+    const to = new Date(parseDayKey(toDay).getTime() + 86400000)
+    return { from, to, label: `${fromDay} → ${toDay}` }
+  }
+  return { from: new Date(endExclusive.getTime() - 7 * 86400000), to: endExclusive, label: '7 дней' }
+}
+
+export async function getReport(
+  venueId: string,
+  day?: string | null,
+  range: ReportRange = '7d',
+  fromDay?: string | null,
+  toDay?: string | null
+) {
   const date = parseDayKey(day)
-  const from = new Date(date.getTime() - 7 * 86400000)
+  const { from, to, label } = rangeBounds(range, day, fromDay, toDay)
 
-  const tabs = await prisma.ammeTab.findMany({
-    where: {
-      paidAt: { not: null },
-      visit: { venueId, openedAt: { gte: from } },
-    },
-    include: {
-      lines: { where: { status: { not: 'CANCELLED' } } },
-      visit: true,
-    },
-  })
-
-  const bookings = await prisma.ammeBooking.findMany({ where: { venueId, date } })
+  const [tabs, bookings, audits] = await Promise.all([
+    prisma.ammeTab.findMany({
+      where: {
+        paidAt: { gte: from, lt: to },
+        visit: { venueId },
+      },
+      include: {
+        lines: { where: { status: { not: 'CANCELLED' } } },
+        visit: true,
+      },
+    }),
+    prisma.ammeBooking.findMany({
+      where: { venueId, date: { gte: from, lt: to } },
+    }),
+    prisma.ammeAuditEvent.findMany({
+      where: { venueId, createdAt: { gte: from, lt: to } },
+      orderBy: { createdAt: 'desc' },
+      take: 40,
+    }),
+  ])
 
   let rev = 0
   let food = 0
   let banyaRev = 0
   let bGuests = 0
+  let guestsServed = 0
   const byName = new Map<string, number>()
+  const byDay = new Map<string, { rev: number; tabs: number; food: number; banya: number }>()
+  const byHour = new Map<number, number>()
+  const visitSeen = new Set<string>()
 
   for (const tab of tabs) {
+    if (!visitSeen.has(tab.visitId)) {
+      visitSeen.add(tab.visitId)
+      guestsServed += tab.visit.guests
+    }
+    const paidAt = tab.paidAt || tab.openedAt
+    const dk = dayKey(new Date(Date.UTC(paidAt.getFullYear(), paidAt.getMonth(), paidAt.getDate())))
+    const hour = paidAt.getHours()
+    if (!byDay.has(dk)) byDay.set(dk, { rev: 0, tabs: 0, food: 0, banya: 0 })
+    const dayBucket = byDay.get(dk)!
+    dayBucket.tabs += 1
+    byHour.set(hour, (byHour.get(hour) || 0) + 1)
+
     for (const l of tab.lines) {
       const sum = l.qty * l.price
       rev += sum
+      dayBucket.rev += sum
       if (l.kind === 'BANYA') {
         banyaRev += sum
         bGuests += l.qty
+        dayBucket.banya += sum
       } else {
         food += sum
+        dayBucket.food += sum
       }
       byName.set(l.name, (byName.get(l.name) || 0) + sum)
     }
   }
 
   const paidCount = tabs.length || 1
-  const top = [...byName.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
+  const top = [...byName.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15)
+  const daily = [...byDay.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([d, v]) => ({ day: d, ...v }))
+  const hourly = Array.from({ length: 24 }, (_, h) => ({ hour: h, tabs: byHour.get(h) || 0 }))
   const bkNo = bookings.filter((b) => b.status === 'NOSHOW').length
+  const bkArrived = bookings.filter((b) => b.status === 'ARRIVED').length
 
   return {
     rev,
@@ -519,14 +589,89 @@ export async function getReport(venueId: string, day?: string | null) {
     banyaRev,
     avg: Math.round(rev / paidCount),
     bGuests,
+    guestsServed,
     perGuest: bGuests ? Math.round(food / bGuests) : 0,
     foodShare: rev ? Math.round((food / rev) * 100) : 0,
+    banyaShare: rev ? Math.round((banyaRev / rev) * 100) : 0,
     bkAll: bookings.length,
     bkNo,
+    bkArrived,
     top,
+    daily,
+    hourly,
     tabsPaid: tabs.length,
+    visitsPaid: visitSeen.size,
     day: dayKey(date),
+    range,
+    rangeLabel: label,
+    audits: audits.map((a) => ({
+      id: a.id,
+      action: a.action,
+      detail: a.detail,
+      createdAt: a.createdAt.toISOString(),
+    })),
   }
+}
+
+export async function updateMenuItem(
+  venueId: string,
+  code: string,
+  patch: { price?: number; active?: boolean; name?: string },
+  actorId?: string
+) {
+  const item = await prisma.ammeMenuItem.findFirst({ where: { venueId, code } })
+  if (!item) throw new Error('Позиция не найдена')
+  const updated = await prisma.ammeMenuItem.update({
+    where: { id: item.id },
+    data: {
+      ...(patch.price != null ? { price: Math.max(0, Math.round(patch.price)) } : {}),
+      ...(patch.active != null ? { active: patch.active } : {}),
+      ...(patch.name != null && patch.name.trim() ? { name: patch.name.trim() } : {}),
+    },
+  })
+  await audit(venueId, 'menu_update', {
+    actorId,
+    detail: `${code}: ${JSON.stringify(patch)}`,
+  })
+  return updated
+}
+
+export async function createManualBooking(
+  venueId: string,
+  input: { day?: string | null; time: string; name: string; guests: number; banya: boolean; phone?: string },
+  actorId?: string
+) {
+  const date = parseDayKey(input.day)
+  const tm = input.time.match(/^(\d{1,2}):(\d{2})$/)
+  if (!tm) throw new Error('Время в формате HH:MM')
+  const local = new Date()
+  local.setFullYear(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  local.setHours(Number(tm[1]), Number(tm[2]), 0, 0)
+  const name = input.name.trim()
+  if (!name) throw new Error('Имя обязательно')
+
+  const booking = await prisma.ammeBooking.create({
+    data: {
+      venueId,
+      date,
+      at: local,
+      name,
+      guests: Math.max(1, input.guests || 1),
+      banya: !!input.banya,
+      phone: input.phone?.trim() || null,
+      status: 'WAITING',
+    },
+  })
+  await audit(venueId, 'booking_create', { actorId, detail: `${name} ${input.time}` })
+  return booking
+}
+
+export async function getRecentAudit(venueId: string, take = 20) {
+  return prisma.ammeAuditEvent.findMany({
+    where: { venueId },
+    orderBy: { createdAt: 'desc' },
+    take,
+  })
 }
 
 export type { AmmeLineStatus }

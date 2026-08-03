@@ -1,6 +1,6 @@
 # AMMÉ admin on VisionDrive
 
-Date: 2026-08-03
+Date: 2026-08-03 (updated: design + KB + reports)
 
 ## URL
 
@@ -17,15 +17,27 @@ Set via env / seed (`npm run db:seed-amme`):
 
 See also `~/Desktop/Tasha/AMME-доступ.md`.
 
-## Deploy checklist
+## Surfaces
 
-1. Merge/push VisionDrive
-2. `npx prisma db push` against production DB (reachable host)
-3. `npm run db:seed-amme` with production env
-4. Open `/amme/login`
+| View | Purpose |
+|---|---|
+| Дашборд | KPIs, guests, kitchen queue, audit feed |
+| Записи | bookings, import, manual create, arrive/noshow |
+| Гости | POS: menu + receipt + banya strip + walk-in |
+| Кухня | KDS with urgency timers |
+| Отчёты | today / 7d / 30d / custom, charts, print |
+| Меню | edit price/name, activate/deactivate |
+| Справка | knowledge base how-to articles (RU) |
 
 ## Stack slice
 
-- Prisma models: `AmmeVenue`, `AmmeMenuItem`, `AmmeBooking`, `AmmeVisit`, `AmmeTab`, `AmmeLine`, `AmmeAuditEvent`, `AmmeStaffProfile`
-- Auth: JWT cookie + `portal=amme` (same pattern as clinic)
-- UI: dark hospitality shell (slate / ember / sage), dashboard + bookings + guests/POS + kitchen + report
+- Prisma: `AmmeVenue`, `AmmeMenuItem`, `AmmeBooking`, `AmmeVisit`, `AmmeTab`, `AmmeLine`, `AmmeAuditEvent`, `AmmeStaffProfile`
+- Auth: JWT + `portal=amme`
+- Knowledge: `lib/amme/knowledge.ts` (static articles, no DB)
+
+## Deploy checklist
+
+1. Push VisionDrive
+2. `npx prisma db push` on production DB
+3. `npm run db:seed-amme`
+4. Open `/amme/login`

@@ -19,6 +19,10 @@ type Body = {
   day?: string
   targetTabId?: string
   newTabForVisitId?: string
+  time?: string
+  phone?: string
+  price?: number
+  active?: boolean
 }
 
 export async function POST(request: NextRequest) {
@@ -79,6 +83,28 @@ export async function POST(request: NextRequest) {
         break
       case 'import':
         await svc.importBookings(v, body.text || '', body.mode || 'append', body.day, a)
+        break
+      case 'booking_create':
+        await svc.createManualBooking(
+          v,
+          {
+            day: body.day,
+            time: body.time || '12:00',
+            name: body.name || '',
+            guests: body.guests || 1,
+            banya: !!body.banya,
+            phone: body.phone,
+          },
+          a
+        )
+        break
+      case 'menu_update':
+        await svc.updateMenuItem(
+          v,
+          body.menuCode!,
+          { price: body.price, active: body.active, name: body.name },
+          a
+        )
         break
       default:
         return NextResponse.json({ error: `Unknown action: ${body.type}` }, { status: 400 })

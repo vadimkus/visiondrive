@@ -7,11 +7,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 import bcrypt from 'bcryptjs'
 import { AMME_DEFAULT_MENU, BANYA_PRICE_DEFAULT } from '../lib/amme/menu'
-import {
-  pgRejectUnauthorized,
-  postgresUrlForNodePgWhenRelaxedTls,
-  postgresUrlNeedsTls,
-} from '../lib/db-tls'
+import { postgresUrlForNodePgWhenRelaxedTls, postgresUrlNeedsTls } from '../lib/db-tls'
 
 const raw =
   process.env.VISIONDRIVE_DATABASE_URL ||
@@ -27,15 +23,13 @@ const password = process.env.AMME_TASHA_PASSWORD || 'AmmeTasha#2026Kp'
 const name = process.env.AMME_TASHA_NAME || 'Tasha'
 
 async function main() {
-  // Local seed against Timescale Cloud: match lib/prisma.ts TLS handling
-  process.env.NODE_ENV = process.env.NODE_ENV || 'development'
+  // Seed scripts relax TLS for managed Timescale hosts (same issue as local Next.js).
   const connectionString = postgresUrlForNodePgWhenRelaxedTls(raw)
-  const useSsl = postgresUrlNeedsTls(connectionString)
-  const rejectUnauthorized = pgRejectUnauthorized(connectionString)
+  const useSsl = postgresUrlNeedsTls(raw)
   const pool = new Pool({
     connectionString,
     max: 2,
-    ...(useSsl ? { ssl: { rejectUnauthorized } } : {}),
+    ...(useSsl ? { ssl: { rejectUnauthorized: process.env.STRICT_SSL_VALIDATION === 'true' } } : {}),
   })
   const prisma = new PrismaClient({ adapter: new PrismaPg(pool) })
 

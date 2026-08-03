@@ -37,9 +37,9 @@ export default function AmmeLoginPage() {
   return (
     <div className="amme-login-wrap">
       <form className="amme-login-card" onSubmit={onSubmit}>
-        <div className="amme-eyebrow">VisionDrive · AMMÉ</div>
+        <div className="amme-eyebrow">VisionDrive · AMMÉ Bali</div>
         <h1>AMMÉ</h1>
-        <p>Учёт гостей: баня и кухня. Вход для Таши.</p>
+        <p>Учёт гостей: баня и кухня. Командный центр смены для администратора.</p>
 
         <div className="amme-field">
           <label htmlFor="email">Email</label>
@@ -69,8 +69,12 @@ export default function AmmeLoginPage() {
         ) : null}
 
         <button className="amme-primary" type="submit" disabled={loading} style={{ width: '100%' }}>
-          {loading ? 'Входим…' : 'Войти'}
+          {loading ? 'Входим…' : 'Войти в смену'}
         </button>
+
+        <p style={{ margin: '16px 0 0', fontSize: 12, color: 'var(--amme-mute)', lineHeight: 1.5 }}>
+          После входа: дашборд, записи, гости, кухня, отчёты и база знаний. Данные хранятся в Postgres.
+        </p>
       </form>
     </div>
   )

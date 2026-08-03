@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AMME_MENU_CATEGORIES, SEND_DELAY_SEC } from '@/lib/amme/menu'
 import { formatIdr } from '@/lib/amme/money'
+import { KNOWLEDGE_ARTICLES, KNOWLEDGE_CATEGORIES } from '@/lib/amme/knowledge'
 
 type StaffRole = 'ADMIN' | 'KITCHEN' | 'OWNER'
 
@@ -15,6 +16,7 @@ type MenuItem = {
   category: string
   station: string
   vegFlag: string | null
+  active: boolean
 }
 
 type Booking = {
@@ -67,16 +69,37 @@ type KitchenLine = {
   tabId: string
 }
 
+type Audit = {
+  id: string
+  action: string
+  detail: string | null
+  createdAt: string | null
+}
+
+type ReportRange = 'today' | '7d' | '30d' | 'custom'
+
 type Report = {
   rev: number
+  food: number
+  banyaRev: number
   avg: number
-  perGuest: number
   bGuests: number
+  guestsServed: number
+  perGuest: number
   foodShare: number
+  banyaShare: number
   bkAll: number
   bkNo: number
+  bkArrived: number
   top: [string, number][]
+  daily: { day: string; rev: number; tabs: number; food: number; banya: number }[]
+  hourly: { hour: number; tabs: number }[]
   tabsPaid: number
+  visitsPaid: number
+  day: string
+  range: string
+  rangeLabel: string
+  audits: Audit[]
 }
 
 type State = {
@@ -86,12 +109,44 @@ type State = {
   bookings: Booking[]
   visits: Visit[]
   kitchen: KitchenLine[]
+  audits: Audit[]
 }
 
-type View = 'dash' | 'book' | 'guests' | 'kitchen' | 'report'
+type View = 'dash' | 'book' | 'guests' | 'kitchen' | 'report' | 'menu' | 'knowledge'
+
+const VIEW_META: Record<View, { label: string; hint: string; ico: string }> = {
+  dash: { label: 'Дашборд', hint: 'Смена и быстрые действия', ico: '◆' },
+  book: { label: 'Записи', hint: 'Приход, неявки, импорт', ico: '☰' },
+  guests: { label: 'Гости', hint: 'Счета, меню, оплата', ico: '◎' },
+  kitchen: { label: 'Кухня', hint: 'Очередь тикетов', ico: '▣' },
+  report: { label: 'Отчёт', hint: 'Выручка и журнал', ico: '▤' },
+  menu: { label: 'Меню', hint: 'Цены и активность', ico: '≡' },
+  knowledge: { label: 'Справка', hint: 'Инструкции для смены', ico: '?' },
+}
+
+const ROLE_LABEL: Record<StaffRole, string> = {
+  ADMIN: 'админ',
+  KITCHEN: 'кухня',
+  OWNER: 'владелец',
+}
 
 const hhmm = (iso: string) =>
   new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+
+const auditTime = (iso: string | null) => {
+  if (!iso) return ''
+  return new Date(iso).toLocaleString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function todayKey() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 function tabSum(tab: Tab) {
   return tab.lines.reduce((s, l) => s + l.qty * l.price, 0)
@@ -101,6 +156,29 @@ function visitSum(v: Visit) {
   return v.tabs.reduce((s, t) => s + tabSum(t), 0)
 }
 
+function pickState(data: Record<string, unknown>): State {
+  return {
+    venue: data.venue as State['venue'],
+    day: data.day as string,
+    menu: data.menu as MenuItem[],
+    bookings: data.bookings as Booking[],
+    visits: data.visits as Visit[],
+    kitchen: data.kitchen as KitchenLine[],
+    audits: (data.audits as Audit[]) || [],
+  }
+}
+
+function matchesSearch(q: string, name: string) {
+  if (!q.trim()) return true
+  return name.toLowerCase().includes(q.trim().toLowerCase())
+}
+
+function kitchenUrgency(mins: number): 'ok' | 'warn' | 'hot' {
+  if (mins >= 10) return 'hot'
+  if (mins >= 5) return 'warn'
+  return 'ok'
+}
+
 export default function AmmeApp({
   user,
 }: {
@@ -108,11 +186,18 @@ export default function AmmeApp({
 }) {
   const router = useRouter()
   const [view, setView] = useState<View>('dash')
+  const [day, setDay] = useState(todayKey)
+  const [search, setSearch] = useState('')
   const [state, setState] = useState<State | null>(null)
+  const [dashReport, setDashReport] = useState<Report | null>(null)
   const [report, setReport] = useState<Report | null>(null)
+  const [reportRange, setReportRange] = useState<ReportRange>('7d')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
   const [selVisit, setSelVisit] = useState<string | null>(null)
   const [selTab, setSelTab] = useState<string | null>(null)
   const [selLines, setSelLines] = useState<Set<string>>(new Set())
+  const [selArticle, setSelArticle] = useState(KNOWLEDGE_ARTICLES[0]?.id || '')
   const [toast, setToast] = useState<{ msg: string; err?: boolean } | null>(null)
   const [busy, setBusy] = useState(false)
   const [importText, setImportText] = useState('')
@@ -120,16 +205,22 @@ export default function AmmeApp({
   const [wName, setWName] = useState('')
   const [wGuests, setWGuests] = useState(2)
   const [wBanya, setWBanya] = useState(false)
+  const [bkOpen, setBkOpen] = useState(false)
+  const [bkTime, setBkTime] = useState('12:00')
+  const [bkName, setBkName] = useState('')
+  const [bkGuests, setBkGuests] = useState(2)
+  const [bkBanya, setBkBanya] = useState(false)
+  const [bkPhone, setBkPhone] = useState('')
   const [sendLeft, setSendLeft] = useState(0)
   const sendTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const showToast = (msg: string, err = false) => {
+  const showToast = useCallback((msg: string, err = false) => {
     setToast({ msg, err })
     setTimeout(() => setToast(null), 2800)
-  }
+  }, [])
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/amme/state')
+    const res = await fetch(`/api/amme/state?day=${encodeURIComponent(day)}`)
     if (res.status === 401) {
       router.replace('/amme/login')
       return
@@ -139,47 +230,84 @@ export default function AmmeApp({
       showToast(data.error || 'Ошибка загрузки', true)
       return
     }
-    setState(data)
-  }, [router])
+    setState(pickState(data))
+  }, [day, router, showToast])
+
+  const loadDashReport = useCallback(async () => {
+    const params = new URLSearchParams({ day, range: '7d' })
+    const res = await fetch(`/api/amme/report?${params}`)
+    if (!res.ok) return
+    const data = await res.json()
+    if (data.success) setDashReport(data.report)
+  }, [day])
 
   const loadReport = useCallback(async () => {
-    const res = await fetch('/api/amme/report')
+    const params = new URLSearchParams({ day, range: reportRange })
+    if (reportRange === 'custom' && customFrom && customTo) {
+      params.set('from', customFrom)
+      params.set('to', customTo)
+    }
+    const res = await fetch(`/api/amme/report?${params}`)
     if (!res.ok) return
     const data = await res.json()
     if (data.success) setReport(data.report)
-  }, [])
+  }, [day, reportRange, customFrom, customTo])
 
   useEffect(() => {
-    load()
-    loadReport()
+    void load()
+  }, [load])
+
+  useEffect(() => {
+    void loadDashReport()
+  }, [loadDashReport])
+
+  useEffect(() => {
+    if (view === 'report') void loadReport()
+  }, [view, loadReport])
+
+  useEffect(() => {
     const t = setInterval(() => {
-      load()
-      if (view === 'dash' || view === 'report') loadReport()
+      void load()
+      void loadDashReport()
+      if (view === 'report') void loadReport()
     }, 20000)
     return () => clearInterval(t)
-  }, [load, loadReport, view])
+  }, [load, loadDashReport, loadReport, view])
 
-  async function act(body: Record<string, unknown>) {
-    setBusy(true)
-    try {
-      const res = await fetch('/api/amme/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      const data = await res.json()
-      if (!res.ok || data.success === false) {
-        showToast(data.error || 'Ошибка', true)
-        return
-      }
-      setState(data)
-      if (view === 'dash' || view === 'report') loadReport()
-    } catch {
-      showToast('Сеть недоступна', true)
-    } finally {
-      setBusy(false)
+  useEffect(() => {
+    return () => {
+      if (sendTimer.current) clearInterval(sendTimer.current)
     }
-  }
+  }, [])
+
+  const act = useCallback(
+    async (body: Record<string, unknown>, successMsg?: string) => {
+      setBusy(true)
+      try {
+        const res = await fetch('/api/amme/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, day: body.day ?? day }),
+        })
+        const data = await res.json()
+        if (!res.ok || data.success === false) {
+          showToast(data.error || 'Ошибка', true)
+          return false
+        }
+        setState(pickState(data))
+        void loadDashReport()
+        if (view === 'report') void loadReport()
+        if (successMsg) showToast(successMsg)
+        return true
+      } catch {
+        showToast('Сеть недоступна', true)
+        return false
+      } finally {
+        setBusy(false)
+      }
+    },
+    [day, loadDashReport, loadReport, showToast, view]
+  )
 
   function armSend(tabId: string) {
     if (sendTimer.current) clearInterval(sendTimer.current)
@@ -206,14 +334,30 @@ export default function AmmeApp({
   const openVisits = state?.visits || []
   const waiting = state?.bookings.filter((b) => b.status === 'WAITING').length || 0
   const banyaLive = openVisits.filter((v) => v.banya && !v.banyaEndedAt)
+  const activeMenu = useMemo(() => (state?.menu || []).filter((m) => m.active), [state?.menu])
+
+  const filteredBookings = useMemo(
+    () => (state?.bookings || []).filter((b) => matchesSearch(search, b.name)),
+    [state?.bookings, search]
+  )
+
+  const filteredVisits = useMemo(
+    () => openVisits.filter((v) => matchesSearch(search, v.name)),
+    [openVisits, search]
+  )
 
   const activeVisit = useMemo(
     () => openVisits.find((v) => v.id === selVisit) || null,
     [openVisits, selVisit]
   )
+
   const activeTab = useMemo(() => {
     if (!activeVisit) return null
-    return activeVisit.tabs.find((t) => t.id === selTab) || activeVisit.tabs.find((t) => !t.closedAt) || null
+    return (
+      activeVisit.tabs.find((t) => t.id === selTab) ||
+      activeVisit.tabs.find((t) => !t.closedAt) ||
+      null
+    )
   }, [activeVisit, selTab])
 
   useEffect(() => {
@@ -223,165 +367,293 @@ export default function AmmeApp({
     }
   }, [activeVisit, selTab])
 
+  const article = useMemo(
+    () => KNOWLEDGE_ARTICLES.find((a) => a.id === selArticle) || KNOWLEDGE_ARTICLES[0],
+    [selArticle]
+  )
+
   if (!state) {
     return (
-      <div className="amme-main">
-        <p className="amme-eyebrow">Загрузка смены…</p>
+      <div className="amme-shell">
+        <div className="amme-workspace">
+          <div className="amme-main">
+            <p className="amme-eyebrow">Загрузка смены…</p>
+          </div>
+        </div>
       </div>
     )
   }
 
+  const meta = VIEW_META[view]
+
   return (
-    <>
-      <header className="amme-topbar">
-        <div className="amme-brand">
-          {state.venue.name}
-          <span>{user.name || user.email} · {user.staffRole.toLowerCase()}</span>
+    <div className="amme-shell">
+      <aside className="amme-sidebar amme-no-print">
+        <div className="amme-side-brand">
+          <div className="mark">{state.venue.name}</div>
+          <div className="sub">AMMÉ · учёт бани и кухни</div>
         </div>
-        <nav className="amme-nav">
-          {(
-            [
-              ['dash', 'Дашборд'],
-              ['book', 'Записи'],
-              ['guests', 'Гости'],
-              ['kitchen', 'Кухня'],
-              ['report', 'Отчёт'],
-            ] as const
-          ).map(([id, label]) => (
-            <button key={id} className={view === id ? 'on' : ''} onClick={() => setView(id)} type="button">
-              {label}
-              {id === 'kitchen' && kitchenOpen > 0 ? <span className="badge">{kitchenOpen}</span> : null}
-              {id === 'book' && waiting > 0 ? <span className="badge">{waiting}</span> : null}
-            </button>
-          ))}
-          <button className="amme-ghost" type="button" onClick={logout} style={{ marginLeft: 8 }}>
+
+        <nav className="amme-side-nav">
+          {(Object.keys(VIEW_META) as View[]).map((id) => {
+            const m = VIEW_META[id]
+            const badge =
+              id === 'kitchen' && kitchenOpen > 0
+                ? kitchenOpen
+                : id === 'book' && waiting > 0
+                  ? waiting
+                  : null
+            return (
+              <button
+                key={id}
+                type="button"
+                className={view === id ? 'on' : ''}
+                onClick={() => setView(id)}
+              >
+                <span className="ico">{m.ico}</span>
+                {m.label}
+                {badge != null ? <span className="badge">{badge}</span> : null}
+              </button>
+            )
+          })}
+        </nav>
+
+        <div className="amme-side-foot">
+          <div className="amme-user-chip">
+            <div className="nm">{user.name || user.email}</div>
+            <div className="em">
+              {user.email} · {ROLE_LABEL[user.staffRole]}
+            </div>
+          </div>
+          <button className="amme-ghost" type="button" onClick={() => void logout()}>
             Выйти
           </button>
-        </nav>
-      </header>
+        </div>
+      </aside>
 
-      <div className="amme-main" style={{ opacity: busy ? 0.7 : 1 }}>
-        {view === 'dash' ? (
-          <Dashboard
-            state={state}
-            report={report}
-            banyaLive={banyaLive}
-            kitchenOpen={kitchenOpen}
-            waiting={waiting}
-            onGo={setView}
-          />
-        ) : null}
+      <div className="amme-workspace">
+        <header className="amme-topbar amme-no-print">
+          <div>
+            <h1>{meta.label}</h1>
+            <div className="hint">{meta.hint}</div>
+          </div>
 
-        {view === 'book' ? (
-          <Bookings
-            bookings={state.bookings}
-            day={state.day}
-            importText={importText}
-            setImportText={setImportText}
-            onArrive={(id) => {
-              void act({ type: 'arrive', bookingId: id }).then(() => setView('guests'))
-            }}
-            onNoshow={(id) => void act({ type: 'noshow', bookingId: id })}
-            onUnmark={(id) => void act({ type: 'unmark', bookingId: id })}
-            onToggle={(id) => void act({ type: 'toggle_banya', bookingId: id })}
-            onImport={(mode) => {
-              void act({ type: 'import', text: importText, mode }).then(() => setImportText(''))
-            }}
-            onOpenVisit={(visitId) => {
-              setSelVisit(visitId)
-              setView('guests')
-            }}
-          />
-        ) : null}
+          <div className="amme-top-actions">
+            <div className="amme-field" style={{ margin: 0, width: 148 }}>
+              <label>Дата смены</label>
+              <input type="date" value={day} onChange={(e) => setDay(e.target.value)} />
+            </div>
+            {(view === 'book' || view === 'guests' || view === 'dash') && (
+              <div className="amme-field" style={{ margin: 0, width: 180 }}>
+                <label>Поиск</label>
+                <input
+                  type="search"
+                  placeholder="Имя гостя"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+        </header>
 
-        {view === 'guests' ? (
-          <Guests
-            visits={openVisits}
-            banyaLive={banyaLive}
-            banyaPrice={state.venue.banyaPrice}
-            menu={state.menu}
-            activeVisit={activeVisit}
-            activeTab={activeTab}
-            selLines={selLines}
-            sendLeft={sendLeft}
-            walkOpen={walkOpen}
-            wName={wName}
-            wGuests={wGuests}
-            wBanya={wBanya}
-            setWalkOpen={setWalkOpen}
-            setWName={setWName}
-            setWGuests={setWGuests}
-            setWBanya={setWBanya}
-            onSelectVisit={(id) => {
-              setSelVisit(id)
-              const v = openVisits.find((x) => x.id === id)
-              setSelTab(v?.tabs.find((t) => !t.closedAt)?.id || null)
-              setSelLines(new Set())
-            }}
-            onSelectTab={setSelTab}
-            onDish={(code) => {
-              if (!activeTab) return
-              void act({ type: 'add_dish', tabId: activeTab.id, menuCode: code }).then(() =>
-                armSend(activeTab.id)
-              )
-            }}
-            onBump={(lineId, delta) => {
-              void act({ type: 'bump', lineId, delta })
-              if (activeTab) armSend(activeTab.id)
-            }}
-            onToggleLine={(id) => {
-              setSelLines((prev) => {
-                const n = new Set(prev)
-                if (n.has(id)) n.delete(id)
-                else n.add(id)
-                return n
-              })
-            }}
-            onSendNow={() => {
-              if (!activeTab) return
-              if (sendTimer.current) clearInterval(sendTimer.current)
-              setSendLeft(0)
-              void act({ type: 'send', tabId: activeTab.id })
-            }}
-            onPay={() => activeTab && void act({ type: 'pay', tabId: activeTab.id })}
-            onClose={() => activeTab && void act({ type: 'close', tabId: activeTab.id })}
-            onEndBanya={(id) => void act({ type: 'end_banya', visitId: id })}
-            onNewTab={() => {
-              if (!activeVisit || !selLines.size) return
-              void act({
-                type: 'move',
-                lineIds: [...selLines],
-                newTabForVisitId: activeVisit.id,
-              }).then(() => setSelLines(new Set()))
-            }}
-            onMoveTo={(tabId) => {
-              void act({ type: 'move', lineIds: [...selLines], targetTabId: tabId }).then(() =>
+        <div className="amme-main" style={{ opacity: busy ? 0.65 : 1 }}>
+          {view === 'dash' ? (
+            <Dashboard
+              state={state}
+              report={dashReport}
+              banyaLive={banyaLive}
+              kitchenOpen={kitchenOpen}
+              waiting={waiting}
+              visits={search ? filteredVisits : openVisits}
+              onGo={setView}
+            />
+          ) : null}
+
+          {view === 'book' ? (
+            <Bookings
+              bookings={filteredBookings}
+              day={state.day}
+              importText={importText}
+              setImportText={setImportText}
+              bkOpen={bkOpen}
+              setBkOpen={setBkOpen}
+              bkTime={bkTime}
+              setBkTime={setBkTime}
+              bkName={bkName}
+              setBkName={setBkName}
+              bkGuests={bkGuests}
+              setBkGuests={setBkGuests}
+              bkBanya={bkBanya}
+              setBkBanya={setBkBanya}
+              bkPhone={bkPhone}
+              setBkPhone={setBkPhone}
+              onArrive={(id) => {
+                void act({ type: 'arrive', bookingId: id }).then((ok) => {
+                  if (ok) setView('guests')
+                })
+              }}
+              onNoshow={(id) => void act({ type: 'noshow', bookingId: id })}
+              onUnmark={(id) => void act({ type: 'unmark', bookingId: id })}
+              onToggle={(id) => void act({ type: 'toggle_banya', bookingId: id })}
+              onImport={(mode) => {
+                void act({ type: 'import', text: importText, mode }, 'Список импортирован').then(
+                  (ok) => {
+                    if (ok) setImportText('')
+                  }
+                )
+              }}
+              onCreate={() => {
+                void act(
+                  {
+                    type: 'booking_create',
+                    time: bkTime,
+                    name: bkName,
+                    guests: bkGuests,
+                    banya: bkBanya,
+                    phone: bkPhone || undefined,
+                  },
+                  'Запись добавлена'
+                ).then((ok) => {
+                  if (ok) {
+                    setBkOpen(false)
+                    setBkName('')
+                    setBkGuests(2)
+                    setBkBanya(false)
+                    setBkPhone('')
+                    setBkTime('12:00')
+                  }
+                })
+              }}
+              onOpenVisit={(visitId) => {
+                setSelVisit(visitId)
+                setView('guests')
+              }}
+            />
+          ) : null}
+
+          {view === 'guests' ? (
+            <Guests
+              visits={filteredVisits}
+              banyaLive={banyaLive}
+              banyaPrice={state.venue.banyaPrice}
+              menu={activeMenu}
+              activeVisit={activeVisit}
+              activeTab={activeTab}
+              selLines={selLines}
+              sendLeft={sendLeft}
+              walkOpen={walkOpen}
+              wName={wName}
+              wGuests={wGuests}
+              wBanya={wBanya}
+              setWalkOpen={setWalkOpen}
+              setWName={setWName}
+              setWGuests={setWGuests}
+              setWBanya={setWBanya}
+              onSelectVisit={(id) => {
+                setSelVisit(id)
+                const v = openVisits.find((x) => x.id === id)
+                setSelTab(v?.tabs.find((t) => !t.closedAt)?.id || null)
                 setSelLines(new Set())
-              )
-            }}
-            onWalkin={() => {
-              void act({ type: 'walkin', name: wName, guests: wGuests, banya: wBanya }).then(() => {
-                setWalkOpen(false)
-                setWName('')
-                setWGuests(2)
-                setWBanya(false)
-              })
-            }}
-          />
-        ) : null}
+              }}
+              onSelectTab={setSelTab}
+              onDish={(code) => {
+                if (!activeTab) return
+                void act({ type: 'add_dish', tabId: activeTab.id, menuCode: code }).then(() =>
+                  armSend(activeTab.id)
+                )
+              }}
+              onBump={(lineId, delta) => {
+                void act({ type: 'bump', lineId, delta })
+                if (activeTab) armSend(activeTab.id)
+              }}
+              onToggleLine={(id) => {
+                setSelLines((prev) => {
+                  const n = new Set(prev)
+                  if (n.has(id)) n.delete(id)
+                  else n.add(id)
+                  return n
+                })
+              }}
+              onSendNow={() => {
+                if (!activeTab) return
+                if (sendTimer.current) clearInterval(sendTimer.current)
+                setSendLeft(0)
+                void act({ type: 'send', tabId: activeTab.id })
+              }}
+              onPay={() =>
+                activeTab && void act({ type: 'pay', tabId: activeTab.id }, 'Оплата зафиксирована')
+              }
+              onClose={() =>
+                activeTab && void act({ type: 'close', tabId: activeTab.id }, 'Счёт закрыт')
+              }
+              onEndBanya={(id) => void act({ type: 'end_banya', visitId: id }, 'Баня завершена')}
+              onNewTab={() => {
+                if (!activeVisit || !selLines.size) return
+                void act({
+                  type: 'move',
+                  lineIds: [...selLines],
+                  newTabForVisitId: activeVisit.id,
+                }).then((ok) => {
+                  if (ok) setSelLines(new Set())
+                })
+              }}
+              onMoveTo={(tabId) => {
+                void act({ type: 'move', lineIds: [...selLines], targetTabId: tabId }).then((ok) => {
+                  if (ok) setSelLines(new Set())
+                })
+              }}
+              onWalkin={() => {
+                void act(
+                  { type: 'walkin', name: wName, guests: wGuests, banya: wBanya },
+                  'Визит открыт'
+                ).then((ok) => {
+                  if (ok) {
+                    setWalkOpen(false)
+                    setWName('')
+                    setWGuests(2)
+                    setWBanya(false)
+                  }
+                })
+              }}
+            />
+          ) : null}
 
-        {view === 'kitchen' ? (
-          <Kitchen
-            lines={state.kitchen}
-            onDone={(id) => void act({ type: 'done', lineId: id })}
-          />
-        ) : null}
+          {view === 'kitchen' ? (
+            <Kitchen lines={state.kitchen} onDone={(id) => void act({ type: 'done', lineId: id })} />
+          ) : null}
 
-        {view === 'report' ? <ReportView report={report} banyaPrice={state.venue.banyaPrice} /> : null}
+          {view === 'report' ? (
+            <ReportView
+              report={report}
+              banyaPrice={state.venue.banyaPrice}
+              reportRange={reportRange}
+              setReportRange={setReportRange}
+              customFrom={customFrom}
+              setCustomFrom={setCustomFrom}
+              customTo={customTo}
+              setCustomTo={setCustomTo}
+              onRefresh={() => void loadReport()}
+            />
+          ) : null}
+
+          {view === 'menu' ? (
+            <MenuEditor
+              menu={state.menu}
+              onSave={(code, patch) =>
+                void act({ type: 'menu_update', menuCode: code, ...patch }, 'Меню обновлено')
+              }
+            />
+          ) : null}
+
+          {view === 'knowledge' ? (
+            <KnowledgeView selArticle={selArticle} setSelArticle={setSelArticle} article={article} />
+          ) : null}
+        </div>
       </div>
 
       {toast ? <div className={`amme-toast ${toast.err ? 'err' : ''}`}>{toast.msg}</div> : null}
-    </>
+    </div>
   )
 }
 
@@ -391,6 +663,7 @@ function Dashboard({
   banyaLive,
   kitchenOpen,
   waiting,
+  visits,
   onGo,
 }: {
   state: State
@@ -398,6 +671,7 @@ function Dashboard({
   banyaLive: Visit[]
   kitchenOpen: number
   waiting: number
+  visits: Visit[]
   onGo: (v: View) => void
 }) {
   return (
@@ -436,7 +710,7 @@ function Dashboard({
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
+      <div className="amme-no-print" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
         <button className="amme-primary" type="button" onClick={() => onGo('book')}>
           Открыть записи
         </button>
@@ -444,43 +718,79 @@ function Dashboard({
           Гости и счета
         </button>
         <button className="amme-ghost" type="button" onClick={() => onGo('kitchen')}>
-          Кухня
+          Кухня {kitchenOpen > 0 ? `(${kitchenOpen})` : ''}
         </button>
         <button className="amme-ghost" type="button" onClick={() => onGo('report')}>
           Отчёт
         </button>
       </div>
 
-      <div className="amme-card">
-        <p className="amme-eyebrow">Активные гости</p>
-        {state.visits.length === 0 ? (
-          <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Пока никого. Отметьте приход в Записях.</p>
-        ) : (
-          <div style={{ display: 'grid', gap: 8 }}>
-            {state.visits.map((v) => (
-              <div
-                key={v.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  padding: '10px 0',
-                  borderBottom: '1px solid var(--amme-line)',
-                }}
-              >
-                <div>
-                  <div style={{ fontFamily: 'var(--amme-display)', fontSize: 17 }}>{v.name}</div>
-                  <div className="amme-mono" style={{ fontSize: 12, color: 'var(--amme-dim)' }}>
-                    {v.guests} чел. · {v.banya ? 'баня' : 'только кухня'} · {hhmm(v.openedAt)}
+      <div className="amme-split" style={{ gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}>
+        <div className="amme-card">
+          <p className="amme-eyebrow">Активные гости</p>
+          {visits.length === 0 ? (
+            <p style={{ color: 'var(--amme-dim)', margin: 0 }}>
+              Пока никого. Отметьте приход в Записях.
+            </p>
+          ) : (
+            <div style={{ display: 'grid', gap: 8 }}>
+              {visits.map((v) => (
+                <div
+                  key={v.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    padding: '10px 0',
+                    borderBottom: '1px solid var(--amme-line)',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontFamily: 'var(--amme-display)', fontSize: 17 }}>{v.name}</div>
+                    <div className="amme-mono" style={{ fontSize: 12, color: 'var(--amme-dim)' }}>
+                      {v.guests} чел. · {v.banya ? 'баня' : 'только кухня'} · {hhmm(v.openedAt)}
+                    </div>
+                  </div>
+                  <div className="amme-mono" style={{ color: 'var(--amme-sage)' }}>
+                    {formatIdr(visitSum(v))} Rp
                   </div>
                 </div>
-                <div className="amme-mono" style={{ color: 'var(--amme-sage)' }}>
-                  {formatIdr(visitSum(v))} Rp
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="amme-card">
+          <p className="amme-eyebrow">Журнал смены</p>
+          {state.audits.length === 0 ? (
+            <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Пока без событий.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: 8 }}>
+              {state.audits.map((a) => (
+                <div
+                  key={a.id}
+                  style={{
+                    padding: '8px 0',
+                    borderBottom: '1px solid var(--amme-line)',
+                    fontSize: 13,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                    <span className="amme-mono" style={{ color: 'var(--amme-sage)' }}>
+                      {a.action}
+                    </span>
+                    <span className="amme-mono" style={{ fontSize: 11, color: 'var(--amme-dim)' }}>
+                      {auditTime(a.createdAt)}
+                    </span>
+                  </div>
+                  {a.detail ? (
+                    <div style={{ marginTop: 4, color: 'var(--amme-dim)', fontSize: 12 }}>{a.detail}</div>
+                  ) : null}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </>
   )
@@ -491,18 +801,93 @@ function Bookings(props: {
   day: string
   importText: string
   setImportText: (v: string) => void
+  bkOpen: boolean
+  setBkOpen: (v: boolean) => void
+  bkTime: string
+  setBkTime: (v: string) => void
+  bkName: string
+  setBkName: (v: string) => void
+  bkGuests: number
+  setBkGuests: (n: number | ((x: number) => number)) => void
+  bkBanya: boolean
+  setBkBanya: (v: boolean) => void
+  bkPhone: string
+  setBkPhone: (v: string) => void
   onArrive: (id: string) => void
   onNoshow: (id: string) => void
   onUnmark: (id: string) => void
   onToggle: (id: string) => void
   onImport: (mode: 'append' | 'replace') => void
+  onCreate: () => void
   onOpenVisit: (visitId: string) => void
 }) {
   const now = Date.now()
   return (
     <>
-      <p className="amme-eyebrow">Записи · {props.day}</p>
+      <div
+        className="amme-no-print"
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}
+      >
+        <p className="amme-eyebrow" style={{ margin: 0 }}>
+          Записи · {props.day}
+        </p>
+        <button className="amme-primary" type="button" onClick={() => props.setBkOpen(!props.bkOpen)}>
+          + Запись вручную
+        </button>
+      </div>
+
+      {props.bkOpen ? (
+        <div className="amme-card amme-no-print" style={{ maxWidth: 560, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 10 }}>
+            <div className="amme-field">
+              <label>Время</label>
+              <input value={props.bkTime} onChange={(e) => props.setBkTime(e.target.value)} placeholder="12:00" />
+            </div>
+            <div className="amme-field">
+              <label>Имя</label>
+              <input value={props.bkName} onChange={(e) => props.setBkName(e.target.value)} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
+            <span className="amme-mono" style={{ fontSize: 12, color: 'var(--amme-dim)' }}>
+              Гостей
+            </span>
+            <button className="amme-ghost" type="button" onClick={() => props.setBkGuests((n) => Math.max(1, n - 1))}>
+              −
+            </button>
+            <span className="amme-mono">{props.bkGuests}</span>
+            <button className="amme-ghost" type="button" onClick={() => props.setBkGuests((n) => n + 1)}>
+              +
+            </button>
+            <button
+              type="button"
+              className={props.bkBanya ? 'amme-jade' : 'amme-ghost'}
+              onClick={() => props.setBkBanya(!props.bkBanya)}
+            >
+              {props.bkBanya ? 'баня' : 'только кухня'}
+            </button>
+          </div>
+          <div className="amme-field">
+            <label>Телефон</label>
+            <input value={props.bkPhone} onChange={(e) => props.setBkPhone(e.target.value)} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <button className="amme-primary" type="button" onClick={props.onCreate}>
+              Сохранить
+            </button>
+            <button className="amme-ghost" type="button" onClick={() => props.setBkOpen(false)}>
+              Отмена
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div style={{ display: 'grid', gap: 6, maxWidth: 860, marginBottom: 22 }}>
+        {props.bookings.length === 0 ? (
+          <div className="amme-card" style={{ color: 'var(--amme-dim)' }}>
+            Нет записей на эту дату.
+          </div>
+        ) : null}
         {props.bookings.map((b) => {
           const late = b.status === 'WAITING' && now - new Date(b.at).getTime() > 15 * 60000
           return (
@@ -571,7 +956,7 @@ function Bookings(props: {
         })}
       </div>
 
-      <div className="amme-card" style={{ maxWidth: 860 }}>
+      <div className="amme-card amme-no-print" style={{ maxWidth: 860 }}>
         <h3 style={{ fontFamily: 'var(--amme-display)', margin: '0 0 4px', fontWeight: 500 }}>Импорт списка</h3>
         <p style={{ margin: '0 0 10px', fontSize: 12.5, color: 'var(--amme-dim)' }}>
           Вставьте текст. Обязательно время (10:00). Распознаются телефон, число гостей и «баня».
@@ -651,7 +1036,7 @@ function Guests(props: {
         <div className="amme-mono" style={{ color: 'var(--amme-ember)' }}>
           {formatIdr(bPeople * props.banyaPrice)} Rp
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {props.banyaLive.map((v) => (
             <button key={v.id} className="amme-ghost" type="button" onClick={() => props.onEndBanya(v.id)}>
               Завершить · {v.name}
@@ -666,13 +1051,13 @@ function Guests(props: {
             <p className="amme-eyebrow" style={{ margin: 0 }}>
               Гости в зале
             </p>
-            <button className="amme-ghost" type="button" onClick={() => props.setWalkOpen(true)}>
+            <button className="amme-ghost amme-no-print" type="button" onClick={() => props.setWalkOpen(true)}>
               + гость без записи
             </button>
           </div>
 
           {props.walkOpen ? (
-            <div className="amme-card" style={{ marginBottom: 12 }}>
+            <div className="amme-card amme-no-print" style={{ marginBottom: 12 }}>
               <div className="amme-field">
                 <label>Имя</label>
                 <input value={props.wName} onChange={(e) => props.setWName(e.target.value)} />
@@ -712,6 +1097,11 @@ function Guests(props: {
               marginBottom: 18,
             }}
           >
+            {props.visits.length === 0 ? (
+              <div className="amme-card" style={{ color: 'var(--amme-dim)' }}>
+                Нет активных гостей.
+              </div>
+            ) : null}
             {props.visits.map((v) => {
               const hot = v.tabs.some((t) => t.lines.some((l) => l.status === 'SENT'))
               const unpaid = v.tabs.some((t) => !t.paidAt && !t.closedAt)
@@ -761,25 +1151,26 @@ function Guests(props: {
               MENU
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
-              {AMME_MENU_CATEGORIES.map((cat) => (
-                <div key={cat}>
-                  <h4
-                    style={{
-                      fontFamily: 'var(--amme-display)',
-                      fontSize: 12,
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                      margin: '0 0 8px',
-                      paddingBottom: 5,
-                      borderBottom: '1px solid #46504f',
-                    }}
-                  >
-                    {cat}
-                  </h4>
-                  <div style={{ display: 'grid', gap: 3 }}>
-                    {props.menu
-                      .filter((m) => m.category === cat)
-                      .map((m) => (
+              {AMME_MENU_CATEGORIES.map((cat) => {
+                const items = props.menu.filter((m) => m.category === cat)
+                if (items.length === 0) return null
+                return (
+                  <div key={cat}>
+                    <h4
+                      style={{
+                        fontFamily: 'var(--amme-display)',
+                        fontSize: 12,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        margin: '0 0 8px',
+                        paddingBottom: 5,
+                        borderBottom: '1px solid #46504f',
+                      }}
+                    >
+                      {cat}
+                    </h4>
+                    <div style={{ display: 'grid', gap: 3 }}>
+                      {items.map((m) => (
                         <button
                           key={m.id}
                           type="button"
@@ -804,9 +1195,10 @@ function Guests(props: {
                           </span>
                         </button>
                       ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
@@ -884,7 +1276,14 @@ function Receipt(props: {
         </div>
         <div style={{ fontSize: 11, color: '#6a6055', marginTop: 3, letterSpacing: '0.08em' }}>СЧЁТ</div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #b8ae9e' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          padding: '10px 0',
+          borderBottom: '1px dashed #b8ae9e',
+        }}
+      >
         <b style={{ fontWeight: 500 }}>{props.visit.name}</b>
         <span>{props.visit.guests} чел.</span>
       </div>
@@ -911,7 +1310,9 @@ function Receipt(props: {
 
       <div style={{ marginTop: 11, paddingTop: 11, borderTop: '1px dashed #b8ae9e' }}>
         {lines.length === 0 ? (
-          <div style={{ padding: '20px 0', textAlign: 'center', color: '#7a6f63' }}>Пусто — ткните блюдо в меню</div>
+          <div style={{ padding: '20px 0', textAlign: 'center', color: '#7a6f63' }}>
+            Пусто, ткните блюдо в меню
+          </div>
         ) : (
           lines.map((l) => (
             <div
@@ -1085,6 +1486,14 @@ function Receipt(props: {
 function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string) => void }) {
   const open = lines.filter((l) => l.status === 'SENT')
   const done = lines.filter((l) => l.status === 'DONE').slice(-12)
+
+  const urgencyStyle = (mins: number) => {
+    const u = kitchenUrgency(mins)
+    if (u === 'hot') return { borderColor: 'var(--amme-ember)', timerColor: 'var(--amme-ember)' }
+    if (u === 'warn') return { borderColor: 'var(--amme-gold)', timerColor: 'var(--amme-gold)' }
+    return { borderColor: 'var(--amme-line)', timerColor: 'var(--amme-dim)' }
+  }
+
   return (
     <>
       <p className="amme-eyebrow">Кухня · тикеты</p>
@@ -1096,12 +1505,12 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
         ) : null}
         {open.map((l) => {
           const mins = l.sentAt ? Math.floor((Date.now() - new Date(l.sentAt).getTime()) / 60000) : 0
-          const hot = mins >= 10
+          const style = urgencyStyle(mins)
           return (
             <div
               key={l.id}
               className="amme-card"
-              style={{ borderColor: hot ? 'var(--amme-ember)' : undefined, overflow: 'hidden', padding: 0 }}
+              style={{ borderColor: style.borderColor, overflow: 'hidden', padding: 0 }}
             >
               <div
                 style={{
@@ -1113,7 +1522,7 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
                 }}
               >
                 <span style={{ fontFamily: 'var(--amme-display)', fontSize: 16 }}>{l.guestName}</span>
-                <span className="amme-mono" style={{ color: hot ? 'var(--amme-ember)' : 'var(--amme-dim)' }}>
+                <span className="amme-mono" style={{ color: style.timerColor }}>
                   {mins}м
                 </span>
               </div>
@@ -1147,14 +1556,81 @@ function Kitchen({ lines, onDone }: { lines: KitchenLine[]; onDone: (id: string)
   )
 }
 
-function ReportView({ report, banyaPrice }: { report: Report | null; banyaPrice: number }) {
+function ReportView({
+  report,
+  banyaPrice,
+  reportRange,
+  setReportRange,
+  customFrom,
+  setCustomFrom,
+  customTo,
+  setCustomTo,
+  onRefresh,
+}: {
+  report: Report | null
+  banyaPrice: number
+  reportRange: ReportRange
+  setReportRange: (r: ReportRange) => void
+  customFrom: string
+  setCustomFrom: (v: string) => void
+  customTo: string
+  setCustomTo: (v: string) => void
+  onRefresh: () => void
+}) {
   if (!report) {
     return <p className="amme-eyebrow">Считаем отчёт…</p>
   }
-  const max = report.top[0]?.[1] || 1
+
+  const maxTop = report.top[0]?.[1] || 1
+  const maxDaily = Math.max(...report.daily.map((d) => d.rev), 1)
+  const maxHourly = Math.max(...report.hourly.map((h) => h.tabs), 1)
+  const noshowPct = report.bkAll ? Math.round((report.bkNo / report.bkAll) * 100) : 0
+
   return (
     <>
-      <p className="amme-eyebrow">Итоги · закрытые счета · 7 дней</p>
+      <div
+        className="amme-no-print"
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 16 }}
+      >
+        <p className="amme-eyebrow" style={{ margin: 0 }}>
+          Итоги · {report.rangeLabel}
+        </p>
+        <div className="amme-seg">
+          {(
+            [
+              ['today', 'Сегодня'],
+              ['7d', '7 дней'],
+              ['30d', '30 дней'],
+              ['custom', 'Свой'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={reportRange === id ? 'on' : ''}
+              onClick={() => setReportRange(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {reportRange === 'custom' ? (
+          <>
+            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} style={{ width: 140 }} />
+            <span className="amme-mono" style={{ color: 'var(--amme-dim)' }}>
+              →
+            </span>
+            <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} style={{ width: 140 }} />
+            <button className="amme-ghost" type="button" onClick={onRefresh}>
+              Применить
+            </button>
+          </>
+        ) : null}
+        <button className="amme-primary" type="button" onClick={() => window.print()} style={{ marginLeft: 'auto' }}>
+          Печать
+        </button>
+      </div>
+
       <div className="amme-kpis">
         <div className="amme-kpi">
           <div className="kl">Выручка</div>
@@ -1171,17 +1647,6 @@ function ReportView({ report, banyaPrice }: { report: Report | null; banyaPrice:
           </div>
         </div>
         <div className="amme-kpi">
-          <div className="kl">Еда на гостя бани</div>
-          <div className="kv">
-            {formatIdr(report.perGuest / 1000)}
-            <small>тыс</small>
-          </div>
-        </div>
-        <div className="amme-kpi">
-          <div className="kl">Гостей в бане</div>
-          <div className="kv">{report.bGuests}</div>
-        </div>
-        <div className="amme-kpi">
           <div className="kl">Доля еды</div>
           <div className="kv">
             {report.foodShare}
@@ -1189,49 +1654,267 @@ function ReportView({ report, banyaPrice }: { report: Report | null; banyaPrice:
           </div>
         </div>
         <div className="amme-kpi">
-          <div className="kl">Неявки сегодня</div>
+          <div className="kl">Доля бани</div>
           <div className="kv">
-            {report.bkAll ? Math.round((report.bkNo / report.bkAll) * 100) : 0}
+            {report.banyaShare}
+            <small>%</small>
+          </div>
+        </div>
+        <div className="amme-kpi">
+          <div className="kl">Еда на гостя бани</div>
+          <div className="kv">
+            {formatIdr(report.perGuest / 1000)}
+            <small>тыс</small>
+          </div>
+        </div>
+        <div className="amme-kpi">
+          <div className="kl">Неявки</div>
+          <div className="kv">
+            {noshowPct}
             <small>
               % · {report.bkNo}/{report.bkAll}
             </small>
           </div>
         </div>
+        <div className="amme-kpi">
+          <div className="kl">Обслужено гостей</div>
+          <div className="kv">{report.guestsServed}</div>
+        </div>
       </div>
 
-      <p className="amme-eyebrow">Что приносит деньги</p>
-      <div className="amme-card">
-        {report.top.map(([n, s]) => (
-          <div
-            key={n}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '140px 1fr 90px',
-              gap: 10,
-              alignItems: 'center',
-              padding: '6px 0',
-            }}
-          >
-            <span style={{ fontSize: 13 }}>{n}</span>
-            <span style={{ height: 6, background: 'var(--amme-slate)', borderRadius: 2, overflow: 'hidden' }}>
-              <i
-                style={{
-                  display: 'block',
-                  height: '100%',
-                  width: `${Math.max(2, (s / max) * 100)}%`,
-                  background: n.startsWith('Баня') ? 'var(--amme-ember)' : 'var(--amme-sage)',
-                }}
-              />
-            </span>
-            <span className="amme-mono" style={{ textAlign: 'right', fontSize: 12 }}>
-              {formatIdr(s / 1000)} тыс
-            </span>
+      <div className="amme-split" style={{ gridTemplateColumns: 'minmax(0,1.2fr) minmax(0,1fr)', marginBottom: 18 }}>
+        <div className="amme-card">
+          <p className="amme-eyebrow">Выручка по дням</p>
+          {report.daily.length === 0 ? (
+            <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Нет оплаченных счетов за период.</p>
+          ) : (
+            <div className="amme-day-chart">
+              {report.daily.map((d) => (
+                <div key={d.day} className="col" title={`${d.day}: ${formatIdr(d.rev)} Rp`}>
+                  <div
+                    className="stem"
+                    style={{ height: `${Math.max(4, (d.rev / maxDaily) * 100)}px` }}
+                  />
+                  <div className="lbl">{d.day.slice(5)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="amme-card">
+          <p className="amme-eyebrow">Счета по часам</p>
+          <div className="amme-day-chart" style={{ minHeight: 100 }}>
+            {report.hourly
+              .filter((h) => h.tabs > 0)
+              .map((h) => (
+                <div key={h.hour} className="col" title={`${h.hour}:00, ${h.tabs} сч.`}>
+                  <div
+                    className="stem"
+                    style={{
+                      height: `${Math.max(4, (h.tabs / maxHourly) * 80)}px`,
+                      background: 'linear-gradient(180deg, var(--amme-gold), #8a6f45)',
+                    }}
+                  />
+                  <div className="lbl">{h.hour}</div>
+                </div>
+              ))}
           </div>
-        ))}
+        </div>
       </div>
-      <p style={{ marginTop: 14, fontSize: 12, color: 'var(--amme-dim)' }}>
-        Баня: {formatIdr(banyaPrice)} Rp с человека за сеанс. Данные в Postgres.
+
+      <p className="amme-eyebrow">Топ позиций</p>
+      <div className="amme-card amme-bars" style={{ marginBottom: 18 }}>
+        {report.top.length === 0 ? (
+          <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Пока нет данных.</p>
+        ) : (
+          report.top.map(([n, s]) => (
+            <div key={n} className="amme-bar-row">
+              <span>{n}</span>
+              <span className="amme-bar-track">
+                <i className={n.startsWith('Баня') ? 'ember' : ''} style={{ width: `${Math.max(2, (s / maxTop) * 100)}%` }} />
+              </span>
+              <span className="amme-mono" style={{ textAlign: 'right' }}>
+                {formatIdr(s / 1000)} тыс
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+
+      <p className="amme-eyebrow">Журнал за период</p>
+      <div className="amme-card" style={{ marginBottom: 14 }}>
+        {report.audits.length === 0 ? (
+          <p style={{ color: 'var(--amme-dim)', margin: 0 }}>Событий нет.</p>
+        ) : (
+          report.audits.map((a) => (
+            <div
+              key={a.id}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '120px 1fr auto',
+                gap: 10,
+                padding: '8px 0',
+                borderBottom: '1px solid var(--amme-line)',
+                fontSize: 13,
+              }}
+            >
+              <span className="amme-mono" style={{ color: 'var(--amme-sage)' }}>
+                {a.action}
+              </span>
+              <span style={{ color: 'var(--amme-dim)' }}>{a.detail || '—'}</span>
+              <span className="amme-mono" style={{ fontSize: 11, color: 'var(--amme-mute)' }}>
+                {auditTime(a.createdAt)}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+
+      <p style={{ fontSize: 12, color: 'var(--amme-dim)' }}>
+        Баня: {formatIdr(banyaPrice)} Rp с человека за сеанс. Оплачено счетов: {report.tabsPaid}, визитов:{' '}
+        {report.visitsPaid}.
       </p>
     </>
+  )
+}
+
+function MenuEditor({
+  menu,
+  onSave,
+}: {
+  menu: MenuItem[]
+  onSave: (code: string, patch: { name?: string; price?: number; active?: boolean }) => void
+}) {
+  const [drafts, setDrafts] = useState<Record<string, { name: string; price: string }>>({})
+
+  useEffect(() => {
+    const next: Record<string, { name: string; price: string }> = {}
+    for (const m of menu) {
+      next[m.code] = { name: m.name, price: String(m.price) }
+    }
+    setDrafts(next)
+  }, [menu])
+
+  return (
+    <>
+      <p className="amme-eyebrow">Редактор меню</p>
+      <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--amme-dim)' }}>
+        Изменение цены не пересчитывает старые счета. Выключенные позиции скрыты с доски заказа.
+      </p>
+      <div style={{ display: 'grid', gap: 10, maxWidth: 720 }}>
+        {menu.map((m) => {
+          const d = drafts[m.code] || { name: m.name, price: String(m.price) }
+          return (
+            <div
+              key={m.id}
+              className="amme-card"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0,1fr) 120px auto',
+                gap: 12,
+                alignItems: 'end',
+                opacity: m.active ? 1 : 0.55,
+              }}
+            >
+              <div className="amme-field" style={{ margin: 0 }}>
+                <label>
+                  {m.code} · {m.category}
+                </label>
+                <input
+                  value={d.name}
+                  onChange={(e) =>
+                    setDrafts((prev) => ({ ...prev, [m.code]: { ...d, name: e.target.value } }))
+                  }
+                />
+              </div>
+              <div className="amme-field" style={{ margin: 0 }}>
+                <label>Цена Rp</label>
+                <input
+                  value={d.price}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    setDrafts((prev) => ({ ...prev, [m.code]: { ...d, price: e.target.value } }))
+                  }
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button
+                  className="amme-ghost"
+                  type="button"
+                  onClick={() => {
+                    const price = Math.round(Number(d.price))
+                    if (!d.name.trim() || !Number.isFinite(price)) return
+                    onSave(m.code, { name: d.name.trim(), price })
+                  }}
+                >
+                  Сохранить
+                </button>
+                <button
+                  className={m.active ? 'amme-ghost' : 'amme-jade'}
+                  type="button"
+                  onClick={() => onSave(m.code, { active: !m.active })}
+                >
+                  {m.active ? 'Выключить' : 'Включить'}
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+function KnowledgeView({
+  selArticle,
+  setSelArticle,
+  article,
+}: {
+  selArticle: string
+  setSelArticle: (id: string) => void
+  article: (typeof KNOWLEDGE_ARTICLES)[number] | undefined
+}) {
+  if (!article) return null
+
+  return (
+    <div className="amme-kb-grid">
+      <div>
+        {KNOWLEDGE_CATEGORIES.map((cat) => {
+          const items = KNOWLEDGE_ARTICLES.filter((a) => a.category === cat)
+          if (items.length === 0) return null
+          return (
+            <div key={cat} style={{ marginBottom: 16 }}>
+              <p className="amme-eyebrow">{cat}</p>
+              <div className="amme-kb-list">
+                {items.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    className={selArticle === a.id ? 'on' : ''}
+                    onClick={() => setSelArticle(a.id)}
+                  >
+                    <div className="cat">{a.minutes} мин</div>
+                    <div style={{ fontWeight: 600 }}>{a.title}</div>
+                    <div style={{ fontSize: 12, color: 'var(--amme-dim)', marginTop: 4 }}>{a.summary}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="amme-card amme-kb-article">
+        <p className="amme-eyebrow">{article.category}</p>
+        <h2>{article.title}</h2>
+        <p style={{ color: 'var(--amme-dim)', margin: '0 0 16px' }}>{article.summary}</p>
+        <ol>
+          {article.body.map((step, i) => (
+            <li key={i}>{step}</li>
+          ))}
+        </ol>
+      </div>
+    </div>
   )
 }
