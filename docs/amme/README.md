@@ -17,6 +17,7 @@
 | [AMME-CRM.md](./AMME-CRM.md) | CRM: профили, сегменты, API |
 | [AMME-API-и-цепочка.md](./AMME-API-и-цепочка.md) | Бизнес-цепочка и все actions |
 | [AMME-код-и-пути.md](./AMME-код-и-пути.md) | Где лежит код в VisionDrive |
+| [AMME-roadmap-spa-fb-2026.md](./AMME-roadmap-spa-fb-2026.md) | Полный аудит + gap vs Zenoti/Mangomint + roadmap P0/P1/P2 |
 | [AMME-передача-проекта.md](./AMME-передача-проекта.md) | Исходная передача контекста |
 | [AMME-ТЗ.md](./AMME-ТЗ.md) | ТЗ v0.2 (MVP) |
 | [AMME-стек-и-этапы.md](./AMME-стек-и-этапы.md) | Стек и этапы |
