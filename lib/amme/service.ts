@@ -345,6 +345,9 @@ export async function addMenuLine(venueId: string, tabId: string, menuCode: stri
 }
 
 export async function bumpLineQty(venueId: string, lineId: string, delta: number, actorId?: string) {
+  if (!Number.isInteger(delta) || Math.abs(delta) > 50) {
+    throw new Error('Изменение количества должно быть целым числом от -50 до 50')
+  }
   const line = await prisma.ammeLine.findFirst({
     where: { id: lineId, status: 'DRAFT', tab: { visit: { venueId } } },
   })
@@ -786,7 +789,7 @@ export async function createManualBooking(
       at: local,
       endsAt,
       name,
-      guests: Math.max(1, input.guests || 1),
+      guests: Math.max(1, Math.min(20, Number(input.guests) || 1)),
       banya: !!input.banya,
       phone: input.phone?.trim() || guest.phone,
       note: input.note?.trim() || null,

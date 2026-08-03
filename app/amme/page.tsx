@@ -28,6 +28,7 @@ export default async function AmmeHomePage() {
   if (!user) redirect('/amme/login')
 
   const profile = await prisma.ammeStaffProfile.findUnique({ where: { userId: user.id } })
+  if (!profile?.active) redirect('/amme/login')
 
   return (
     <AmmeApp
@@ -35,7 +36,7 @@ export default async function AmmeHomePage() {
         id: user.id,
         email: user.email,
         name: user.name,
-        staffRole: profile?.staffRole ?? 'ADMIN',
+        staffRole: profile.staffRole,
       }}
     />
   )

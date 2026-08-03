@@ -76,6 +76,15 @@ export async function POST(request: NextRequest) {
 
     if (type === 'update') {
       if (!body.guestId) throw new Error('guestId обязателен')
+      if (
+        session.staffRole !== 'OWNER' &&
+        (body.vip !== undefined || body.blocked !== undefined)
+      ) {
+        return NextResponse.json(
+          { success: false, error: 'VIP и блокировка доступны только владельцу' },
+          { status: 403 }
+        )
+      }
       const guest = await updateGuest(
         session.venueId,
         body.guestId,

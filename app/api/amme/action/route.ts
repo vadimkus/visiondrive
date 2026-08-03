@@ -44,6 +44,12 @@ export async function POST(request: NextRequest) {
     }
     const permission = AMME_ACTION_PERMISSION[body.type]
     if (permission) assertAmmePermission(session, permission)
+    if (body.type === 'import' && body.mode === 'replace' && session.staffRole !== 'OWNER') {
+      return NextResponse.json(
+        { success: false, error: 'Полная замена записей доступна только владельцу' },
+        { status: 403 }
+      )
+    }
     const v = session.venueId
     const a = session.userId
 

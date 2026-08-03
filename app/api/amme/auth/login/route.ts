@@ -33,6 +33,12 @@ export async function POST(request: NextRequest) {
     }
 
     const profile = await prisma.ammeStaffProfile.findUnique({ where: { userId: result.user.id } })
+    if (!profile?.active) {
+      return NextResponse.json(
+        { success: false, error: 'Профиль сотрудника AMMÉ не активирован' },
+        { status: 403 }
+      )
+    }
 
     const response = NextResponse.json({
       success: true,
@@ -40,7 +46,7 @@ export async function POST(request: NextRequest) {
         id: result.user.id,
         email: result.user.email,
         name: result.user.name,
-        staffRole: profile?.staffRole ?? 'ADMIN',
+        staffRole: profile.staffRole,
         portal: 'amme',
       },
     })

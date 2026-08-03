@@ -36,15 +36,15 @@ export async function getAmmeSession(request: NextRequest): Promise<AmmeSession 
     }),
   ])
 
-  if (!venue || !user || user.status !== 'ACTIVE' || profile?.active === false) return null
+  if (!venue || !profile || !profile.active || !user || user.status !== 'ACTIVE') return null
 
   return {
     userId: user.id,
     email: user.email,
     role: decoded.role,
     tenantId: decoded.tenantId,
-    staffRole: profile?.staffRole ?? 'ADMIN',
-    permissions: profile?.permissions ?? [],
+    staffRole: profile.staffRole,
+    permissions: profile.permissions,
     venueId: venue.id,
     name: user.name,
   }
