@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AMME_MENU_CATEGORIES, SEND_DELAY_SEC } from '@/lib/amme/menu'
 import { formatIdr } from '@/lib/amme/money'
 import { KNOWLEDGE_ARTICLES, KNOWLEDGE_CATEGORIES } from '@/lib/amme/knowledge'
+import CrmView, { type GuestCard } from '@/app/amme/CrmView'
 
 type StaffRole = 'ADMIN' | 'KITCHEN' | 'OWNER'
 
@@ -26,6 +27,8 @@ type Booking = {
   guests: number
   banya: boolean
   phone: string | null
+  note?: string | null
+  guestId?: string | null
   status: 'WAITING' | 'ARRIVED' | 'NOSHOW'
   visitId: string | null
 }
@@ -55,6 +58,7 @@ type Visit = {
   banya: boolean
   banyaEndedAt: string | null
   openedAt: string
+  guestId?: string | null
   tabs: Tab[]
 }
 
@@ -110,14 +114,17 @@ type State = {
   visits: Visit[]
   kitchen: KitchenLine[]
   audits: Audit[]
+  guests: GuestCard[]
+  history: Visit[]
 }
 
-type View = 'dash' | 'book' | 'guests' | 'kitchen' | 'report' | 'menu' | 'knowledge'
+type View = 'dash' | 'book' | 'guests' | 'crm' | 'kitchen' | 'report' | 'menu' | 'knowledge'
 
 const VIEW_META: Record<View, { label: string; hint: string; ico: string }> = {
   dash: { label: 'Дашборд', hint: 'Смена и быстрые действия', ico: '◆' },
   book: { label: 'Записи', hint: 'Приход, неявки, импорт', ico: '☰' },
-  guests: { label: 'Гости', hint: 'Счета, меню, оплата', ico: '◎' },
+  guests: { label: 'Счета', hint: 'Счета, меню, оплата', ico: '◎' },
+  crm: { label: 'CRM', hint: 'Профили, сегменты, заметки', ico: '◈' },
   kitchen: { label: 'Кухня', hint: 'Очередь тикетов', ico: '▣' },
   report: { label: 'Отчёт', hint: 'Выручка и журнал', ico: '▤' },
   menu: { label: 'Меню', hint: 'Цены и активность', ico: '≡' },
@@ -165,7 +172,13 @@ function pickState(data: Record<string, unknown>): State {
     visits: data.visits as Visit[],
     kitchen: data.kitchen as KitchenLine[],
     audits: (data.audits as Audit[]) || [],
+    guests: (data.guests as GuestCard[]) || [],
+    history: (data.history as Visit[]) || [],
   }
+}
+
+function guestMap(cards: GuestCard[]) {
+  return new Map(cards.map((g) => [g.id, g]))
 }
 
 function matchesSearch(q: string, name: string) {
@@ -198,11 +211,13 @@ export default function AmmeApp({
   const [selTab, setSelTab] = useState<string | null>(null)
   const [selLines, setSelLines] = useState<Set<string>>(new Set())
   const [selArticle, setSelArticle] = useState(KNOWLEDGE_ARTICLES[0]?.id || '')
+  const [crmFocusId, setCrmFocusId] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; err?: boolean } | null>(null)
   const [busy, setBusy] = useState(false)
   const [importText, setImportText] = useState('')
   const [walkOpen, setWalkOpen] = useState(false)
   const [wName, setWName] = useState('')
+  const [wPhone, setWPhone] = useState('')
   const [wGuests, setWGuests] = useState(2)
   const [wBanya, setWBanya] = useState(false)
   const [bkOpen, setBkOpen] = useState(false)
@@ -335,6 +350,7 @@ export default function AmmeApp({
   const waiting = state?.bookings.filter((b) => b.status === 'WAITING').length || 0
   const banyaLive = openVisits.filter((v) => v.banya && !v.banyaEndedAt)
   const activeMenu = useMemo(() => (state?.menu || []).filter((m) => m.active), [state?.menu])
+  const guestsById = useMemo(() => guestMap(state?.guests || []), [state?.guests])
 
   const filteredBookings = useMemo(
     () => (state?.bookings || []).filter((b) => matchesSearch(search, b.name)),
@@ -529,6 +545,15 @@ export default function AmmeApp({
                 setSelVisit(visitId)
                 setView('guests')
               }}
+              guestsById={guestsById}
+            />
+          ) : null}
+
+          {view === 'crm' ? (
+            <CrmView
+              onToast={showToast}
+              focusGuestId={crmFocusId}
+              onFocusConsumed={() => setCrmFocusId(null)}
             />
           ) : null}
 
@@ -544,12 +569,19 @@ export default function AmmeApp({
               sendLeft={sendLeft}
               walkOpen={walkOpen}
               wName={wName}
+              wPhone={wPhone}
               wGuests={wGuests}
               wBanya={wBanya}
               setWalkOpen={setWalkOpen}
               setWName={setWName}
+              setWPhone={setWPhone}
               setWGuests={setWGuests}
               setWBanya={setWBanya}
+              guestsById={guestsById}
+              onOpenCrm={(id) => {
+                setCrmFocusId(id)
+                setView('crm')
+              }}
               onSelectVisit={(id) => {
                 setSelVisit(id)
                 const v = openVisits.find((x) => x.id === id)
@@ -605,12 +637,19 @@ export default function AmmeApp({
               }}
               onWalkin={() => {
                 void act(
-                  { type: 'walkin', name: wName, guests: wGuests, banya: wBanya },
+                  {
+                    type: 'walkin',
+                    name: wName,
+                    guests: wGuests,
+                    banya: wBanya,
+                    phone: wPhone || undefined,
+                  },
                   'Визит открыт'
                 ).then((ok) => {
                   if (ok) {
                     setWalkOpen(false)
                     setWName('')
+                    setWPhone('')
                     setWGuests(2)
                     setWBanya(false)
                   }
@@ -820,6 +859,7 @@ function Bookings(props: {
   onImport: (mode: 'append' | 'replace') => void
   onCreate: () => void
   onOpenVisit: (visitId: string) => void
+  guestsById: Map<string, GuestCard>
 }) {
   const now = Date.now()
   return (
@@ -890,6 +930,7 @@ function Bookings(props: {
         ) : null}
         {props.bookings.map((b) => {
           const late = b.status === 'WAITING' && now - new Date(b.at).getTime() > 15 * 60000
+          const g = b.guestId ? props.guestsById.get(b.guestId) : undefined
           return (
             <div
               key={b.id}
@@ -900,8 +941,20 @@ function Bookings(props: {
                 gap: 12,
                 alignItems: 'center',
                 opacity: b.status === 'NOSHOW' ? 0.45 : 1,
-                borderColor: late ? '#6b3a24' : b.status === 'ARRIVED' ? '#31513f' : undefined,
-                background: late ? '#271e19' : b.status === 'ARRIVED' ? '#1c2620' : undefined,
+                borderColor: g?.blocked
+                  ? '#6b2a2a'
+                  : late
+                    ? '#6b3a24'
+                    : b.status === 'ARRIVED'
+                      ? '#31513f'
+                      : undefined,
+                background: g?.blocked
+                  ? '#2a1818'
+                  : late
+                    ? '#271e19'
+                    : b.status === 'ARRIVED'
+                      ? '#1c2620'
+                      : undefined,
               }}
             >
               <div className="amme-mono" style={{ fontSize: 16, color: 'var(--amme-sage)' }}>
@@ -913,9 +966,18 @@ function Bookings(props: {
                     fontFamily: 'var(--amme-display)',
                     fontSize: 17,
                     textDecoration: b.status === 'NOSHOW' ? 'line-through' : undefined,
+                    display: 'flex',
+                    gap: 8,
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
                   }}
                 >
                   {b.name}
+                  {g?.vip ? <span className="amme-pill vip">VIP</span> : null}
+                  {g && g.visitCount >= 2 ? (
+                    <span className="amme-pill">{g.visitCount}×</span>
+                  ) : null}
+                  {g?.blocked ? <span className="amme-pill bad">осторожно</span> : null}
                 </div>
                 <div
                   className="amme-mono"
@@ -926,6 +988,7 @@ function Bookings(props: {
                     {b.banya ? 'баня' : 'кухня'}
                   </button>
                   {b.phone ? <span>{b.phone}</span> : null}
+                  {g?.notes ? <span title={g.notes}>📝 заметка</span> : null}
                   {late ? <span style={{ color: 'var(--amme-ember)' }}>опоздание</span> : null}
                 </div>
               </div>
@@ -991,12 +1054,16 @@ function Guests(props: {
   sendLeft: number
   walkOpen: boolean
   wName: string
+  wPhone: string
   wGuests: number
   wBanya: boolean
   setWalkOpen: (v: boolean) => void
   setWName: (v: string) => void
+  setWPhone: (v: string) => void
   setWGuests: (n: number | ((x: number) => number)) => void
   setWBanya: (v: boolean) => void
+  guestsById: Map<string, GuestCard>
+  onOpenCrm: (guestId: string) => void
   onSelectVisit: (id: string) => void
   onSelectTab: (id: string) => void
   onDish: (code: string) => void
@@ -1062,6 +1129,14 @@ function Guests(props: {
                 <label>Имя</label>
                 <input value={props.wName} onChange={(e) => props.setWName(e.target.value)} />
               </div>
+              <div className="amme-field">
+                <label>Телефон (для CRM)</label>
+                <input
+                  value={props.wPhone}
+                  onChange={(e) => props.setWPhone(e.target.value)}
+                  placeholder="+62…"
+                />
+              </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
                 <button className="amme-ghost" type="button" onClick={() => props.setWGuests((n) => Math.max(1, n - 1))}>
                   −
@@ -1105,6 +1180,7 @@ function Guests(props: {
             {props.visits.map((v) => {
               const hot = v.tabs.some((t) => t.lines.some((l) => l.status === 'SENT'))
               const unpaid = v.tabs.some((t) => !t.paidAt && !t.closedAt)
+              const g = v.guestId ? props.guestsById.get(v.guestId) : undefined
               return (
                 <button
                   key={v.id}
@@ -1113,14 +1189,32 @@ function Guests(props: {
                   className="amme-card"
                   style={{
                     textAlign: 'left',
-                    borderColor: props.activeVisit?.id === v.id ? 'var(--amme-sage)' : undefined,
+                    borderColor: g?.blocked
+                      ? '#6b2a2a'
+                      : props.activeVisit?.id === v.id
+                        ? 'var(--amme-sage)'
+                        : undefined,
                     background: props.activeVisit?.id === v.id ? 'var(--amme-panel-2)' : undefined,
                   }}
                 >
-                  <div style={{ fontFamily: 'var(--amme-display)', fontSize: 17 }}>{v.name}</div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--amme-display)',
+                      fontSize: 17,
+                      display: 'flex',
+                      gap: 6,
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {v.name}
+                    {g?.vip ? <span className="amme-pill vip">VIP</span> : null}
+                    {g && g.visitCount >= 2 ? <span className="amme-pill">{g.visitCount}×</span> : null}
+                  </div>
                   <div className="amme-mono" style={{ fontSize: 11.5, color: 'var(--amme-dim)', marginTop: 3 }}>
                     {v.guests} чел. · {v.banya ? 'баня' : 'кухня'}
                     {hot ? ' · кухня' : ''}
+                    {g?.notes ? ' · 📝' : ''}
                   </div>
                   <div
                     className="amme-mono"
@@ -1205,6 +1299,12 @@ function Guests(props: {
 
         <Receipt
           visit={props.activeVisit}
+          guest={
+            props.activeVisit?.guestId
+              ? props.guestsById.get(props.activeVisit.guestId) || null
+              : null
+          }
+          onOpenCrm={props.onOpenCrm}
           tab={props.activeTab}
           selLines={props.selLines}
           sendLeft={props.sendLeft}
@@ -1224,6 +1324,8 @@ function Guests(props: {
 
 function Receipt(props: {
   visit: Visit | null
+  guest: GuestCard | null
+  onOpenCrm: (guestId: string) => void
   tab: Tab | null
   selLines: Set<string>
   sendLeft: number
@@ -1287,6 +1389,40 @@ function Receipt(props: {
         <b style={{ fontWeight: 500 }}>{props.visit.name}</b>
         <span>{props.visit.guests} чел.</span>
       </div>
+
+      {props.guest ? (
+        <div
+          className="amme-no-print"
+          style={{
+            marginTop: 8,
+            padding: '8px 10px',
+            background: props.guest.blocked ? '#f3d9d2' : '#e8e2d6',
+            borderRadius: 4,
+            fontSize: 11.5,
+            color: '#3a322c',
+          }}
+        >
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            {props.guest.vip ? <span className="amme-pill vip">VIP</span> : null}
+            <span>{props.guest.visitCount} виз.</span>
+            <span>LTV {formatIdr(props.guest.lifetimeSpend)}</span>
+            {props.guest.dietary ? <span>диета: {props.guest.dietary}</span> : null}
+            <button
+              type="button"
+              style={{ marginLeft: 'auto', textDecoration: 'underline', color: '#5a4f45' }}
+              onClick={() => props.onOpenCrm(props.guest!.id)}
+            >
+              CRM →
+            </button>
+          </div>
+          {props.guest.notes || props.guest.preferences || props.guest.blocked ? (
+            <div style={{ marginTop: 4 }}>
+              {props.guest.blocked ? '⚠ Осторожно. ' : ''}
+              {props.guest.notes || props.guest.preferences}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div style={{ display: 'flex', gap: 5, paddingTop: 9, flexWrap: 'wrap' }}>
         {props.visit.tabs.map((t, i) => (

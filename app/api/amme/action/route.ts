@@ -21,6 +21,7 @@ type Body = {
   newTabForVisitId?: string
   time?: string
   phone?: string
+  note?: string
   price?: number
   active?: boolean
 }
@@ -50,7 +51,16 @@ export async function POST(request: NextRequest) {
         await svc.toggleBookingBanya(v, body.bookingId!)
         break
       case 'walkin':
-        await svc.walkIn(v, { name: body.name || '', guests: body.guests || 1, banya: !!body.banya }, a)
+        await svc.walkIn(
+          v,
+          {
+            name: body.name || '',
+            guests: body.guests || 1,
+            banya: !!body.banya,
+            phone: body.phone,
+          },
+          a
+        )
         break
       case 'add_dish':
         await svc.addMenuLine(v, body.tabId!, body.menuCode!, a)
@@ -94,6 +104,7 @@ export async function POST(request: NextRequest) {
             guests: body.guests || 1,
             banya: !!body.banya,
             phone: body.phone,
+            note: body.note,
           },
           a
         )

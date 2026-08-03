@@ -2482,9 +2482,49 @@ model AmmeVenue {
   menu     AmmeMenuItem[]
   bookings AmmeBooking[]
   visits   AmmeVisit[]
+  guests   AmmeGuest[]
   audits   AmmeAuditEvent[]
 
   @@map("amme_venues")
+}
+
+/// Unified guest profile (hospitality CRM) — one person across bookings/visits.
+model AmmeGuest {
+  id            String    @id @default(cuid())
+  venueId       String
+  name          String
+  phone         String?
+  phoneNorm     String?
+  email         String?
+  notes         String?   @db.Text
+  tags          String[]  @default([])
+  preferences   String?   @db.Text
+  dietary       String?
+  birthday      DateTime? @db.Date
+  source        String?
+  language      String?   @default("ru")
+  visitCount    Int       @default(0)
+  noshowCount   Int       @default(0)
+  lifetimeSpend Int       @default(0)
+  avgSpend      Int       @default(0)
+  firstVisitAt  DateTime? @db.Timestamptz(6)
+  lastVisitAt   DateTime? @db.Timestamptz(6)
+  banyaPref     Boolean   @default(false)
+  blocked       Boolean   @default(false)
+  vip           Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  venue    AmmeVenue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  bookings AmmeBooking[]
+  visits   AmmeVisit[]
+
+  @@unique([venueId, phoneNorm])
+  @@index([venueId, name])
+  @@index([venueId, lastVisitAt])
+  @@index([venueId, vip])
+  @@index([venueId, lifetimeSpend])
+  @@map("amme_guests")
 }
 
 model AmmeMenuItem {
@@ -2511,27 +2551,32 @@ model AmmeMenuItem {
 model AmmeBooking {
   id        String            @id @default(cuid())
   venueId   String
+  guestId   String?
   date      DateTime          @db.Date
   at        DateTime          @db.Timestamptz(6)
   name      String
   guests    Int               @default(1)
   banya     Boolean           @default(false)
   phone     String?
+  note      String?
   status    AmmeBookingStatus @default(WAITING)
   visitId   String?           @unique
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
   venue AmmeVenue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  guest AmmeGuest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
   visit AmmeVisit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
 
   @@index([venueId, date, status])
+  @@index([guestId])
   @@map("amme_bookings")
 }
 
 model AmmeVisit {
   id           String    @id @default(cuid())
   venueId      String
+  guestId      String?
   name         String
   guests       Int       @default(1)
   banya        Boolean   @default(false)
@@ -2542,10 +2587,12 @@ model AmmeVisit {
   updatedAt    DateTime  @updatedAt
 
   venue   AmmeVenue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  guest   AmmeGuest?   @relation(fields: [guestId], references: [id], onDelete: SetNull)
   booking AmmeBooking?
   tabs    AmmeTab[]
 
   @@index([venueId, closedAt])
+  @@index([guestId])
   @@map("amme_visits")
 }
 

@@ -16,7 +16,9 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
-    "db:seed-amme": "tsx --env-file=.env scripts/seed-amme.ts"
+    "db:seed-amme": "tsx --env-file=.env scripts/seed-amme.ts",
+    "db:backfill-amme-crm": "tsx --env-file=.env scripts/backfill-amme-crm.ts",
+    "test:amme-e2e": "tsx scripts/test-amme-e2e.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

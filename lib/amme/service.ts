@@ -1,5 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import { parseDayKey, dayKey } from '@/lib/amme/money'
+import {
+  bumpNoshow,
+  guestCardsForIds,
+  recomputeGuestStats,
+  resolveGuest,
+  serializeGuest,
+} from '@/lib/amme/crm'
 import type { AmmeLineKind, AmmeLineStatus, Prisma } from '@prisma/client'
 
 async function audit(
@@ -78,6 +85,13 @@ export async function getVenueState(venueId: string, day?: string | null) {
     }),
   ])
 
+  const guestIds = [
+    ...bookings.map((b) => b.guestId),
+    ...openVisits.map((v) => v.guestId),
+    ...recentClosed.map((v) => v.guestId),
+  ].filter((id): id is string => !!id)
+  const guestCards = await guestCardsForIds(venueId, guestIds)
+
   return {
     venue: {
       id: venue.id,
@@ -90,6 +104,7 @@ export async function getVenueState(venueId: string, day?: string | null) {
     bookings,
     visits: openVisits,
     history: recentClosed,
+    guests: guestCards.map(serializeGuest),
     kitchen: kitchenLines.map((l) => ({
       id: l.id,
       name: l.name,
@@ -122,9 +137,21 @@ export async function arriveBooking(venueId: string, bookingId: string, actorId?
   }
 
   return prisma.$transaction(async (tx) => {
+    let guestId = booking.guestId
+    if (!guestId) {
+      const guest = await resolveGuest(tx, venueId, {
+        name: booking.name,
+        phone: booking.phone,
+        banya: booking.banya,
+        source: 'arrive',
+      })
+      guestId = guest.id
+    }
+
     const visit = await tx.ammeVisit.create({
       data: {
         venueId,
+        guestId,
         name: booking.name,
         guests: booking.guests,
         banya: booking.banya,
@@ -149,7 +176,7 @@ export async function arriveBooking(venueId: string, bookingId: string, actorId?
     }
     await tx.ammeBooking.update({
       where: { id: booking.id },
-      data: { status: 'ARRIVED', visitId: visit.id },
+      data: { status: 'ARRIVED', visitId: visit.id, guestId },
     })
     await tx.ammeAuditEvent.create({
       data: {
@@ -177,6 +204,7 @@ export async function markNoshow(venueId: string, bookingId: string, actorId?: s
     where: { id: bookingId },
     data: { status: 'NOSHOW' },
   })
+  await bumpNoshow(venueId, booking.guestId)
   await audit(venueId, 'noshow', { actorId, detail: booking.name })
 }
 
@@ -199,7 +227,7 @@ export async function toggleBookingBanya(venueId: string, bookingId: string) {
 
 export async function walkIn(
   venueId: string,
-  input: { name: string; guests: number; banya: boolean },
+  input: { name: string; guests: number; banya: boolean; phone?: string },
   actorId?: string
 ) {
   const venue = await prisma.ammeVenue.findUniqueOrThrow({ where: { id: venueId } })
@@ -208,8 +236,14 @@ export async function walkIn(
   const guests = Math.max(1, Math.min(20, Number(input.guests) || 1))
 
   return prisma.$transaction(async (tx) => {
+    const guest = await resolveGuest(tx, venueId, {
+      name,
+      phone: input.phone,
+      banya: !!input.banya,
+      source: 'walkin',
+    })
     const visit = await tx.ammeVisit.create({
-      data: { venueId, name, guests, banya: !!input.banya },
+      data: { venueId, guestId: guest.id, name, guests, banya: !!input.banya },
     })
     const tab = await tx.ammeTab.create({
       data: { visitId: visit.id, label: 'Счёт 1' },
@@ -379,6 +413,7 @@ export async function moveLines(
 export async function payTab(venueId: string, tabId: string, actorId?: string) {
   const tab = await prisma.ammeTab.findFirst({
     where: { id: tabId, visit: { venueId } },
+    include: { visit: true },
   })
   if (!tab) throw new Error('Счёт не найден')
   await prisma.ammeTab.update({
@@ -386,6 +421,9 @@ export async function payTab(venueId: string, tabId: string, actorId?: string) {
     data: { paidAt: new Date() },
   })
   await audit(venueId, 'pay', { tabId, visitId: tab.visitId, actorId })
+  if (tab.visit.guestId) {
+    await recomputeGuestStats(venueId, tab.visit.guestId)
+  }
 }
 
 export async function closeTab(venueId: string, tabId: string, actorId?: string) {
@@ -410,6 +448,9 @@ export async function closeTab(venueId: string, tabId: string, actorId?: string)
     })
   }
   await audit(venueId, 'close_tab', { tabId, visitId: tab.visitId, actorId })
+  if (tab.visit.guestId) {
+    await recomputeGuestStats(venueId, tab.visit.guestId)
+  }
 }
 
 export async function endBanya(venueId: string, visitId: string, actorId?: string) {
@@ -439,7 +480,6 @@ export async function importBookings(
     if (!timeMatch) continue
     const h = Number(timeMatch[1])
     const m = Number(timeMatch[2])
-    const at = new Date(date)
     // local-ish: use UTC date + hours in local by constructing from local components
     const local = new Date()
     local.setFullYear(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
@@ -477,7 +517,19 @@ export async function importBookings(
       where: { venueId, date, status: 'WAITING' },
     })
   }
-  await prisma.ammeBooking.createMany({ data: parsed })
+
+  for (const row of parsed) {
+    const guest = await resolveGuest(prisma, venueId, {
+      name: row.name,
+      phone: row.phone,
+      banya: row.banya,
+      source: 'import',
+    })
+    await prisma.ammeBooking.create({
+      data: { ...row, guestId: guest.id },
+    })
+  }
+
   await audit(venueId, 'import_bookings', {
     actorId,
     detail: `${parsed.length} записей (${mode}) на ${dayKey(date)}`,
@@ -638,7 +690,15 @@ export async function updateMenuItem(
 
 export async function createManualBooking(
   venueId: string,
-  input: { day?: string | null; time: string; name: string; guests: number; banya: boolean; phone?: string },
+  input: {
+    day?: string | null
+    time: string
+    name: string
+    guests: number
+    banya: boolean
+    phone?: string
+    note?: string
+  },
   actorId?: string
 ) {
   const date = parseDayKey(input.day)
@@ -650,15 +710,24 @@ export async function createManualBooking(
   const name = input.name.trim()
   if (!name) throw new Error('Имя обязательно')
 
+  const guest = await resolveGuest(prisma, venueId, {
+    name,
+    phone: input.phone,
+    banya: !!input.banya,
+    source: 'booking',
+  })
+
   const booking = await prisma.ammeBooking.create({
     data: {
       venueId,
+      guestId: guest.id,
       date,
       at: local,
       name,
       guests: Math.max(1, input.guests || 1),
       banya: !!input.banya,
-      phone: input.phone?.trim() || null,
+      phone: input.phone?.trim() || guest.phone,
+      note: input.note?.trim() || null,
       status: 'WAITING',
     },
   })
