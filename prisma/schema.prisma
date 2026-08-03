@@ -145,6 +145,8 @@ model Tenant {
   clinicLeads                 ClinicLead[]
   clinicLeadActivities        ClinicLeadActivity[]
 
+  ammeVenue AmmeVenue?
+
   @@map("tenants")
 }
 
@@ -2435,4 +2437,185 @@ model RateLimit {
 
   @@index([updatedAt]) // For cleanup queries
   @@map("rate_limits")
+}
+
+// ─────────────────────────────────────────────
+// AMMÉ — guest accounting (banya + kitchen)
+// ─────────────────────────────────────────────
+
+enum AmmeBookingStatus {
+  WAITING
+  ARRIVED
+  NOSHOW
+}
+
+enum AmmeLineStatus {
+  DRAFT
+  SENT
+  DONE
+  CANCELLED
+}
+
+enum AmmeLineKind {
+  FOOD
+  DRINK
+  BANYA
+  OTHER
+}
+
+enum AmmeStaffRole {
+  ADMIN
+  KITCHEN
+  OWNER
+}
+
+model AmmeVenue {
+  id         String   @id @default(cuid())
+  tenantId   String   @unique
+  name       String   @default("AMMÉ")
+  banyaPrice Int      @default(800000)
+  currency   String   @default("IDR")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  menu     AmmeMenuItem[]
+  bookings AmmeBooking[]
+  visits   AmmeVisit[]
+  audits   AmmeAuditEvent[]
+
+  @@map("amme_venues")
+}
+
+model AmmeMenuItem {
+  id        String   @id @default(cuid())
+  venueId   String
+  code      String
+  name      String
+  price     Int
+  category  String
+  station   String   @default("Кухня")
+  vegFlag   String?
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  venue AmmeVenue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, code])
+  @@index([venueId, category])
+  @@map("amme_menu_items")
+}
+
+model AmmeBooking {
+  id        String            @id @default(cuid())
+  venueId   String
+  date      DateTime          @db.Date
+  at        DateTime          @db.Timestamptz(6)
+  name      String
+  guests    Int               @default(1)
+  banya     Boolean           @default(false)
+  phone     String?
+  status    AmmeBookingStatus @default(WAITING)
+  visitId   String?           @unique
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  venue AmmeVenue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  visit AmmeVisit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@index([venueId, date, status])
+  @@map("amme_bookings")
+}
+
+model AmmeVisit {
+  id           String    @id @default(cuid())
+  venueId      String
+  name         String
+  guests       Int       @default(1)
+  banya        Boolean   @default(false)
+  banyaEndedAt DateTime? @db.Timestamptz(6)
+  openedAt     DateTime  @default(now()) @db.Timestamptz(6)
+  closedAt     DateTime? @db.Timestamptz(6)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  venue   AmmeVenue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  booking AmmeBooking?
+  tabs    AmmeTab[]
+
+  @@index([venueId, closedAt])
+  @@map("amme_visits")
+}
+
+model AmmeTab {
+  id        String    @id @default(cuid())
+  visitId   String
+  label     String?
+  openedAt  DateTime  @default(now()) @db.Timestamptz(6)
+  paidAt    DateTime? @db.Timestamptz(6)
+  closedAt  DateTime? @db.Timestamptz(6)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  visit AmmeVisit  @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  lines AmmeLine[]
+
+  @@index([visitId])
+  @@map("amme_tabs")
+}
+
+model AmmeLine {
+  id             String         @id @default(cuid())
+  tabId          String
+  name           String
+  qty            Int            @default(1)
+  price          Int
+  kind           AmmeLineKind   @default(FOOD)
+  station        String         @default("Кухня")
+  status         AmmeLineStatus @default(DRAFT)
+  menuCode       String?
+  sentAt         DateTime?      @db.Timestamptz(6)
+  doneAt         DateTime?      @db.Timestamptz(6)
+  cancelledAt    DateTime?      @db.Timestamptz(6)
+  cancelReason   String?
+  cancelledById  String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  tab AmmeTab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+
+  @@index([tabId, status])
+  @@index([status, sentAt])
+  @@map("amme_lines")
+}
+
+model AmmeAuditEvent {
+  id        String   @id @default(cuid())
+  venueId   String
+  visitId   String?
+  tabId     String?
+  lineId    String?
+  actorId   String?
+  action    String
+  detail    String?  @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  venue AmmeVenue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId, createdAt])
+  @@map("amme_audit_events")
+}
+
+model AmmeStaffProfile {
+  id        String        @id @default(cuid())
+  userId    String        @unique
+  tenantId  String
+  staffRole AmmeStaffRole @default(ADMIN)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([tenantId])
+  @@map("amme_staff_profiles")
 }

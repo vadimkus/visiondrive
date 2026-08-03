@@ -336,6 +336,7 @@ export const privateOrDuplicatePaths = [
   '/data-analytics',
   '/download',
   '/app/download',
+  '/amme',
 ] as const
 
 export function absoluteUrl(path = '/') {

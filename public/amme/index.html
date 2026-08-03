@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMMÉ — учёт гостей · демо VisionDrive</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Демо учёта AMMÉ: баня + кухня. Макет по ТЗ слой 1.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --slate:#15181A;
+  --panel:#1E2325;
+  --panel-2:#272D30;
+  --line:#333B3E;
+  --chalk:#E9EAE6;
+  --chalk-dim:#96A0A2;
+  --sage:#B9C7A8;
+  --ember:#E2542A;
+  --jade:#63A98B;
+  --r:3px;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--slate);color:var(--chalk);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--sage);outline-offset:2px}
+input,select,textarea{font-family:inherit;font-size:inherit}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.topbar{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#232A2C,#15181A);position:sticky;top:0;z-index:50}
+.brand{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.04em}
+.brand span{font-family:var(--body);font-weight:400;font-size:13px;letter-spacing:.02em;color:var(--chalk-dim);margin-left:9px}
+.nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.nav button{padding:7px 14px;border-radius:var(--r);color:var(--chalk-dim);font-weight:500}
+.nav button:hover{color:var(--chalk);background:var(--panel)}
+.nav button.on{background:var(--panel-2);color:var(--chalk);box-shadow:inset 0 -2px 0 var(--ember)}
+.nav .badge{display:inline-block;min-width:18px;margin-left:7px;padding:0 5px;background:var(--ember);color:#fff;border-radius:9px;font-family:var(--mono);font-size:11px;line-height:18px;text-align:center}
+
+main{padding:20px;max-width:1340px;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim);margin:0 0 10px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:20px;align-items:start}
+@media (max-width:960px){.split{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:16px}
+.card h3{font-family:var(--display);font-weight:500;font-size:19px;margin:0 0 2px}
+.card p.hint{margin:0 0 14px;font-size:13px;color:var(--chalk-dim)}
+.field{margin-bottom:12px}
+.field label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--chalk-dim);margin-bottom:5px}
+.field input{width:100%;padding:10px 11px;background:var(--slate);border:1px solid var(--line);border-radius:var(--r);color:var(--chalk)}
+.stepper{display:flex;border:1px solid var(--line);border-radius:var(--r);width:fit-content;overflow:hidden}
+.stepper button{width:40px;height:38px;background:var(--slate);font-size:17px}
+.stepper button:hover{background:var(--panel-2)}
+.stepper span{width:46px;text-align:center;line-height:38px;font-family:var(--mono)}
+.toggle{display:flex;gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;width:fit-content}
+.toggle button{padding:8px 14px;background:var(--slate);color:var(--chalk-dim);font-size:13.5px}
+.toggle button.on{background:var(--sage);color:#1A211A;font-weight:600}
+.primary{width:100%;padding:12px;border-radius:var(--r);background:var(--ember);color:#fff;font-weight:600}
+.primary:hover{background:#F0602F}
+.ghostbtn{width:100%;padding:11px;border-radius:var(--r);border:1px solid var(--line);color:var(--chalk-dim)}
+.ghostbtn:hover{color:var(--chalk);border-color:#4A565A}
+
+/* ---------- banya strip ---------- */
+.banya{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:14px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.banya.on{border-color:#6B3A24;background:linear-gradient(90deg,#2A1E18,#1E2325 60%)}
+.banya .bl{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim)}
+.banya .who{font-family:var(--display);font-weight:500;font-size:20px;line-height:1.1}
+.banya .tm{font-family:var(--mono);font-size:15px;color:var(--ember)}
+.banya .free{font-size:14px;color:var(--chalk-dim)}
+.banya .act{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.banya .act button{padding:9px 15px;border-radius:var(--r);border:1px solid var(--line);font-size:13.5px;white-space:nowrap}
+.banya .act button:hover{border-color:var(--sage)}
+
+/* ---------- guests ---------- */
+.guests{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:10px}
+.g{text-align:left;padding:13px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);width:100%}
+.g:hover{border-color:#4A565A}
+.g.sel{border-color:var(--sage);background:var(--panel-2)}
+.g .gn{font-family:var(--display);font-weight:500;font-size:17px;line-height:1.2}
+.g .gm{font-family:var(--mono);font-size:11.5px;color:var(--chalk-dim);margin-top:3px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.g .gs{margin-top:9px;font-family:var(--mono);font-size:13.5px;color:var(--sage)}
+.g .unpaid{color:var(--ember)}
+.chip{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border-radius:2px}
+.chip.banya{background:#3A2A20;color:#E0A47C}
+.chip.only{background:#26302B;color:var(--sage)}
+.chip.hot{background:var(--ember);color:#fff}
+
+/* ---------- menu board ---------- */
+.board{margin-top:26px;padding:18px 18px 20px;border:1px solid var(--line);border-radius:var(--r);background:radial-gradient(120% 140% at 30% 0%,#232A2C,#191E20)}
+.board h2{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.1em;text-align:center;margin:0 0 16px;color:var(--chalk)}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px}
+.bsec h4{font-family:var(--display);font-weight:700;font-size:13.5px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid #46504F;color:var(--chalk)}
+.bsec ul{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.bsec button{display:flex;width:100%;gap:8px;align-items:baseline;padding:6px 8px;border-radius:2px;text-align:left}
+.bsec button:hover{background:#2C3335}
+.bsec button:active{background:#3A4245}
+.bsec button[disabled]{opacity:.32;cursor:not-allowed}
+.bsec button[disabled]:hover{background:none}
+.bsec .dn{flex:1;font-size:14.5px}
+.bsec .dv{font-size:11px;color:var(--sage)}
+.bsec .dp{font-family:var(--mono);font-size:12.5px;color:var(--chalk-dim)}
+
+/* ---------- receipt ---------- */
+.receipt{background:#F3EEE4;color:#241F1B;border-radius:2px;font-family:var(--mono);font-size:13px;box-shadow:0 18px 40px rgba(0,0,0,.5);position:relative;overflow:hidden}
+.receipt::before,.receipt::after{content:"";position:absolute;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,#F3EEE4 0 7px,transparent 7px 12px)}
+.receipt::before{top:-4px}
+.receipt::after{bottom:-4px;transform:rotate(180deg)}
+.rc-in{padding:20px 18px}
+.rc-head{text-align:center;border-bottom:1px dashed #B8AE9E;padding-bottom:11px}
+.rc-venue{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.08em}
+.rc-sub{font-size:11px;color:#6A6055;margin-top:3px;letter-spacing:.08em;text-transform:uppercase}
+.rc-guest{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed #B8AE9E;font-size:12.5px}
+.rc-guest b{font-weight:500}
+.rc-tabs{display:flex;gap:5px;padding:9px 0 0;flex-wrap:wrap}
+.rc-tabs button{padding:3px 9px;border:1px solid #C3B8A6;border-radius:2px;font-family:var(--mono);font-size:11px;color:#5C5247}
+.rc-tabs button.on{background:#241F1B;color:#F3EEE4;border-color:#241F1B}
+.rc-tabs .add{border-style:dashed}
+.rc-lines{margin:11px 0 0;padding:11px 0 0;border-top:1px dashed #B8AE9E}
+.rl{display:flex;gap:8px;align-items:flex-start;padding:5px 0}
+.rl-body{flex:1;min-width:0}
+.rl-name{display:block;line-height:1.3}
+.rl-sum{white-space:nowrap;font-variant-numeric:tabular-nums}
+.rl-act{display:flex;gap:2px}
+.rl-pick{width:20px;height:20px;flex:0 0 20px;border:1px solid #B8AE9E;border-radius:2px;background:#FBF8F2;color:transparent;font-size:12px;line-height:18px;text-align:center;margin-top:1px}
+.rl-pick:hover{border-color:#241F1B}
+.rl.picked{background:#E6DECE;border-radius:2px;margin:0 -6px;padding:5px 6px}
+.rl.picked .rl-pick{background:#241F1B;border-color:#241F1B;color:#F3EEE4}
+.rc-sel{margin-top:11px;padding:10px 11px;background:#241F1B;color:#F3EEE4;border-radius:2px;font-size:11.5px}
+.rc-sel .cnt{display:block;letter-spacing:.06em;text-transform:uppercase;font-size:10px;color:#B3A692}
+.rc-sel .btns{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.rc-sel button{padding:6px 10px;border:1px solid #6A6055;border-radius:2px;color:#F3EEE4;font-family:var(--mono);font-size:11.5px}
+.rc-sel button:hover{background:#F3EEE4;color:#241F1B;border-color:#F3EEE4}
+.rc-sel button.go{background:#E2542A;border-color:#E2542A;font-weight:600}
+.rc-sel button.go:hover{background:#F0602F;color:#fff;border-color:#F0602F}
+.rc-sel .lbl{color:#B3A692;align-self:center;margin-right:2px}
+.rl-act button{width:20px;height:20px;line-height:1;border:1px solid #CDC2B0;border-radius:2px;color:#5C5247;font-size:12px}
+.rl-act button:hover{background:#241F1B;color:#F3EEE4;border-color:#241F1B}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:1px 4px;border-radius:2px;vertical-align:1px}
+.tag.draft{background:#D9CFBD;color:#5C5247}
+.tag.sent{background:#E2542A;color:#fff}
+.tag.done{background:#3E6B57;color:#fff}
+.tag.live{background:#241F1B;color:#D8C48F}
+.rc-total{display:flex;justify-content:space-between;margin-top:12px;padding-top:11px;border-top:1px solid #241F1B;font-size:15px;font-weight:500}
+.rc-count{font-size:11px;color:#6A6055;text-align:right;margin-top:2px}
+.rc-pay{margin-top:14px;display:grid;gap:6px}
+.rc-pay button{padding:10px;border-radius:2px;background:#241F1B;color:#F3EEE4;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.rc-pay button.ghost{background:none;border:1px solid #C3B8A6;color:#5C5247}
+.rc-pay button.paid{background:#3E6B57}
+.rc-empty{padding:26px 0;text-align:center;color:#7A6F63;font-size:12.5px;line-height:1.6}
+.rc-send{margin-top:12px;padding:9px 11px;background:#241F1B;color:#F3EEE4;display:flex;align-items:center;gap:10px;font-size:11.5px;border-radius:2px}
+.rc-send .bar{flex:1;height:3px;background:#4A4038;border-radius:2px;overflow:hidden}
+.rc-send .bar i{display:block;height:100%;background:var(--ember);transition:width .95s linear}
+.rc-send button{color:#D8C48F;text-decoration:underline;font-family:var(--mono);font-size:11px;white-space:nowrap}
+.rc-log{margin-top:14px;font-size:11px;color:#7A6F63}
+.rc-log summary{cursor:pointer;letter-spacing:.08em;text-transform:uppercase;font-size:10px}
+.rc-log div{padding:3px 0;border-bottom:1px dotted #CDC2B0}
+.rc-thx{text-align:center;margin-top:16px;font-size:11px;color:#7A6F63;letter-spacing:.1em}
+
+/* ---------- bookings ---------- */
+.bk-list{display:grid;gap:6px;max-width:820px}
+.bk{display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+.bk.late{border-color:#6B3A24;background:#271E19}
+.bk.arrived{border-color:#31513F;background:#1C2620}
+.bk.noshow{opacity:.45}
+.bk-time{font-family:var(--mono);font-size:16px;color:var(--sage)}
+.bk.noshow .bk-time,.bk.arrived .bk-time{color:var(--chalk-dim)}
+.bk-name{font-family:var(--display);font-weight:500;font-size:17px;line-height:1.2}
+.bk.noshow .bk-name{text-decoration:line-through}
+.bk-meta{font-family:var(--mono);font-size:11.5px;color:var(--chalk-dim);margin-top:3px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bk-meta .late-flag{color:var(--ember)}
+.bk-meta .sw{border:1px solid var(--line);border-radius:2px;padding:1px 6px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--chalk-dim)}
+.bk-meta .sw:hover{border-color:var(--sage);color:var(--chalk)}
+.bk-act{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.bk-act button{padding:8px 13px;border-radius:var(--r);font-size:13.5px;white-space:nowrap}
+.bk-act .yes{background:var(--jade);color:#0F1A15;font-weight:600}
+.bk-act .yes:hover{background:#72BA9B}
+.bk-act .no{border:1px solid var(--line);color:var(--chalk-dim)}
+.bk-act .no:hover{color:var(--chalk);border-color:#6B3A24}
+.bk-act .link{color:var(--sage);text-decoration:underline;font-size:12.5px;padding:8px 4px}
+.bk-state{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--chalk-dim)}
+.bk-day{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 16px;font-family:var(--mono);font-size:12px;color:var(--chalk-dim)}
+.bk-day b{color:var(--chalk);font-weight:500}
+.bk-imp{border:1px dashed var(--line);border-radius:var(--r);background:var(--panel);padding:14px;margin-top:22px;max-width:820px}
+.bk-imp h4{font-family:var(--display);font-weight:500;font-size:16px;margin:0 0 3px}
+.bk-imp p{margin:0 0 10px;font-size:12.5px;color:var(--chalk-dim)}
+.bk-imp textarea{width:100%;min-height:82px;resize:vertical;padding:10px 11px;background:var(--slate);border:1px solid var(--line);border-radius:var(--r);color:var(--chalk);font-family:var(--mono);font-size:12.5px;line-height:1.6}
+.bk-imp .row{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center}
+.bk-imp .row button{padding:9px 16px;border-radius:var(--r);background:var(--panel-2);border:1px solid var(--line);font-size:13.5px}
+.bk-imp .row button:hover{border-color:var(--sage)}
+
+/* ---------- kitchen ---------- */
+.kwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+@media (max-width:960px){.kwrap{grid-template-columns:1fr}}
+.tickets{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ticket{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden}
+.ticket.hot{border-color:var(--ember)}
+.ticket .th{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:10px 13px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+.ticket .tw{font-family:var(--display);font-weight:500;font-size:16px}
+.ticket .tt{font-family:var(--mono);font-size:12px;color:var(--ember)}
+.ticket ul{list-style:none;margin:0;padding:9px 13px}
+.ticket li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:14px}
+.ticket li .q{font-family:var(--mono);color:var(--sage)}
+.ticket li.gone{color:#6E7679;text-decoration:line-through}
+.ticket .tf{padding:9px 13px 12px;display:grid;gap:5px}
+.ticket .tf button{padding:9px;border-radius:var(--r);background:var(--jade);color:#0F1A15;font-weight:600}
+.ticket .tf button:hover{background:#72BA9B}
+.ticket .tf .sub{font-family:var(--mono);font-size:11px;color:var(--chalk-dim);text-align:center}
+.tg{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:14px}
+.tg h4{font-family:var(--display);font-weight:500;font-size:16px;margin:0 0 3px}
+.tg .hint{font-size:12.5px;color:var(--chalk-dim);margin:0 0 12px}
+.tg-feed{max-height:340px;overflow-y:auto;display:grid;gap:8px;padding-right:2px}
+.msg{background:#1F2A33;border-left:2px solid #4A9FD8;border-radius:var(--r);padding:9px 11px;font-size:13px;white-space:pre-wrap;font-family:var(--mono);line-height:1.5}
+.msg time{display:block;font-size:10.5px;color:#7E8B95;margin-top:6px}
+.tg-hook{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.tg-hook input{width:100%;padding:8px 10px;background:var(--slate);border:1px solid var(--line);border-radius:var(--r);color:var(--chalk);font-family:var(--mono);font-size:12px}
+.tg-hook .st{font-family:var(--mono);font-size:11px;color:var(--chalk-dim);margin-top:6px}
+
+/* ---------- report ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:10px;margin-bottom:24px}
+.kpi{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:14px 15px}
+.kpi .kl{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--chalk-dim)}
+.kpi .kv{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-.02em;margin-top:6px}
+.kpi .kv small{font-size:14px;font-weight:500;color:var(--chalk-dim);margin-left:3px}
+.bars{display:grid;gap:7px;max-width:660px}
+.bar-row{display:grid;grid-template-columns:186px 1fr 96px;gap:11px;align-items:center;font-size:13.5px}
+.bar-row .track{height:20px;background:var(--panel);border-radius:2px;overflow:hidden}
+.bar-row .track i{display:block;height:100%;background:linear-gradient(90deg,#8A4A2A,var(--ember))}
+.bar-row.banya .track i{background:linear-gradient(90deg,#5E6B4E,var(--sage))}
+.bar-row .amt{font-family:var(--mono);font-size:12.5px;color:var(--chalk-dim);text-align:right}
+.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:#6E7679;display:flex;gap:16px;flex-wrap:wrap}
+.foot button{color:var(--chalk-dim);text-decoration:underline;font-size:12px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);border-left:2px solid var(--jade);padding:11px 16px;border-radius:var(--r);font-size:13.5px;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:90vw}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">AMMÉ<span>баня и кухня</span></div>
+  <nav class="nav" id="nav"></nav>
+</div>
+<main id="app"></main>
+<div id="toast"></div>
+
+<script>
+const VENUE = "AMMÉ";
+const BANYA = 800000;   // Rp с человека за сеанс
+const SEND_DELAY = 6;   // секунд до автоотправки на кухню
+
+const MENU = [
+  {id:'m1', n:'Lamb Stew',       p:200000, c:'Main dishes', st:'Кухня'},
+  {id:'m2', n:'BBQ Chicken',     p:150000, c:'Main dishes', st:'Кухня'},
+  {id:'m3', n:'Olivier Salad',   p:100000, c:'Main dishes', st:'Кухня', v:'Veg'},
+  {id:'m4', n:'Beetroot Caviar', p:100000, c:'Main dishes', st:'Кухня', v:'V'},
+  {id:'m5', n:'Grill Fish',      p:150000, c:'Main dishes', st:'Кухня'},
+  {id:'m6', n:'Radish Salad',    p:80000,  c:'Main dishes', st:'Кухня', v:'V'},
+  {id:'d1', n:'Salmon',          p:200000, c:'Dumplings',   st:'Кухня'},
+  {id:'d2', n:'Chicken',         p:150000, c:'Dumplings',   st:'Кухня'},
+  {id:'d3', n:'Potato',          p:100000, c:'Dumplings',   st:'Кухня'},
+  {id:'s1', n:'Syrniki',         p:100000, c:'Desserts',    st:'Кухня'},
+  {id:'b1', n:'Cacao',           p:80000,  c:'Drinks',      st:'Бар'},
+  {id:'b2', n:'Coffee',          p:50000,  c:'Drinks',      st:'Бар'},
+  {id:'b3', n:'Matcha',          p:80000,  c:'Drinks',      st:'Бар'},
+  {id:'b4', n:'Lemon Lemonade',  p:60000,  c:'Drinks',      st:'Бар'},
+  {id:'b5', n:'Coconut',         p:30000,  c:'Drinks',      st:'Бар'},
+];
+const CATS = ['Main dishes','Dumplings','Desserts','Drinks'];
+
+let S = null, view = 'book';
+let selVisit = null, selTab = null;
+let sendTimer = null, sendLeft = 0;
+let walkOpen = false, wName = '', wGuests = 2, wBanya = false;
+let hook = '', hookState = '';
+const selLines = new Set();   // выбранные позиции для переноса
+
+const uid   = p => p + Math.random().toString(36).slice(2,8);
+const money = n => new Intl.NumberFormat('ru-RU').format(Math.round(n));
+const short = n => (n/1000) + 'k';
+const now   = () => Date.now();
+const hhmm  = ts => new Date(ts).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+const esc   = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const todayKey = () => new Date().toISOString().slice(0,10);
+const atToday  = (h,m) => { const d=new Date(); d.setHours(h,m,0,0); return d.getTime(); };
+
+function blank(){ return {bookings:[], bookingsDate:null, visits:[], tabs:[], lines:[], events:[], feed:[]}; }
+
+/* ---------- persistence (Claude window.storage или localStorage в браузере) ---------- */
+const store = {
+  async get(key){
+    if(window.storage && typeof window.storage.get === 'function'){
+      return window.storage.get(key);
+    }
+    const v = localStorage.getItem(key);
+    if(v == null) throw new Error('missing');
+    return { value: v };
+  },
+  async set(key, value){
+    if(window.storage && typeof window.storage.set === 'function'){
+      return window.storage.set(key, value);
+    }
+    localStorage.setItem(key, value);
+  }
+};
+
+async function load(){
+  try{ S = JSON.parse((await store.get('amme-v1')).value); }
+  catch(e){ S = blank(); seedHistory(); }
+  if(!S.feed) S.feed = [];
+  if(S.bookingsDate !== todayKey()) seedBookings();
+  render();
+}
+async function save(){ try{ await store.set('amme-v1', JSON.stringify(S)); }catch(e){} }
+
+/* ---------- seed ---------- */
+function seedBookings(){
+  S.bookings = [
+    {h:10,m:0,  n:'Игорь Ковальчук', g:2, banya:true,  ph:'+62 812 3344 551'},
+    {h:11,m:30, n:'Настя',           g:3, banya:true,  ph:null},
+    {h:13,m:0,  n:'Дима и Лена',     g:2, banya:false, ph:null},
+    {h:14,m:0,  n:'Марина',          g:4, banya:true,  ph:'+62 819 7712 004'},
+    {h:16,m:0,  n:'Алексей',         g:2, banya:true,  ph:null},
+    {h:17,m:30, n:'Оля',             g:2, banya:false, ph:null},
+    {h:19,m:0,  n:'Тимур',           g:5, banya:true,  ph:null},
+    {h:20,m:30, n:'Ксения',          g:2, banya:false, ph:null},
+  ].map(b=>({id:uid('b'), at:atToday(b.h,b.m), name:b.n, guests:b.g, banya:b.banya, phone:b.ph, status:'waiting', visitId:null}));
+  S.bookingsDate = todayKey();
+  save();
+}
+function seedHistory(){
+  const day = 86400000;
+  const sets = [
+    {n:'Игорь',   g:2, b:true,  f:['m1','b2','b2']},
+    {n:'Настя',   g:3, b:true,  f:['m3','d1','b3','b4']},
+    {n:'Дима',    g:2, b:false, f:['d2','m2','b5','b5']},
+    {n:'Марина',  g:4, b:true,  f:['s1','m6','b1']},
+    {n:'Алексей', g:2, b:true,  f:['m1','d1','d2','b2','b1']},
+    {n:'Оля',     g:2, b:false, f:['m4','m5','b4']},
+    {n:'Тимур',   g:5, b:true,  f:['m2','d3','b3','b1']},
+  ];
+  sets.forEach((s,i)=>{
+    const t0 = now() - (7-i)*day + 14*3600000;
+    const v = {id:uid('v'), bookingId:null, name:s.n, guests:s.g, banya:s.b,
+               startedAt:t0, banyaEnd:s.b?t0+2*3600000:null, closedAt:t0+3.5*3600000, bookedAt:t0};
+    const tab = {id:uid('c'), visitId:v.id, title:'Счёт 1', paid:true, closedAt:v.closedAt};
+    S.visits.push(v); S.tabs.push(tab);
+    if(s.b) S.lines.push({id:uid('l'), tabId:tab.id, kind:'banya', name:'Баня, сеанс', qty:s.g, price:BANYA, status:'done', createdAt:t0, doneAt:t0});
+    s.f.forEach(mid=>{
+      const m = MENU.find(x=>x.id===mid);
+      S.lines.push({id:uid('l'), tabId:tab.id, kind:'item', itemId:m.id, name:m.n, qty:1, price:m.p, station:m.st,
+                    status:'done', createdAt:t0+3600000, sentAt:t0+3600000, doneAt:t0+3900000, ticketId:uid('t')});
+    });
+  });
+}
+
+/* ---------- selectors ---------- */
+const openVisits  = () => S.visits.filter(v=>!v.closedAt);
+const visitById   = id => S.visits.find(v=>v.id===id);
+const tabsOf      = vid => S.tabs.filter(t=>t.visitId===vid);
+const linesOf     = tid => S.lines.filter(l=>l.tabId===tid);
+const tabTotal    = tid => linesOf(tid).reduce((s,l)=>s+l.price*l.qty,0);
+const visitTotal  = vid => tabsOf(vid).reduce((s,t)=>s+tabTotal(t.id),0);
+const inBanya     = () => S.visits.filter(v=>!v.closedAt && v.banya && !v.banyaEnd);
+const waitingCount= () => S.bookings.filter(b=>b.status==='waiting').length;
+const isLate      = b => b.status==='waiting' && now()-b.at > 15*60000;
+const nextBanya   = () => S.bookings.filter(b=>b.status==='waiting' && b.banya).sort((a,b)=>a.at-b.at)[0];
+
+function elapsed(v){
+  const ms = (v.banyaEnd || now()) - v.startedAt;
+  const h = Math.floor(ms/3600000), m = Math.floor(ms%3600000/60000);
+  return h ? `${h} ч ${m} мин` : `${m} мин`;
+}
+function log(vid, text){ S.events.push({id:uid('e'), visitId:vid, ts:now(), text}); }
+
+/* ---------- visits ---------- */
+function openVisit(name, guests, banya, bookingId, bookedAt){
+  const v = {id:uid('v'), bookingId:bookingId||null, name, guests, banya:!!banya,
+             startedAt:now(), banyaEnd:banya?null:now(), closedAt:null, bookedAt:bookedAt||null};
+  const t = {id:uid('c'), visitId:v.id, title:'Счёт 1', paid:false, closedAt:null};
+  S.visits.push(v); S.tabs.push(t);
+  if(banya) S.lines.push({id:uid('l'), tabId:t.id, kind:'banya', name:'Баня, сеанс',
+                          qty:guests, price:BANYA, status:'done', createdAt:now(), doneAt:now()});
+  selVisit = v.id; selTab = t.id;
+  log(v.id, banya? `Пришёл, баня — ${guests} чел. × ${money(BANYA)}` : `Пришёл в ресторан, ${guests} чел.`);
+  return v;
+}
+function arrive(b){
+  const v = openVisit(b.name, b.guests, b.banya, b.id, b.at);
+  b.status='arrived'; b.visitId=v.id;
+  if(isLate(b)) log(v.id,'Пришёл с опозданием');
+  view='guests';
+  toast(b.banya? `${b.name} — баня пошла` : `${b.name} — счёт открыт`);
+  save(); render();
+}
+function noshow(b){ b.status='noshow'; toast(`${b.name} — не пришёл`); save(); render(); }
+function unmark(b){ b.status='waiting'; save(); render(); }
+function toggleBanya(b){ b.banya=!b.banya; save(); render(); }
+
+function freeBanya(v){
+  v.banyaEnd = now();
+  log(v.id, `Вышел из бани, сеанс ${elapsed(v)}`);
+  toast(`${v.name} вышел · сеанс ${elapsed(v)}`); save(); render();
+}
+function endSession(){
+  const ppl = inBanya();
+  if(!ppl.length) return;
+  ppl.forEach(v=>{ v.banyaEnd = now(); log(v.id, `Сеанс завершён, ${elapsed(v)}`); });
+  toast(`Сеанс завершён · ${ppl.length} гостей вышли`); save(); render();
+}
+function startWalkin(){
+  const nm = wName.trim();
+  if(!nm){ toast('Впиши имя гостя'); return; }
+  openVisit(nm, wGuests, wBanya, null, null);
+  walkOpen=false; wName=''; wGuests=2; wBanya=false;
+  toast(`${nm} — счёт открыт`); save(); render();
+}
+
+/* ---------- orders ---------- */
+function addDish(m){
+  const t = S.tabs.find(x=>x.id===selTab);
+  if(!t || t.closedAt){ toast('Сначала выбери гостя'); return; }
+  const ex = S.lines.find(l=>l.tabId===t.id && l.itemId===m.id && l.status==='draft');
+  if(ex) ex.qty++;
+  else S.lines.push({id:uid('l'), tabId:t.id, kind:'item', itemId:m.id, name:m.n, qty:1, price:m.p, station:m.st, status:'draft', createdAt:now()});
+  armSend(); save(); render();
+}
+function bumpQty(l,d){
+  l.qty += d;
+  if(l.qty<=0) S.lines = S.lines.filter(x=>x.id!==l.id);
+  if(l.status==='draft') armSend();
+  save(); render();
+}
+function armSend(){
+  clearInterval(sendTimer); sendLeft = SEND_DELAY;
+  sendTimer = setInterval(()=>{
+    sendLeft--;
+    if(sendLeft<=0){ clearInterval(sendTimer); sendTimer=null; sendNow(); } else render();
+  },1000);
+}
+function sendNow(){
+  clearInterval(sendTimer); sendTimer=null;
+  const drafts = S.lines.filter(l=>l.status==='draft');
+  if(!drafts.length){ render(); return; }
+  const byTab = {};
+  drafts.forEach(l=>{ (byTab[l.tabId]=byTab[l.tabId]||[]).push(l); });
+  Object.entries(byTab).forEach(([tid,ls])=>{
+    const tk = uid('t');
+    ls.forEach(l=>{ l.status='sent'; l.sentAt=now(); l.ticketId=tk; });
+    const tab = S.tabs.find(x=>x.id===tid), v = visitById(tab.visitId);
+    const text = `🔥 ЗАКАЗ · ${v.name}\n${tab.title}${v.banya?' · после бани':''}\n\n`
+      + ls.map(l=>`${l.qty} × ${l.name}`).join('\n')
+      + `\n\n${hhmm(now())}`;
+    S.feed.unshift({id:uid('f'), ts:now(), text});
+    log(v.id, `На кухню: ${ls.map(l=>l.qty+'×'+l.name).join(', ')}`);
+    push(text);
+  });
+  toast('Заказ ушёл на кухню'); save(); render();
+}
+function push(text){
+  if(!hook) return;
+  hookState='отправляю…';
+  fetch(hook,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})})
+    .then(()=>{ hookState='отправлено '+hhmm(now()); render(); })
+    .catch(()=>{ hookState='не дошло — проверь адрес'; render(); });
+}
+function markDone(tk){
+  S.lines.filter(l=>l.ticketId===tk).forEach(l=>{ l.status='done'; l.doneAt=now(); });
+  const l0 = S.lines.find(l=>l.ticketId===tk);
+  if(l0){ const tab=S.tabs.find(t=>t.id===l0.tabId); log(tab.visitId,'Кухня отдала заказ'); }
+  toast('Отдано'); save(); render();
+}
+function toggleLine(id){ selLines.has(id)? selLines.delete(id) : selLines.add(id); render(); }
+function clearSel(){ selLines.clear(); render(); }
+
+function moveSelected(destTabId){
+  const ids = [...selLines];
+  const moving = S.lines.filter(l=>ids.includes(l.id));
+  if(!moving.length) return;
+  const fromTab = S.tabs.find(t=>t.id===moving[0].tabId);
+  const dest = S.tabs.find(t=>t.id===destTabId);
+  const what = moving.map(l=>`${l.qty}×${l.name}`).join(', ');
+  moving.forEach(l=>{ l.tabId = dest.id; });
+  log(fromTab.visitId, `${what} → ${visitById(dest.visitId).name}, ${dest.title}`);
+  if(dest.visitId !== fromTab.visitId)
+    log(dest.visitId, `${what} ← ${visitById(fromTab.visitId).name}`);
+  selLines.clear(); selTab = dest.id;
+  toast(`Перенесено позиций: ${moving.length} → ${dest.title}`);
+  save(); render();
+}
+function moveSelectedToNewTab(v){
+  const t = newTab(v);
+  moveSelected(t.id);
+}
+function newTab(v){
+  const t = {id:uid('c'), visitId:v.id, title:'Счёт '+(tabsOf(v.id).length+1), paid:false, closedAt:null};
+  S.tabs.push(t); log(v.id,'Открыт '+t.title);
+  return t;
+}
+function addTab(v){ selTab = newTab(v).id; save(); render(); }
+function dropTab(t){
+  if(linesOf(t.id).length){ toast('Счёт не пустой'); return; }
+  if(tabsOf(t.visitId).length<2){ toast('Это единственный счёт гостя'); return; }
+  S.tabs = S.tabs.filter(x=>x.id!==t.id);
+  log(t.visitId, t.title+' убран, был пустой');
+  selTab = tabsOf(t.visitId).filter(x=>!x.closedAt)[0]?.id || null;
+  save(); render();
+}
+function payTab(t){ t.paid=!t.paid; log(t.visitId, t.paid?'Оплата принята':'Оплата отменена'); save(); render(); }
+function closeTab(t){
+  const v = visitById(t.visitId);
+  if(v.banya && !v.banyaEnd) v.banyaEnd = now();   // закрыли счёт — гость вышел
+  if(S.lines.some(l=>l.tabId===t.id && l.status!=='done')){ toast('Кухня ещё не отдала все позиции'); return; }
+  t.closedAt = now(); log(v.id, t.title+' закрыт');
+  const rest = tabsOf(v.id).filter(x=>!x.closedAt);
+  if(!rest.length){ v.closedAt=now(); log(v.id,'Визит закрыт'); selVisit=null; selTab=null; }
+  else selTab = rest[0].id;
+  toast('Счёт закрыт'); save(); render();
+}
+
+/* ---------- bookings import ---------- */
+function importBookings(text, replace){
+  const rows = text.split('\n').map(s=>s.trim()).filter(Boolean);
+  const add = []; const bad = [];
+  rows.forEach(row=>{
+    const tm = /(\d{1,2})[:.](\d{2})/.exec(row);
+    if(!tm){ bad.push(row); return; }
+    let rest = ' ' + row.replace(tm[0],' ') + ' ';
+
+    let phone = null;
+    const ph = /\+?\d[\d\s\-()]{8,}/.exec(rest);
+    if(ph){ phone = ph[0].trim().replace(/\s+/g,' '); rest = rest.replace(ph[0],' '); }
+
+    rest = ' ' + rest.replace(/[,;·|\t/–—]+/g,' ').replace(/\s+/g,' ').trim() + ' ';
+
+    let banya = true;                                  // по умолчанию баня
+    if(/(?:^|\s)(?:без\s*бани|только\s*(?:кухн\S*|ресторан\S*)|ресторан\S*|kitchen|no\s*banya)(?=\s|$)/i.test(rest)){
+      banya = false;
+      rest = rest.replace(/(?:^|\s)(?:без\s*бани|только\s*(?:кухн\S*|ресторан\S*)|ресторан\S*|kitchen|no\s*banya)(?=\s|$)/i,' ');
+    } else {
+      rest = rest.replace(/(?:^|\s)(?:бан\S*|banya|sauna)(?=\s|$)/i,' ');
+    }
+
+    let guests = 2;
+    const gm = /(\d{1,2})\s*(?:чел\S*|гост\S*|pax|p)?(?=\s|$)/i.exec(rest);
+    if(gm){ guests = Math.min(20, Math.max(1, +gm[1])); rest = rest.replace(gm[0],' '); }
+
+    const name = rest.replace(/\s+/g,' ').trim();
+    if(!name){ bad.push(row); return; }
+    add.push({id:uid('b'), at:atToday(+tm[1],+tm[2]), name, guests, banya, phone, status:'waiting', visitId:null});
+  });
+  if(!add.length){ toast('Ни в одной строке нет времени — оно обязательно'); return; }
+  S.bookings = replace ? add : S.bookings.concat(add);
+  S.bookingsDate = todayKey();
+  toast(`${replace?'Список заменён':'Добавлено'}: ${add.length}${bad.length?` · без времени, пропущено ${bad.length}`:''}`);
+  save(); render();
+}
+
+/* ---------- report ---------- */
+function report(){
+  const closed = S.tabs.filter(t=>t.closedAt);
+  const rev = closed.reduce((s,t)=>s+tabTotal(t.id),0);
+  const byName = {}; let food=0, banya=0, bGuests=0;
+  closed.forEach(t=>linesOf(t.id).forEach(l=>{
+    const sum = l.price*l.qty;
+    if(l.kind==='banya'){ banya+=sum; bGuests+=l.qty; } else food+=sum;
+    byName[l.name]=(byName[l.name]||0)+sum;
+  }));
+  const top = Object.entries(byName).sort((a,b)=>b[1]-a[1]);
+  const bkAll = S.bookings.length;
+  const bkNo  = S.bookings.filter(b=>b.status==='noshow').length;
+  const bkArr = S.bookings.filter(b=>b.status==='arrived').length;
+  return {rev, checks:closed.length, avg:closed.length?rev/closed.length:0, food, banya, bGuests,
+          perGuest: bGuests? food/bGuests : 0, top, max: top.length?top[0][1]:1, bkAll, bkNo, bkArr};
+}
+
+/* ---------- render ---------- */
+function toast(m){
+  const el=document.getElementById('toast');
+  el.innerHTML=`<div class="toast">${esc(m)}</div>`;
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.innerHTML='',2600);
+}
+function render(){
+  const wait = waitingCount(), hot = S.lines.filter(l=>l.status==='sent').length;
+  document.getElementById('nav').innerHTML = [
+    ['book','Записи'+(wait?`<span class="badge">${wait}</span>`:'')],
+    ['guests','Гости'],
+    ['kitchen','Кухня'+(hot?`<span class="badge">${hot}</span>`:'')],
+    ['report','Отчёт'],
+  ].map(([k,t])=>`<button class="${view===k?'on':''}" data-nav="${k}">${t}</button>`).join('');
+  document.getElementById('app').innerHTML =
+    view==='book' ? bookHTML() : view==='guests' ? guestsHTML() : view==='kitchen' ? kitchenHTML() : reportHTML();
+}
+
+function bookHTML(){
+  const list = S.bookings.slice().sort((a,b)=>a.at-b.at);
+  const a=S.bookings.filter(b=>b.status==='arrived').length;
+  const n=S.bookings.filter(b=>b.status==='noshow').length;
+  const g=S.bookings.filter(b=>b.status==='arrived').reduce((s,b)=>s+b.guests,0);
+
+  const rows = list.map(b=>{
+    const late = isLate(b);
+    const cls = 'bk' + (b.status==='arrived'?' arrived':b.status==='noshow'?' noshow':late?' late':'');
+    const chip = b.banya? '<span class="chip banya">баня</span>' : '<span class="chip only">только кухня</span>';
+    const sw = b.status==='waiting'? `<button class="sw" data-swbanya="${b.id}">${b.banya?'снять баню':'добавить баню'}</button>`:'';
+    let act;
+    if(b.status==='waiting') act = `<button class="yes" data-arrive="${b.id}">Пришёл</button><button class="no" data-noshow="${b.id}">Не пришёл</button>`;
+    else if(b.status==='arrived') act = `<span class="bk-state">пришёл</span><button class="link" data-openvisit="${b.visitId}">счёт</button>`;
+    else act = `<span class="bk-state">не пришёл</span><button class="link" data-unmark="${b.id}">вернуть</button>`;
+    return `<div class="${cls}">
+      <div class="bk-time">${hhmm(b.at)}</div>
+      <div><div class="bk-name">${esc(b.name)}</div>
+        <div class="bk-meta">${chip}<span>${b.guests} чел.</span>${b.phone?`<span>${esc(b.phone)}</span>`:''}${late?'<span class="late-flag">опаздывает</span>':''}${sw}</div></div>
+      <div class="bk-act">${act}</div></div>`;
+  }).join('');
+
+  return `<p class="eyebrow">Записи на сегодня — ${new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</p>
+  <div class="bk-day"><span>Всего <b>${list.length}</b></span><span>Ждём <b>${waitingCount()}</b></span>
+    <span>Пришли <b>${a}</b> · <b>${g}</b> чел.</span><span>Не пришли <b>${n}</b></span></div>
+  ${list.length? `<div class="bk-list">${rows}</div>`
+    : `<div class="card" style="max-width:820px"><h3>Список пустой</h3><p class="hint">Вставь записи на смену ниже.</p></div>`}
+  <div class="bk-imp">
+    <h4>Загрузить список на смену</h4>
+    <p>Строка на гостя. Обязательно только время. Имя, число гостей и телефон разберу как получится.
+       По умолчанию считаю, что гость с баней — напиши «без бани» или «только кухня», если он приходит просто поесть.</p>
+    <textarea id="imp" placeholder="10:00 Игорь 2 +62 812 3344 551&#10;13:00 Дима и Лена 2 без бани&#10;19:00 Тимур 5"></textarea>
+    <div class="row">
+      <button data-import="add">Добавить к списку</button>
+      <button data-import="replace">Заменить список</button>
+    </div>
+  </div>`;
+}
+
+function guestsHTML(){
+  const list = openVisits();
+  if(selVisit && !list.some(v=>v.id===selVisit)){ selVisit=null; selTab=null; }
+  const bv = inBanya();
+  const nb = nextBanya();
+  const bPeople = bv.reduce((s,v)=>s+v.guests,0);
+
+  const banyaStrip = bv.length
+    ? `<div class="banya on">
+         <div><div class="bl">в бане сейчас</div><div class="who">${bPeople} чел.</div></div>
+         <div><div class="bl">кто</div><div class="tm">${bv.map(v=>esc(v.name)).join(', ')}</div></div>
+         <div><div class="bl">за баню</div><div class="tm">${money(bPeople*BANYA)} Rp</div></div>
+         <div class="act"><button data-endsession="1">Завершить сеанс</button></div></div>`
+    : `<div class="banya">
+         <div><div class="bl">баня</div><div class="who">Сеанса нет</div></div>
+         <div class="free">${nb? `Ближайший гость — ${esc(nb.name)} в ${hhmm(nb.at)}` : 'Записей на баню нет'}</div>
+         <div class="act">${nb?`<button data-arrive="${nb.id}">${esc(nb.name)} пришёл</button>`:''}</div></div>`;
+
+  const cards = list.map(v=>{
+    const sum = visitTotal(v.id);
+    const cnt = tabsOf(v.id).reduce((s,t)=>s+linesOf(t.id).filter(l=>l.kind==='item').reduce((a,l)=>a+l.qty,0),0);
+    const unpaid = tabsOf(v.id).some(t=>!t.closedAt && !t.paid);
+    const hot = tabsOf(v.id).some(t=>linesOf(t.id).some(l=>l.status==='sent'));
+    return `<button class="g ${selVisit===v.id?'sel':''}" data-visit="${v.id}">
+      <div class="gn">${esc(v.name)}</div>
+      <div class="gm">${v.banya?(v.banyaEnd?'<span class="chip banya">после бани</span>':'<span class="chip banya">в бане</span>'):'<span class="chip only">кухня</span>'}
+        <span>${v.guests} чел.</span>${hot?'<span class="chip hot">на кухне</span>':''}</div>
+      <div class="gs">${money(sum)} Rp · ${cnt} поз. <span class="${unpaid?'unpaid':''}">${unpaid?'не оплачен':'оплачен'}</span></div>
+    </button>`;
+  }).join('');
+
+  const walk = walkOpen ? `<div class="card" style="margin-top:12px;max-width:380px">
+      <h3>Гость без записи</h3>
+      <div class="field"><label>Имя</label><input id="wname" value="${esc(wName)}" placeholder="Как записать" autocomplete="off"></div>
+      <div class="field"><label>Гостей</label><div class="stepper"><button data-wg="-1">−</button><span>${wGuests}</span><button data-wg="1">+</button></div></div>
+      <div class="field"><label>Что берёт</label><div class="toggle">
+        <button class="${!wBanya?'on':''}" data-wb="0">Только кухня</button>
+        <button class="${wBanya?'on':''}" data-wb="1">С баней</button></div></div>
+      <button class="primary" data-walkgo="1">Открыть счёт</button>
+    </div>` : `<button class="ghostbtn" style="margin-top:12px;max-width:380px" data-walkopen="1">+ гость без записи</button>`;
+
+  const board = `<div class="board"><h2>${VENUE} MENU</h2><div class="bgrid">
+    ${CATS.map(c=>`<div class="bsec"><h4>${c}</h4><ul>
+      ${MENU.filter(m=>m.c===c).map(m=>`<li><button data-dish="${m.id}" ${!selTab?'disabled':''}>
+        <span class="dn">${m.n}${m.v?` <span class="dv">(${m.v})</span>`:''}</span>
+        <span class="dp">${short(m.p)}</span></button></li>`).join('')}
+    </ul></div>`).join('')}
+  </div></div>`;
+
+  const right = selVisit ? receiptHTML(visitById(selVisit))
+    : `<div class="card"><h3>Выбери гостя</h3><p class="hint">Заказ падает на имя. Слева — все, кто уже пришёл.</p></div>`;
+
+  return `${banyaStrip}
+  <div class="split"><div>
+    <p class="eyebrow">Гости в заведении — ${list.length}</p>
+    ${cards? `<div class="guests">${cards}</div>` : `<div class="card"><h3>Пока никого</h3><p class="hint">Отметь приход во вкладке «Записи» или добавь гостя без записи.</p></div>`}
+    ${walk}${board}
+  </div><div>${right}</div></div>`;
+}
+
+function receiptHTML(v){
+  const tabs = tabsOf(v.id);
+  if(!selTab || !tabs.some(t=>t.id===selTab && !t.closedAt)){
+    const f = tabs.find(t=>!t.closedAt); selTab = f?f.id:null;
+  }
+  const t = S.tabs.find(x=>x.id===selTab);
+  const lines = t?linesOf(t.id):[];
+  const live = v.banya && !v.banyaEnd;
+
+  const rows = lines.map(l=>{
+    const tag = l.kind==='banya' ? '' :
+      `<span class="tag ${l.status}">${l.status==='draft'?'в счёт':l.status==='sent'?'на кухне':'отдано'}</span>`;
+    const act = l.kind==='item'
+      ? `<button data-minus="${l.id}" title="Убрать одну">−</button>`
+      : `<button data-minus="${l.id}" title="Минус человек">−</button><button data-plus="${l.id}" title="Плюс человек">+</button>`;
+    const pick = l.kind==='item'
+      ? `<button class="rl-pick" data-pick="${l.id}" title="Выбрать для переноса">✓</button>`
+      : `<span class="rl-pick" style="border:0;background:none"></span>`;
+    return `<div class="rl ${selLines.has(l.id)?'picked':''}">
+      ${pick}
+      <div class="rl-body"><span class="rl-name">${l.qty>1?l.qty+' × ':''}${l.name} ${tag}</span></div>
+      <div class="rl-sum">${money(l.price*l.qty)}</div>
+      <div class="rl-act">${act}</div>
+    </div>`;
+  }).join('');
+
+  const picked = lines.filter(l=>selLines.has(l.id));
+  const others = S.tabs.filter(x=>!x.closedAt && x.id!==selTab);
+  const selBar = picked.length ? `<div class="rc-sel">
+      <span class="cnt">выбрано ${picked.length} на ${money(picked.reduce((s,l)=>s+l.price*l.qty,0))} Rp</span>
+      <div class="btns">
+        <button class="go" data-newtabsel="${v.id}">В новый счёт</button>
+        ${others.length?`<span class="lbl">или на:</span>`:''}
+        ${others.map(x=>`<button data-moveto="${x.id}">${visitById(x.visitId).id===v.id? x.title : esc(visitById(x.visitId).name)+' · '+x.title}</button>`).join('')}
+        <button data-clearsel="1">снять</button>
+      </div></div>` : '';
+
+  const drafts = lines.filter(l=>l.status==='draft').length;
+  const send = (drafts && sendTimer)? `<div class="rc-send"><span>на кухню через ${sendLeft}</span>
+      <span class="bar"><i style="width:${sendLeft/SEND_DELAY*100}%"></i></span>
+      <button data-sendnow="1">отправить сейчас</button></div>`:'';
+
+  const total = t?tabTotal(t.id):0;
+  const cnt = lines.filter(l=>l.kind==='item').reduce((s,l)=>s+l.qty,0);
+  const ev = S.events.filter(e=>e.visitId===v.id).slice().reverse();
+
+  return `<div class="receipt"><div class="rc-in">
+    <div class="rc-head"><div class="rc-venue">${VENUE}</div>
+      <div class="rc-sub">${v.bookedAt?`по записи на ${hhmm(v.bookedAt)}`:'без записи'} · пришёл ${hhmm(v.startedAt)}</div></div>
+    <div class="rc-guest"><b>${esc(v.name)}</b><span>${v.guests} чел.</span></div>
+    <div class="rc-tabs">
+      ${tabs.map(x=>`<button class="${x.id===selTab?'on':''}" data-tab="${x.id}">${x.title}${x.closedAt?' ✓':x.paid?' · опл.':''}</button>`).join('')}
+      <button class="add" data-addtab="${v.id}">+ разделить</button></div>
+    <div class="rc-lines">${rows || '<div class="rc-empty">Счёт пустой.<br>Тапни блюдо в меню слева.</div>'}</div>
+    ${selBar}
+    ${send}
+    <div class="rc-total"><span>Итого</span><span>${money(total)} Rp</span></div>
+    <div class="rc-count">${cnt} поз. · ${t&&t.paid?'оплачен':'не оплачен'}</div>
+    <div class="rc-pay">
+      ${live?`<button class="ghost" data-freebanya="${v.id}">Отметить, что вышел из бани</button>`:''}
+      ${t?`<button class="${t.paid?'paid':''}" data-pay="${t.id}">${t.paid?'Оплата принята ✓':'Принять оплату'}</button>`:''}
+      ${t&&t.paid?`<button class="ghost" data-close="${t.id}">Закрыть счёт</button>`:''}
+    </div>
+    <details class="rc-log"><summary>История визита (${ev.length})</summary>
+      ${ev.map(e=>`<div>${hhmm(e.ts)} — ${esc(e.text)}</div>`).join('')}</details>
+    <div class="rc-thx">♡ THANK YOU</div>
+  </div></div>`;
+}
+
+function kitchenHTML(){
+  const open={}, done={};
+  S.lines.filter(l=>l.ticketId && l.status!=='done').forEach(l=>{ (open[l.ticketId]=open[l.ticketId]||[]).push(l); });
+  S.lines.filter(l=>l.ticketId && l.status==='done' && l.doneAt && now()-l.doneAt<3600000)
+    .forEach(l=>{ (done[l.ticketId]=done[l.ticketId]||[]).push(l); });
+
+  const card=(tk,ls,isDone)=>{
+    const tab=S.tabs.find(t=>t.id===ls[0].tabId), v=visitById(tab.visitId);
+    const mins=Math.floor((now()-ls[0].sentAt)/60000);
+    return `<div class="ticket ${isDone?'':'hot'}">
+      <div class="th"><span class="tw">${esc(v.name)}</span><span class="tt">${isDone?'отдано':mins+' мин'}</span></div>
+      <ul>${ls.map(l=>`<li class="${isDone?'gone':''}"><span>${l.name}</span><span class="q">${l.qty}</span></li>`).join('')}</ul>
+      <div class="tf">${isDone?`<div class="sub">${hhmm(ls[0].doneAt)}</div>`
+        :`<button data-done="${tk}">Отдано</button><div class="sub">${tab.title}${v.banya?' · после бани':''} · ${hhmm(ls[0].sentAt)}</div>`}</div></div>`;
+  };
+  const oc=Object.entries(open).sort((a,b)=>a[1][0].sentAt-b[1][0].sentAt).map(([k,l])=>card(k,l,false)).join('');
+  const dc=Object.entries(done).sort((a,b)=>b[1][0].doneAt-a[1][0].doneAt).map(([k,l])=>card(k,l,true)).join('');
+
+  return `<div class="kwrap"><div>
+    <p class="eyebrow">В работе</p>
+    ${oc? `<div class="tickets">${oc}</div>`
+      : `<div class="card"><h3>Заказов нет</h3><p class="hint">Новые прилетают сюда сами, как только администратор соберёт заказ на гостя.</p></div>`}
+    ${dc?`<p class="eyebrow" style="margin-top:26px">Отдано за последний час</p><div class="tickets">${dc}</div>`:''}
+  </div><div class="tg">
+    <h4>Уведомления кухни</h4>
+    <p class="hint">Так заказ выглядит в чате. Сообщение уходит автоматически.</p>
+    <div class="tg-feed">${S.feed.slice(0,12).map(f=>`<div class="msg">${esc(f.text)}<time>${hhmm(f.ts)}</time></div>`).join('')||'<div class="hint">Пока пусто.</div>'}</div>
+    <div class="tg-hook"><label class="eyebrow" for="hook">Адрес вебхука — чтобы уходило в реальный чат</label>
+      <input id="hook" value="${esc(hook)}" placeholder="https://hook.eu2.make.com/…">
+      <div class="st">${hookState||'не подключён — сообщения остаются здесь'}</div></div>
+  </div></div>`;
+}
+
+function reportHTML(){
+  const r=report();
+  return `<p class="eyebrow">Итоги — по закрытым счетам</p>
+  <div class="kpis">
+    <div class="kpi"><div class="kl">Выручка</div><div class="kv">${money(r.rev/1000)}<small>тыс Rp</small></div></div>
+    <div class="kpi"><div class="kl">Средний чек</div><div class="kv">${money(r.avg/1000)}<small>тыс</small></div></div>
+    <div class="kpi"><div class="kl">Еда на гостя бани</div><div class="kv">${money(r.perGuest/1000)}<small>тыс</small></div></div>
+    <div class="kpi"><div class="kl">Гостей в бане</div><div class="kv">${r.bGuests}</div></div>
+    <div class="kpi"><div class="kl">Доля еды</div><div class="kv">${r.rev?Math.round(r.food/r.rev*100):0}<small>%</small></div></div>
+    <div class="kpi"><div class="kl">Неявки сегодня</div><div class="kv">${r.bkAll?Math.round(r.bkNo/r.bkAll*100):0}<small>% · ${r.bkNo} из ${r.bkAll}</small></div></div>
+  </div>
+  <p class="eyebrow">Что приносит деньги</p>
+  <div class="bars">${r.top.map(([n,s])=>`<div class="bar-row ${n.startsWith('Баня')?'banya':''}">
+    <span>${esc(n)}</span><span class="track"><i style="width:${Math.max(2,s/r.max*100)}%"></i></span>
+    <span class="amt">${money(s/1000)} тыс</span></div>`).join('')}</div>
+  <div class="foot"><span>Демо VisionDrive · AMMÉ слой 1. Баня: ${money(BANYA)} Rp / чел / сеанс. Данные только в этом браузере.</span>
+    <button data-reset="1">Сбросить всё</button></div>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const d=b.dataset;
+  if(d.nav){ view=d.nav; render(); return; }
+  if(d.arrive){ arrive(S.bookings.find(x=>x.id===d.arrive)); return; }
+  if(d.noshow){ noshow(S.bookings.find(x=>x.id===d.noshow)); return; }
+  if(d.unmark){ unmark(S.bookings.find(x=>x.id===d.unmark)); return; }
+  if(d.swbanya){ toggleBanya(S.bookings.find(x=>x.id===d.swbanya)); return; }
+  if(d.import){ const ta=document.getElementById('imp'); if(ta&&ta.value.trim()) importBookings(ta.value, d.import==='replace'); return; }
+  if(d.openvisit){ selVisit=d.openvisit; selTab=(tabsOf(d.openvisit).find(t=>!t.closedAt)||{}).id; view='guests'; render(); return; }
+  if(d.visit){ selVisit=(selVisit===d.visit?null:d.visit); selTab=selVisit?(tabsOf(selVisit).find(t=>!t.closedAt)||{}).id:null; render(); return; }
+  if(d.walkopen){ walkOpen=true; render(); return; }
+  if(d.wg){ wGuests=Math.max(1,wGuests+ +d.wg); render(); return; }
+  if(d.wb){ wBanya=d.wb==='1'; render(); return; }
+  if(d.walkgo){ const i=document.getElementById('wname'); wName=i?i.value:''; startWalkin(); return; }
+  if(d.dish){ addDish(MENU.find(m=>m.id===d.dish)); return; }
+  if(d.tab){ selTab=d.tab; render(); return; }
+  if(d.addtab){ addTab(visitById(d.addtab)); return; }
+  if(d.minus){ bumpQty(S.lines.find(l=>l.id===d.minus),-1); return; }
+  if(d.pick){ toggleLine(d.pick); return; }
+  if(d.plus){ bumpQty(S.lines.find(l=>l.id===d.plus),1); return; }
+  if(d.newtabsel){ moveSelectedToNewTab(visitById(d.newtabsel)); return; }
+  if(d.moveto){ moveSelected(d.moveto); return; }
+  if(d.clearsel){ clearSel(); return; }
+  if(d.sendnow){ sendNow(); return; }
+  if(d.freebanya){ freeBanya(visitById(d.freebanya)); return; }
+  if(d.endsession){ endSession(); return; }
+  if(d.pay){ payTab(S.tabs.find(t=>t.id===d.pay)); return; }
+  if(d.close){ closeTab(S.tabs.find(t=>t.id===d.close)); return; }
+  if(d.done){ markDone(d.done); return; }
+  if(d.reset){ S=blank(); seedHistory(); seedBookings(); selVisit=null; selTab=null; save(); render(); return; }
+});
+document.addEventListener('input', e=>{
+  if(e.target.id==='wname') wName=e.target.value;
+  if(e.target.id==='hook'){ hook=e.target.value.trim(); hookState=hook?'подключён':''; }
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && e.target.id==='wname'){ wName=e.target.value; startWalkin(); }
+});
+setInterval(()=>{ if(view==='guests'||view==='kitchen'||view==='book') render(); }, 30000);
+
+load();
+</script>
+</body>
+</html>

@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const protectedRoutes = ['/clinic']
-const publicRoutes = ['/login', '/api/auth/login', '/api/auth/logout']
+const protectedRoutes = ['/clinic', '/amme']
+const publicRoutes = [
+  '/login',
+  '/amme/login',
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/amme/auth/login',
+  '/api/amme/auth/logout',
+]
 
 function isRoute(pathname: string, routes: string[]) {
   return routes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
@@ -28,9 +35,19 @@ export function proxy(request: NextRequest) {
     const authToken = request.cookies.get('authToken')?.value
 
     if (!authToken) {
-      const loginUrl = new URL('/login', request.url)
+      const loginUrl = new URL(
+        pathname.startsWith('/amme') ? '/amme/login' : '/login',
+        request.url
+      )
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
+    }
+
+    if (pathname.startsWith('/amme')) {
+      const portal = request.cookies.get('portal')?.value
+      if (portal !== 'amme') {
+        return NextResponse.redirect(new URL('/amme/login', request.url))
+      }
     }
   }
 
@@ -38,5 +55,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/clinic/:path*', '/portal/:path*', '/api/portal/:path*'],
+  matcher: ['/clinic/:path*', '/amme', '/amme/:path*', '/portal/:path*', '/api/portal/:path*'],
 }
